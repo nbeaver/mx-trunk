@@ -581,12 +581,15 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	MX_MCA *mca = NULL;
 	MX_MCS *mcs = NULL;
+	MX_RECORD *dante_record = NULL;
+	MX_DANTE *dante = NULL;
 	uint32_t call_id;
 	uint16_t dante_error_code = DLL_NO_ERROR;
 	bool dante_error_status;
 	MX_DANTE_CONFIGURATION *mx_dante_configuration = NULL;
 	InputMode input_mode;
 	GatingMode gating_mode;
+	unsigned long dante_flags;
 
 	/* FIXME: We should probably test the consistency of the
 	 * pointers passed to us, but not now.
@@ -613,6 +616,30 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 		mcs = NULL;
 	} else {
 		mcs = (MX_MCS *) dante_mcs->record->record_class_struct;
+	}
+
+	dante_record = dante_mca->dante_record;
+
+	if ( dante_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The dante_record pointer for MCA '%s' is NULL.",
+			dante_mca->record->name );
+	}
+
+	dante = (MX_DANTE *) dante_record->record_type_struct;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE pointer for Dante record '%s' used by "
+		"Dante MCA '%s' is NULL.",
+			dante_record->name,
+			dante_mca->record->name );
+	}
+
+	dante_flags = dante->dante_flags;
+
+	if ( dante_flags != 0 ) {
+		MX_DEBUG(-2,("%s: dante_flags = %#lx", fname, dante_flags));
 	}
 
 	/*---*/
@@ -651,14 +678,14 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	/* Configure the standard acquisition parameters. */
 
-#if 0
-	call_id = configure( dante_mca->identifier,
+	if ( dante_flags & MXF_DANTE_SET_BOARDS_TO_0xFF ) {
+		call_id = configure( dante_mca->identifier, 0xff,
+				mx_dante_configuration->configuration );
+	} else {
+		call_id = configure( dante_mca->identifier,
 				dante_mca->board_number,
 				mx_dante_configuration->configuration );
-#else
-	call_id = configure( dante_mca->identifier, 0xff,
-				mx_dante_configuration->configuration );
-#endif
+	}
 
 	MX_DEBUG(-2,("%s: Configuring MCA '%s' with call_id = %lu",
 		fname, dante_mca->record->name, (unsigned long) call_id));
@@ -734,13 +761,13 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	mx_dante_configuration->input_mode = input_mode;
 
-#if 0
-	call_id = configure_input( dante_mca->identifier,
-				dante_mca->board_number,
-				input_mode );
-#else
-	call_id = configure_input( dante_mca->identifier, 0xff, input_mode );
-#endif
+	if ( dante_flags & MXF_DANTE_SET_BOARDS_TO_0xFF ) {
+		call_id = configure_input( dante_mca->identifier,
+						0xff, input_mode );
+	} else {
+		call_id = configure_input( dante_mca->identifier,
+				dante_mca->board_number, input_mode );
+	}
 
 	mxi_dante_wait_for_answer( call_id );
 
@@ -810,13 +837,13 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	mx_dante_configuration->gating_mode = gating_mode;
 
-#if 0
-	call_id = configure_gating( dante_mca->identifier,
-					gating_mode,
-					dante_mca->board_number );
-#else
-	call_id = configure_gating( dante_mca->identifier, gating_mode, 0xff );
-#endif
+	if ( dante_flags & MXF_DANTE_SET_BOARDS_TO_0xFF ) {
+		call_id = configure_gating( dante_mca->identifier,
+						gating_mode, 0xff );
+	} else {
+		call_id = configure_gating( dante_mca->identifier,
+					gating_mode, dante_mca->board_number );
+	}
 
 	mxi_dante_wait_for_answer( call_id );
 

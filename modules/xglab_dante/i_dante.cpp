@@ -678,7 +678,9 @@ mxi_dante_special_processing_setup( MX_RECORD *record )
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	record_field_array = record->record_field_array;
 
@@ -778,7 +780,9 @@ mxi_dante_configure( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
+#endif
 
 	dante = (MX_DANTE *) record->record_type_struct;
 
@@ -1424,6 +1428,164 @@ mxi_dante_save_config_file( MX_RECORD *record )
 
 /*-------------------------------------------------------------------------*/
 
+/* WARNING: mxi_dante_parse_xml_buffer() _ASSUMES_ that there is only one
+ * XML item on each line.  Also note that the contents of the 'buffer'
+ * argument _will_ be changed by this function.
+ */
+
+static mx_bool_type
+mxi_dante_parse_xml_buffer( char *buffer,
+			const char *expected_name,
+			char *item_name, size_t max_item_name_length,
+			char *item_value, size_t max_item_value_length )
+{
+	char *name, *name_end;
+	char *value, *value_end;
+
+	if ( buffer == (char *) NULL ) {
+		return FALSE;
+	}
+	if ( item_name == (char *) NULL ) {
+		return FALSE;
+	}
+
+	strlcpy( item_name, "", max_item_name_length );
+
+	if ( item_value != (char *) NULL ) {
+		strlcpy( item_value, "", max_item_value_length );
+	}
+
+	/* Get the item name. */
+
+	name = strchr( buffer, '<' );
+
+	if ( name == (char *) NULL ) {
+		return FALSE;
+	}
+
+	name++;
+
+	name_end = strchr( name, '>' );
+
+	if ( name_end == (char *) NULL ) {
+		return FALSE;
+	}
+
+	*name_end = '\0';
+
+	strlcpy( item_name, name, max_item_name_length );
+
+	/* If we were passed an expected value for the item name,
+	 * then check to see if we have a match.  If no expected
+	 * name was specified, then skip over this.
+	 */
+
+	if ( expected_name != (const char *) NULL ) {
+		if ( strcmp( item_name, expected_name ) != 0 ) {
+			return FALSE;
+		}
+	}
+
+	/* Get the item value. */
+
+	if ( item_value == (char *) NULL ) {
+		return TRUE;
+	}
+
+	value = name_end + 1;
+
+	value_end = strchr( value, '<' );
+
+	if ( value_end == (char *) NULL ) {
+		return FALSE;
+	}
+
+	*value_end = '\0';
+
+	strlcpy( item_value, value, max_item_value_length );
+
+	return TRUE;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxi_dante_save_xml_value( char *buffer,
+			const char *expected_name,
+			unsigned long mx_datatype,
+			void *destination_ptr )
+{
+	static const char fname[] = "mxi_dante_save_xml_value()";
+
+	char item_name[80], item_value[80];
+	unsigned long *ulong_ptr;
+	double *double_ptr;
+	mx_bool_type parse_status;
+	mx_status_type mx_status;
+
+	char *buffer_copy = strdup( buffer );
+
+	if ( destination_ptr == NULL ) {
+		parse_status = mxi_dante_parse_xml_buffer( buffer_copy,
+					expected_name,
+					item_name, sizeof(item_name),
+					NULL, 0 );
+	} else {
+		parse_status = mxi_dante_parse_xml_buffer( buffer_copy,
+					expected_name,
+					item_name, sizeof(item_name),
+					item_value, sizeof(item_value) );
+	}
+
+	if ( parse_status == FALSE ) {
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Did not find '%s' in XML buffer '%s'.",
+			expected_name, buffer );
+
+		mx_free( buffer_copy );
+		return mx_status;
+	}
+
+	MX_DEBUG(-2,("%s: item_name = '%s', item_value = '%s'.",
+ 		fname, item_name, item_value));
+
+	if ( destination_ptr == NULL ) {
+		MX_DEBUG(-2,("%s: Item '%s' seen.", fname, expected_name));
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	switch( mx_datatype ) {
+	case MXFT_ULONG:
+		ulong_ptr = (unsigned long *) destination_ptr;
+
+		*ulong_ptr = atol( item_value );
+
+		MX_DEBUG(-2,("%s: Item '%s' = %lu",
+			fname, expected_name, *ulong_ptr ));
+		break;
+	case MXFT_DOUBLE:
+		double_ptr = (double *) destination_ptr;
+
+		*double_ptr = atof( item_value );
+
+		MX_DEBUG(-2,("%s: Item '%s' = %f",
+			fname, expected_name, *double_ptr ));
+		break;
+	default:
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported MX datatype %lu for buffer '%s'",
+			mx_datatype, buffer );
+
+		mx_free(buffer_copy);
+		return mx_status;
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 /* Some special values for DPP section numbers. */
 
 #define MX_DPP_IN_EXAMPLE_SECTION	(-1)
@@ -1456,6 +1618,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	int saved_errno;
 	char buffer[200];
 
+	mx_bool_type parse_status;
 	mx_status_type mx_status;
 
 	if ( dante_record == (MX_RECORD *) NULL ) {
@@ -1478,12 +1641,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	MX_DEBUG(-2,("%s: DANTE record '%s' will load parameters "
 		"from config file '%s'.",
 			fname, dante_record->name, dante->config_filename ));
-
-	/* FIXME???: We are reading the XML by hand, in order to avoid having
-	 * to find an XML library with an appropriate license to link to for
-	 * this.  If we need to do much more XML processing in the future
-	 * elsewhere in MX, we may want to revisit this choice here.
-	 */
 
 	/* mx_cfn_fopen( MX_CFN_CONFIG, ... ) tells MX that the default
 	 * location of the Dante XML file is in the MX 'etc' directory.
@@ -1538,6 +1695,11 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	 *
 	 * expat - an MIT licensed SAX-style parser which may cover fewer
 	 *         of our platforms than libxml2.
+	 *
+	 * yxml - an MIT license SAX-style(?) parser.
+	 *     https://dev.yorhel.nl/yxml
+	 *
+	 * Of these, yxml is probably the best choice since it is small.
 	 *
 	 * Please note that any external XML library used must NOT change
 	 * the license for MX as a whole from the MIT style MX uses now.
@@ -1877,7 +2039,57 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		 */
 
 		if ( dpp_section == MX_DPP_IN_COMMON_SECTION ) {
-			mx_warning("Skipping common: '%s'", buffer);
+
+			/* The following is commented out because it
+			 * does not work yet.
+			 */
+#if 0
+			char item_name[80], item_value[80];
+
+			mx_breakpoint();
+
+			item_name[0] = '\0';
+			item_value[0] = '\0';
+
+			/* FIXME: The following make no provision for
+			 * additions to the XML in later versions.  It
+			 * is also quite kludgy and should be replaced.
+			 */
+
+			mx_status = mxi_dante_save_xml_value( buffer,
+					"Single_Spectrum", MXFT_CHAR, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+	        	mx_fgets( buffer, sizeof(buffer), config_file );
+
+			mx_status = mxi_dante_save_xml_value( buffer,
+				"time", MXFT_DOUBLE,
+				&(dante->common.single_spectrum.time) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+	        	mx_fgets( buffer, sizeof(buffer), config_file );
+
+			mx_status = mxi_dante_save_xml_value( buffer,
+				"energy_bins", MXFT_DOUBLE,
+				&(dante->common.single_spectrum.energy_bins) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+	        	mx_fgets( buffer, sizeof(buffer), config_file );
+
+			mx_status = mxi_dante_save_xml_value( buffer,
+					"/Single_Spectrum", MXFT_CHAR, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* End of DPP_COMMON_CONFIG processing. */
+#endif
 
 			continue; /* Go back to the top of the while(1) loop.*/
 		}
