@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2019 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1069,6 +1069,10 @@ motor_show_version( void )
 	mx_status_type mx_status;
 
 	list_head = mx_get_record_list_head_struct( motor_record_list );
+
+#if defined(MX_ARCH)
+	fprintf( output, "MX architecture: " MX_ARCH "\n" );
+#endif
 
 	revision_string = mx_get_revision_string();
 

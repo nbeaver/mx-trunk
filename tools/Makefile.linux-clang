@@ -4,11 +4,17 @@
 
 all:   ../libMx/mx_private_version.h mx_config smvspatial.o \
 	strlcpy.o strlcat.o \
-	unix/src/editline/libedit.a
+	unix/src/editline/libedit.a \
+	cJSON.o
 
 include ../libMx/Makefile.version
 
-include ../libMx/Makehead.linux
+include ../libMx/Makehead.linux-clang
+
+#------------------------------------------------------------------------
+#
+# Macros for the 'editline' package.
+#
 
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
@@ -29,10 +35,22 @@ EDITLINE_MAKECMD = \
 
 include Include.subversion
 
+# Find the default Python version.  We now default to Python 3.
+
+ifndef MX_PYTHON
+    MX_PYTHON = $(shell python3 -V 2>&1 | cut -f2 -d' ' | cut -c1-3)
+endif
+
+$(info Python is [${MX_PYTHON}])
+
+ifneq ($(MX_PYTHON),)
+   python_args = -DMX_PYTHON="$(MX_PYTHON)"
+endif
+
 #------------------------------------------------------------------------
 
 mx_clean:
-	-rm *.o mx_private_version mx_config
+	-rm *.o mx_private_version mx_config mx_revision.txt ldd_temp.txt
 	( cd unix/src/editline ; make clean )
 
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
@@ -61,4 +79,7 @@ strlcat.o: generic/src/strlcat.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	$(CC) -g -c $(OPTIMIZE) -fPIC cJSON/cJSON.c
 

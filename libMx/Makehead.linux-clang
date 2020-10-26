@@ -81,12 +81,13 @@ GCCFLAGS = -Wall -Werror \
 -Wcast-qual \
 -Wshadow \
 -Winline \
--Wno-format-security \
 -Wstrict-prototypes \
 -Wmissing-prototypes \
 -Wnested-externs
 
-CLANG_FLAGS =
+#-Wno-format-security
+
+CLANG_FLAGS = -fwrapv
 
 #--------------------------------------------------------------------------
 #
@@ -158,6 +159,8 @@ MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 MX_LIB_OBJS += ../tools/smvspatial.o
+
+MX_LIB_OBJS += ../tools/cJSON.o
 
 #
 #---------------------------------------------------

@@ -234,7 +234,7 @@ msetup.$(OBJ): msetup.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) msetup.c
 
 mshow.$(OBJ): mshow.c
-	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mshow.c
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) -DMX_ARCH="\"$(MX_ARCH)\"" mshow.c
 
 mstart.$(OBJ): mstart.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mstart.c
