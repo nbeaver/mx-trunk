@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006, 2010, 2013-2014 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006, 2010, 2013-2014, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +55,7 @@
 
 #define MX_MAX_COMPUMOTOR_AXES		8
 
-#define MX_COMPUMOTOR_MAX_COMMAND_LENGTH	200
+#define MXU_COMPUMOTOR_MAX_COMMAND_LENGTH	200
 
 #define MXT_COMPUMOTOR_UNKNOWN		0
 #define MXT_COMPUMOTOR_6000_SERIES	0x1000000
@@ -81,8 +82,9 @@ typedef struct {
 	unsigned long *controller_type;
 	MX_RECORD *(*motor_array)[MX_MAX_COMPUMOTOR_AXES];
 
-	char command[MX_COMPUMOTOR_MAX_COMMAND_LENGTH+1];
-	char response[MX_COMPUMOTOR_MAX_COMMAND_LENGTH+1];
+	char command[MXU_COMPUMOTOR_MAX_COMMAND_LENGTH+1];
+	char response[MXU_COMPUMOTOR_MAX_COMMAND_LENGTH+1];
+
 } MX_COMPUMOTOR_INTERFACE;
 
 
@@ -132,18 +134,18 @@ typedef struct {
 	{sizeof(unsigned long)}, NULL, MXFF_VARARGS }, \
   \
   {MXLV_COMPUMOTOR_COMMAND, -1, "command", MXFT_STRING,\
-				NULL, 1, {MX_COMPUMOTOR_MAX_COMMAND_LENGTH}, \
+				NULL, 1, {MXU_COMPUMOTOR_MAX_COMMAND_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_INTERFACE, command), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_COMPUMOTOR_RESPONSE, -1, "response", MXFT_STRING, \
-				NULL, 1, {MX_COMPUMOTOR_MAX_COMMAND_LENGTH}, \
+				NULL, 1, {MXU_COMPUMOTOR_MAX_COMMAND_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_INTERFACE, response), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_COMPUMOTOR_COMMAND_WITH_RESPONSE, -1, \
   			"command_with_response", MXFT_STRING,\
-			NULL, 1, {MX_COMPUMOTOR_MAX_COMMAND_LENGTH}, \
+			NULL, 1, {MXU_COMPUMOTOR_MAX_COMMAND_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_INTERFACE, command), \
 	{sizeof(char)}, NULL, 0}
 

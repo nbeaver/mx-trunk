@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2010, 2012-2015, 2017, 2019
+ * Copyright 1999-2006, 2010, 2012-2015, 2017, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -885,7 +885,7 @@ mxi_compumotor_process_function( void *record_ptr,
 				compumotor_interface,
 				compumotor_interface->command,
 				compumotor_interface->response,
-				MX_COMPUMOTOR_MAX_COMMAND_LENGTH,
+				MXU_COMPUMOTOR_MAX_COMMAND_LENGTH,
 				MXI_COMPUMOTOR_INTERFACE_DEBUG );
 
 			break;

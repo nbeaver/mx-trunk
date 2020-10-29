@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2007, 2010, 2013-2015
+ * Copyright 1999-2003, 2005-2007, 2010, 2013-2015, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -2004,6 +2004,8 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 	char command[80];
 	char *response;
 	size_t length;
+	unsigned long raw_home_switch_status_offset;
+	char tlim_response[10];
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -2094,13 +2096,13 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 	/* Bit 17: Positive-direction Software Limit Hit */
 
 	if ( response[20] == '1' ) {
-		motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+		motor->status |= MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT;
 	}
 
 	/* Bit 18: Negative-direction Software Limit Hit */
 
 	if ( response[21] == '1' ) {
-		motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+		motor->status |= MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
 	}
 
 	/* Bits 19 to 22: (ignored) */
@@ -2120,6 +2122,31 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 	}
 
 	/* Bits 26 to 32: (ignored) */
+
+	/* We have to use the TLIM command to determine whether
+	 * we are at the home switch or not.
+	 */
+
+	raw_home_switch_status_offset = (4 * (compumotor->axis_number-1) ) + 2;
+
+#if 0
+	MX_DEBUG(-2,("%s: raw_home_switch_status_offset = %lu",
+		fname, raw_home_switch_status_offset));
+#endif
+
+	snprintf( command, sizeof(command), "%ld_!TLIM.%lu",
+					compumotor->controller_number,
+					raw_home_switch_status_offset );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+		tlim_response, sizeof(tlim_response), MXD_COMPUMOTOR_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( tlim_response[0] == '1' ) {
+		motor->status |= MXSF_MTR_AT_HOME_SWITCH;
+	}
 
 #if MXD_COMPUMOTOR_DEBUG 
 	MX_DEBUG(-2,("%s: motor '%s' status = %#lx",
