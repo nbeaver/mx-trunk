@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012, 2014-2017 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2012, 2014-2017, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -191,7 +192,9 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	uint64_t      version_time;
 	unsigned long flags, requested_data_format, socket_flags;
 	long mx_status_code;
+	unsigned long network_debug_flags;
 	mx_bool_type quiet_open;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 	list_head = mx_get_record_list_head_struct( record );
@@ -248,7 +251,18 @@ mxn_tcpip_server_open( MX_RECORD *record )
 		quiet_open = FALSE;
 	}
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( network_server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		fprintf( stderr, "MX TCP_CONNECT to %s@%ld\n",
 			tcpip_server->hostname, tcpip_server->port );
 	}
@@ -433,6 +447,8 @@ mxn_tcpip_server_close( MX_RECORD *record )
 	MX_TCPIP_SERVER *tcpip_server;
 	MX_SOCKET *server_socket;
 	MX_LIST_HEAD *list_head;
+	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 	network_server = (MX_NETWORK_SERVER *) record->record_class_struct;
@@ -463,7 +479,20 @@ mxn_tcpip_server_close( MX_RECORD *record )
 				record->name );
 		}
 
-		if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		network_debug_flags = list_head->network_debug_flags;
+
+		if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+			net_debug_summary = TRUE;
+		} else
+		if ( network_server->server_flags &
+				MXF_NETWORK_SERVER_DEBUG_SUMMARY )
+		{
+			net_debug_summary = TRUE;
+		} else {
+			net_debug_summary = FALSE;
+		}
+
+		if ( net_debug_summary ) {
 			fprintf( stderr, "MX TCP_CLOSE for %s@%ld\n",
 			tcpip_server->hostname, tcpip_server->port );
 		}

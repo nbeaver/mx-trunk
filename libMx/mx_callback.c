@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2015, 2017, 2019 Illinois Institute of Technology
+ * Copyright 2007-2015, 2017, 2019-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -585,6 +585,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	unsigned long network_debug_flags;
 	char nf_label[80];
 	mx_bool_type connected;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
@@ -812,6 +813,15 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	network_debug_flags = list_head->network_debug_flags;
 
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		mx_network_get_nf_label( server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
@@ -890,6 +900,7 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 	char *char_message;
 	unsigned long header_length, message_length, message_type, status_code;
 	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
@@ -949,6 +960,15 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 	network_debug_flags = list_head->network_debug_flags;
 
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 

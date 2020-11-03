@@ -618,6 +618,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	uint32_t *header;
 	uint32_t received_message_id, difference;
 	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -915,6 +916,18 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				record_list_head->network_debug_flags;
 
 			if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+				net_debug_summary = TRUE;
+			} else
+			if ( server->server_flags &
+				MXF_NETWORK_SERVER_DEBUG_SUMMARY )
+			{
+				net_debug_summary = TRUE;
+			} else {
+				net_debug_summary = FALSE;
+			}
+
+			if ( net_debug_summary ) {
+
 				MX_NETWORK_FIELD *nf;
 				unsigned long data_type, message_type;
 				unsigned long header_length, message_length;
@@ -3463,6 +3476,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	uint32_t send_message_type, receive_message_type;
 	uint32_t status_code;
 	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 	char token_buffer[500];
 
@@ -3729,7 +3743,16 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	network_debug_flags = list_head->network_debug_flags;
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		mx_network_get_remote_field_label( NULL, server_record,
 						remote_record_field_name, NULL,
 						nf_label, sizeof(nf_label) );
@@ -3944,6 +3967,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	uint32_t status_code;
 	size_t buffer_left, num_network_bytes;
 	size_t current_length, new_length;
+	mx_bool_type net_debug_summary;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4296,6 +4320,15 @@ mx_put_field_array( MX_RECORD *server_record,
 	network_debug_flags = list_head->network_debug_flags;
 
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		unsigned long handle_length;
 
 		mx_network_get_remote_field_label( NULL, server_record,
@@ -4463,6 +4496,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	uint32_t message_type, status_code;
 	uint32_t header_length_in_32bit_words;
 	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4653,6 +4687,15 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	network_debug_flags = list_head->network_debug_flags;
 
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 				nf_label, sizeof(nf_label) );
@@ -4695,6 +4738,7 @@ mx_get_field_type( MX_RECORD *server_record,
 	uint32_t i, expected_message_length;
 	uint32_t header_length_in_32bit_words;
 	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4891,7 +4935,18 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	network_debug_flags = list_head->network_debug_flags;
 
+	network_debug_flags = list_head->network_debug_flags;
+
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		mx_network_get_nf_label( server_record,
 				remote_record_field_name,
 				nf_label, sizeof(nf_label) );
@@ -4951,6 +5006,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	long i, string_length;
 	char *local_username, *local_program_name;
 	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -5035,7 +5091,18 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	network_debug_flags = list_head->network_debug_flags;
 
+	network_debug_flags = list_head->network_debug_flags;
+
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		char nf_label[ NF_LABEL_LENGTH ];
 
 		mx_network_get_nf_label( server_record, NULL,
@@ -5205,6 +5272,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	uint32_t header_length_in_32bit_words;
 	unsigned long network_debug_flags;
 	mx_bool_type quiet;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -5377,7 +5445,18 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	network_debug_flags = list_head->network_debug_flags;
 
+	network_debug_flags = list_head->network_debug_flags;
+
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		char nf_label[ NF_LABEL_LENGTH ];
 
 		mx_network_get_nf_label( server_record, NULL,
@@ -5413,6 +5492,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	long status_code;
 	unsigned long network_debug_flags;
 	mx_bool_type quiet;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -5453,7 +5533,18 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	network_debug_flags = list_head->network_debug_flags;
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		char nf_label[ NF_LABEL_LENGTH ];
 
 		mx_network_get_nf_label( server_record, NULL,
@@ -5615,6 +5706,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	int xdr_status;
 	unsigned long network_debug_flags;
 	mx_bool_type connected;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -5827,7 +5919,18 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 
 	network_debug_flags = list_head->network_debug_flags;
 
+	network_debug_flags = list_head->network_debug_flags;
+
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
@@ -5870,6 +5973,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	int xdr_status;
 	uint32_t *uint32_value_ptr;
 	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_bool_type connected;
 	mx_status_type mx_status;
 
@@ -5919,6 +6023,15 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	network_debug_flags = list_head->network_debug_flags;
 
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 

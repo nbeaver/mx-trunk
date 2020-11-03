@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2008, 2010-2012, 2014-2017 Illinois Institute of Technology
+ * Copyright 2003-2008, 2010-2012, 2014-2017, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -191,7 +192,9 @@ mxn_unix_server_open( MX_RECORD *record )
 	unsigned long flags, requested_data_format, socket_flags;
 	long mx_status_code;
 	char null_byte;
+	unsigned long network_debug_flags;
 	mx_bool_type quiet_open;
+	mx_bool_type net_debug_summary = TRUE;
 	mx_status_type mx_status;
 
 	list_head = mx_get_record_list_head_struct( record );
@@ -248,7 +251,18 @@ mxn_unix_server_open( MX_RECORD *record )
 		quiet_open = FALSE;
 	}
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else
+	if ( network_server->server_flags & MXF_NETWORK_SERVER_DEBUG_SUMMARY ) {
+		net_debug_summary = TRUE;
+	} else {
+		net_debug_summary = FALSE;
+	}
+
+	if ( net_debug_summary ) {
 		fprintf( stderr, "MX UNIX_CONNECT to %s\n",
 			unix_server->pathname );
 	}
@@ -444,6 +458,8 @@ mxn_unix_server_close( MX_RECORD *record )
 	MX_UNIX_SERVER *unix_server;
 	MX_SOCKET *server_socket;
 	MX_LIST_HEAD *list_head;
+	unsigned long network_debug_flags;
+	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
 	network_server = (MX_NETWORK_SERVER *) record->record_class_struct;
@@ -474,7 +490,20 @@ mxn_unix_server_close( MX_RECORD *record )
 				record->name );
 		}
 
-		if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		network_debug_flags = list_head->network_debug_flags;
+
+		if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+			net_debug_summary = TRUE;
+		} else
+		if ( network_server->server_flags &
+				MXF_NETWORK_SERVER_DEBUG_SUMMARY )
+		{
+			net_debug_summary = TRUE;
+		} else {
+			net_debug_summary = FALSE;
+		}
+
+		if ( net_debug_summary ) {
 			fprintf( stderr, "MX UNIX_CLOSE for %s\n",
 			unix_server->pathname );
 		}
