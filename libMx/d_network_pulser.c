@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2007, 2014-2016, 2018 Illinois Institute of Technology
+ * Copyright 2002-2007, 2014-2016, 2018, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -681,7 +681,7 @@ mxd_network_pulser_get_status( MX_PULSE_GENERATOR *pulse_generator )
 	dimension[0] = MXU_PGN_NUM_SETUP_PARAMETERS;
 
 	mx_status = mx_get_array( &(network_pulser->status_nf),
-		MXFT_DOUBLE, 1, dimension, &(pulse_generator->status) );
+		MXFT_HEX, 1, dimension, &(pulse_generator->status) );
 
 	return mx_status;
 }
