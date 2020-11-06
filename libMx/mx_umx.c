@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,6 +68,10 @@ mx_umx_command( MX_RECORD *umx_record,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_UMX_SERVER pointer for UMX server '%s' is NULL.",
 			umx_record->name );
+	}
+
+	if ( umx_server->umx_flags & MXF_UMX_SERVER_DEBUG ) {
+		debug_flag = TRUE;
 	}
 
 	rs232_record = umx_server->rs232_record;
