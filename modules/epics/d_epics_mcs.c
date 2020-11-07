@@ -1470,8 +1470,10 @@ mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs )
 
 	mcs->last_measurement_number = current_channel - 1L;
 
+#if 0
 	MX_DEBUG(-2,("%s last_measurement_number = %ld",
 		mcs->record->name, mcs->last_measurement_number));
+#endif
 
 	return mx_status;
 }

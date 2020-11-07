@@ -15,9 +15,11 @@
  *
  */
 
-#define ENABLE_CLEAR_DEADBAND	TRUE
+#define MX_MCS_DEBUG_STATUS		FALSE
 
-#define DEBUG_CLEAR_DEADBAND	FALSE
+#define MX_MCS_ENABLE_CLEAR_DEADBAND	TRUE
+
+#define MX_MCS_DEBUG_CLEAR_DEADBAND	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -478,7 +480,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
-#if ( ENABLE_CLEAR_DEADBAND == FALSE )
+#if ( MX_MCS_ENABLE_CLEAR_DEADBAND == FALSE )
 	mx_status = (*clear_fn)( mcs );
 
 	return mx_status;
@@ -496,7 +498,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			comparison = mx_compare_clock_ticks( current_tick,
 							mcs->next_clear_tick );
 
-#if DEBUG_CLEAR_DEADBAND
+#if MX_MCS_DEBUG_CLEAR_DEADBAND
 			MX_DEBUG(-2,
 	("%s: current tick = (%lu,%lu), next tick = (%lu,%lu), comparison = %d",
 				fname, current_tick.high_order,
@@ -513,7 +515,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			}
 		}
 
-#if DEBUG_CLEAR_DEADBAND
+#if MX_MCS_DEBUG_CLEAR_DEADBAND
 		MX_DEBUG(-2,("%s: do_clear = %d", fname, (int) do_clear));
 #endif
 
@@ -528,7 +530,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			mcs->next_clear_tick =
 				mx_add_clock_ticks( current_tick,
 					mcs->clear_deadband_ticks );
-#if DEBUG_CLEAR_DEADBAND
+#if MX_MCS_DEBUG_CLEAR_DEADBAND
 			MX_DEBUG(-2,("%s: clear_deadband = %g sec, "
 			"clear_deadband_ticks = (%lu,%lu)",
 			fname, mcs->clear_deadband,
@@ -853,7 +855,7 @@ mx_mcs_get_extended_status( MX_RECORD *record,
 
 	mcs->status |= mcs->latched_status;
 
-#if 1 || MX_MCS_DEBUG_STATUS
+#if MX_MCS_DEBUG_STATUS
 	MX_DEBUG(-2,
 	("%s: last_measurement_number = %ld, total_num_measurements = %ld, "
 	 "status = %#lx",
@@ -2137,7 +2139,7 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 
 	case MXLV_MCS_CLEAR_DEADBAND:
 
-#if DEBUG_CLEAR_DEADBAND
+#if MX_MCS_DEBUG_CLEAR_DEADBAND
 		MX_DEBUG(-2,("%s invoked for clear_deadband = %g seconds.",
 			fname, mcs->clear_deadband));
 #endif
@@ -2147,7 +2149,7 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 
 		mcs->next_clear_tick = mx_current_clock_tick();
 
-#if DEBUG_CLEAR_DEADBAND
+#if MX_MCS_DEBUG_CLEAR_DEADBAND
 		MX_DEBUG(-2,
 	("%s: clear_deadband_ticks = (%lu,%lu), next_clear_tick = (%lu,%lu)",
 			fname, mcs->clear_deadband_ticks.high_order,

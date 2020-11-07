@@ -76,6 +76,8 @@ motor_mcs_fn( int argc, char *argv[] )
 	static char usage[] =
   "Usage:  mcs 'mcs_name' count 'measurement_time' 'num_measurements\n"
   "        mcs 'mcs_name' rawcount 'measurement_time' 'num_measurements\n"
+  "        mcs 'mcs_name' stream 'measurement_time' 'num_measurements\n"
+  "        mcs 'mcs_name' rawstream 'measurement_time' 'num_measurements\n"
   "        mcs 'mcs_name' start [ 'measurement_time' 'num_measurements' ]\n"
   "        mcs 'mcs_name' arm [ 'measurement_time' 'num_measurements' ]\n"
   "        mcs 'mcs_name' trigger\n"
@@ -234,19 +236,26 @@ motor_mcs_fn( int argc, char *argv[] )
 				!= old_last_measurement_number )
 			{
 				fprintf( output,
-	"MCS '%s': *** last measurement number has changed from %ld to %ld.\n",
+				"MCS '%s': *** measurement %ld acquired ***\n",
 					mcs_record->name,
-					old_last_measurement_number,
 					last_measurement_number );
 
 				old_last_measurement_number
 					= last_measurement_number;
 
-				mx_status = mx_mcs_read_all( mcs_record,
-							NULL, NULL, NULL );
+				mx_status = mx_mcs_read_measurement(
+					mcs_record, last_measurement_number,
+					&num_scalers, &measurement_data );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return FAILURE;
+
+				for ( i = 0; i < num_scalers; i++ ) {
+					fprintf( output,
+					" %lu", measurement_data[i] );
+				}
+
+				fprintf( output, "\n" );
 			}
 
 			mx_msleep(500);
