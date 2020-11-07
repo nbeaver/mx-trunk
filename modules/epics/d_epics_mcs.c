@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011, 2014-2016, 2018-2019
+ * Copyright 1999-2006, 2008-2011, 2014-2016, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1188,7 +1188,9 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_set_parameter()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
+#if 0
 	MX_EPICS_GROUP epics_group;
+#endif
 	double dwell_time, preset_live_time, dark_current;
 	unsigned long do_not_skip;
 	int32_t stop, current_num_epics_measurements, external_channel_advance;
@@ -1229,7 +1231,23 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 		dwell_time = mcs->measurement_time;
 
-#if 0
+#if 1
+		/* Send a command to stop the MCS,
+		 * just in case it was counting.
+		 */
+
+		if ( epics_mcs->epics_record_version >= 5.0 ) {
+			stop = 1;
+		} else {
+			stop = 0;
+		}
+
+		mx_status = mx_caput( &(epics_mcs->stop_pv),
+					MX_CA_LONG, 1, &stop );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		mx_status = mx_caput( &(epics_mcs->dwell_pv),
 					MX_CA_DOUBLE, 1, &dwell_time );
 
@@ -1293,6 +1311,32 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 				= (long) mcs->current_num_measurements + 1L;
 		}
 
+#if 1
+		/* Turn off preset real time. */
+
+		preset_real_time = 0.0;
+
+		mx_status = mx_caput( &(epics_mcs->prtm_pv),
+					MX_CA_FLOAT, 1, &preset_real_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Set the measurement preset. */
+
+		if ( epics_mcs->epics_record_version >= 5.0 ) {
+
+			mx_status = mx_caput( &(epics_mcs->nuse_pv),
+				MX_CA_LONG, 1, &current_num_epics_measurements);
+		} else {
+			preset_live_time = mcs->measurement_time
+				* (double) current_num_epics_measurements;
+
+			mx_status = mx_caput( &(epics_mcs->pltm_pv),
+					MX_CA_DOUBLE, 1, &preset_live_time );
+		}
+
+#else
 		/* Put the following two caputs into
 		 * an EPICS synchronous group.
 		 */
@@ -1338,6 +1382,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+#endif
 		break;
 
 	case MXLV_MCS_DARK_CURRENT:
