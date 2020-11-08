@@ -63,7 +63,7 @@ motor_mcs_fn( int argc, char *argv[] )
 	unsigned long i, j, channel_number, measurement_number;
 	unsigned long num_scalers, num_measurements;
 	long last_measurement_number, total_num_measurements;
-	long old_last_measurement_number;
+	long meas, old_last_measurement_number;
 	unsigned long mcs_status;
 	long trigger_mode, raw_trigger_mode;
 	long *scaler_data;
@@ -76,8 +76,10 @@ motor_mcs_fn( int argc, char *argv[] )
 	static char usage[] =
   "Usage:  mcs 'mcs_name' count 'measurement_time' 'num_measurements\n"
   "        mcs 'mcs_name' rawcount 'measurement_time' 'num_measurements\n"
+  "\n"
   "        mcs 'mcs_name' stream 'measurement_time' 'num_measurements\n"
   "        mcs 'mcs_name' rawstream 'measurement_time' 'num_measurements\n"
+  "\n"
   "        mcs 'mcs_name' start [ 'measurement_time' 'num_measurements' ]\n"
   "        mcs 'mcs_name' arm [ 'measurement_time' 'num_measurements' ]\n"
   "        mcs 'mcs_name' trigger\n"
@@ -232,19 +234,20 @@ motor_mcs_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			if ( last_measurement_number
-				!= old_last_measurement_number )
+			for ( meas = old_last_measurement_number+1;
+			    meas <= last_measurement_number; meas++ )
 			{
 				fprintf( output,
 				"MCS '%s': *** measurement %ld acquired ***\n",
 					mcs_record->name,
 					last_measurement_number );
 
-				old_last_measurement_number
-					= last_measurement_number;
+#if 0
+				mx_breakpoint();
+#endif
 
 				mx_status = mx_mcs_read_measurement(
-					mcs_record, last_measurement_number,
+					mcs_record, meas,
 					&num_scalers, &measurement_data );
 
 				if ( mx_status.code != MXE_SUCCESS )
@@ -257,6 +260,8 @@ motor_mcs_fn( int argc, char *argv[] )
 
 				fprintf( output, "\n" );
 			}
+
+			old_last_measurement_number = last_measurement_number;
 
 			mx_msleep(500);
 		}
