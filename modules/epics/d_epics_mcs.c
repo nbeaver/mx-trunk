@@ -536,6 +536,23 @@ mxd_epics_mcs_open( MX_RECORD *record )
 				"versions of EPICS." );
 	}
 
+	/* Initialize some variables from the PV values in the IOC crate. */
+
+	mx_status = mx_mcs_get_counting_mode( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_mcs_get_trigger_mode( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_mcs_get_autostart( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if 1
 	/* FIXME:
 	 *
@@ -557,6 +574,8 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 		mx_status = mx_caget( &(epics_mcs->acquiring_pv),
 				MX_CA_LONG, 1, &acquiring_value );
+
+		/* We ignore the returned mx_status structure. */
 	}
 #endif
 
@@ -1073,6 +1092,8 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 	long i, measurement_index;
 	mx_status_type mx_status;
 
+	mx_breakpoint();
+
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1148,21 +1169,14 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 
 		mcs->dark_current_array[ mcs->scaler_index ] = dark_current;
 		break;
+	case MXLV_MCS_COUNTING_MODE:
+		/* Preset time is the only counting mode supported
+		 * by EPICS MCS records.
+		 */
+
+		mcs->counting_mode = MXM_PRESET_TIME;
+		break;
 	case MXLV_MCS_TRIGGER_MODE:
-		mx_status = mx_caget( &(epics_mcs->count_on_start_pv),
-				MX_CA_LONG, 1, &count_on_start );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Auto trigger takes precedence over internal and external. */
-
-		if ( count_on_start ) {
-			mcs->trigger_mode = MXF_DEV_AUTO_TRIGGER;
-
-			return MX_SUCCESSFUL_RESULT;
-		}
-
 		mx_status = mx_caget( &(epics_mcs->chas_pv),
 				MX_CA_LONG, 1, &external_channel_advance );
 
@@ -1173,6 +1187,19 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 			mcs->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 		} else {
 			mcs->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
+		}
+		break;
+	case MXLV_MCS_AUTOSTART:
+		mx_status = mx_caget( &(epics_mcs->count_on_start_pv),
+				MX_CA_LONG, 1, &count_on_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( count_on_start ) {
+			mcs->autostart = TRUE;
+		} else {
+			mcs->autostart = FALSE;
 		}
 		break;
 	default:
@@ -1216,15 +1243,6 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 				MX_CA_LONG, 1, &software_channel_advance );
 
 		mcs->manual_next_measurement = FALSE;
-		break;
-
-	case MXLV_MCS_COUNTING_MODE:
-
-		if ( mcs->counting_mode != MXM_PRESET_TIME ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal MCS mode %ld selected.  Only preset time mode is "
-		"allowed for an EPICS MCS.", mcs->counting_mode );
-		}
 		break;
 
 	case MXLV_MCS_MEASUREMENT_TIME:
@@ -1397,26 +1415,18 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 			return mx_status;
 		break;
 
+	case MXLV_MCS_COUNTING_MODE:
+
+		if ( mcs->counting_mode != MXM_PRESET_TIME ) {
+			mcs->counting_mode = MXM_PRESET_TIME;
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal MCS mode %ld selected.  Only preset time mode is "
+		"allowed for an EPICS MCS.", mcs->counting_mode );
+		}
+		break;
+
 	case MXLV_MCS_TRIGGER_MODE:
-		/* Auto trigger takes precedence over other trigger modes. */
-
-		if ( mcs->trigger_mode == MXF_DEV_AUTO_TRIGGER ) {
-			count_on_start = 1;
-		} else {
-			count_on_start = 0;
-		}
-
-		mx_status = mx_caput( &(epics_mcs->count_on_start_pv),
-				MX_CA_LONG, 1, &count_on_start );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( mcs->trigger_mode == MXF_DEV_AUTO_TRIGGER ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		/* Otherwise, handle other possible trigger modes. */
 
 		switch( mcs->trigger_mode ) {
 		case MXF_DEV_INTERNAL_TRIGGER:
@@ -1438,6 +1448,21 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 		break;
+
+	case MXLV_MCS_AUTOSTART:
+		if ( mcs->autostart ) {
+			count_on_start = 1;
+		} else {
+			count_on_start = 0;
+		}
+
+		mx_status = mx_caput( &(epics_mcs->count_on_start_pv),
+				MX_CA_LONG, 1, &count_on_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+
 	default:
 		return mx_mcs_default_set_parameter_handler( mcs );
 		break;

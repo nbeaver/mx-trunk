@@ -242,10 +242,6 @@ motor_mcs_fn( int argc, char *argv[] )
 					mcs_record->name,
 					last_measurement_number );
 
-#if 0
-				mx_breakpoint();
-#endif
-
 				mx_status = mx_mcs_read_measurement(
 					mcs_record, meas,
 					&num_scalers, &measurement_data );

@@ -28,6 +28,7 @@
 #include "mx_record.h"
 #include "mx_array.h"
 #include "mx_driver.h"
+#include "mx_measurement.h"
 #include "mx_mcs.h"
 
 /*=======================================================================*/
@@ -2144,6 +2145,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_TRIGGER_MODE:
+	case MXLV_MCS_AUTOSTART:
 	case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 	case MXLV_MCS_EXTERNAL_PRESCALE:
 	case MXLV_MCS_MEASUREMENT_TIME:
@@ -2179,6 +2181,7 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_TRIGGER_MODE:
+	case MXLV_MCS_AUTOSTART:
 	case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 	case MXLV_MCS_EXTERNAL_PRESCALE:
 	case MXLV_MCS_MEASUREMENT_TIME:
