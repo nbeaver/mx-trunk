@@ -672,7 +672,9 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_dante_special_processing_setup( MX_RECORD *record )
 {
+#if 0
 	static const char fname[] = "mxi_dante_special_processing_setup()";
+#endif
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -1428,6 +1430,7 @@ mxi_dante_save_config_file( MX_RECORD *record )
 
 /*-------------------------------------------------------------------------*/
 
+#if 0
 /* WARNING: mxi_dante_parse_xml_buffer() _ASSUMES_ that there is only one
  * XML item on each line.  Also note that the contents of the 'buffer'
  * argument _will_ be changed by this function.
@@ -1583,6 +1586,7 @@ mxi_dante_save_xml_value( char *buffer,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -1618,7 +1622,9 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	int saved_errno;
 	char buffer[200];
 
+#if 0
 	mx_bool_type parse_status;
+#endif
 	mx_status_type mx_status;
 
 	if ( dante_record == (MX_RECORD *) NULL ) {
