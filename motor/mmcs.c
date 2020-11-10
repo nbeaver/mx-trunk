@@ -70,7 +70,6 @@ motor_mcs_fn( int argc, char *argv[] )
 	long *measurement_data;
 	long **mcs_data;
 	int status;
-	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -153,9 +152,10 @@ motor_mcs_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		busy = TRUE;
+		mcs_status = MXSF_MCS_IS_BUSY;
+		old_last_measurement_number = -1L;
 
-		while( busy ) {
+		while( mcs_status & MXSF_MCS_IS_BUSY ) {
 			if ( mx_kbhit() ) {
 				(void) mx_getch();
 
@@ -167,10 +167,26 @@ motor_mcs_fn( int argc, char *argv[] )
 				fprintf( output, "MCS measurement aborted.\n" );
 			}
 
-			mx_status = mx_mcs_is_busy( mcs_record, &busy );
+			mx_status = mx_mcs_get_extended_status(
+					mcs_record,
+					&last_measurement_number,
+					&total_num_measurements,
+					&mcs_status );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			if ( last_measurement_number
+				!= old_last_measurement_number )
+			{
+				fprintf( output,
+				"MCS '%s': *** measurement %ld acquired ***\n",
+					mcs_record->name,
+					last_measurement_number );
+
+				old_last_measurement_number
+					= last_measurement_number;
+			}
 
 			mx_msleep(500);
 		}
@@ -305,9 +321,10 @@ motor_mcs_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		busy = TRUE;
+		mcs_status = MXSF_MCS_IS_BUSY;
+		old_last_measurement_number = -1L;
 
-		while( busy ) {
+		while( mcs_status & MXSF_MCS_IS_BUSY ) {
 			if ( mx_kbhit() ) {
 				(void) mx_getch();
 
@@ -319,10 +336,26 @@ motor_mcs_fn( int argc, char *argv[] )
 				fprintf( output, "MCS measurement aborted.\n" );
 			}
 
-			mx_status = mx_mcs_is_busy( mcs_record, &busy );
+			mx_status = mx_mcs_get_extended_status(
+					mcs_record,
+					&last_measurement_number,
+					&total_num_measurements,
+					&mcs_status );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			if ( last_measurement_number
+				!= old_last_measurement_number )
+			{
+				fprintf( output,
+				"MCS '%s': *** measurement %ld acquired ***\n",
+					mcs_record->name,
+					last_measurement_number );
+
+				old_last_measurement_number
+					= last_measurement_number;
+			}
 
 			mx_msleep(500);
 		}

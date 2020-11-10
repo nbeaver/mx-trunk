@@ -488,7 +488,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 				"%sStopAll.VAL", epics_mcs->common_prefix );
 
 		mx_epics_pvname_init( &(epics_mcs->software_channel_advance_pv),
-				"%sSoftwareChannelAdvance.VAL",
+				"%sSoftwareChannelAdvance.PROC",
 						epics_mcs->common_prefix );
 
 	} else {
