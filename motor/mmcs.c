@@ -255,8 +255,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			{
 				fprintf( output,
 				"MCS '%s': *** measurement %ld acquired ***\n",
-					mcs_record->name,
-					last_measurement_number );
+					mcs_record->name, meas );
 
 				mx_status = mx_mcs_read_measurement(
 					mcs_record, meas,
