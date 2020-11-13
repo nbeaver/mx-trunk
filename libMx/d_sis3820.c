@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016, 2019 Illinois Institute of Technology
+ * Copyright 2016, 2019-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -252,15 +252,16 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_new_measurements = acquisition_count - mcs->measurement_number - 1;
+	num_new_measurements = acquisition_count
+		- mcs->last_measurement_number - 1;
 
 	sis3820->unread_measurements_in_fifo = num_new_measurements;
 
 #if MXD_SIS3820_DEBUG_FIFO
 	MX_DEBUG(-2,
-	("FIFO: measurement_number = %ld, acquisition_count = %lu, "
+	("FIFO: last_measurement_number = %ld, acquisition_count = %lu, "
 	"num_new_measurements = %ld, fifo_wordcount = %lu",
-		mcs->measurement_number,
+		mcs->last_measurement_number,
 		(unsigned long) acquisition_count,
 		num_new_measurements,
 		(unsigned long) fifo_wordcount));
@@ -281,7 +282,7 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 
 		mcs->busy = FALSE;
 	} else
-	if ( acquisition_count > (mcs->measurement_number + 1) ) {
+	if ( acquisition_count > (mcs->last_measurement_number + 1) ) {
 		mcs->busy = TRUE;
 	} else 
 	if ( acquisition_completed ) {
@@ -320,7 +321,7 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		i_measurement = i_fifo + mcs->measurement_number + 1;
+		i_measurement = i_fifo + mcs->last_measurement_number + 1;
 
 		/* Take the modulo of the measurement number so that it
 		 * wraps back to the beginning of each scaler's measurement
@@ -382,7 +383,7 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 
 	/* Update the measurement counter */
 
-	mcs->measurement_number = acquisition_count - 1;
+	mcs->last_measurement_number = acquisition_count - 1;
 
 	/* If we are still busy, start the virtual timer to arrange for
 	 * the next callback.
@@ -1073,7 +1074,7 @@ mxd_sis3820_arm( MX_MCS *mcs )
 			return mx_status;
 	}
 
-	mcs->measurement_number = -1;
+	mcs->last_measurement_number = -1;
 	mcs->busy = TRUE;
 
 	sis3820->new_start = TRUE;
@@ -1291,7 +1292,7 @@ mxd_sis3820_get_parameter( MX_MCS *mcs )
 	case MXLV_MCS_MEASUREMENT_TIME:
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 	case MXLV_MCS_DARK_CURRENT:
-	case MXLV_MCS_MEASUREMENT_NUMBER:
+	case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
 		/* Just return the values in the local data structure. */
 
 		break;

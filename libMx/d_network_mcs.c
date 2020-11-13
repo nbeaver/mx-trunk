@@ -245,9 +245,9 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 		"%s.measurement_index", network_mcs->remote_record_name );
 
-	mx_network_field_init( &(network_mcs->measurement_number_nf),
+	mx_network_field_init( &(network_mcs->last_measurement_number_nf),
 		network_mcs->server_record,
-		"%s.measurement_number", network_mcs->remote_record_name );
+		"%s.last_measurement_number", network_mcs->remote_record_name );
 
 	mx_network_field_init( &(network_mcs->measurement_time_nf),
 		network_mcs->server_record,
@@ -953,7 +953,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	mx_bool_type external_next_measurement = FALSE;
 	unsigned long external_prescale = 0;
 	unsigned long num_measurements, measurement_counts;
-	long measurement_number, current_num_scalers;
+	long last_measurement_number, current_num_scalers;
 	double measurement_time, dark_current;
 	long dimension_array[1];
 	mx_status_type mx_status;
@@ -1016,11 +1016,11 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 		mcs->current_num_measurements = num_measurements;
 		break;
 
-	case MXLV_MCS_MEASUREMENT_NUMBER:
-		mx_status = mx_get( &(network_mcs->measurement_number_nf),
-					MXFT_LONG, &measurement_number );
+	case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
+		mx_status = mx_get( &(network_mcs->last_measurement_number_nf),
+					MXFT_LONG, &last_measurement_number );
 
-		mcs->measurement_number = measurement_number;
+		mcs->last_measurement_number = last_measurement_number;
 		break;
 
 	case MXLV_MCS_DARK_CURRENT:

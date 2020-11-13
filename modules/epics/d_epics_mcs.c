@@ -832,15 +832,15 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 		data_ptr = epics_mcs->scaler_value_buffer;
 	}
 
-	mx_status = mx_mcs_get_measurement_number( mcs->record, NULL );
+	mx_status = mxd_epics_mcs_get_last_measurement_number( mcs );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXD_EPICS_MCS_DEBUG_SCALER
 	MX_DEBUG(-2,("%s: ********************************************",fname));
-	MX_DEBUG(-2,("%s: mcs->measurement_number = %ld",
-		fname, mcs->measurement_number));
+	MX_DEBUG(-2,("%s: mcs->last_measurement_number = %ld",
+		fname, mcs->last_measurement_number));
 	MX_DEBUG(-2,("%s: epics_mcs->num_measurements_to_read = %ld",
 		fname, epics_mcs->num_measurements_to_read));
 	MX_DEBUG(-2,("%s: mcs->current_num_measurements = %lu",
@@ -874,7 +874,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 
 		return MX_SUCCESSFUL_RESULT;
 	} else
-	if ( num_measurements_to_read > (mcs->measurement_number + 1L) )
+	if ( num_measurements_to_read > (mcs->last_measurement_number + 1L) )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Scaler channel %ld for MCS '%s' was requested to "
@@ -882,7 +882,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 		"%ld measurements have been acquired so far.",
 			mcs->scaler_index, mcs->record->name,
 			num_measurements_to_read,
-			mcs->measurement_number + 1L );
+			mcs->last_measurement_number + 1L );
 	} else
 	if ( num_measurements_to_read < 0L ) {
 		if ( do_not_skip ) {
@@ -1164,7 +1164,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	double dark_current;
-	int32_t measurement_number, external_channel_advance, count_on_start;
+	int32_t external_channel_advance, count_on_start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -1178,15 +1178,6 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 		mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MEASUREMENT_NUMBER:
-		mx_status = mx_caget( &(epics_mcs->nord_pv),
-				MX_CA_LONG, 1, &measurement_number );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mcs->measurement_number = measurement_number;
-		break;
 	case MXLV_MCS_DARK_CURRENT:
 
 		mx_status = mx_caget(

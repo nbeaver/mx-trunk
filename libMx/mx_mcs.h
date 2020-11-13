@@ -97,8 +97,6 @@ typedef struct {
 	unsigned long current_num_scalers;
 	unsigned long current_num_measurements;
 
-	long measurement_number;
-
 	long readout_preference;
 
 	long scaler_index;
@@ -159,17 +157,16 @@ typedef struct {
 #define MXLV_MCS_MEASUREMENT_COUNTS		1026
 #define MXLV_MCS_CURRENT_NUM_SCALERS		1027
 #define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1028
-#define MXLV_MCS_MEASUREMENT_NUMBER		1029
-#define MXLV_MCS_READOUT_PREFERENCE		1030
-#define MXLV_MCS_SCALER_INDEX			1031
-#define MXLV_MCS_MEASUREMENT_INDEX		1032
-#define MXLV_MCS_DARK_CURRENT			1033
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1034
-#define MXLV_MCS_SCALER_DATA			1035
-#define MXLV_MCS_MEASUREMENT_DATA		1036
-#define MXLV_MCS_SCALER_MEASUREMENT		1037
-#define MXLV_MCS_TIMER_DATA			1038
-#define MXLV_MCS_CLEAR_DEADBAND			1039
+#define MXLV_MCS_READOUT_PREFERENCE		1029
+#define MXLV_MCS_SCALER_INDEX			1030
+#define MXLV_MCS_MEASUREMENT_INDEX		1031
+#define MXLV_MCS_DARK_CURRENT			1032
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1033
+#define MXLV_MCS_SCALER_DATA			1034
+#define MXLV_MCS_MEASUREMENT_DATA		1035
+#define MXLV_MCS_SCALER_MEASUREMENT		1036
+#define MXLV_MCS_TIMER_DATA			1037
+#define MXLV_MCS_CLEAR_DEADBAND			1038
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -312,11 +309,6 @@ typedef struct {
 						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, current_num_measurements), \
 	{0}, NULL, 0}, \
-  \
-  {MXLV_MCS_MEASUREMENT_NUMBER, -1, "measurement_number", \
-						MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_number), \
-	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_MCS_READOUT_PREFERENCE, -1, "readout_preference", \
 						MXFT_LONG, NULL, 0, {0}, \
@@ -513,9 +505,6 @@ MX_API mx_status_type mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
 					unsigned long *num_measurements );
 MX_API mx_status_type mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 					unsigned long num_measurements );
-
-MX_API mx_status_type mx_mcs_get_measurement_number( MX_RECORD *mcs_record,
-					long *measurement_number );
 
 MX_API mx_status_type mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
 					long num_scalers,

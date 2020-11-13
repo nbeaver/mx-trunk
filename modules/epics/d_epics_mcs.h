@@ -28,6 +28,7 @@ typedef struct {
 	char channel_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char common_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	unsigned long epics_mcs_flags;
+	unsigned long monitor_scaler;
 
 	double epics_record_version;
 	long num_measurements_to_read;
@@ -103,6 +104,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_mcs_rfield_def_ptr;
   {-1, -1, "epics_mcs_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, epics_mcs_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "monitor_scaler", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, monitor_scaler), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "epics_record_version", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, epics_record_version), \

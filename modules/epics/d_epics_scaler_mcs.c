@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015, 2018-2019 Illinois Institute of Technology
+ * Copyright 2014-2015, 2018-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -180,17 +180,17 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 
 	/********************************************************************/
 
-	if ( mcs->measurement_number < 0 ) {
-		mcs->measurement_number = -1;
+	if ( mcs->last_measurement_number < 0 ) {
+		mcs->last_measurement_number = -1;
 	}
 
 	/* We are about to readout a new measurement using an EPICS
 	 * synchronous group, so increment the measurement number.
 	 */
 
-	mcs->measurement_number++;
+	mcs->last_measurement_number++;
 
-	j = mcs->measurement_number;
+	j = mcs->last_measurement_number;
 
 	/* If this is the first step in a quick scan sequence, set both
 	 * of the data arrays to 0.
@@ -426,7 +426,7 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mcs->measurement_number = -1;
+	mcs->last_measurement_number = -1;
 
 	epics_scaler_mcs->motor_record = NULL;
 
@@ -567,7 +567,7 @@ mxd_epics_scaler_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mcs->measurement_number = -1;
+	mcs->last_measurement_number = -1;
 
 	/* Compute and set the EPICS scaler time preset. */
 
@@ -645,7 +645,7 @@ mxd_epics_scaler_mcs_clear( MX_MCS *mcs )
 	MX_DEBUG(-2,("%s invoked for '%s'", fname, mcs->record->name));
 #endif
 
-	mcs->measurement_number = -1;
+	mcs->last_measurement_number = -1;
 
 	for ( i = 0; i < mcs->maximum_num_scalers; i++ ) {
 		for ( j = 0; j < mcs->maximum_num_measurements; j++ ) {

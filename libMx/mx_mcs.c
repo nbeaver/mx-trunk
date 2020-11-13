@@ -360,7 +360,7 @@ mx_mcs_arm( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
-	mcs->measurement_number = -1;
+	mcs->last_measurement_number = -1;
 
 	mx_status = (*arm_fn)( mcs );
 
@@ -391,7 +391,7 @@ mx_mcs_trigger( MX_RECORD *mcs_record )
 		return mx_status;
 
 	if ( mcs->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
-		mcs->measurement_number = -1;
+		mcs->last_measurement_number = -1;
 	}
 
 	trigger_fn = function_list->trigger;
@@ -1839,40 +1839,6 @@ mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_get_measurement_number( MX_RECORD *mcs_record,
-				long *measurement_number )
-{
-	static const char fname[] = "mx_mcs_get_measurement_number()";
-
-	MX_MCS *mcs;
-	MX_MCS_FUNCTION_LIST *function_list;
-	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type mx_status;
-
-	mx_status = mx_mcs_get_pointers( mcs_record,
-					&mcs, &function_list, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	get_parameter_fn = function_list->get_parameter;
-
-	if ( get_parameter_fn == NULL ) {
-		get_parameter_fn = mx_mcs_default_get_parameter_handler;
-	}
-
-	mcs->parameter_type = MXLV_MCS_MEASUREMENT_NUMBER;
-
-	mx_status = (*get_parameter_fn)( mcs );
-
-	if ( measurement_number != NULL ) {
-		*measurement_number = mcs->measurement_number;
-	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
 				long num_scalers,
 				double *dark_current_array )
@@ -2151,7 +2117,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 	case MXLV_MCS_MEASUREMENT_TIME:
 	case MXLV_MCS_MEASUREMENT_COUNTS:
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
-	case MXLV_MCS_MEASUREMENT_NUMBER:
+	case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
 	case MXLV_MCS_DARK_CURRENT:
 	case MXLV_MCS_DARK_CURRENT_ARRAY:
 	case MXLV_MCS_CLEAR_DEADBAND:

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008, 2010-2019 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008, 2010-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3331,7 +3331,7 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 	for ( n = 0; n < mcs_quick_scan->num_mcs; n++ ) {
 		mcs_record = mcs_quick_scan->mcs_record_array[n];
 
-		mx_status = mx_mcs_get_measurement_number( mcs_record,
+		mx_status = mx_mcs_get_last_measurement_number( mcs_record,
 						&mcs_measurement_number );
 
 		if ( mx_status.code != MXE_SUCCESS )

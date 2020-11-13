@@ -47,11 +47,11 @@ typedef struct {
 	MX_NETWORK_FIELD data_array_nf;
 	MX_NETWORK_FIELD external_next_measurement_nf;
 	MX_NETWORK_FIELD external_prescale_nf;
+	MX_NETWORK_FIELD last_measurement_number_nf;
 	MX_NETWORK_FIELD manual_next_measurement_nf;
 	MX_NETWORK_FIELD measurement_counts_nf;
 	MX_NETWORK_FIELD measurement_data_nf;
 	MX_NETWORK_FIELD measurement_index_nf;
-	MX_NETWORK_FIELD measurement_number_nf;
 	MX_NETWORK_FIELD measurement_time_nf;
 	MX_NETWORK_FIELD readout_preference_nf;
 	MX_NETWORK_FIELD scaler_data_nf;
