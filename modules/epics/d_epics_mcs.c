@@ -1508,7 +1508,7 @@ mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs )
 		"mxd_epics_mcs_get_last_measurement_number()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	int32_t current_channel;
+	int32_t current_channel, number_of_channels_read;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -1522,19 +1522,31 @@ mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
-	mcs->last_measurement_number = current_channel - 1L;
-#else
+	mx_status = mx_caget( &(epics_mcs->nord_pv),
+				MX_CA_LONG, 1, &number_of_channels_read );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* FIXME: The following logic seems very fragile and version
+	 * dependent to me. (2020-11-13 WML)
+	 */
+
+	if ( current_channel <= 0 ) {
+		number_of_channels_read = 0;
+	}
+
 	if ( mcs->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		if ( mcs->autostart ) {
-			mcs->last_measurement_number = current_channel - 1L;
+			mcs->last_measurement_number =
+				number_of_channels_read - 1L;
 		} else {
-			mcs->last_measurement_number = current_channel;
+			mcs->last_measurement_number =
+				number_of_channels_read;
 		}
 	} else {
-		mcs->last_measurement_number = current_channel - 1L;
+		mcs->last_measurement_number = number_of_channels_read - 1L;
 	}
-#endif
 
 #if 1
 	MX_DEBUG(-2,("%s last_measurement_number = %ld",
