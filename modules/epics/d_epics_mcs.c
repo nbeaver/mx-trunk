@@ -456,8 +456,9 @@ mxd_epics_mcs_open( MX_RECORD *record )
 				"%s1.NUSE", epics_mcs->channel_prefix );
 	}
 
-	mx_epics_pvname_init( &(epics_mcs->nord_pv),
-				"%s1.NORD", epics_mcs->channel_prefix );
+	mx_epics_pvname_init( &(epics_mcs->nord_pv), "%s%lu.NORD",
+				epics_mcs->channel_prefix,
+				epics_mcs->monitor_scaler );
 
 	if ( epics_mcs->epics_record_version >= 5.0 ) {
 
