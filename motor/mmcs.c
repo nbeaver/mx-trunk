@@ -250,6 +250,10 @@ motor_mcs_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
+			MX_DEBUG(-2,("meas: from %ld to %ld, mcs_status = %#lx",
+				old_last_measurement_number+1,
+				last_measurement_number, mcs_status));
+
 			for ( meas = old_last_measurement_number+1;
 			    meas <= last_measurement_number; meas++ )
 			{
