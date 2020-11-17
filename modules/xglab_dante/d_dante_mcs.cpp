@@ -808,8 +808,6 @@ mxd_dante_mcs_get_parameter( MX_MCS *mcs )
 	case MXLV_MCS_TOTAL_NUM_MEASUREMENTS:
 		mx_status = mxd_dante_mcs_get_total_num_measurements( mcs );
 		break;
-	case MXLV_MCS_MEASUREMENT_NUMBER:
-		break;
 	case MXLV_MCS_DARK_CURRENT:
 		break;
 	case MXLV_MCS_TRIGGER_MODE:

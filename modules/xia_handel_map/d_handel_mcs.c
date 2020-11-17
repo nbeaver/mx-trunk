@@ -871,8 +871,6 @@ mxd_handel_mcs_get_parameter( MX_MCS *mcs )
 		mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MEASUREMENT_NUMBER:
-		break;
 	case MXLV_MCS_DARK_CURRENT:
 		break;
 	case MXLV_MCS_TRIGGER_MODE:
