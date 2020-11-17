@@ -477,7 +477,11 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 		mx_epics_pvname_init( &(epics_mcs->pltm_pv), " " );
 
+#if 0
 		if ( epics_mcs->epics_record_version >= 6.0 ) {
+#else
+		if ( 0 ) {
+#endif
 			mx_epics_pvname_init( &(epics_mcs->start_pv),
 				"%sEraseStart.VAL", epics_mcs->common_prefix );
 		} else {
@@ -617,6 +621,16 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 		return mx_status;
 
 #if 1
+	mx_status = mxd_epics_mcs_get_last_measurement_number( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_epics_mcs_clear( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mxd_epics_mcs_get_last_measurement_number( mcs );
 
 	if ( mx_status.code != MXE_SUCCESS )
