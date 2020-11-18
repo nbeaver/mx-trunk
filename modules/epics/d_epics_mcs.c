@@ -1134,14 +1134,18 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 	long i, measurement_index;
 	mx_status_type mx_status;
 
-#if 0
-	mx_breakpoint();
-#endif
-
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_IGNORE_CLEARS ) {
+		mx_warning( "You have set the MXF_EPICS_MCS_IGNORE_CLEARS flag "
+		"bit 0x8 in '%s.epics_mcs_flags' (%#lx).  "
+		"%s is not very compatible with MXF_EPICS_MCS_IGNORE_CLEARS, "
+		"especially for short measurement dwell times.",
+			mcs->record->name, epics_mcs->epics_mcs_flags, fname );
+	}
 
 	saved_epics_mcs_num_measurements_to_read =
 			epics_mcs->num_measurements_to_read;
