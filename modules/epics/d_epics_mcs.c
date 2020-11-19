@@ -448,13 +448,13 @@ mxd_epics_mcs_open( MX_RECORD *record )
 				"%s1.PRTM", epics_mcs->channel_prefix );
 	}
 
-	if ( 0 ) {
-		mx_epics_pvname_init( &(epics_mcs->nuse_pv),
+	if ( epics_mcs->epics_record_version >= 5.0 ) {
+		mx_epics_pvname_init( &(epics_mcs->nuseall_pv),
 				"%sNuseAll.VAL", epics_mcs->common_prefix );
-	} else {
-		mx_epics_pvname_init( &(epics_mcs->nuse_pv),
-				"%s1.NUSE", epics_mcs->channel_prefix );
 	}
+
+	mx_epics_pvname_init( &(epics_mcs->nuse_pv),
+				"%s1.NUSE", epics_mcs->channel_prefix );
 
 	mx_epics_pvname_init( &(epics_mcs->nord_pv), "%s%lu.NORD",
 				epics_mcs->channel_prefix,
@@ -1256,8 +1256,9 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	MX_EPICS_MCS *epics_mcs = NULL;
 #if 0
 	MX_EPICS_GROUP epics_group;
+	double preset_live_time;
 #endif
-	double dwell_time, preset_live_time, dark_current;
+	double dwell_time, dark_current;
 	unsigned long do_not_skip;
 	int32_t stop, current_num_epics_measurements, external_channel_advance;
 	int32_t count_on_start, software_channel_advance;
@@ -1379,18 +1380,33 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Set the measurement preset. */
+		/* Set the measurement preset.
+		 *
+		 * FIXME??
+		 * In testing, it seems that setting NUSE is necessary to get
+		 * correct behavior for external triggering.  But for internal
+		 * triggering, NUseAll is necessary.  The documentation
+		 * seems to say that only NUseAll should be necessary, but
+		 * that does not seem to match my experience.
+		 *
+		 * Just to be sure (?), I am currently setting both of them
+		 * for both internal and external triggering.
+		 *
+		 * (W. Lavender 2020-11-18)
+		 */
+
+		mx_status = mx_caput( &(epics_mcs->nuse_pv),
+				MX_CA_LONG, 1, &current_num_epics_measurements);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( epics_mcs->epics_record_version >= 5.0 ) {
-
-			mx_status = mx_caput( &(epics_mcs->nuse_pv),
+			mx_status = mx_caput( &(epics_mcs->nuseall_pv),
 				MX_CA_LONG, 1, &current_num_epics_measurements);
-		} else {
-			preset_live_time = mcs->measurement_time
-				* (double) current_num_epics_measurements;
 
-			mx_status = mx_caput( &(epics_mcs->pltm_pv),
-					MX_CA_DOUBLE, 1, &preset_live_time );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 
 #else
