@@ -49,21 +49,20 @@
  *                 -lpthread
  *
  *          For Solaris, MX uses timer_create() based timers with SIGEV_SIGNAL
- *          notification since Solaris does not support SIGEV_THREAD 
- *          notification (boo!).  MX then creates a new thread which then
- *          waits in sigwaitinfo() for the timing signals to arrive.  If
- *          you have the default behavior of thread-specific timers, then
- *          only the thread that created the timer will see the signal when
- *          the timer expires.  However, since MX is waiting in a different
- *          thread in sigwaitinfo() for the signal, the signal never gets
- *          delivered unless you recompile to use per-process timers.
+ *          notification.  MX then creates a new thread which then waits in
+ *          sigwaitinfo() for the timing signals to arrive.  If you have the
+ *          default behavior of thread-specific timers, then only the thread
+ *          that created the timer will see the signal when the timer expires.
+ *          However, since MX is waiting in a different thread in sigwaitinfo()
+ *          for the signal, the signal never gets delivered unless you
+ *          recompile to use per-process timers.
  *
  *          I have not yet had a chance to verify the claim that the problem
  *          is fixed in Solaris 9 and above.  (WML)
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010-2014, 2017 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010-2014, 2017, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1366,17 +1365,22 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 #include <errno.h>
 
 #if defined(OS_BSD)
-#include <sys/param.h>	/* Needed for #define __NetBSD_Version__ on NetBSD */
+#  include <sys/param.h>  /* Needed for #define __NetBSD_Version__ on NetBSD */
 #endif
 
 /* Select the notification method for the realtime timers.  The possible
- * values are SIGEV_THREAD or SIGEV_SIGNAL.  Generally SIGEV_THREAD is a
- * better choice since SIGEV_SIGNAL limits the maximum number of timers
- * to the total number of realtime signals for the process.
+ * values are SIGEV_THREAD, SIGEV_SIGNAL, or on Linux, SIGEV_THREAD_ID.
+ * Sometimes SIGEV_THREAD is a better choice since SIGEV_SIGNAL limits
+ * the maximum number of timers to the total number of realtime signals
+ * for the process.  However, on some platforms like Linux, SIGEV_THREAD
+ * creates a new thread for each callback for the interval timer, which
+ * can use a noticeable amount of CPU time in the 10% to 20% range.
  */
 
-#if defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_TRU64)
+#if defined(OS_LINUX)
+#   define MX_SIGEV_TYPE	SIGEV_THREAD_ID
 
+#elif defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_TRU64)
 #   define MX_SIGEV_TYPE	SIGEV_SIGNAL
 #else
 #   define MX_SIGEV_TYPE	SIGEV_THREAD
@@ -1386,7 +1390,7 @@ typedef struct {
 	timer_t timer_id;
 	struct sigevent evp;
 
-#if ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
+#if (( MX_SIGEV_TYPE == SIGEV_SIGNAL ) | ( MX_SIGEV_TYPE == SIGEV_THREAD_ID ))
 	int signal_number;
 	MX_THREAD *thread;
 #endif
@@ -1526,7 +1530,7 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-#elif ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
+#elif (( MX_SIGEV_TYPE == SIGEV_SIGNAL ) | ( MX_SIGEV_TYPE == SIGEV_THREAD_ID ))
 
 #define MX_POSIX_SIGNAL_BLOCKING_SUPPORTED	TRUE
 
@@ -1552,7 +1556,28 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 
 	itimer = (MX_INTERVAL_TIMER *) args;
 
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
 	posix_itimer_private = (MX_POSIX_ITIMER_PRIVATE *) itimer->private_ptr;
+
+	if ( posix_itimer_private == (MX_POSIX_ITIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_POSIX_ITIMER_PRIVATE pointer for MX interval timer "
+		"%p is NULL.", itimer );
+	}
+
+#if ( MX_SIGEV_TYPE == SIGEV_THREAD_ID )
+
+	/* We need to specify the Linux kernel thread id here, instead
+	 * of the user mode thread id.
+	 */
+#error booyah!
+
+	posix_itimer_private->evp.sigev_notify_thread_id = syscall(__NR_gettid);
+#endif
 
 	/* Setup the signal mask that the thread uses. */
 
@@ -1735,7 +1760,11 @@ mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 
 	posix_itimer_private->evp.sigev_value.sival_ptr = itimer;
 
+#if ( MX_SIGEV_TYPE == SIGEV_THREAD_ID )
+	posix_itimer_private->evp.sigev_notify = SIGEV_THREAD_ID;
+#else
 	posix_itimer_private->evp.sigev_notify = SIGEV_SIGNAL;
+#endif
 	posix_itimer_private->evp.sigev_signo =
 					posix_itimer_private->signal_number;
 
@@ -1767,7 +1796,7 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 }
 
 #else
-#error MX_SIGEV_TYPE must be either SIGEV_THREAD or SIGEV_SIGNAL.  If available, SIGEV_THREAD is usually the better choice.
+#error MX_SIGEV_TYPE must be SIGEV_THREAD, SIGEV_SIGNAL, or on Linux, SIGEV_THREAD_ID.
 #endif /* MX_SIGEV_TYPE */
 
 /*--------------------------------------------------------------------------*/
@@ -1783,6 +1812,12 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
 	int status, saved_errno;
 	mx_status_type mx_status;
+
+#if ( 0 && defined(OS_LINUX) )
+	if ( MX_SIGEV_TYPE == SIGEV_THREAD_ID ) {
+		MX_DEBUG(-2,("%s: MX_SIGEV_TYPE = %d", fname, MX_SIGEV_TYPE));
+	}
+#endif
 
 #if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for POSIX realtime timers.", fname));

@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016, 2018 Illinois Institute of Technology
+ * Copyright 2016, 2018, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -334,7 +334,9 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked.",fname));
+#endif
 
 	/* Initialize the variables to be used by this thread. */
 

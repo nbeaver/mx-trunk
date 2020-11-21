@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -150,9 +150,11 @@ mxd_soft_ptz_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for PTZ '%s'.", fname, record->name));
+#endif
 
-	return MX_SUCCESSFUL_RESULT;;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
