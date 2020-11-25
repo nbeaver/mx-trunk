@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2011, 2014-2016, 2019
+ * Copyright 2001-2006, 2008-2011, 2014-2016, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -542,6 +542,13 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 	 */
 
 	if ( direction == MXF_EPICS_VME_INPUT ) {
+		if ( vme->data_pointer == NULL ) {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"VME record '%s' is trying to read input data "
+			"into an array pointer that contains a NULL value.",
+				vme->record->name );
+		}
+
 		switch ( vme->data_size ) {
 		case MXF_VME_D8:
 			uint8_ptr = (uint8_t *) vme->data_pointer;
