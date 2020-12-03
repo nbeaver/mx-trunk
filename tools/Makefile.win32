@@ -1,7 +1,7 @@
 
 all: ../libMx/mx_private_version.h xdr.obj xdr_hyper.obj getopt.obj \
 	strcasestr.obj strlcpy.obj strlcat.obj strptime.obj \
-	smvspatial.obj cJSON.obj \
+	cJSON.obj \
 	mx_config.exe mxgnuplt.exe
 
 include ../libMx/Makefile.version
@@ -75,11 +75,6 @@ strptime.obj: generic/src/strptime.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
 		-WX -Z7 -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
 		generic/src/strptime.c -Fostrptime.obj
-
-smvspatial.obj: xgen/smvspatial.c
-	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
-		-WX -Z7 -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
-		xgen/smvspatial.c -Fosmvspatial.obj
 
 cJSON.obj: cJSON/cJSON.c cJSON/cJSON.h
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \

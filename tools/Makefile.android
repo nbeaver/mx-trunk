@@ -2,7 +2,7 @@
 # tools/Makefile.android
 #
 
-all:   ../libMx/mx_private_version.h mx_config smvspatial.o \
+all:   ../libMx/mx_private_version.h mx_config \
 	strlcpy.o strlcat.o xdr.o xdr_hyper.o \
 	unix/src/editline/libedit.a cJSON.o
 
@@ -51,10 +51,6 @@ mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 	$(CC) -I../libMx -DOS_ANDROID -DMX_ARCH="\"$(MX_ARCH)\"" \
 		-DMX_INSTALL_DIR="\"$(MX_INSTALL_DIR)\"" \
 		-o mx_config version/src/mx_config.c
-
-smvspatial.o: xgen/smvspatial.c
-	$(CC) -g -c $(OPTIMIZE) -fPIC -Wall -Werror -DOS_ANDROID \
-		-D__MX_LIBRARY__ xgen/smvspatial.c
 
 strlcpy.o: generic/src/strlcpy.c
 	$(CC) -c $(OPTIMIZE) -fPIC -I../libMx -DOS_ANDROID -D__MX_LIBRARY__ \

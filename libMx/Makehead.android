@@ -126,7 +126,6 @@ MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 #----
 
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
-MX_LIB_OBJS += ../tools/smvspatial.o
 MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
 MX_LIB_OBJS += ../tools/cJSON.o
 

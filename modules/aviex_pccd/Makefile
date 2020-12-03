@@ -18,7 +18,7 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 AVIEX_OBJS = aviex_pccd.$(OBJ) d_aviex_pccd.$(OBJ) \
 		d_aviex_pccd_16080.$(OBJ) d_aviex_pccd_170170.$(OBJ) \
 		d_aviex_pccd_4824.$(OBJ) d_aviex_pccd_9785.$(OBJ) \
-		../../tools/smvspatial.$(OBJ)
+		xgen/smvspatial.$(OBJ)
 
 ifeq ($(MX_ARCH),win32)
     aviex_pccd.mxo: $(AVIEX_OBJS)
@@ -73,6 +73,9 @@ d_aviex_pccd_4824.$(OBJ): d_aviex_pccd_4824.c \
 d_aviex_pccd_9785.$(OBJ): d_aviex_pccd_9785.c \
 				d_aviex_pccd.h d_aviex_pccd_9785.h
 	$(COMPILE) $(CFLAGS) d_aviex_pccd_9785.c
+
+smvspatial.$(OBJ): xgen/smvspatial.c
+	$(COMPILE) $(CFLAGS) xgen/smvspatial.c
 
 install: aviex_pccd.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

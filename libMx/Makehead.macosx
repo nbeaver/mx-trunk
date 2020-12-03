@@ -103,7 +103,7 @@ MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 
 #----
 
-MX_LIB_OBJS += ../tools/smvspatial.o ../tools/xdr_hyper.o
+MX_LIB_OBJS += ../tools/xdr_hyper.o
 
 #
 #---------------------------------------------------

@@ -2,7 +2,7 @@
 # tools/Makefile.macosx-clang
 #
 
-all: ../libMx/mx_private_version.h smvspatial.o \
+all: ../libMx/mx_private_version.h \
 			unix/src/editline/libedit.a \
 			cJSON.o \
 			mx_config
@@ -56,9 +56,6 @@ mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 	$(CC) -I../libMx -DOS_MACOSX -DMX_ARCH="\"$(MX_ARCH)\"" \
 		-DMX_INSTALL_DIR="\"$(MX_INSTALL_DIR)\"" \
 		-o mx_config version/src/mx_config.c
-
-smvspatial.o: xgen/smvspatial.c
-	$(CC) -c $(CFLAGS) -DOS_MACOSX -D__MX_LIBRARY__ xgen/smvspatial.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
