@@ -8,7 +8,8 @@
 
 export WIND_BASE = /APSshare/vw/vxWorks-$(VW_VERSION)
 
-VW_VERSION = 6.9.4
+###VW_VERSION = 6.9.4
+VW_VERSION = 6.9
 VW_GCC_VERSION = 4.3.3
 
 VW_TARGET_ARCH = ppc
