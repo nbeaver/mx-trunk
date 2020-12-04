@@ -1,9 +1,19 @@
+program SIS3820_meas
+
 /* FIXME: At the moment, this file is not much better than pseudocode, since
  * I do not yet have enough information about the State Notation Language
  * to get everything syntactically correct.  Think of this as a placeholder.
  * (W. Lavender - 2020-12-04)
  */
-program SIS3820_meas
+
+/* "option -c' tells the program to start right away.  Do not wait for
+ * Channel Access Connections.  This also makes it easier for the sequence
+ * program to handle Channel Access disconnection events.
+ */
+
+option -c;
+
+/*---*/
 
 string mcs = "vmetest:mcs"
 
@@ -33,6 +43,11 @@ long measurement_data[100][NUM_SCALERS] = 0;
 assign measurement_data to "{mcs}:MeasurementData";
 
 ss measurement_check {
+    state init {
+        when ( 1 ) {
+        } state running
+    }
+
     state running {
         when ( efTestAndClear( measurement_range_flag )) {
             num_measurements = measurement_range[1] - measurement_range[0] + 1;
@@ -46,7 +61,7 @@ ss measurement_check {
                 for ( scaler = 0; scaler < NUM_SCALERS; scaler++ ) {
 
                     measurement_data[meas][scaler] = 
-                                scaler_data[scaler][measurement_start];
+                        scaler_data[scaler][meas + measurement_start];
                 }
             }
 
