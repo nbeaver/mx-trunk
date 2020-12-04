@@ -1,8 +1,12 @@
-grecord(ao,"$(P)MeasurementNumber") {
+grecord(ao,"$(P)MeasurementRange") {
+	field(DESC,"Measurement Range")
+	field(DESC,"Soft Channel")
 	field(PREC,"3")
 }
 
 grecord(ao,"$(P)MeasurementData") {
+	field(DESC,"Measurement Data")
+	field(DESC,"Soft Channel")
 	field(PREC,"3")
 }
 
