@@ -1,0 +1,10 @@
+#
+# Written by (W. Lavender, 2020-12-03)
+#
+# PREFIX is set in st_sis3820.iocsh
+#
+
+# Load the "Measurement" records for the Struck.
+
+dbLoadRecords( "/home/al/vme_startup/SIS3820_meas.db","P=$(PREFIX),DTYPE=Struck SIS3820 MCS Meas,NCHAN=2000", top )
+

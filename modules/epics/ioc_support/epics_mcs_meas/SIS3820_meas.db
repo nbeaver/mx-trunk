@@ -1,0 +1,8 @@
+grecord(ao,"$(P)MeasurementNumber") {
+	field(PREC,"3")
+}
+
+grecord(ao,"$(P)MeasurementData") {
+	field(PREC,"3")
+}
+

@@ -1,0 +1,3 @@
+This database adds support for SIS3820 "Measurement" records, which provide
+a way to ask the IOC for one or more measurement data arrays.
+
