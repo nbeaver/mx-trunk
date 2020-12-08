@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2016, 2018-2019
+ * Copyright 1999-2001, 2003-2004, 2006-2016, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -65,11 +65,12 @@ mxr_create_list_head( MX_RECORD *record )
 {
 	static const char fname[] = "mxr_create_list_head()";
 
-	MX_LIST_HEAD *list_head_struct;
-	MX_RECORD_FIELD *record_field_array;
-	MX_RECORD_FIELD *record_field;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	void *field_data_ptr;
+	MX_LIST_HEAD *list_head_struct = NULL;
+	MX_RECORD_FIELD *record_field_array = NULL;
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults = NULL;
+	void *field_data_ptr = NULL;
+	static char *network_debug_env = NULL;
 	long i;
 	size_t cflags_length;
 	mx_status_type mx_status;
@@ -232,6 +233,20 @@ mxr_create_list_head( MX_RECORD *record )
 	 */
 
 	list_head_struct->num_records = 1;
+
+	/* Check for the MX_NETWORK_DEBUG environment variable to see
+	 * if network debugging of MX and other protocols should be
+	 * turned on at startup time.  Most MX command line programs
+	 * provide a way to modify this at startup time using
+	 * getopt()-style command line arguments.
+	 */
+
+	network_debug_env = getenv( "MX_NETWORK_DEBUG" );
+
+	if ( network_debug_env != NULL ) {
+		list_head_struct->network_debug_flags = 
+			  mx_hex_string_to_unsigned_long( network_debug_env );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

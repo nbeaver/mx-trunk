@@ -114,7 +114,10 @@ motor_init( char *motor_savefile_name,
 	strlcpy( list_head_struct->program_name,
 			cmd_program_name(), MXU_PROGRAM_NAME_LENGTH );
 
-	mx_multi_set_debug_flags( motor_record_list, network_debug_flags );
+	list_head_struct->network_debug_flags |= network_debug_flags;
+
+	mx_multi_set_debug_flags( motor_record_list,
+				list_head_struct->network_debug_flags );
 
 	/* Read 'mxmotor.dat' and add the records therein to the record list. */
 
