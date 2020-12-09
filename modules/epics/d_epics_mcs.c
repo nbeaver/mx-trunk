@@ -553,11 +553,6 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_mcs_get_autostart( record, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 #if 1
 	/* FIXME:
 	 *
@@ -608,12 +603,9 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* See if the MCS is currently configured to automatically start
-	 * counting if the start_pv is written to by looking at the
-	 * current value of the CountOnStart PV.
-	 */
+	/* Update the current value of the MCS trigger mode. */
 
-	mcs->parameter_type = MXLV_MCS_AUTOSTART;
+	mcs->parameter_type = MXLV_MCS_TRIGGER_MODE;
 
 	mx_status = mxd_epics_mcs_get_parameter( mcs );
 
@@ -621,6 +613,10 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 		return mx_status;
 
 #if 1
+	/* Note: The following sequence seems to do a better job of
+	 * ensuring that existing counts in the MCS have been discarded.
+	 */
+
 	mx_status = mxd_epics_mcs_get_last_measurement_number( mcs );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1227,8 +1223,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 		} else {
 			mcs->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		}
-		break;
-	case MXLV_MCS_AUTOSTART:
+
 		mx_status = mx_caget( &(epics_mcs->count_on_start_pv),
 				MX_CA_LONG, 1, &count_on_start );
 
@@ -1236,9 +1231,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 			return mx_status;
 
 		if ( count_on_start ) {
-			mcs->autostart = TRUE;
-		} else {
-			mcs->autostart = FALSE;
+			mcs->trigger_mode |= MXF_DEV_AUTO_TRIGGER;
 		}
 		break;
 	default:
@@ -1482,19 +1475,14 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		break;
 
 	case MXLV_MCS_TRIGGER_MODE:
+		external_channel_advance = 0;
+		count_on_start = 0;
 
-		switch( mcs->trigger_mode ) {
-		case MXF_DEV_INTERNAL_TRIGGER:
+		if ( mcs->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 			external_channel_advance = 0;
-			break;
-		case MXF_DEV_EXTERNAL_TRIGGER:
+		} else
+		if ( mcs->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 			external_channel_advance = 1;
-			break;
-		default:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal trigger mode %ld specified for MCS '%s'.",
-				mcs->trigger_mode, mcs->record->name );
-			break;
 		}
 
 		mx_status = mx_caput( &(epics_mcs->chas_pv),
@@ -1502,10 +1490,8 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		break;
 
-	case MXLV_MCS_AUTOSTART:
-		if ( mcs->autostart ) {
+		if ( mcs->trigger_mode & MXF_DEV_AUTO_TRIGGER ) {
 			count_on_start = 1;
 		} else {
 			count_on_start = 0;
@@ -1522,7 +1508,6 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		return mx_mcs_default_set_parameter_handler( mcs );
 		break;
 	}
-	MX_DEBUG( 2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1563,7 +1548,7 @@ mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs )
 	}
 
 	if ( mcs->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
-		if ( mcs->autostart ) {
+		if ( mcs->trigger_mode & MXF_DEV_AUTO_TRIGGER ) {
 			mcs->last_measurement_number =
 				number_of_channels_read - 1L;
 		} else {

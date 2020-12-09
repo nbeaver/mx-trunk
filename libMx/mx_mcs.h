@@ -80,15 +80,12 @@ typedef struct {
 
 	/* counting_mode is for preset time vs. preset count.
 	 *
-	 * trigger_mode is for internal trigger vs external trigger and others.
-	 *
-	 * autostart tell you whether the MCS is immediately started after
-	 * it is armed.
+	 * trigger_mode is for internal trigger, external trigger,
+	 * autostart, and so forth.
 	 */
 
 	long counting_mode;
 	long trigger_mode;
-	long autostart;
 
 	long parameter_type;
 
@@ -152,21 +149,20 @@ typedef struct {
 #define MXLV_MCS_LAST_START_TIME		1021
 #define MXLV_MCS_COUNTING_MODE			1022
 #define MXLV_MCS_TRIGGER_MODE			1023
-#define MXLV_MCS_AUTOSTART			1024
-#define MXLV_MCS_MEASUREMENT_TIME		1025
-#define MXLV_MCS_MEASUREMENT_COUNTS		1026
-#define MXLV_MCS_CURRENT_NUM_SCALERS		1027
-#define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1028
-#define MXLV_MCS_READOUT_PREFERENCE		1029
-#define MXLV_MCS_SCALER_INDEX			1030
-#define MXLV_MCS_MEASUREMENT_INDEX		1031
-#define MXLV_MCS_DARK_CURRENT			1032
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1033
-#define MXLV_MCS_SCALER_DATA			1034
-#define MXLV_MCS_MEASUREMENT_DATA		1035
-#define MXLV_MCS_SCALER_MEASUREMENT		1036
-#define MXLV_MCS_TIMER_DATA			1037
-#define MXLV_MCS_CLEAR_DEADBAND			1038
+#define MXLV_MCS_MEASUREMENT_TIME		1024
+#define MXLV_MCS_MEASUREMENT_COUNTS		1025
+#define MXLV_MCS_CURRENT_NUM_SCALERS		1026
+#define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1027
+#define MXLV_MCS_READOUT_PREFERENCE		1028
+#define MXLV_MCS_SCALER_INDEX			1029
+#define MXLV_MCS_MEASUREMENT_INDEX		1030
+#define MXLV_MCS_DARK_CURRENT			1031
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1032
+#define MXLV_MCS_SCALER_DATA			1033
+#define MXLV_MCS_MEASUREMENT_DATA		1034
+#define MXLV_MCS_SCALER_MEASUREMENT		1035
+#define MXLV_MCS_TIMER_DATA			1036
+#define MXLV_MCS_CLEAR_DEADBAND			1037
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -281,10 +277,6 @@ typedef struct {
   \
   {MXLV_MCS_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, trigger_mode), \
-	{0}, NULL, 0}, \
-  \
-  {MXLV_MCS_AUTOSTART, -1, "autostart", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, autostart), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \
@@ -468,12 +460,6 @@ MX_API mx_status_type mx_mcs_get_trigger_mode( MX_RECORD *mcs_record,
 
 MX_API mx_status_type mx_mcs_set_trigger_mode( MX_RECORD *mcs_record,
 							long trigger_mode );
-
-MX_API mx_status_type mx_mcs_get_autostart( MX_RECORD *mcs_record,
-							long *autostart );
-
-MX_API mx_status_type mx_mcs_set_autostart( MX_RECORD *mcs_record,
-							long autostart );
 
 MX_API mx_status_type mx_mcs_get_external_next_measurement(
 					MX_RECORD *mcs_record,

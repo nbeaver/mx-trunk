@@ -45,7 +45,6 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_MCS_ARM:
-		case MXLV_MCS_AUTOSTART:
 		case MXLV_MCS_BUSY:
 		case MXLV_MCS_BUSY_START_INTERVAL:
 		case MXLV_MCS_CLEAR:
@@ -106,9 +105,6 @@ mx_mcs_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case MXLV_MCS_AUTOSTART:
-			mx_status = mx_mcs_get_autostart( record, NULL );
-			break;
 		case MXLV_MCS_BUSY:
 			mx_status = mx_mcs_is_busy( record, NULL );
 			break;
@@ -183,10 +179,6 @@ mx_mcs_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_MCS_AUTOSTART:
-			mx_status = mx_mcs_set_autostart( record,
-							mcs->autostart );
-			break;
 		case MXLV_MCS_ARM:
 			mx_status = mx_mcs_arm( record );
 			break;

@@ -218,7 +218,6 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	mcs->current_num_scalers = mcs->maximum_num_scalers;
 	mcs->current_num_measurements = mcs->maximum_num_measurements;
 
-	mcs->autostart = TRUE;
 	mcs->counting_mode = MXM_PRESET_TIME;
 	mcs->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
@@ -1406,70 +1405,6 @@ mx_mcs_set_trigger_mode( MX_RECORD *mcs_record, long trigger_mode )
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_get_autostart( MX_RECORD *mcs_record, long *autostart )
-{
-	static const char fname[] = "mx_mcs_get_autostart()";
-
-	MX_MCS *mcs;
-	MX_MCS_FUNCTION_LIST *function_list;
-	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type mx_status;
-
-	mx_status = mx_mcs_get_pointers( mcs_record,
-					&mcs, &function_list, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	get_parameter_fn = function_list->get_parameter;
-
-	if ( get_parameter_fn == NULL ) {
-		get_parameter_fn = mx_mcs_default_get_parameter_handler;
-	}
-
-	mcs->parameter_type = MXLV_MCS_AUTOSTART;
-
-	mx_status = (*get_parameter_fn)( mcs );
-
-	if ( autostart != NULL ) {
-		*autostart = mcs->autostart;
-	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mx_mcs_set_autostart( MX_RECORD *mcs_record, long autostart )
-{
-	static const char fname[] = "mx_mcs_set_autostart()";
-
-	MX_MCS *mcs;
-	MX_MCS_FUNCTION_LIST *function_list;
-	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type mx_status;
-
-	mx_status = mx_mcs_get_pointers( mcs_record,
-					&mcs, &function_list, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	set_parameter_fn = function_list->set_parameter;
-
-	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = mx_mcs_default_set_parameter_handler;
-	}
-
-	mcs->parameter_type = MXLV_MCS_AUTOSTART;
-
-	mcs->autostart = autostart;
-
-	mx_status = (*set_parameter_fn)( mcs );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mx_mcs_get_external_next_measurement( MX_RECORD *mcs_record,
 					mx_bool_type *external_next_measurement )
 {
@@ -2111,7 +2046,6 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_TRIGGER_MODE:
-	case MXLV_MCS_AUTOSTART:
 	case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 	case MXLV_MCS_EXTERNAL_PRESCALE:
 	case MXLV_MCS_MEASUREMENT_TIME:
@@ -2147,7 +2081,6 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_TRIGGER_MODE:
-	case MXLV_MCS_AUTOSTART:
 	case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 	case MXLV_MCS_EXTERNAL_PRESCALE:
 	case MXLV_MCS_MEASUREMENT_TIME:
