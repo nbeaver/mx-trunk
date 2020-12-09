@@ -1,5 +1,5 @@
 #
-# tools/Makefile.android
+# tools/Makefile.termux
 #
 
 all:   ../libMx/mx_private_version.h mx_config \
@@ -8,7 +8,7 @@ all:   ../libMx/mx_private_version.h mx_config \
 
 include ../libMx/Makefile.version
 
-include ../libMx/Makehead.android
+include ../libMx/Makehead.termux
 
 #------------------------------------------------------------------------
 #

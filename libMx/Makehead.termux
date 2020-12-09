@@ -1,13 +1,9 @@
 #
-# Name:    Makehead.android
+# Name:    Makehead.termux
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for Android and its Bionic libc.
-#
-# WARNING: At present, this makefile only supports building on the
-#          Android device itself using Clang from the Termux app.
-#          Android Studio support will come later.
+#          for Termux running on Android and its Bionic libc.
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
