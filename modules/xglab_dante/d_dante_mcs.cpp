@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -416,7 +416,7 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 
 	dante_mcs->mcs_armed = TRUE;
 
-	mxi_dante_wait_for_answer( call_id );
+	mxi_dante_wait_for_answer( call_id, dante );
 
 	if ( mxi_dante_callback_data[0] == 1 ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -571,7 +571,7 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 			mcs->record->name );
 	}
 
-	mxi_dante_wait_for_answer( call_id );
+	mxi_dante_wait_for_answer( call_id, dante );
 
 	if ( mxi_dante_callback_data[0] == 0 ) {
 		mcs->busy = FALSE;

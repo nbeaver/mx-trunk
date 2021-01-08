@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,6 +49,10 @@
 #define MXD_DANTE_MCA_DEBUG_POINTERS				FALSE
 
 #define MXD_DANTE_MCA_DEBUG_FINISH_DELAYED_INITIALIZATION	FALSE
+
+#define MXD_DANTE_MCA_DEBUG_READ				FALSE
+
+#define MXD_DANTE_MCA_DEBUG_CONFIGURE				FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -687,8 +691,10 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 				mx_dante_configuration->configuration );
 	}
 
+#if MXD_DANTE_MCA_DEBUG_CONFIGURE
 	MX_DEBUG(-2,("%s: Configuring MCA '%s' with call_id = %lu",
 		fname, dante_mca->record->name, (unsigned long) call_id));
+#endif
 
 	if ( call_id == 0 ) {
 		dante_error_status = getLastError( dante_error_code );
@@ -723,7 +729,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 		}
 	}
 
-	mxi_dante_wait_for_answer( call_id );
+	mxi_dante_wait_for_answer( call_id, dante );
 
 	/* Tell DANTE that we only want internal triggered mode. */
 
@@ -769,7 +775,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 				dante_mca->board_number, input_mode );
 	}
 
-	mxi_dante_wait_for_answer( call_id );
+	mxi_dante_wait_for_answer( call_id, dante );
 
 	/****** Configure gating. ******/
 
@@ -845,7 +851,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 					gating_mode, dante_mca->board_number );
 	}
 
-	mxi_dante_wait_for_answer( call_id );
+	mxi_dante_wait_for_answer( call_id, dante );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -869,9 +875,11 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for MCA '%s'.", fname, mca->record->name ));
 
 	MX_DEBUG(-2,("%s: MARKER A-1", fname));
+#endif
 
 #if 0
 	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
@@ -903,7 +911,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 			mca->record->name );
 	}
 
-	mxi_dante_wait_for_answer( call_id );
+	mxi_dante_wait_for_answer( call_id, dante );
 
 	if ( mxi_dante_callback_data[0] != 1 ) {
 
@@ -931,7 +939,9 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	 * as having 'new_data_available' == TRUE.
 	 */
 
+#if 0
 	MX_DEBUG(-2,("%s: MARKER A-2", fname));
+#endif
 
 	mx_status = mxi_dante_set_data_available_flag_for_chain( mca->record,
 									TRUE );
@@ -998,7 +1008,7 @@ mxd_dante_mca_stop( MX_MCA *mca )
 			(unsigned long) dante_error_code );
 	}
 
-	mxi_dante_wait_for_answer( call_id );
+	mxi_dante_wait_for_answer( call_id, dante );
 
 	if ( mxi_dante_callback_data[0] == 1 ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -1044,6 +1054,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 	spectrum_array = dante_mca->spectrum_data;
 
+#if MXD_DANTE_MCA_DEBUG_READ
 	MX_DEBUG(-2,("%s: before getData(), dante_mca = '%s'",
 				fname, mca->record->name ));
 	MX_DEBUG(-2,("%s: before getData(), dante_mca->identifier = '%s'",
@@ -1062,6 +1073,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 #endif
 	MX_DEBUG(-2,("%s: before getData(), spectrum_size = %lu",
 			fname, (unsigned long) spectrum_size ));
+#endif /* MXD_DANTE_MCA_DEBUG_READ */
 
 	dante_status = getData( dante_mca->identifier,
 				dante_mca->board_number,
@@ -1222,7 +1234,7 @@ mxd_dante_mca_busy( MX_MCA *mca )
 			mca->record->name );
 	}
 
-	mxi_dante_wait_for_answer( call_id );
+	mxi_dante_wait_for_answer( call_id, dante );
 
 	if ( mxi_dante_callback_data[0] == 0 ) {
 		mca->busy = FALSE;

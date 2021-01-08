@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,8 @@
 #define MXI_DANTE_DEBUG_SECTIONS			FALSE
 
 #define MXI_DANTE_DEBUG_CALLBACKS			FALSE
+
+#define MXI_DANTE_DEBUG_DATA_AVAILABLE			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,11 +142,21 @@ mxi_dante_callback_fn( uint16_t type,
 }
 
 int
-mxi_dante_wait_for_answer( uint32_t call_id )
+mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 {
 	static const char fname[] = "mxi_dante_wait_for_answer()";
 
+	unsigned long max_io_delay_ms;
 	int i;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		fprintf( stderr,
+			"%s invoked with MX_DANTE pointer set to NULL.  "
+			"Stack traceback: \n", fname );
+		mx_stack_traceback();
+
+		exit(1);
+	}
 
 	mxi_dante_callback_id = call_id;
 
@@ -153,7 +165,13 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 		fname, (unsigned long) call_id));
 #endif
 
-	for ( i = 0; i < 10; i++ ) {
+	if ( dante->max_io_delay <= 0.0 ) {
+		max_io_delay_ms = 1;
+	} else {
+		max_io_delay_ms = mx_round_up( 1000.0 * dante->max_io_delay );
+	}
+
+	for ( i = 0; i < dante->max_io_attempts; i++ ) {
 		if ( mxi_dante_callback_id != call_id ) {
 
 #if MXI_DANTE_DEBUG_CALLBACKS
@@ -164,12 +182,14 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 			return TRUE;
 		}
 
-		mx_msleep(1000);
+		mx_msleep( max_io_delay_ms );
 	}
 
-	if ( i >= 10 ) {
-		MX_DEBUG(-2,(
-		"%s: Timed out waiting for callback to arrive.\n", fname ));
+	if ( i >= dante->max_io_attempts ) {
+		MX_DEBUG(-2,("%s: Timed out waiting for %f seconds "
+			"for callback %lu to arrive for Dante '%s'.\n", fname,
+			dante->max_io_delay * dante->max_io_attempts,
+			mxi_dante_callback_id, dante->record->name ));
 	}
 
 	return FALSE;
@@ -280,7 +300,8 @@ mxi_dante_open( MX_RECORD *record )
 	int num_items;
 
 	unsigned long max_init_delay_ms;
-	unsigned long max_attempts;
+	unsigned long max_io_delay_ms;
+	unsigned long max_io_attempts;
 
 	bool dante_status;
 	uint32_t version_length;
@@ -457,7 +478,7 @@ mxi_dante_open( MX_RECORD *record )
 
 	/* How many boards are there for each master? */
 
-	max_attempts = mx_round_up( dante->max_board_delay );
+	max_io_attempts = mx_round_up( dante->max_io_attempts );
 
 #if 0
 	MX_DEBUG(-2,("%s: max_attempts = %lu", fname, max_attempts));
@@ -502,8 +523,14 @@ mxi_dante_open( MX_RECORD *record )
 		MX_DEBUG(-2,("%s: dante->master[%lu].chain_id = '%s'",
 			fname, i, dante->master[i].chain_id ));
 #endif
+		if ( dante->max_io_delay <= 0.0 ) {
+			max_io_delay_ms = 1;
+		} else {
+			max_io_delay_ms =
+				mx_round_up( 1000.0 * dante->max_io_delay );
+		}
 
-		for ( attempt = 0; attempt < max_attempts; attempt++ ) {
+		for ( attempt = 0; attempt < max_io_attempts; attempt++ ) {
 
 			dante_status = get_boards_in_chain(
 				dante->master[i].chain_id, num_boards );
@@ -525,7 +552,7 @@ mxi_dante_open( MX_RECORD *record )
 				break;
 			}
 
-			mx_msleep(1000);
+			mx_msleep( max_io_delay_ms );
 		}
 
 #if 0
@@ -1348,7 +1375,7 @@ mxi_dante_set_data_available_flag_for_chain( MX_RECORD *original_mca_record,
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if 1
+#if MXI_DANTE_DEBUG_DATA_AVAILABLE
 	MX_DEBUG(-2,("%s invoked for MCA '%s'.",
 			fname, original_mca_record->name));
 #endif
@@ -1408,9 +1435,11 @@ mxi_dante_set_data_available_flag_for_chain( MX_RECORD *original_mca_record,
 
 		current_mca->new_data_available = new_flag_value;
 
+#if MXI_DANTE_DEBUG_DATA_AVAILABLE
 		MX_DEBUG(-2,("%s: 'new_data_available' set to %d for MCA '%s'.",
 			fname, (int) current_mca->new_data_available,
 			current_mca_record->name ));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;

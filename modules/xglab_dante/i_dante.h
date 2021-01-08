@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -116,7 +116,8 @@ typedef struct dante_struct {
 	unsigned long max_boards_per_chain;
 	unsigned long num_mcas;
 	double max_init_delay;
-	double max_board_delay;
+	double max_io_delay;
+	unsigned long max_io_attempts;
 	char config_filename[MXU_FILENAME_LENGTH+1];
 
 	mx_bool_type load_config_file;
@@ -164,7 +165,7 @@ typedef struct dante_configuration {
 extern uint32_t mxi_dante_callback_id;
 extern uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
 
-extern int mxi_dante_wait_for_answer( uint32_t callback_id );
+extern int mxi_dante_wait_for_answer( uint32_t callback_id, MX_DANTE *dante );
 
 #define MXLV_DANTE_LOAD_CONFIG_FILE	22001
 #define MXLV_DANTE_SAVE_CONFIG_FILE	22002
@@ -187,8 +188,12 @@ extern int mxi_dante_wait_for_answer( uint32_t callback_id );
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, max_init_delay), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "max_board_delay", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, max_board_delay), \
+  {-1, -1, "max_io_delay", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, max_io_delay), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "max_io_attempts", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, max_io_attempts), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "config_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
