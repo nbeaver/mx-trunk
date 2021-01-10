@@ -146,8 +146,7 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 {
 	static const char fname[] = "mxi_dante_wait_for_answer()";
 
-	unsigned long max_io_delay_ms;
-	int i;
+	unsigned long i, max_io_delay_ms;
 
 	if ( dante == (MX_DANTE *) NULL ) {
 		fprintf( stderr,
@@ -189,7 +188,8 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 		MX_DEBUG(-2,("%s: Timed out waiting for %f seconds "
 			"for callback %lu to arrive for Dante '%s'.\n", fname,
 			dante->max_io_delay * dante->max_io_attempts,
-			mxi_dante_callback_id, dante->record->name ));
+			(unsigned long) mxi_dante_callback_id,
+			dante->record->name ));
 	}
 
 	return FALSE;
