@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016, 2019-2020 Illinois Institute of Technology
+ * Copyright 2016, 2019-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,6 +67,7 @@ MX_MCS_FUNCTION_LIST mxd_sis3820_mcs_function_list = {
 	NULL,
 	NULL,
 	mxd_sis3820_read_measurement,
+	NULL,
 	NULL,
 	NULL,
 	mxd_sis3820_get_parameter,

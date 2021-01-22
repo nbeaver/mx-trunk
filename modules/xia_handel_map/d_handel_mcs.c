@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2019-2020 Illinois Institute of Technology
+ * Copyright 2019-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,6 +67,7 @@ MX_MCS_FUNCTION_LIST mxd_handel_mcs_mcs_function_list = {
 	mxd_handel_mcs_stop,
 	mxd_handel_mcs_clear,
 	mxd_handel_mcs_busy,
+	NULL,
 	NULL,
 	NULL,
 	NULL,

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2006, 2008, 2010, 2012, 2016, 2018-2019
+ * Copyright 2000-2001, 2004, 2006, 2008, 2010, 2012, 2016, 2018-2019, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -54,6 +54,7 @@ MX_MCS_FUNCTION_LIST mxd_soft_mcs_mcs_function_list = {
 	mxd_soft_mcs_read_all,
 	mxd_soft_mcs_read_scaler,
 	mxd_soft_mcs_read_measurement,
+	NULL,
 	NULL,
 	NULL,
 	mxd_soft_mcs_get_parameter,

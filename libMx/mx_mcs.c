@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018-2020
+ * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1130,6 +1130,7 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_measurement_fn ) ( MX_MCS * );
+	mx_status_type ( *read_measurement_range_fn ) ( MX_MCS * );
 	unsigned long i;
 	mx_status_type mx_status;
 
@@ -1151,8 +1152,18 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 
 	read_measurement_fn = function_list->read_measurement;
 
+	read_measurement_range_fn = function_list->read_measurement_range;
+
 	if ( read_measurement_fn != NULL ) {
 		mx_status = (*read_measurement_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else
+	if ( read_measurement_range_fn != NULL ) {
+		mcs->num_measurements_in_range = 1;
+
+		mx_status = (*read_measurement_range_fn)( mcs );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1168,6 +1179,100 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	}
 	if ( measurement_data != NULL ) {
 		*measurement_data = mcs->measurement_data;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
+				unsigned long first_measurement_index,
+				unsigned long num_measurements_in_range,
+				unsigned long *num_scalers,
+				long ***measurement_range_data )
+{
+	static const char fname[] = "mx_mcs_read_measurement_range()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *function_list;
+	mx_status_type ( *read_measurement_fn ) ( MX_MCS * );
+	mx_status_type ( *read_measurement_range_fn ) ( MX_MCS * );
+	unsigned long i, n, last_measurement_index;
+	long *measurement_src_ptr, *measurement_dest_ptr;
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( ((long) first_measurement_index)
+			>= mcs->maximum_num_measurements )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"First measurement index %lu for MCS record '%s' is outside "
+		"the allowed range of 0-%ld.",
+			first_measurement_index, mcs_record->name,
+			mcs->maximum_num_measurements - 1L );
+	}
+
+	last_measurement_index = first_measurement_index
+				+ num_measurements_in_range - 1L;
+
+	if ( ((long) last_measurement_index)
+			>= mcs->maximum_num_measurements )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Last measurement index %lu for MCS record '%s' is outside "
+		"the allowed range of 0-%ld.",
+			last_measurement_index, mcs_record->name,
+			mcs->maximum_num_measurements - 1L );
+	}
+
+	mcs->measurement_index = (long) first_measurement_index;
+
+	read_measurement_fn = function_list->read_measurement;
+
+	read_measurement_range_fn = function_list->read_measurement_range;
+
+	if ( read_measurement_range_fn != NULL ) {
+		mcs->num_measurements_in_range = num_measurements_in_range;
+
+		mx_status = (*read_measurement_range_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else 
+	if ( read_measurement_fn != NULL ) {
+		for ( n = first_measurement_index;
+			n <= last_measurement_index; n++ )
+		{
+			mcs->measurement_index = n;
+
+			mx_status = (*read_measurement_fn)( mcs );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	for ( i = 0; i < num_measurements_in_range; i++ ) {
+		n = first_measurement_index + i;
+
+		measurement_src_ptr = (mcs->data_array)[n];
+
+		measurement_dest_ptr = (mcs->measurement_range_data)[i];
+
+		memcpy( measurement_dest_ptr, measurement_src_ptr,
+			mcs->current_num_scalers * sizeof(unsigned long) );
+	}
+
+	if ( num_scalers != NULL ) {
+		*num_scalers = mcs->current_num_scalers;
+	}
+	if ( measurement_range_data != NULL ) {
+		*measurement_range_data = mcs->measurement_range_data;
 	}
 
 	return mx_status;

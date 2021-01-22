@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018-2020
+ * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -35,6 +35,7 @@ typedef struct {
 
 	long maximum_num_scalers;
 	long maximum_num_measurements;
+
 
 	MX_RECORD **scaler_record_array;
 
@@ -98,6 +99,7 @@ typedef struct {
 
 	long scaler_index;
 	long measurement_index;
+	unsigned long num_measurements_in_range;
 
 	double dark_current;
 
@@ -105,6 +107,7 @@ typedef struct {
 
 	long *scaler_data;
 	long *measurement_data;
+	long **measurement_range_data;
 	long scaler_measurement;
 	double *timer_data;
 
@@ -122,9 +125,10 @@ typedef struct {
 
 /*---*/
 
-#define MXF_MCS_PREFER_READ_SCALER	1
-#define MXF_MCS_PREFER_READ_MEASUREMENT	2
-#define MXF_MCS_PREFER_READ_ALL		3
+#define MXF_MCS_PREFER_READ_SCALER		1
+#define MXF_MCS_PREFER_READ_MEASUREMENT		2
+#define MXF_MCS_PREFER_READ_ALL			3
+#define MXF_MCS_PREFER_READ_MEASUREMENT_RANGE	4
 
 #define MXLV_MCS_MAXIMUM_NUM_SCALERS		1001
 #define MXLV_MCS_MAXIMUM_NUM_MEASUREMENTS	1002
@@ -156,13 +160,15 @@ typedef struct {
 #define MXLV_MCS_READOUT_PREFERENCE		1028
 #define MXLV_MCS_SCALER_INDEX			1029
 #define MXLV_MCS_MEASUREMENT_INDEX		1030
-#define MXLV_MCS_DARK_CURRENT			1031
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1032
-#define MXLV_MCS_SCALER_DATA			1033
-#define MXLV_MCS_MEASUREMENT_DATA		1034
-#define MXLV_MCS_SCALER_MEASUREMENT		1035
-#define MXLV_MCS_TIMER_DATA			1036
-#define MXLV_MCS_CLEAR_DEADBAND			1037
+#define MXLV_MCS_NUM_MEASUREMENTS_IN_RANGE	1031
+#define MXLV_MCS_DARK_CURRENT			1032
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1033
+#define MXLV_MCS_SCALER_DATA			1034
+#define MXLV_MCS_MEASUREMENT_DATA		1035
+#define MXLV_MCS_MEASUREMENT_RANGE_DATA		1036
+#define MXLV_MCS_SCALER_MEASUREMENT		1037
+#define MXLV_MCS_TIMER_DATA			1038
+#define MXLV_MCS_CLEAR_DEADBAND			1039
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -316,6 +322,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_index), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_MCS_NUM_MEASUREMENTS_IN_RANGE, -1, "num_measurements_in_range", \
+					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, num_measurements_in_range), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_MCS_DARK_CURRENT, -1, "dark_current", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, dark_current), \
 	{0}, NULL, 0}, \
@@ -334,6 +345,11 @@ typedef struct {
 			MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_data), \
 	{sizeof(long)}, NULL, MXFF_VARARGS}, \
+  \
+  {MXLV_MCS_MEASUREMENT_RANGE_DATA, -1, "measurement_range_data", \
+		MXFT_LONG, NULL, 2, {MXU_VARARGS_LENGTH, MXU_VARARGS_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_range_data), \
+	{sizeof(long), sizeof(long *)}, NULL, MXFF_VARARGS}, \
   \
   {MXLV_MCS_SCALER_MEASUREMENT, -1, "scaler_measurement", \
 			MXFT_LONG, NULL, 0, {0}, \
@@ -366,6 +382,7 @@ typedef struct {
 	mx_status_type ( *read_all ) ( MX_MCS *mcs );
 	mx_status_type ( *read_scaler ) ( MX_MCS *mcs );
 	mx_status_type ( *read_measurement ) ( MX_MCS *mcs );
+	mx_status_type ( *read_measurement_range ) ( MX_MCS *mcs );
 	mx_status_type ( *read_scaler_measurement ) ( MX_MCS *mcs );
 	mx_status_type ( *read_timer ) ( MX_MCS * );
 	mx_status_type ( *get_parameter ) ( MX_MCS *mcs );
@@ -439,6 +456,12 @@ MX_API mx_status_type mx_mcs_read_measurement( MX_RECORD *mcs_record,
 					unsigned long measurement_index,
 					unsigned long *num_scalers,
 					long **measurement_data );
+
+MX_API mx_status_type mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
+					unsigned long first_measurement_index,
+					unsigned long num_measurements_in_range,
+					unsigned long *num_scalers,
+					long ***measurement_range_data );
 
 MX_API mx_status_type mx_mcs_read_scaler_measurement( MX_RECORD *mcs_record,
 					unsigned long scaler_index,

@@ -70,6 +70,7 @@ MX_MCS_FUNCTION_LIST mxd_dante_mcs_mcs_function_list = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
 	mxd_dante_mcs_get_parameter,
 	mxd_dante_mcs_set_parameter,
 	mxd_dante_mcs_get_last_measurement_number,

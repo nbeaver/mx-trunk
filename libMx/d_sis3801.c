@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008, 2010, 2018-2019 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008, 2010, 2018-2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,6 +59,7 @@ MX_MCS_FUNCTION_LIST mxd_sis3801_mcs_function_list = {
 	mxd_sis3801_read_all,
 	mxd_sis3801_read_scaler,
 	mxd_sis3801_read_measurement,
+	NULL,
 	NULL,
 	NULL,
 	mxd_sis3801_get_parameter,

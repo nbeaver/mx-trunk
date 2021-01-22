@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011, 2014-2016, 2018-2020
+ * Copyright 1999-2006, 2008-2011, 2014-2016, 2018-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -54,6 +54,7 @@ MX_MCS_FUNCTION_LIST mxd_epics_mcs_mcs_function_list = {
 	mxd_epics_mcs_read_all,
 	mxd_epics_mcs_read_scaler,
 	mxd_epics_mcs_read_measurement,
+	NULL,
 	NULL,
 	NULL,
 	mxd_epics_mcs_get_parameter,

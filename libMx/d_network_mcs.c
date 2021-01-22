@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016, 2018-2020
+ * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016, 2018-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -49,6 +49,7 @@ MX_MCS_FUNCTION_LIST mxd_network_mcs_mcs_function_list = {
 	mxd_network_mcs_read_all,
 	mxd_network_mcs_read_scaler,
 	mxd_network_mcs_read_measurement,
+	NULL,
 	mxd_network_mcs_read_scaler_measurement,
 	mxd_network_mcs_read_timer,
 	mxd_network_mcs_get_parameter,
