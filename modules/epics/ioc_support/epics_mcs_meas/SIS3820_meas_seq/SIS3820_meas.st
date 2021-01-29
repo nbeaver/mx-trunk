@@ -17,18 +17,11 @@ option -c;
 
 string mcs = "vmetest:mcs"
 
-long scaler_data[32][2000];
+#define MAX_SCALERS		32
+#define MAX_MEASUREMENTS	2000
+
+long scaler_data[MAX_SCALERS][MAX_MEASUREMENTS];
 assign scaler_data to { "{mcs}:MCA1.VAL", "{mcs}:MCA2.VAL", "{mcs}:MCA3.VAL",
-                        "{mcs}:MCA4.VAL", "{mcs}:MCA5.VAL", "{mcs}:MCA6.VAL",
-                        "{mcs}:MCA7.VAL", "{mcs}:MCA8.VAL", "{mcs}:MCA9.VAL",
-                        "{mcs}:MCA10.VAL", "{mcs}:MCA11.VAL", "{mcs}:MCA12.VAL",
-                        "{mcs}:MCA13.VAL", "{mcs}:MCA14.VAL", "{mcs}:MCA15.VAL",
-                        "{mcs}:MCA16.VAL", "{mcs}:MCA17.VAL", "{mcs}:MCA18.VAL",
-                        "{mcs}:MCA19.VAL", "{mcs}:MCA20.VAL", "{mcs}:MCA21.VAL",
-                        "{mcs}:MCA22.VAL", "{mcs}:MCA23.VAL", "{mcs}:MCA24.VAL",
-                        "{mcs}:MCA25.VAL", "{mcs}:MCA26.VAL", "{mcs}:MCA27.VAL",
-                        "{mcs}:MCA28.VAL", "{mcs}:MCA29.VAL", "{mcs}:MCA30.VAL",
-                        "{mcs}:MCA31.VAL", "{mcs}:MCA32.VAL" };
 monitor scaler_data;
 
 #define NUM_SCALERS        32
@@ -36,10 +29,11 @@ monitor scaler_data;
 long measurement_range[2] = {-1,-1};
 assign measurement_range to "{mcs}:MeasurementRange";
 monitor measurement_range;
+
 evflag measurement_range_flag;
 sync measurement_range measurement_range_flag;
 
-long measurement_data[100][NUM_SCALERS] = 0;
+long measurement_data[100][MAX_SCALERS] = 0;
 assign measurement_data to "{mcs}:MeasurementData";
 
 ss measurement_check {

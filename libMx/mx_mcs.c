@@ -1131,7 +1131,7 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_measurement_fn ) ( MX_MCS * );
 	mx_status_type ( *read_measurement_range_fn ) ( MX_MCS * );
-	unsigned long i;
+	unsigned long i, current_num_scalers;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_get_pointers( mcs_record,
@@ -1149,6 +1149,8 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	}
 
 	mcs->measurement_index = (long) measurement_index;
+
+	current_num_scalers = mcs->current_num_scalers;
 
 	read_measurement_fn = function_list->read_measurement;
 
@@ -1168,14 +1170,14 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else {
-		for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+		for ( i = 0; i < current_num_scalers; i++ ) {
 			mcs->measurement_data[i] =
 				(mcs->data_array)[i][measurement_index];
 		}
 	}
 
 	if ( num_scalers != NULL ) {
-		*num_scalers = mcs->current_num_scalers;
+		*num_scalers = current_num_scalers;
 	}
 	if ( measurement_data != NULL ) {
 		*measurement_data = mcs->measurement_data;
@@ -1197,8 +1199,7 @@ mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_measurement_fn ) ( MX_MCS * );
 	mx_status_type ( *read_measurement_range_fn ) ( MX_MCS * );
-	unsigned long i, n, last_measurement_index;
-	long *measurement_src_ptr, *measurement_dest_ptr;
+	unsigned long n, last_measurement_index;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_get_pointers( mcs_record,
@@ -1232,6 +1233,9 @@ mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 
 	mcs->measurement_index = (long) first_measurement_index;
 
+	mcs->measurement_range_data =
+		&((mcs->data_array)[first_measurement_index]);
+
 	read_measurement_fn = function_list->read_measurement;
 
 	read_measurement_range_fn = function_list->read_measurement_range;
@@ -1255,17 +1259,6 @@ mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
-	}
-
-	for ( i = 0; i < num_measurements_in_range; i++ ) {
-		n = first_measurement_index + i;
-
-		measurement_src_ptr = (mcs->data_array)[n];
-
-		measurement_dest_ptr = (mcs->measurement_range_data)[i];
-
-		memcpy( measurement_dest_ptr, measurement_src_ptr,
-			mcs->current_num_scalers * sizeof(unsigned long) );
 	}
 
 	if ( num_scalers != NULL ) {
