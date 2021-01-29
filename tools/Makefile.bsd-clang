@@ -1,4 +1,4 @@
-#
+
 # tools/Makefile.bsd-clang
 #
 
@@ -39,7 +39,7 @@ all: ../libMx/mx_private_version.h mx_config ${BSD_TOOLS} cJSON.o
 
 include ../libMx/Makefile.version
 
-include ../libMx/Makehead.bsd
+include ../libMx/Makehead.bsd-clang
 
 # Get the Subversion revision number of MX (if available).
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009, 2011, 2015 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009, 2011, 2015, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1332,9 +1332,14 @@ static int mx_use_posix_named_semaphores   = FALSE;
 #define SEM_R  0400	/* Read permission  */
 #endif
 
+#if defined(__FreeBSD_Version__)
+#error Booyah!
+#endif
+
 #if _SEM_SEMUN_UNDEFINED || defined(OS_SOLARIS) || defined(OS_CYGWIN) \
 	|| defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_QNX) \
-	|| defined(__NetBSD_Version__) || defined(OS_UNIXWARE)
+	|| defined(__FreeBSD__) || defined(__NetBSD_Version__) \
+	|| defined(OS_UNIXWARE)
 
 /* I wonder what possible advantage there is to making this
  * union definition optional?

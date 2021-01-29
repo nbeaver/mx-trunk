@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2011, 2014, 2018-2020
+ * Copyright 1999-2008, 2010-2011, 2014, 2018-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -461,7 +461,7 @@ mxi_tty_open( MX_RECORD *record )
 		}
 	}
 
-#elif ( defined(OS_LINUX) || defined(OS_MACOSX) )
+#elif ( defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) )
 
 	if ( (rs232->rs232_flags & MXF_232_SHARED) == 0 ) {
 

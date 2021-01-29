@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2020
+ * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -867,7 +867,8 @@ mx_stack_traceback( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif defined(MX_GCC_VERSION) || defined(MX_CLANG_VERSION)
+#elif ( (defined(MX_GCC_VERSION) || defined(MX_CLANG_VERSION)) \
+		& !defined(__FreeBSD__) )
 
 /* FIXME: It may be necessary to use -funwind-tables on ARM to get stack traces.
  */
