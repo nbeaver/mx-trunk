@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005, 2009-2010, 2014, 2018-2020
+ * Copyright 1999-2003, 2005, 2009-2010, 2014, 2018-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -23,6 +23,8 @@
 #define MXF_EPICS_MCS_USE_REFERENCE_PULSER		0x2 /*not implemented*/
 #define MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT	0x4
 #define MXF_EPICS_MCS_IGNORE_CLEARS			0x8
+
+#define MXF_EPICS_MCS_USE_SNL_PROGRAM			0x1000
 
 typedef struct {
 	char channel_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
@@ -43,6 +45,13 @@ typedef struct {
 	MX_EPICS_PV current_channel_pv;
 	MX_EPICS_PV dwell_pv;
 	MX_EPICS_PV erase_pv;
+	MX_EPICS_PV latch_measurements_in_range_pv;
+	MX_EPICS_PV max_measurements_in_range_pv;
+	MX_EPICS_PV measurement_data_pv;
+	MX_EPICS_PV measurement_index_pv;
+	MX_EPICS_PV measurement_range_data_pv;
+	MX_EPICS_PV measurement_snl_status_pv;
+	MX_EPICS_PV num_measurements_in_range_pv;
 	MX_EPICS_PV nmax_pv;
 	MX_EPICS_PV nord_pv;
 	MX_EPICS_PV nuse_pv;

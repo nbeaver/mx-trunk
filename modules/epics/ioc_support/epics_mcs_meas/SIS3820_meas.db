@@ -1,12 +1,27 @@
-grecord(ao,"$(P)MeasurementRange") {
-	field(DESC,"Measurement Range")
-	field(DESC,"Soft Channel")
+grecord(ao,"$(P)LatchMeasurementsInRange") {
+	field(PREC,"3")
+}
+
+grecord(ao,"$(P)MaxMeasurementsInRange") {
 	field(PREC,"3")
 }
 
 grecord(ao,"$(P)MeasurementData") {
-	field(DESC,"Measurement Data")
-	field(DESC,"Soft Channel")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)MeasurementIndex") {
+	field(PREC,"3")
+}
+
+grecord(ao,"$(P)MeasurementRangeData") {
+	field(PREC,"3")
+}
+
+grecord(ao,"$(P)MeasurementSnlStatus") {
+	field(PREC,"3")
+}
+
+grecord(ao,"$(P)NumMeasurementsInRange") {
 	field(PREC,"3")
 }
 

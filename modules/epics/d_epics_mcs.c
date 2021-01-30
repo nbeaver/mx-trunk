@@ -542,6 +542,33 @@ mxd_epics_mcs_open( MX_RECORD *record )
 				"versions of EPICS." );
 	}
 
+	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_USE_SNL_PROGRAM ) {
+		mx_epics_pvname_init(
+			&(epics_mcs->latch_measurements_in_range_pv),
+			"%sLatchMeasurementInRange.VAL",
+			epics_mcs->common_prefix );
+
+		mx_epics_pvname_init(&(epics_mcs->max_measurements_in_range_pv),
+			"%sMaxMeasurementInRange.VAL",
+			epics_mcs->common_prefix );
+
+		mx_epics_pvname_init(&(epics_mcs->measurement_data_pv),
+			"%sMeasurementData.VAL", epics_mcs->common_prefix );
+
+		mx_epics_pvname_init(&(epics_mcs->measurement_index_pv),
+			"%sMeasurementIndex.VAL", epics_mcs->common_prefix );
+
+		mx_epics_pvname_init(&(epics_mcs->measurement_range_data_pv ),
+			"%sMeasurementRangeData.VAL", epics_mcs->common_prefix);
+
+		mx_epics_pvname_init(&(epics_mcs->measurement_snl_status_pv ),
+			"%sMeasurementSnlStatus.VAL", epics_mcs->common_prefix);
+
+		mx_epics_pvname_init(&(epics_mcs->num_measurements_in_range_pv),
+			"%sNumMeasurementInRange.VAL",
+			epics_mcs->common_prefix );
+	}
+
 	/* Initialize some variables from the PV values in the IOC crate. */
 
 	mx_status = mx_mcs_get_counting_mode( record, NULL );
