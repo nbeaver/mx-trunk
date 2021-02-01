@@ -7,13 +7,15 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2015-2016, 2019-2020
+ * Copyright 1999-2001, 2003, 2005-2006, 2015-2016, 2019-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXMTR_DEBUG_MEASUREMENT_RANGE	FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -250,9 +252,11 @@ motor_mcs_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
+#if MXMTR_DEBUG_MEASUREMENT_RANGE
 			MX_DEBUG(-2,("meas: from %ld to %ld, mcs_status = %#lx",
 				old_last_measurement_number+1,
 				last_measurement_number, mcs_status));
+#endif
 
 			for ( meas = old_last_measurement_number+1;
 			    meas <= last_measurement_number; meas++ )
