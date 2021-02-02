@@ -53,8 +53,8 @@ MX_MCS_FUNCTION_LIST mxd_epics_mcs_mcs_function_list = {
 	mxd_epics_mcs_busy,
 	mxd_epics_mcs_read_all,
 	mxd_epics_mcs_read_scaler,
-	mxd_epics_mcs_read_measurement,
 	NULL,
+	mxd_epics_mcs_read_measurement_range,
 	NULL,
 	NULL,
 	mxd_epics_mcs_get_parameter,
@@ -1004,19 +1004,88 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if 0
-	/* This method uses EPICS subArrays to fetch only the values for a
-	 * given measurement in a channel rather than all the measurements
-	 * back to the beginning of time.
-	 *
-	 * Please note that .MALM is set to 1, so this is not designed to
-	 * be a way of reading multiple measurements at once.
-	 */
+/*----*/
 
-MX_EXPORT mx_status_type
-mxd_epics_mcs_read_measurement( MX_MCS *mcs )
+static mx_status_type
+mxd_epics_mcs_rmr_read_all( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_epics_mcs_read_measurement()";
+	static const char fname[] = "mxd_epics_mcs_rmr_read_all()";
+
+	MX_EPICS_MCS *epics_mcs = NULL;
+	long saved_epics_mcs_num_measurements_to_read;
+	long m, n, s, first_measurement;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_IGNORE_CLEARS ) {
+		mx_warning( "You have set the MXF_EPICS_MCS_IGNORE_CLEARS flag "
+		"bit 0x8 in '%s.epics_mcs_flags' (%#lx).  "
+		"%s is not very compatible with MXF_EPICS_MCS_IGNORE_CLEARS, "
+		"especially for short measurement dwell times.",
+			mcs->record->name, epics_mcs->epics_mcs_flags, fname );
+	}
+
+	saved_epics_mcs_num_measurements_to_read =
+			epics_mcs->num_measurements_to_read;
+
+	epics_mcs->num_measurements_to_read = mcs->measurement_index + 1L;
+
+	mx_status = mxd_epics_mcs_read_all( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_mcs->num_measurements_to_read =
+			saved_epics_mcs_num_measurements_to_read;
+
+		return mx_status;
+	}
+
+	first_measurement = mcs->measurement_index;
+
+	for ( m = 0; m <= mcs->num_measurements_in_range; m++ ) {
+		n = first_measurement + m;
+
+		for ( s = 0; s < mcs->current_num_scalers; s++ ) {
+			mcs->measurement_range_data[n][s]
+					= (mcs->data_array)[s][n];
+		}
+	}
+
+	epics_mcs->num_measurements_to_read =
+			saved_epics_mcs_num_measurements_to_read;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+static mx_status_type
+mxd_epics_mcs_rmr_snl_program( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_epics_mcs_rmr_snl_program()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Not yet implemented." );
+}
+
+/*----*/
+
+/* The following method uses EPICS subArrays to fetch only the values for a
+ * given measurement in a channel rather than all the measurements back to
+ * the beginning of time.
+ *
+ * Please note that .MALM is set to 1, so this is not designed to be a way
+ * of reading multiple measurements at once.
+ */
+
+static mx_status_type
+mxd_epics_mcs_rmr_subarray_with_waveform( MX_MCS *mcs )
+{
+	static const char fname[] =
+		"mxd_epics_mcs_rmr_subarray_with_waveform()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	MX_EPICS_GROUP epics_group;
@@ -1028,7 +1097,8 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		return mx_status; 
+	mx_warning( "%s: This method does not yet work.", fname );
 
 	/* Use an EPICS synchronous group to write the measurement number
 	 * to the .INDX field of each of the _Meas subArrays.
@@ -1114,7 +1184,7 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 	}
 
 	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
-		indx_value = mcs->measurement_number;
+		indx_value = mcs->measurement_index;
 
 		mx_status = mx_group_caget( &epics_group,
 				&(epics_mcs->meas_val_pv_array[i]),
@@ -1146,16 +1216,14 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 	return mx_status;
 }
 
-#else   /* The old mxd_epics_mcs_read_all() method. */
+/*----*/
 
 MX_EXPORT mx_status_type
-mxd_epics_mcs_read_measurement( MX_MCS *mcs )
+mxd_epics_mcs_read_measurement_range( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_epics_mcs_read_measurement()";
+	static const char fname[] = "mxd_epics_mcs_read_measurement_range()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	long saved_epics_mcs_num_measurements_to_read;
-	long i, measurement_index;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -1163,42 +1231,31 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_IGNORE_CLEARS ) {
-		mx_warning( "You have set the MXF_EPICS_MCS_IGNORE_CLEARS flag "
-		"bit 0x8 in '%s.epics_mcs_flags' (%#lx).  "
-		"%s is not very compatible with MXF_EPICS_MCS_IGNORE_CLEARS, "
-		"especially for short measurement dwell times.",
-			mcs->record->name, epics_mcs->epics_mcs_flags, fname );
+	MX_DEBUG(-2,("%s: MCS '%s', measurement_method = %lu",
+		fname, mcs->record->name, epics_mcs->measurement_method ));
+
+	switch( epics_mcs->measurement_method ) {
+	case MXF_EPICS_MCS_USE_READ_ALL:
+		mx_status = mxd_epics_mcs_rmr_read_all( mcs );
+		break;
+	case MXF_EPICS_MCS_USE_SNL_PROGRAM:
+		mx_status = mxd_epics_mcs_rmr_snl_program( mcs );
+		break;
+	case MXF_EPICS_MCS_USE_SUBARRAY_WITH_WAVEFORM:
+		mx_status = mxd_epics_mcs_rmr_subarray_with_waveform( mcs );
+		break;
+	default:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized measurement method %lu requested for MCS '%s'.",
+			epics_mcs->measurement_method,
+			mcs->record->name );
+		break;
 	}
 
-	saved_epics_mcs_num_measurements_to_read =
-			epics_mcs->num_measurements_to_read;
-
-	epics_mcs->num_measurements_to_read = mcs->measurement_index + 1L;
-
-	mx_status = mxd_epics_mcs_read_all( mcs );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		epics_mcs->num_measurements_to_read =
-			saved_epics_mcs_num_measurements_to_read;
-
-		return mx_status;
-	}
-
-	measurement_index = mcs->measurement_index;
-
-	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
-		mcs->measurement_data[i] = 
-			(mcs->data_array)[i][measurement_index];
-	}
-
-	epics_mcs->num_measurements_to_read =
-			saved_epics_mcs_num_measurements_to_read;
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
-#endif
+/*----*/
 
 MX_EXPORT mx_status_type
 mxd_epics_mcs_get_parameter( MX_MCS *mcs )

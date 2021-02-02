@@ -24,13 +24,18 @@
 #define MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT	0x4
 #define MXF_EPICS_MCS_IGNORE_CLEARS			0x8
 
-#define MXF_EPICS_MCS_USE_SNL_PROGRAM			0x1000
+/* EPICS MCS measurement method. */
+
+#define MXF_EPICS_MCS_USE_READ_ALL			0
+#define MXF_EPICS_MCS_USE_SNL_PROGRAM			1
+#define MXF_EPICS_MCS_USE_SUBARRAY_WITH_WAVEFORM	2
 
 typedef struct {
 	char channel_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char common_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	unsigned long epics_mcs_flags;
 	unsigned long monitor_scaler;
+	unsigned long measurement_method;
 
 	double epics_record_version;
 	long num_measurements_to_read;
@@ -89,7 +94,7 @@ MX_API mx_status_type mxd_epics_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_busy( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_read_all( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_read_scaler( MX_MCS *mcs );
-MX_API mx_status_type mxd_epics_mcs_read_measurement( MX_MCS *mcs );
+MX_API mx_status_type mxd_epics_mcs_read_measurement_range( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_get_parameter( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_set_parameter( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs );
@@ -117,6 +122,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_mcs_rfield_def_ptr;
   \
   {-1, -1, "monitor_scaler", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, monitor_scaler), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
+  {-1, -1, "measurement_method", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, measurement_method), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "epics_record_version", MXFT_DOUBLE, NULL, 0, {0}, \

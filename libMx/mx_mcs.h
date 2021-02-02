@@ -36,6 +36,8 @@ typedef struct {
 	long maximum_num_scalers;
 	long maximum_num_measurements;
 
+	long maximum_measurement_range;
+
 
 	MX_RECORD **scaler_record_array;
 
@@ -180,6 +182,10 @@ typedef struct {
 					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, maximum_num_measurements), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "maximum_measurement_range", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, maximum_measurement_range), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {MXLV_MCS_DATA_ARRAY, -1, "data_array", \
 		MXFT_ULONG, NULL, 2, {MXU_VARARGS_LENGTH, MXU_VARARGS_LENGTH},\
