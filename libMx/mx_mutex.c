@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2005-2007, 2015-2016, 2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1127,7 +1127,7 @@ mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 		} else {
 			/* Here we use Glibc internals.  Iaah!  Iaah! */
 
-# if ( MX_GLIBC_VERSION >= 2003003 )
+# if ( MX_GLIBC_VERSION > 2003006L )
 			owner_pthread_id = p_mutex_ptr->__data.__owner;
 # else
 			/* Glibc 2.3.2 and before did not have NPTL
