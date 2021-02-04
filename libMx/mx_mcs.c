@@ -1233,9 +1233,6 @@ mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 
 	mcs->measurement_index = (long) first_measurement_index;
 
-	mcs->measurement_range_data =
-		&((mcs->data_array)[first_measurement_index]);
-
 	read_measurement_fn = function_list->read_measurement;
 
 	read_measurement_range_fn = function_list->read_measurement_range;
