@@ -26,7 +26,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2018-2019 Illinois Institute of Technology
+ * Copyright 2018-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,6 +42,12 @@
 #include "mx_util.h"
 #include "mx_socket.h"
 #include "mx_netdb.h"
+
+#if !defined( EAI_OVERFLOW )
+#  define EAI_OVERFLOW	EAI_MEMORY
+#endif
+
+/*----*/
 
 /* Note: gethostbyname(), getprotobyname(), and getservbyname() are not
  *       thread-safe.
