@@ -765,8 +765,8 @@ mxd_epics_mcs_read_all( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_read_all()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	long i;
-	int32_t readall;
+	long i, first_read_retries, max_retries;
+	int32_t readall, retry_ms;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -784,6 +784,12 @@ mxd_epics_mcs_read_all( MX_MCS *mcs )
 
 	epics_mcs->epics_readall_invoked_already = TRUE;
 
+	first_read_retries = 0;
+
+	retry_ms = 1;
+
+	max_retries = 5000;
+
 	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
 
 		mcs->scaler_index = i;
@@ -795,6 +801,37 @@ mxd_epics_mcs_read_all( MX_MCS *mcs )
 
 			return mx_status;
 		}
+
+		/* The first channel is a timer channel, but sometimes
+		 * mxd_epics_mcs_read_scaler() returns before the first
+		 * timer count has arrived.  So we retry until we see
+		 * at least one count there.
+		 */
+
+		if ( i == 0 ) {
+			if ( mcs->data_array[0][0] == 0 ) {
+				first_read_retries++;
+				i--;
+
+				if ( first_read_retries > max_retries ) {
+					return mx_error( MXE_TIMED_OUT, fname,
+					"Timed out after waiting %f seconds "
+					"for MCS '%s' channel 1 (the timer "
+					"channel) to return the first timer "
+					"measurement.",
+						0.001 * max_retries * retry_ms,
+						mcs->record->name );
+				}
+
+				mx_msleep( retry_ms );
+			}
+		}
+	}
+
+	if ( first_read_retries > 0 ) {
+		MX_DEBUG(-2,
+	("!+!+!+!+!+!+! mcs '%s', first_read_retries = %ld !+!+!+!+!+!+!",
+			mcs->record->name, first_read_retries ));
 	}
 
 	epics_mcs->epics_readall_invoked_already = FALSE;
@@ -1054,6 +1091,15 @@ mxd_epics_mcs_rmr_read_all( MX_MCS *mcs )
 		}
 	}
 
+#if 0
+	MX_DEBUG(-2,("%s: mcs->measurement_range_data = %p",
+		fname, mcs->measurement_range_data));
+	MX_DEBUG(-2,("%s: mcs->measurement_range_data[0] = %p",
+		fname, mcs->measurement_range_data[0]));
+	MX_DEBUG(-2,("%s: mcs->measurement_range_data[0][0] = %ld",
+		fname, mcs->measurement_range_data[0][0]));
+#endif
+
 	epics_mcs->num_measurements_to_read =
 			saved_epics_mcs_num_measurements_to_read;
 
@@ -1231,8 +1277,14 @@ mxd_epics_mcs_read_measurement_range( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: MCS '%s', measurement_method = %lu",
-		fname, mcs->record->name, epics_mcs->measurement_method ));
+#if 0
+	MX_DEBUG(-2,
+	("%s: MCS '%s', measurement_method = %lu, delay_ms = %lu ms",
+		fname, mcs->record->name, epics_mcs->measurement_method,
+		epics_mcs->delay_ms));
+#endif
+
+	mx_msleep( epics_mcs->delay_ms );
 
 	switch( epics_mcs->measurement_method ) {
 	case MXF_EPICS_MCS_USE_READ_ALL:

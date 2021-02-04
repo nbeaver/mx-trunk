@@ -37,6 +37,8 @@ typedef struct {
 	unsigned long monitor_scaler;
 	unsigned long measurement_method;
 
+	unsigned long delay_ms;
+
 	double epics_record_version;
 	long num_measurements_to_read;
 
@@ -127,6 +129,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_mcs_rfield_def_ptr;
   {-1, -1, "measurement_method", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, measurement_method), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
+  {-1, -1, "delay_ms", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, delay_ms), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "epics_record_version", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, epics_record_version), \

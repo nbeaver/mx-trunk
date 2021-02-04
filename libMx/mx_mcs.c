@@ -186,11 +186,12 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 {
 	static const char fname[] = "mx_mcs_finish_record_initialization()";
 
-	MX_MCS *mcs;
-	MX_MCS_FUNCTION_LIST *function_list;
-	MX_RECORD_FIELD *scaler_data_field;
-	MX_RECORD_FIELD *measurement_data_field;
-	MX_RECORD_FIELD *timer_data_field;
+	MX_MCS *mcs = NULL;
+	MX_MCS_FUNCTION_LIST *function_list = NULL;
+	MX_RECORD_FIELD *scaler_data_field = NULL;
+	MX_RECORD_FIELD *measurement_data_field = NULL;
+	MX_RECORD_FIELD *measurement_range_data_field = NULL;
+	MX_RECORD_FIELD *timer_data_field = NULL;
 	long i;
 	int valid_type;
 	mx_status_type mx_status;
@@ -237,7 +238,8 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	if ( mcs->scaler_record_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld element array of "
-		"MCS scaler record pointers.", mcs->maximum_num_scalers );
+		"MCS scaler record pointers for record '%s'.",
+			mcs->maximum_num_scalers, mcs_record->name );
 	}
 
 	for ( i = 0; i < mcs->maximum_num_scalers; i++ ) {
@@ -261,17 +263,92 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 
 	mcs->scaler_data = mcs->data_array[0];
 
+	/*----*/
+
 	mx_status = mx_find_record_field( mcs_record, "measurement_data",
 					&measurement_data_field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mcs->measurement_data = 
+		(long *) malloc( mcs->maximum_num_scalers * sizeof(long) );
+
+	if ( mcs->measurement_data == (long *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array of "
+		"measurement_data values for record '%s'.",
+			mcs->maximum_num_scalers, mcs_record->name );
+	}
+
+	measurement_data_field->dimension[0] = mcs->maximum_num_scalers;
+
+	mcs->measurement_index = 0;
+
+	mcs->num_measurements_in_range = 1;
+
+	/*----*/
+
+	mx_status = mx_find_record_field( mcs_record, "measurement_range_data",
+					&measurement_range_data_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+
+	if ( mcs->maximum_measurement_range < 0 ) {
+		MX_DEBUG(2, ("%s: FIXME: Need to implement driver-specific "
+		"autoconfiguration of measurement_range_data for record '%s'.",
+			fname, mcs_record->name ));
+
+		measurement_range_data_field->dimension[0] = 0;
+		measurement_range_data_field->dimension[1] = 0;
+
+		mcs->measurement_range_data = NULL;
+	} else
+	if ( mcs->maximum_measurement_range == 0 ) {
+		/* Measurement ranges are disabled. */
+
+		measurement_range_data_field->dimension[0] = 0;
+		measurement_range_data_field->dimension[1] = 0;
+
+		mcs->measurement_range_data = NULL;
+	} else {
+		/* The user has requested a specific measurement range. */
+
+		measurement_range_data_field->dimension[0]
+					= mcs->maximum_measurement_range;
+
+		measurement_range_data_field->dimension[1]
+					= mcs->maximum_num_scalers;
+
+		mcs->measurement_range_data =
+		    mx_allocate_array( MXFT_LONG, 2,
+			measurement_range_data_field->dimension,
+			measurement_range_data_field->data_element_size );
+
+		if ( mcs->measurement_range_data == (long **) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate an %ld x %ld "
+			"element array of measurement_range_data values "
+			"for record '%s'.",
+				measurement_range_data_field->dimension[0],
+				measurement_range_data_field->dimension[1],
+				mcs_record->name );
+		}
+	}
+
+	/*----*/
+
+	/* FIXME: Not yet implemented. */
+
 	mx_status = mx_find_record_field( mcs_record, "timer_data",
 					&timer_data_field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/*----*/
 
 	/* If the 'external_next_measurement_name' field has a non-zero
 	 * length value then make mcs->external_next_measurement_record
@@ -1140,6 +1217,12 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( mcs->measurement_data == (long *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The mcs->measurement_data pointer for record '%s' is NULL.",
+			mcs_record->name );
+	}
+
 	if ( ((long) measurement_index) >= mcs->maximum_num_measurements ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Measurement index %lu for MCS record '%s' is outside "
@@ -1161,6 +1244,12 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		if ( mcs->measurement_range_data != (long **) NULL ) {
+			memmove( mcs->measurement_range_data[0],
+				mcs->measurement_data,
+				mcs->current_num_scalers * sizeof(long) );
+		}
 	} else
 	if ( read_measurement_range_fn != NULL ) {
 		mcs->num_measurements_in_range = 1;
@@ -1169,10 +1258,20 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		memmove( mcs->measurement_data,
+			mcs->measurement_range_data[0],
+			mcs->current_num_scalers * sizeof(long) );
 	} else {
 		for ( i = 0; i < current_num_scalers; i++ ) {
 			mcs->measurement_data[i] =
 				(mcs->data_array)[i][measurement_index];
+		}
+
+		if ( mcs->measurement_range_data != (long **) NULL ) {
+			memmove( mcs->measurement_range_data[0],
+				mcs->measurement_data,
+				mcs->current_num_scalers * sizeof(long) );
 		}
 	}
 
