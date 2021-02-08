@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013-2019 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013-2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2112,6 +2112,8 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 #elif defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_HURD) \
     || defined(__FreeBSD__) || defined(__NetBSD__)
 
+#if ( defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL) && defined(TCP_KEEPCNT) )
+
 MX_EXPORT mx_status_type
 mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 			mx_bool_type enable_keepalive,
@@ -2218,6 +2220,27 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#else
+	/* Some old version of Linux, etc. that does not support
+	 * user settable keepalives.
+	 */
+
+MX_EXPORT mx_status_type
+mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+			mx_bool_type enable_keepalive,
+			unsigned long keepalive_time_ms,
+			unsigned long keepalive_interval_ms,
+			unsigned long keepalive_retry_count )
+{
+	static const char fname[] = "mx_socket_set_keepalive()";
+
+	mx_warning( "Ignoring unsupported %s function.", fname );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif  /* Old Linux, etc. */
 
 #elif defined(OS_SOLARIS)
 
