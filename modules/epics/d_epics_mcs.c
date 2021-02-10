@@ -1069,7 +1069,8 @@ mxd_epics_mcs_rmr_read_all( MX_MCS *mcs )
 	saved_epics_mcs_num_measurements_to_read =
 			epics_mcs->num_measurements_to_read;
 
-	epics_mcs->num_measurements_to_read = mcs->measurement_index + 1L;
+	epics_mcs->num_measurements_to_read
+		= mcs->measurement_index + mcs->num_measurements_in_range;
 
 	mx_status = mxd_epics_mcs_read_all( mcs );
 

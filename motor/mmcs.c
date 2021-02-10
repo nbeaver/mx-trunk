@@ -17,6 +17,8 @@
 
 #define MXMTR_DEBUG_MEASUREMENT_RANGE	TRUE
 
+#define MXMTR_DEBUG_MEASUREMENT_STATUS	FALSE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -257,9 +259,14 @@ motor_mcs_fn( int argc, char *argv[] )
 				return FAILURE;
 
 #if MXMTR_DEBUG_MEASUREMENT_RANGE
-			MX_DEBUG(-2,("meas: from %ld to %ld, mcs_status = %#lx",
-				old_last_measurement_number+1,
-				last_measurement_number, mcs_status));
+			if ( last_measurement_number >
+				old_last_measurement_number )
+			{
+				MX_DEBUG(-2,
+				("meas: from %ld to %ld, mcs_status = %#lx",
+					old_last_measurement_number+1,
+					last_measurement_number, mcs_status));
+			}
 #endif
 
 #if 0
@@ -285,13 +292,18 @@ motor_mcs_fn( int argc, char *argv[] )
 				fprintf( output, "\n" );
 			}
 #else
+
+#if MXMTR_DEBUG_MEASUREMENT_STATUS
 			MX_DEBUG(-2,("%s: MARKER A", cname));
+#endif
 
 			new_num_measurements = last_measurement_number
 						- old_last_measurement_number;
 
+#if MXMTR_DEBUG_MEASUREMENT_STATUS
 			MX_DEBUG(-2,("%s: new_num_measurements = %ld",
 					cname, new_num_measurements));
+#endif
 
 			if ( new_num_measurements < 1 ) {
 				/* Go back to the top of the mcs_status
@@ -301,19 +313,25 @@ motor_mcs_fn( int argc, char *argv[] )
 				continue;
 			}
 
+#if 0
+			*measurement_range_data = NULL;
+#endif
+
 			mx_status = mx_mcs_read_measurement_range(
 					mcs_record,
 					old_last_measurement_number + 1,
-					last_measurement_number,
+					new_num_measurements,
 					&num_scalers,
 					&measurement_range_data );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
+#if MXMTR_DEBUG_MEASUREMENT_STATUS
 			MX_DEBUG(-2,("%s: MARKER B", cname));
+#endif
 
-#if MXMTR_DEBUG_MEASUREMENT_RANGE
+#if 0 && MXMTR_DEBUG_MEASUREMENT_RANGE
 			MX_DEBUG(-2,("meas range read"));
 #endif
 

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015, 2018-2019
+ * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015, 2018-2019, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -323,9 +323,20 @@ mxd_epics_motor_move_absolute( MX_MOTOR *motor )
 
 	MX_EPICS_MOTOR *epics_motor = NULL;
 	double new_destination;
+	short set_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_motor_get_pointers( motor, &epics_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Make sure the EPICS motor record is in 'Use' mode. */
+
+	set_flag = 0;
+
+	mx_status = mx_caput( &(epics_motor->set_pv),
+				MX_CA_SHORT, 1, &set_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -407,7 +418,7 @@ mxd_epics_motor_set_position( MX_MOTOR *motor )
 
 	user_set_position = motor->raw_set_position.analog;
 
-	/*** Change the motor record from 'Use' to 'Set' mode. ***/
+	/*** Change the EPICS motor record from 'Use' to 'Set' mode. ***/
 
 	set_flag = 1;
 
@@ -425,7 +436,7 @@ mxd_epics_motor_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/*** Put the motor record back into 'Use' mode. ***/
+	/*** Put the EPICS motor record back into 'Use' mode. ***/
 
 	set_flag = 0;
 

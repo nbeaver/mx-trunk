@@ -1307,6 +1307,17 @@ mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
+	if ( (*measurement_range_data) != (long **) NULL ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Passing in an array through the (long **) "
+		"measurement_range_data pointer is not yet "
+		"implemented for MCS '%s'.  "
+		"For now, always pass in **measurement_range_data == NULL.",
+			mcs_record->name );
+	}
+#endif
+
 	if ( ((long) first_measurement_index)
 			>= mcs->maximum_num_measurements )
 	{
