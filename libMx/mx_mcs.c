@@ -17,6 +17,8 @@
 
 #define MX_MCS_DEBUG_STATUS		FALSE
 
+#define MX_MCS_DEBUG_MEASUREMENT_RANGE	TRUE
+
 #define MX_MCS_ENABLE_CLEAR_DEADBAND	TRUE
 
 #define MX_MCS_DEBUG_CLEAR_DEADBAND	FALSE
@@ -1308,7 +1310,7 @@ mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 		return mx_status;
 
 #if 0
-	if ( (*measurement_range_data) != (long **) NULL ) {
+	if ( (**measurement_range_data) != (long *) NULL ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Passing in an array through the (long **) "
 		"measurement_range_data pointer is not yet "
@@ -1316,6 +1318,12 @@ mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 		"For now, always pass in **measurement_range_data == NULL.",
 			mcs_record->name );
 	}
+#endif
+
+#if MX_MCS_DEBUG_MEASUREMENT_RANGE
+	MX_DEBUG(-2,("%s: first_measurement_index = %lu, "
+		"num_measurements_in_range = %lu",
+		fname, first_measurement_index, num_measurements_in_range));
 #endif
 
 	if ( ((long) first_measurement_index)
