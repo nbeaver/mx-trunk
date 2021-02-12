@@ -150,7 +150,7 @@ mca_timer       device timer mca_timer "" "" mca1 1
 #
 # A simple example of a Multichannel Scaler.
 #
-mcs1            device mcs soft_mcs "" "" 3 512 "" 0 0 timer2 8950 1  I0 I I
+mcs1            device mcs soft_mcs "" "" 3 512 100 "" 0 0 timer2 8950 1  I0 I I
 Io              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 0
 It              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 1
 If              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 2
