@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2017-2019 Illinois Institute of Technology
+ * Copyright 2017-2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -148,15 +148,13 @@ sigaction( int signum,
 
 /*-------------------------------------------------------------------------*/
 
-MX_EXPORT void
-mx_standard_signal_error_handler( int signal_number )
+static void
+mxp_standard_signal_error_handler( int signal_number,
+					siginfo_t *info,
+					void *ucontext )
 {
-	static char signal_name[80];
 	static char directory_name[ MXU_FILENAME_LENGTH + 1 ];
 	static int recursion = 0;
-
-	(void) mx_get_current_directory_name( directory_name,
-					      MXU_FILENAME_LENGTH );
 
 	if ( recursion ) {
 		mx_warning( "We seem to be crashing inside the signal handler, "
@@ -171,51 +169,100 @@ mx_standard_signal_error_handler( int signal_number )
 
 	recursion++;
 
+#if 1
+	MX_DEBUG(-2,
+    ("siginfo_t: si_signo = %d, si_errno = %d, si_code = %d, si_addr = %p\n",
+		info->si_signo, info->si_errno, info->si_code, info->si_addr));
+#endif
+
 	switch ( signal_number ) {
 #ifdef SIGILL
 	case SIGILL:
-		strlcpy( signal_name, "SIGILL (illegal instruction)",
-		  sizeof(signal_name) );
+		mx_info( "CRASH: This program has died due to signal SIGILL.\n"
+			"  Illegal instruction at ptr = %p \n",
+			info->si_addr );
 		break;
 #endif
 #ifdef SIGTRAP
 	case SIGTRAP:
-		strlcpy( signal_name, "SIGTRAP",
-		  sizeof(signal_name) );
+		mx_info( "CRASH: This program has died due to signal SIGTRAP.\n"
+			"  Trap at ptr = %p \n",
+			info->si_addr );
 		break;
 #endif
 #ifdef SIGIOT
 	case SIGIOT:
-		strlcpy( signal_name, "SIGIOT (I/O trap)",
-		  sizeof(signal_name) );
+		mx_info( "CRASH: This program has died due to signal SIGIOT.\n"
+			"  I/O trap \n" );
 		break;
 #endif
 #ifdef SIGBUS
 	case SIGBUS:
-		strlcpy( signal_name, "SIGBUS (bus error)",
-		  sizeof(signal_name) );
+		mx_info( "CRASH: This program has died due to signal SIGBUS.\n"
+			"  Bus error at ptr = %p \n",
+			info->si_addr );
 		break;
 #endif
 #ifdef SIGFPE
 	case SIGFPE:
-		strlcpy( signal_name, "SIGFPE (floating point exception)",
-		  sizeof(signal_name) );
+		mx_info( "CRASH: This program has died due to signal SIGFPE.\n"
+			"  Floating point exception at ptr = %p \n",
+			info->si_addr );
 		break;
 #endif
+
+/*--------------------*/
+
 #ifdef SIGSEGV
 	case SIGSEGV:
-		strlcpy( signal_name, "SIGSEGV (segmentation violation)",
-		  sizeof(signal_name) );
+		mx_info( "CRASH: This program has died due to signal SIGSEGV.\n"
+			"  Segmentation violation at ptr = %p",
+			info->si_addr );
+
+		switch( info->si_code ) {
+#  ifdef SEGV_MAPERR
+		case SEGV_MAPERR:
+			mx_info( "  Error code = SEGV_MAPERR (%d), "
+				"(Address not mapped to object).\n",
+						info->si_code );
+			break;
+#  endif
+#  ifdef SEGV_ACCERR
+		case SEGV_ACCERR:
+			mx_info( "  Error code = SEGV_ACCERR (%d), "
+				"(Invalid permissions for mapped object).\n",
+						info->si_code );
+			break;
+#  endif
+#  ifdef SEGV_BNDERR
+		case SEGV_BNDERR:
+			mx_info( "  Error code = SEGV_BNDERR (%d), "
+				"(Failed address bound checks).\n",
+						info->si_code );
+			break;
+#  endif
+#  ifdef SEGV_PKUERR
+		case SEGV_PKUERR:
+			mx_info( "  Error code = SEGV_PKUERR (%d), "
+			    "(Access was denied by memory protection keys).\n",
+						info->si_code );
+			break;
+#  endif
+		default:
+			mx_info( " Error code = %d", info->si_code );
+			break;
+		}
 		break;
-#endif
+
+#endif /* SIGSEGV */
+
+/*--------------------*/
+
 	default:
-		snprintf( signal_name, sizeof(signal_name),
-				"%d", signal_number );
+		mx_info( "CRASH: This program has died due to signal %d.\n",
+			signal_number );
 		break;
 	}
-
-	mx_info( "CRASH: This program has died due to signal %s.\n",
-			signal_name );
 
 	mx_info( "Process id = %lu", mx_process_id() );
 
@@ -228,6 +275,9 @@ mx_standard_signal_error_handler( int signal_number )
 	} else {
 		/* Try to force a core dump. */
 
+		(void) mx_get_current_directory_name( directory_name,
+					      MXU_FILENAME_LENGTH );
+
 		mx_info("Attempting to force a core dump in '%s'.",
 				directory_name );
 
@@ -237,26 +287,57 @@ mx_standard_signal_error_handler( int signal_number )
 
 /*-------------------------------------------------------------------------*/
 
+static void
+mxp_setup_default_signal_handler( int signum )
+{
+	static const char fname[] = "mxp_setup_default_signal_handler()";
+
+	struct sigaction act;
+	int signal_status, saved_errno;
+
+	memset( &act, 0, sizeof(act) );
+
+	act.sa_flags = SA_SIGINFO;
+
+	act.sa_sigaction = mxp_standard_signal_error_handler;
+
+	signal_status = sigaction( signum, &act, NULL );
+
+	if ( signal_status != 0 ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_FUNCTION_FAILED, fname,
+		"The attempt by sigaction() to set up the MX standard signal "
+		"handler for signal %d failed with "
+		"errno = %d, error message = '%s'.",
+			signum, saved_errno, strerror(saved_errno) );
+	}
+
+	return;
+}
+
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT void
 mx_setup_standard_signal_error_handlers( void )
 {
 #ifdef SIGILL
-	signal( SIGILL, mx_standard_signal_error_handler );
+	mxp_setup_default_signal_handler( SIGILL );
 #endif
 #ifdef SIGTRAP
-	signal( SIGTRAP, mx_standard_signal_error_handler );
+	mxp_setup_default_signal_handler( SIGTRAP );
 #endif
 #ifdef SIGIOT
-	signal( SIGIOT, mx_standard_signal_error_handler );
+	mxp_setup_default_signal_handler( SIGIOT );
 #endif
 #ifdef SIGBUS
-	signal( SIGBUS, mx_standard_signal_error_handler );
+	mxp_setup_default_signal_handler( SIGBUS );
 #endif
 #ifdef SIGFPE
-	signal( SIGFPE, mx_standard_signal_error_handler );
+	mxp_setup_default_signal_handler( SIGFPE );
 #endif
 #ifdef SIGSEGV
-	signal( SIGSEGV, mx_standard_signal_error_handler );
+	mxp_setup_default_signal_handler( SIGSEGV );
 #endif
 	return;
 }

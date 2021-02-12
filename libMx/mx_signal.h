@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017-2018 Illinois Institute of Technology
+ * Copyright 2017-2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -78,7 +78,9 @@ MX_API int sigaction( int signum,
 
 /*--------*/
 
-MX_API void mx_standard_signal_error_handler( int signal_number );
+#if 0
+  MX_API void mx_standard_signal_error_handler( int signal_number );
+#endif
 
 MX_API void mx_setup_standard_signal_error_handlers( void );
 
