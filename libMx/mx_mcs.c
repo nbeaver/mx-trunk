@@ -318,8 +318,13 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	} else {
 		/* The user has requested a specific measurement range. */
 
+		/* FIXME: The '+ 1' is added to prevent buffer overruns and
+		 * the associated SIGSEGV.  But there should be no buffer 
+		 * overruns, so why do we get one?
+		 */
+
 		measurement_range_data_field->dimension[0]
-					= mcs->maximum_measurement_range;
+					= mcs->maximum_measurement_range + 1;
 
 		measurement_range_data_field->dimension[1]
 					= mcs->maximum_num_scalers;
@@ -1291,6 +1296,7 @@ MX_EXPORT mx_status_type
 mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 				unsigned long first_measurement_index,
 				unsigned long num_measurements_in_range,
+				unsigned long *returned_measurements_in_range,
 				unsigned long *num_scalers,
 				long ***measurement_range_data )
 {
@@ -1376,10 +1382,14 @@ mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
 		}
 	}
 
-	if ( num_scalers != NULL ) {
+	if ( returned_measurements_in_range != (unsigned long *) NULL ) {
+		*returned_measurements_in_range =
+			mcs->returned_measurements_in_range;
+	}
+	if ( num_scalers != (unsigned long *) NULL ) {
 		*num_scalers = mcs->current_num_scalers;
 	}
-	if ( measurement_range_data != NULL ) {
+	if ( measurement_range_data != (long ***) NULL ) {
 		*measurement_range_data = mcs->measurement_range_data;
 	}
 

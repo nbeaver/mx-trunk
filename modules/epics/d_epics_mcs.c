@@ -1069,8 +1069,23 @@ mxd_epics_mcs_rmr_read_all( MX_MCS *mcs )
 	saved_epics_mcs_num_measurements_to_read =
 			epics_mcs->num_measurements_to_read;
 
+	if ( mcs->num_measurements_in_range > mcs->maximum_measurement_range ) {
+	    mcs->returned_measurements_in_range = mcs->maximum_measurement_range;
+	} else {
+	    mcs->returned_measurements_in_range = mcs->num_measurements_in_range;
+	}
+
 	epics_mcs->num_measurements_to_read
-		= mcs->measurement_index + mcs->num_measurements_in_range;
+		= mcs->measurement_index + mcs->returned_measurements_in_range;
+
+#if 1
+	MX_DEBUG(-2,("%s: num_measurements_in_range = %lu, "
+		"returned_measurements_in_range = %lu, "
+		"maximum_measurement_range = %ld",
+		fname, mcs->num_measurements_in_range,
+		mcs->returned_measurements_in_range,
+		mcs->maximum_measurement_range));
+#endif
 
 	mx_status = mxd_epics_mcs_read_all( mcs );
 
@@ -1083,11 +1098,11 @@ mxd_epics_mcs_rmr_read_all( MX_MCS *mcs )
 
 	first_measurement = mcs->measurement_index;
 
-	for ( m = 0; m <= mcs->num_measurements_in_range; m++ ) {
+	for ( m = 0; m <= mcs->returned_measurements_in_range; m++ ) {
 		n = first_measurement + m;
 
 		for ( s = 0; s < mcs->current_num_scalers; s++ ) {
-			mcs->measurement_range_data[n][s]
+			mcs->measurement_range_data[m][s]
 					= (mcs->data_array)[s][n];
 		}
 	}

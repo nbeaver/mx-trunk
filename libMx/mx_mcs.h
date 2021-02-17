@@ -103,6 +103,8 @@ typedef struct {
 	long measurement_index;
 	unsigned long num_measurements_in_range;
 
+	unsigned long returned_measurements_in_range;
+
 	double dark_current;
 
 	double *dark_current_array;	/* Expressed in counts per second. */
@@ -163,14 +165,15 @@ typedef struct {
 #define MXLV_MCS_SCALER_INDEX			1029
 #define MXLV_MCS_MEASUREMENT_INDEX		1030
 #define MXLV_MCS_NUM_MEASUREMENTS_IN_RANGE	1031
-#define MXLV_MCS_DARK_CURRENT			1032
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1033
-#define MXLV_MCS_SCALER_DATA			1034
-#define MXLV_MCS_MEASUREMENT_DATA		1035
-#define MXLV_MCS_MEASUREMENT_RANGE_DATA		1036
-#define MXLV_MCS_SCALER_MEASUREMENT		1037
-#define MXLV_MCS_TIMER_DATA			1038
-#define MXLV_MCS_CLEAR_DEADBAND			1039
+#define MXLV_MCS_RETURNED_MEASUREMENTS_IN_RANGE	1032
+#define MXLV_MCS_DARK_CURRENT			1033
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1034
+#define MXLV_MCS_SCALER_DATA			1035
+#define MXLV_MCS_MEASUREMENT_DATA		1036
+#define MXLV_MCS_MEASUREMENT_RANGE_DATA		1037
+#define MXLV_MCS_SCALER_MEASUREMENT		1038
+#define MXLV_MCS_TIMER_DATA			1039
+#define MXLV_MCS_CLEAR_DEADBAND			1040
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -333,6 +336,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, num_measurements_in_range), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_MCS_RETURNED_MEASUREMENTS_IN_RANGE, -1, \
+		"returned_measurements_in_range", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, returned_measurements_in_range),\
+	{0}, NULL, 0}, \
+  \
   {MXLV_MCS_DARK_CURRENT, -1, "dark_current", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, dark_current), \
 	{0}, NULL, 0}, \
@@ -464,10 +472,11 @@ MX_API mx_status_type mx_mcs_read_measurement( MX_RECORD *mcs_record,
 					long **measurement_data );
 
 MX_API mx_status_type mx_mcs_read_measurement_range( MX_RECORD *mcs_record,
-					unsigned long first_measurement_index,
-					unsigned long num_measurements_in_range,
-					unsigned long *num_scalers,
-					long ***measurement_range_data );
+				unsigned long first_measurement_index,
+				unsigned long num_measurements_in_range,
+				unsigned long *returned_measurements_in_range,
+				unsigned long *num_scalers,
+				long ***measurement_range_data );
 
 MX_API mx_status_type mx_mcs_read_scaler_measurement( MX_RECORD *mcs_record,
 					unsigned long scaler_index,

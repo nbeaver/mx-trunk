@@ -69,7 +69,8 @@ motor_mcs_fn( int argc, char *argv[] )
 	long last_measurement_number, total_num_measurements;
 	long meas, old_last_measurement_number;
 #if 1
-	long new_num_measurements;
+	long new_num_measurements, deficit;
+	unsigned long returned_num_measurements;
 #endif
 	unsigned long mcs_status;
 	long trigger_mode, raw_trigger_mode;
@@ -304,13 +305,14 @@ motor_mcs_fn( int argc, char *argv[] )
 					mcs_record,
 					old_last_measurement_number + 1,
 					new_num_measurements,
+					&returned_num_measurements,
 					&num_scalers,
 					&measurement_range_data );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-#if 1
+#if 0
 			MX_DEBUG(-2,("%s: measurement_range_data = %p",
 				cname, measurement_range_data));
 #endif
@@ -323,7 +325,10 @@ motor_mcs_fn( int argc, char *argv[] )
 			MX_DEBUG(-2,("meas range read"));
 #endif
 
-			for ( meas = 0; meas < new_num_measurements; meas++ ) {
+			for ( meas = 0;
+			    meas < returned_num_measurements;
+			    meas++ )
+			{
 				for ( i = 0; i < num_scalers; i++ ) {
 					fprintf( output, " %lu",
 					    measurement_range_data[meas][i] );
@@ -332,7 +337,17 @@ motor_mcs_fn( int argc, char *argv[] )
 				fprintf( output, "\n" );
 			}
 
-			old_last_measurement_number = last_measurement_number;
+			deficit = new_num_measurements
+					- returned_num_measurements;
+#if 1
+			if ( deficit != 0 ) {
+				MX_DEBUG(-2,("%s: deficit = %ld",
+					cname, deficit));
+			}
+#endif
+
+			old_last_measurement_number =
+					last_measurement_number - deficit;
 
 			mx_msleep(500);
 		}
