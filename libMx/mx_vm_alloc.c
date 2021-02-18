@@ -10,7 +10,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2013-2016, 2018 Illinois Institute of Technology
+ * Copyright 2013-2016, 2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@
 
 MX_EXPORT void *
 mx_vm_alloc( void *requested_address,
-		size_t requested_region_size_in_bytes,
+		size_t requested_range_size_in_bytes,
 		unsigned long protection_flags )
 {
 	static const char fname[] = "mx_vm_alloc()";
@@ -72,7 +72,7 @@ mx_vm_alloc( void *requested_address,
 	}
 	
 	actual_address = VirtualAlloc( requested_address,
-					requested_region_size_in_bytes,
+					requested_range_size_in_bytes,
 					vm_allocation_type,
 					vm_protection_flags );
 
@@ -117,8 +117,8 @@ mx_vm_free( void *address )
 	return;
 }
 
-/* The following implementation of mx_vm_get_protection() is inspired by
- * the following web page:
+/* The following implementation of mx_vm_get_protection_and_region()
+ * is inspired by the following web page:
  *
  *     http://blogs.msdn.com/ericlippert/articles/105186.aspx
  *
@@ -136,12 +136,12 @@ mx_vm_free( void *address )
 #endif
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t mx_region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t mx_range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	MEMORY_BASIC_INFORMATION memory_info;
 	SIZE_T bytes_returned;
@@ -201,7 +201,7 @@ mx_vm_get_protection( void *address,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* If the memory range from address to address+mx_region_size_in_bytes
+	/* If the memory range from address to address+mx_range_size_in_bytes
 	 * does not all fit into this memory region, then we return with
 	 * all MX permission bits set to 0.
 	 */
@@ -219,7 +219,7 @@ mx_vm_get_protection( void *address,
 	 */
 
 	unused_region_size = (unsigned long)
-			( memory_info.RegionSize - mx_region_size_in_bytes );
+			( memory_info.RegionSize - mx_range_size_in_bytes );
 
 	/* If pointer_offset is bigger than unused_region_size, then the
 	 * end of the requested memory range is beyond the end of the
@@ -282,7 +282,7 @@ mx_vm_get_protection( void *address,
 
 MX_EXPORT mx_status_type
 mx_vm_set_protection( void *address,
-		size_t region_size_in_bytes,
+		size_t range_size_in_bytes,
 		unsigned long protection_flags )
 {
 	static const char fname[] = "mx_vm_set_protection()";
@@ -321,7 +321,7 @@ mx_vm_set_protection( void *address,
 	}
 
 	virtual_protect_status = VirtualProtect( address,
-						region_size_in_bytes,
+						range_size_in_bytes,
 						vm_protection_flags,
 						&old_vm_protection_flags );
 	
@@ -348,7 +348,7 @@ mx_vm_set_protection( void *address,
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
 		void *address,
-		size_t region_size_in_bytes )
+		size_t range_size_in_bytes )
 {
 	static const char fname[] = "mx_vm_show_os_info()";
 
@@ -405,9 +405,9 @@ mx_vm_show_os_info( FILE *file,
  *
  * Even some non-Posix platforms like OpenVMS implement these functions.
  *
- * However, there is no standard way of implementing mx_vm_get_protection().
- * Thus, mx_vm_get_protection() is implemented in platform-specific code
- * later in this section of the file.
+ * However, there is no standard functionality for implementing the function 
+ * mx_vm_get_protection_and_region().  Thus, we implement it in
+ * platform-specific code later in this section of the file.
  */
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
@@ -423,7 +423,7 @@ mx_vm_show_os_info( FILE *file,
 
 MX_EXPORT void *
 mx_vm_alloc( void *requested_address,
-		size_t requested_region_size_in_bytes,
+		size_t requested_range_size_in_bytes,
 		unsigned long protection_flags )
 {
 	static const char fname[] = "mx_vm_alloc()";
@@ -451,7 +451,7 @@ mx_vm_alloc( void *requested_address,
 	vm_visibility_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 
 	actual_address = mmap( requested_address,
-				requested_region_size_in_bytes,
+				requested_range_size_in_bytes,
 				vm_protection_flags,
 				vm_visibility_flags,
 				-1, 0 );
@@ -500,7 +500,7 @@ mx_vm_free( void *address )
 
 MX_EXPORT mx_status_type
 mx_vm_set_protection( void *address,
-		size_t region_size_in_bytes,
+		size_t range_size_in_bytes,
 		unsigned long protection_flags )
 {
 	static const char fname[] = "mx_vm_set_protection()";
@@ -530,7 +530,7 @@ mx_vm_set_protection( void *address,
 	}
 
 	mprotect_status = mprotect( address,
-				region_size_in_bytes,
+				range_size_in_bytes,
 				vm_protection_flags );
 
 	if ( mprotect_status == (-1) ) {
@@ -544,7 +544,7 @@ mx_vm_set_protection( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*----- Platform-specific mx_vm_get_protection() for Posix platforms ------*/
+/*----- Platform-specific mx_vm_get_protection_and_region() for Posix ------*/
 
 #  if defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
 
@@ -552,7 +552,7 @@ mx_vm_set_protection( void *address,
 
 static mx_status_type
 mx_vm_get_protection_entry( void *address,
-		size_t region_size_in_bytes,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags,
 		char *entry_buffer,
@@ -578,7 +578,7 @@ mx_vm_get_protection_entry( void *address,
 
 #if MX_VM_ALLOC_DEBUG
 	MX_DEBUG(-2,("%s invoked for address %p, size %lu",
-		fname, address, (unsigned long) region_size_in_bytes ));
+		fname, address, (unsigned long) range_size_in_bytes ));
 #endif
 
 	if ( entry_buffer != NULL ) {
@@ -716,25 +716,97 @@ mx_vm_get_protection_entry( void *address,
 }
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
-		unsigned long *protection_flags )
+		unsigned long *protection_flags,
+		void **region_base_address,
+		size_t *region_size_in_bytes )
 {
+	static const char fname[] = "mx_vm_get_protection_and_region()";
+
+	char entry_buffer[250];
+	int argc, dup_argc;
+	char **argv, **dup_argv;
+	char *dup_argv0;
+	char *dup_entry_buffer;
+	intptr_t vm_base_address, vm_end_address, vm_region_size;
 	mx_status_type mx_status;
 
+	if ( valid_address_range != (mx_bool_type *) NULL ) {
+		*valid_address_range = FALSE;
+	}
+	if ( protection_flags != (unsigned long *) NULL ) {
+		*protection_flags = 0;
+	}
+	if ( region_base_address != (void **) NULL ) {
+		*region_base_address = NULL;
+	}
+	if ( region_size_in_bytes != (size_t *) NULL ) {
+		*region_size_in_bytes = 0;
+	}
+
 	mx_status = mx_vm_get_protection_entry( address,
-					region_size_in_bytes,
+					range_size_in_bytes,
 					valid_address_range,
 					protection_flags,
-					NULL, 0 );
-	return mx_status;
+					entry_buffer,
+					sizeof(entry_buffer) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: entry_buffer = '%s'", fname, entry_buffer));
+#endif
+
+	/* If we do not need to parse the data in 'entry_buffer',
+	 * then we can return now.
+	 */
+
+	if (( region_base_address == (void **) NULL )
+	 || ( region_size_in_bytes == (size_t *) NULL ))
+	{
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Get the region limits. */
+
+	dup_entry_buffer = strdup( entry_buffer );
+
+	mx_string_split( dup_entry_buffer, " ", &argc, &argv );
+
+	if ( argc <= 4 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Invalid entry returned from /proc/self/maps.  Entry = '%s'",
+			entry_buffer );
+	}
+
+	dup_argv0 = strdup( argv[0] );
+
+	mx_string_split( dup_argv0, "-", &dup_argc, &dup_argv );
+
+	vm_base_address = mx_hex_string_to_unsigned_long( dup_argv[0] );
+	vm_end_address  = mx_hex_string_to_unsigned_long( dup_argv[1] );
+
+	mx_free( dup_argv );
+	mx_free( dup_argv0 );
+
+	vm_region_size = vm_end_address - vm_base_address;
+
+	*region_base_address = (void *) vm_base_address;
+
+	*region_size_in_bytes = (size_t) vm_region_size;
+
+	return MX_SUCCESSFUL_RESULT;
 }
+
+/*---*/
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
 		void *address,
-		size_t region_size_in_bytes )
+		size_t range_size_in_bytes )
 {
 	static const char fname[] = "mx_vm_show_os_info()";
 
@@ -749,7 +821,7 @@ mx_vm_show_os_info( FILE *file,
 	mx_status_type mx_status;
 
 	mx_status = mx_vm_get_protection_entry( address,
-					region_size_in_bytes,
+					range_size_in_bytes,
 					&valid_address_range,
 					NULL,
 					entry_buffer,
@@ -758,7 +830,7 @@ mx_vm_show_os_info( FILE *file,
 		return mx_status;
 
 	address_start = (char *) address;
-	address_end = address_start + ( region_size_in_bytes - 1 );
+	address_end = address_start + ( range_size_in_bytes - 1 );
 
 	if ( valid_address_range == FALSE ) {
 		fprintf( file, "Address range %p to %p is invalid.\n",
@@ -839,12 +911,12 @@ mx_vm_show_os_info( FILE *file,
  */
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	task_t task;
 	vm_address_t region_address;
@@ -866,7 +938,7 @@ mx_vm_get_protection( void *address,
 	}
 
 	region_address = (vm_address_t) address;
-	region_size    = (vm_size_t) region_size_in_bytes;
+	region_size    = (vm_size_t) range_size_in_bytes;
 
 #if MX_VM_ALLOC_DEBUG
 	MX_DEBUG(-2,("%s: region_address = %lu",
@@ -960,12 +1032,12 @@ mx_vm_get_protection( void *address,
  */
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
+mx_vm_get_protection_and_region( void *address,
 		size_t address_range_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	task_t task;
 	vm_address_t region_address;
@@ -1066,7 +1138,7 @@ mx_vm_get_protection( void *address,
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
 		void *address,
-		size_t region_size_in_bytes )
+		size_t range_size_in_bytes )
 {
 	static const char fname[] = "mx_vm_show_os_info()";
 
@@ -1093,12 +1165,12 @@ mx_vm_show_os_info( FILE *file,
 #include <sys/mman.h>
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	char *vector;
 	char *aligned_pointer, *original_pointer;
@@ -1133,7 +1205,7 @@ mx_vm_get_protection( void *address,
 
 	aligned_pointer = (char *) (num_pages * page_size );
 
-	modified_length = region_size_in_bytes + page_offset;
+	modified_length = range_size_in_bytes + page_offset;
 
 	/* We now must allocate memory for the vector to be returned
 	 * by mincore().
@@ -1186,7 +1258,7 @@ mx_vm_get_protection( void *address,
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
 		void *address,
-		size_t region_size_in_bytes )
+		size_t range_size_in_bytes )
 {
 	static const char fname[] = "mx_vm_show_os_info()";
 
@@ -1202,12 +1274,12 @@ mx_vm_show_os_info( FILE *file,
 #include <procfs.h>
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	FILE *proc_file;
 	int saved_errno;
@@ -1298,7 +1370,7 @@ mx_vm_get_protection( void *address,
 
 		object_offset = pointer_addr - map_entry.pr_vaddr;
 
-		object_end = object_offset + region_size_in_bytes;
+		object_end = object_offset + range_size_in_bytes;
 
 		if ( object_end < map_entry.pr_size ) {
 
@@ -1345,12 +1417,12 @@ mx_vm_get_protection( void *address,
 #include <sys/procfs.h>
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	prmap_t *prmap_array = NULL;
 	prmap_t *array_element;
@@ -1366,8 +1438,8 @@ mx_vm_get_protection( void *address,
 
 #if MX_POINTER_DEBUG
 	MX_DEBUG(-2,
-	("%s: pointer_addr = %#lx, region_size_in_bytes = %lu",
-		fname, pointer_addr, (unsigned long) region_size_in_bytes));
+	("%s: pointer_addr = %#lx, range_size_in_bytes = %lu",
+		fname, pointer_addr, (unsigned long) range_size_in_bytes));
 #endif
 
 	/* Open the /proc file for the current process. */
@@ -1503,7 +1575,7 @@ mx_vm_get_protection( void *address,
 
 		object_offset = pointer_addr - pr_vaddr;
 
-		object_end = object_offset + region_size_in_bytes;
+		object_end = object_offset + range_size_in_bytes;
 
 		if ( object_end < array_element->pr_size ) {
 
@@ -1552,12 +1624,12 @@ mx_vm_get_protection( void *address,
 #    if defined(__VAX)
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"This function is not yet implemented on VAX-based OpenVMS systems." );
@@ -1575,12 +1647,12 @@ int __PAL_PROBER( const void *__base_address, int __length, char __mode );
 int __PAL_PROBEW( const void *__base_address, int __length, char __mode );
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	mx_bool_type read_allowed, write_allowed;
 	unsigned long protection_flags_value;
@@ -1590,9 +1662,9 @@ mx_vm_get_protection( void *address,
 		"The address pointer passed is NULL." );
 	}
 
-	read_allowed = __PAL_PROBER(address, region_size_in_bytes, PSL$C_USER);
+	read_allowed = __PAL_PROBER(address, range_size_in_bytes, PSL$C_USER);
 
-	write_allowed = __PAL_PROBEW(address, region_size_in_bytes, PSL$C_USER);
+	write_allowed = __PAL_PROBEW(address, range_size_in_bytes, PSL$C_USER);
 
 	if ( valid_address_range != NULL ) {
 		if ( read_allowed || write_allowed ) {
@@ -1623,7 +1695,7 @@ mx_vm_get_protection( void *address,
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
 		void *address,
-		size_t region_size_in_bytes )
+		size_t range_size_in_bytes )
 {
 	static const char fname[] = "mx_vm_show_os_info()";
 
@@ -1640,7 +1712,7 @@ mx_vm_show_os_info( FILE *file,
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
 		void *address,
-		size_t region_size_in_bytes )
+		size_t range_size_in_bytes )
 {
 	static const char fname[] = "mx_vm_show_os_info()";
 
@@ -1650,7 +1722,7 @@ mx_vm_show_os_info( FILE *file,
 
 /*-------------------------------------------------------------------------*/
 #  else
-#  error mx_vm_get_protection() is not yet implemented for this Posix platform.
+#  error mx_vm_get_protection_and_region() is not yet implemented for this Posix platform.
 #  endif
 
 /*===================== Platforms that only use stubs =====================*/
@@ -1684,12 +1756,12 @@ mx_vm_show_os_info( FILE *file,
 
 MX_EXPORT void *
 mx_vm_alloc( void *requested_address,
-		size_t requested_region_size_in_bytes,
+		size_t requested_range_size_in_bytes,
 		unsigned long protection_flags )
 {
 	void *ptr;
 
-	ptr = malloc( requested_region_size_in_bytes );
+	ptr = malloc( requested_range_size_in_bytes );
 
 	return ptr;
 }
@@ -1716,7 +1788,7 @@ mx_vm_free( void *address )
 
 MX_EXPORT mx_status_type
 mx_vm_set_protection( void *address,
-		size_t region_size_in_bytes,
+		size_t range_size_in_bytes,
 		unsigned long protection_flags )
 {
 	return MX_SUCCESSFUL_RESULT;
@@ -1729,12 +1801,12 @@ mx_vm_set_protection( void *address,
 #if defined(MX_VM_GET_PROTECTION_USES_STUB)
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+mx_vm_get_protection_and_region( void *address,
+		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_and_region()";
 
 	if ( address == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1769,7 +1841,7 @@ mx_vm_get_protection( void *address,
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
 		void *address,
-		size_t region_size_in_bytes )
+		size_t range_size_in_bytes )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1779,7 +1851,7 @@ mx_vm_show_os_info( FILE *file,
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 /* This is a generic implementation of mx_pointer_is_valid()
- * that uses the new mx_vm_get_protection() function.
+ * that uses mx_vm_get_protection_and_region() function.
  */
 
 MX_EXPORT int
@@ -1794,8 +1866,8 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 	unsigned long protection_flags;
 	mx_status_type mx_status;
 
-	mx_status = mx_vm_get_protection( pointer, length,
-				&address_range_exists, &protection_flags );
+	mx_status = mx_vm_get_protection_and_region( pointer, length,
+			&address_range_exists, &protection_flags, NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		valid = FALSE;
@@ -1826,5 +1898,27 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 #endif
 
 	return valid;
+}
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+/* This is an implementation of mx_vm_get_protection() using the newer
+ * mx_vm_get_protection_and_region() function.
+ */
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+			size_t range_size_in_bytes,
+			mx_bool_type *valid_address_range,
+			unsigned long *protection_flags )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_vm_get_protection_and_region( address,
+						range_size_in_bytes,
+						valid_address_range,
+						protection_flags,
+						NULL, NULL );
+	return mx_status;
 }
 

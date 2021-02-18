@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,23 +34,30 @@ extern "C" {
  */
 
 MX_API void *mx_vm_alloc( void *requested_address,
-			size_t requested_region_size_in_bytes,
+			size_t requested_size_in_bytes,
 			unsigned long protection_flags );
 
 MX_API void mx_vm_free( void *address );
 
 MX_API mx_status_type mx_vm_get_protection( void *address,
-					size_t region_size_in_bytes,
+					size_t range_size_in_bytes,
 					mx_bool_type *valid_address_range,
 					unsigned long *protection_flags );
 
+MX_API mx_status_type mx_vm_get_protection_and_region( void *address,
+					size_t range_size_in_bytes,
+					mx_bool_type *valid_address_range,
+					unsigned long *protection_flags,
+					void **region_base_address,
+					size_t *region_size_in_bytes );
+
 MX_API mx_status_type mx_vm_set_protection( void *address,
-					size_t region_size_in_bytes,
+					size_t range_size_in_bytes,
 					unsigned long protection_flags );
 
 MX_API mx_status_type mx_vm_show_os_info( FILE *file,
 					void *address,
-					size_t region_size_in_bytes );
+					size_t range_size_in_bytes );
 
 #ifdef __cplusplus
 }
