@@ -36,7 +36,9 @@ CBFLIB_LIBRARY = -lcbf
 
 else ifeq ($(MX_ARCH),linux-clang)
 
-CBFLIB_INCLUDES = -isystem /usr/include/cbf
+CBFLIB_INCLUDES += -isystem /usr/include/cbf
+CBFLIB_INCLUDES += -isystem /usr/include/cbflib
+CBFLIB_INCLUDES += -I /usr/include/hdf5/serial
 
 CBFLIB_LIBRARY = -lcbf
 

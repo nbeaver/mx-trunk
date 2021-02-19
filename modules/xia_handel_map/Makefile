@@ -16,6 +16,12 @@ ifeq ($(MX_ARCH),linux)
 	CFLAGS += -I$(XIA_HANDEL_DIR)/inc
 endif
 
+ifeq ($(MX_ARCH),linux-clang)
+	XIA_HANDEL_DIR = /opt/handel
+
+	CFLAGS += -I$(XIA_HANDEL_DIR)/inc
+endif
+
 ifeq ($(MX_ARCH),win32)
 	XIA_HANDEL_DIR = c:\\opt\\handel-1.2.22
 	#
@@ -54,6 +60,17 @@ XIA_HANDEL_OBJS = xia_handel.$(OBJ) i_handel.$(OBJ) \
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),linux)
+
+$(XIA_HANDEL_MXO): $(XIA_HANDEL_OBJS)
+	gcc -shared -rdynamic -Wl,-soname,$(XIA_HANDEL_MXO) \
+		-o $(XIA_HANDEL_MXO) $(XIA_HANDEL_OBJS) \
+		-L$(XIA_HANDEL_DIR)/lib -lhandel -lusb
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),linux-clang)
 
 $(XIA_HANDEL_MXO): $(XIA_HANDEL_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,$(XIA_HANDEL_MXO) \

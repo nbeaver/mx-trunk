@@ -28,6 +28,17 @@ endif
 
 #--------------------------------------------------------------------------
 
+ifeq ($(MX_ARCH),linux-clang)
+
+galil_gclib.mxo: $(GALIL_GCLIB_OBJS)
+	$(CXX) -shared -rdynamic -Wl,-soname,galil_gclib.mxo \
+		-o galil_gclib.mxo $(GALIL_GCLIB_OBJS) \
+		-lgclibo -lgclib ../../libMx/libMx.so
+
+endif
+
+#--------------------------------------------------------------------------
+
 ifeq ($(MX_ARCH),win32)
 
 CXX = cl

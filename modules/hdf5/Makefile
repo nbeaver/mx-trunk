@@ -32,6 +32,18 @@ $(info $$HDF5_LIBRARY is [${HDF5_LIBRARY}])
 
 #----
 
+else ifeq ($(MX_ARCH),linux-clang)
+
+# FIXME: The following is somewhat fragile.
+#
+HDF5_INCLUDES := $(shell h5cc -show | cut -d' ' -f2 )
+HDF5_LIBRARY  := $(shell h5cc -show | cut -d' ' -f3- )
+
+$(info $$HDF5_INCLUDES is [${HDF5_INCLUDES}])
+$(info $$HDF5_LIBRARY is [${HDF5_LIBRARY}])
+
+#----
+
 else
 
 error not tested yet.
@@ -70,6 +82,17 @@ endif
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),linux)
+
+hdf5.mxo: $(HDF5_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,hdf5.mxo \
+		-o hdf5.mxo $(HDF5_OBJS) \
+		../../libMx/libMx.so $(HDF5_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),linux-clang)
 
 hdf5.mxo: $(HDF5_OBJS)
 	$(CC) -shared -rdynamic -Wl,-soname,hdf5.mxo \

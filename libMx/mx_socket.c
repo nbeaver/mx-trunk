@@ -128,11 +128,11 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 
 	socket_fd = mx_socket->socket_fd;
 
-	if ( timeout_in_seconds > MX_MAX_SOCKET_WAIT_SECONDS ) {
-		timeout_in_seconds = MX_MAX_SOCKET_WAIT_SECONDS;
+	if ( timeout_in_seconds > (double) MX_MAX_SOCKET_WAIT_SECONDS ) {
+		timeout_in_seconds = (double) MX_MAX_SOCKET_WAIT_SECONDS;
 	} else
 	if ( timeout_in_seconds < 0.0 ) {
-		timeout_in_seconds = MX_MAX_SOCKET_WAIT_SECONDS;
+		timeout_in_seconds = (double) MX_MAX_SOCKET_WAIT_SECONDS;
 	}
 
 	tv_seconds = (unsigned long) timeout_in_seconds;

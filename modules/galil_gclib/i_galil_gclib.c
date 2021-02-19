@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -124,7 +124,7 @@ mxi_galil_gclib_finish_record_initialization( MX_RECORD *record )
 
 	flags = galil_gclib->galil_gclib_flags;
 
-	flags = flags;
+	MXW_UNUSED( flags );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -378,7 +378,7 @@ mxi_galil_gclib_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	galil_gclib = (MX_GALIL_GCLIB *) (record->record_type_struct);
 
-	galil_gclib = galil_gclib;
+	MXW_UNUSED( galil_gclib );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

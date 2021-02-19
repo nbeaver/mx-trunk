@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -399,8 +399,8 @@ mxd_galil_gclib_motor_process_function( void *record_ptr,
 	galil_gclib_record = galil_gclib_motor->galil_gclib_record;
 	galil_gclib = (MX_GALIL_GCLIB *) galil_gclib_record->record_type_struct;
 
-	motor = motor;
-	galil_gclib = galil_gclib;
+	MXW_UNUSED( motor );
+	MXW_UNUSED( galil_gclib );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

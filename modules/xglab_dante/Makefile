@@ -1,5 +1,5 @@
 #
-# Supported values of MX_ARCH: linux win32
+# Supported values of MX_ARCH: linux linux-clang win32
 #
 
 ifndef MX_ARCH
@@ -11,6 +11,10 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
+	XGLAB_DANTE_DIR = /opt/DANTE/Library/Linux-gcc4.8.5-libc2.17-x64/3.4.0.3-4.8.5-Callback-x64
+endif
+
+ifeq ($(MX_ARCH),linux-clang)
 	XGLAB_DANTE_DIR = /opt/DANTE/Library/Linux-gcc4.8.5-libc2.17-x64/3.4.0.3-4.8.5-Callback-x64
 endif
 
@@ -34,6 +38,11 @@ ifeq ($(MX_ARCH),linux)
 	C_COMPILE = gcc -c -fPIC -DDEBUG
 	CPP_COMPILE = g++ -c -fPIC -DDEBUG
 endif
+ifeq ($(MX_ARCH),linux-clang)
+	CFLAGS = -DOS_LINUX -I$(XGLAB_DANTE_DIR)
+	C_COMPILE = gcc -c -fPIC -DDEBUG
+	CPP_COMPILE = g++ -c -fPIC -DDEBUG
+endif
 ifeq ($(MX_ARCH),win32)
 	CFLAGS = -nologo -Zi -WX -DOS_WIN32 -I$(XGLAB_DANTE_DIR) -DDEBUG
 	C_COMPILE = cl -c -DDEBUG
@@ -54,6 +63,17 @@ $(info $$XGLAB_DANTE_DIR is [${XGLAB_DANTE_DIR}])
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),linux)
+
+$(XGLAB_DANTE_MXO): $(XGLAB_DANTE_OBJS)
+	gcc -shared -rdynamic -Wl,-soname,$(XGLAB_DANTE_MXO) \
+		-o $(XGLAB_DANTE_MXO) $(XGLAB_DANTE_OBJS) \
+		-L$(XGLAB_DANTE_DIR) -lXGL_DPP
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),linux-clang)
 
 $(XGLAB_DANTE_MXO): $(XGLAB_DANTE_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,$(XGLAB_DANTE_MXO) \

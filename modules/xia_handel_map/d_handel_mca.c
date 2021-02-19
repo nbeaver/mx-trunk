@@ -9,7 +9,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2012, 2015-2019 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2012, 2015-2019, 2021
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1943,7 +1944,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					dbl_value =
 				    handel_mca->double_roi_integral_array[i];
 
-					if ( dbl_value >= LONG_MAX ) {
+					if ( dbl_value >= (double) LONG_MAX ) {
 						mca->roi_integral_array[i] =
 							LONG_MAX;
 					} else {
@@ -3720,7 +3721,7 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 	/* Display the sorted parameter information. */
 
 	for ( i = 0; i < num_parameters; i++ ) {
-		mx_info( string_array[i] );
+		mx_info( "%s", string_array[i] );
 	}
 
 	/* We are done, so discard the string array. */

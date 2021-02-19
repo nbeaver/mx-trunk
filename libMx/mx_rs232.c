@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010-2012, 2014-2019 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010-2012, 2014-2019, 2021
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1492,7 +1493,7 @@ mx_rs232_wait_for_input_available( MX_RECORD *record,
 		if ( wait_timeout_in_seconds < 0.0 ) {
 			wait_forever = TRUE;
 		} else
-		if ( wait_timeout_in_seconds > LONG_MAX ) {
+		if ( wait_timeout_in_seconds > (double) LONG_MAX ) {
 			wait_forever = TRUE;
 		} else {
 			wait_forever = FALSE;
