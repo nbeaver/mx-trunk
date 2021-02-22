@@ -44,7 +44,7 @@ MX_API mx_status_type mx_vm_get_protection( void *address,
 					mx_bool_type *valid_address_range,
 					unsigned long *protection_flags );
 
-MX_API mx_status_type mx_vm_get_protection_and_region( void *address,
+MX_API mx_status_type mx_vm_get_region( void *address,
 					size_t range_size_in_bytes,
 					mx_bool_type *valid_address_range,
 					unsigned long *protection_flags,

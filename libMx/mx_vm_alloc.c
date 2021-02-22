@@ -117,8 +117,8 @@ mx_vm_free( void *address )
 	return;
 }
 
-/* The following implementation of mx_vm_get_protection_and_region()
- * is inspired by the following web page:
+/* The following implementation of mx_vm_get_region() is inspired by
+ * the following web page:
  *
  *     http://blogs.msdn.com/ericlippert/articles/105186.aspx
  *
@@ -136,12 +136,14 @@ mx_vm_free( void *address )
 #endif
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t mx_range_size_in_bytes,
 		mx_bool_type *valid_address_range,
-		unsigned long *protection_flags )
+		unsigned long *protection_flags,
+		void **region_base_address,
+		size_t *region_size_in_bytes )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	MEMORY_BASIC_INFORMATION memory_info;
 	SIZE_T bytes_returned;
@@ -199,6 +201,18 @@ mx_vm_get_protection_and_region( void *address,
 			*protection_flags = 0;
 		}
 		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If requested, return the starting address and size of the region
+	 * that this block of memory is found in.
+	 */
+
+	if ( region_base_address != (void **) NULL ) {
+		*region_base_address = (void *) memory_info.BaseAddress;
+	}
+
+	if ( region_size_in_bytes != (size_t *) NULL ) {
+		*region_size_in_bytes = (size_t) memory_info.RegionSize;
 	}
 
 	/* If the memory range from address to address+mx_range_size_in_bytes
@@ -406,8 +420,8 @@ mx_vm_show_os_info( FILE *file,
  * Even some non-Posix platforms like OpenVMS implement these functions.
  *
  * However, there is no standard functionality for implementing the function 
- * mx_vm_get_protection_and_region().  Thus, we implement it in
- * platform-specific code later in this section of the file.
+ * mx_vm_get_region().  Thus, we implement it in platform-specific code later
+ * in this section of the file.
  */
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
@@ -544,7 +558,7 @@ mx_vm_set_protection( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*----- Platform-specific mx_vm_get_protection_and_region() for Posix ------*/
+/*----- Platform-specific mx_vm_get_region() for Posix ------*/
 
 #  if defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
 
@@ -716,14 +730,14 @@ mx_vm_get_protection_entry( void *address,
 }
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags,
 		void **region_base_address,
 		size_t *region_size_in_bytes )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	char entry_buffer[250];
 	int argc, dup_argc;
@@ -911,12 +925,12 @@ mx_vm_show_os_info( FILE *file,
  */
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	task_t task;
 	vm_address_t region_address;
@@ -1032,12 +1046,12 @@ mx_vm_get_protection_and_region( void *address,
  */
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t address_range_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	task_t task;
 	vm_address_t region_address;
@@ -1165,12 +1179,12 @@ mx_vm_show_os_info( FILE *file,
 #include <sys/mman.h>
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	char *vector;
 	char *aligned_pointer, *original_pointer;
@@ -1274,12 +1288,12 @@ mx_vm_show_os_info( FILE *file,
 #include <procfs.h>
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	FILE *proc_file;
 	int saved_errno;
@@ -1417,12 +1431,12 @@ mx_vm_get_protection_and_region( void *address,
 #include <sys/procfs.h>
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	prmap_t *prmap_array = NULL;
 	prmap_t *array_element;
@@ -1624,12 +1638,12 @@ mx_vm_get_protection_and_region( void *address,
 #    if defined(__VAX)
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"This function is not yet implemented on VAX-based OpenVMS systems." );
@@ -1647,12 +1661,12 @@ int __PAL_PROBER( const void *__base_address, int __length, char __mode );
 int __PAL_PROBEW( const void *__base_address, int __length, char __mode );
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	mx_bool_type read_allowed, write_allowed;
 	unsigned long protection_flags_value;
@@ -1722,7 +1736,7 @@ mx_vm_show_os_info( FILE *file,
 
 /*-------------------------------------------------------------------------*/
 #  else
-#  error mx_vm_get_protection_and_region() is not yet implemented for this Posix platform.
+#  error mx_vm_get_region() is not yet implemented for this Posix platform.
 #  endif
 
 /*===================== Platforms that only use stubs =====================*/
@@ -1801,12 +1815,12 @@ mx_vm_set_protection( void *address,
 #if defined(MX_VM_GET_PROTECTION_USES_STUB)
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection_and_region( void *address,
+mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
-	static const char fname[] = "mx_vm_get_protection_and_region()";
+	static const char fname[] = "mx_vm_get_region()";
 
 	if ( address == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1851,7 +1865,7 @@ mx_vm_show_os_info( FILE *file,
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 /* This is a generic implementation of mx_pointer_is_valid()
- * that uses mx_vm_get_protection_and_region() function.
+ * that uses mx_vm_get_region() function.
  */
 
 MX_EXPORT int
@@ -1866,7 +1880,7 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 	unsigned long protection_flags;
 	mx_status_type mx_status;
 
-	mx_status = mx_vm_get_protection_and_region( pointer, length,
+	mx_status = mx_vm_get_region( pointer, length,
 			&address_range_exists, &protection_flags, NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -1903,7 +1917,7 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 /* This is an implementation of mx_vm_get_protection() using the newer
- * mx_vm_get_protection_and_region() function.
+ * mx_vm_get_region() function.
  */
 
 MX_EXPORT mx_status_type
@@ -1914,11 +1928,12 @@ mx_vm_get_protection( void *address,
 {
 	mx_status_type mx_status;
 
-	mx_status = mx_vm_get_protection_and_region( address,
-						range_size_in_bytes,
-						valid_address_range,
-						protection_flags,
-						NULL, NULL );
+	mx_status = mx_vm_get_region( address,
+					range_size_in_bytes,
+					valid_address_range,
+					protection_flags,
+					NULL, NULL );
+
 	return mx_status;
 }
 
