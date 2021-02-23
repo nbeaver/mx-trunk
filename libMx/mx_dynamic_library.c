@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018-2020
+ * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_program_model.h"	/* MX_WORDSIZE comes from here. */

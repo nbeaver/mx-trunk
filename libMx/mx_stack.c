@@ -932,16 +932,17 @@ mx_stack_available( void )
 {
 	long stack_available = -1L;
 
+	/* Create an mbi object on the stack. */
+
+	MEMORY_BASIC_INFORMATION mbi;
+
+	/*---*/
 	if ( mxp_stack_available_cs_initialized == FALSE ) {
 		InitializeCriticalSection( &mxp_stack_available_cs );
 		mxp_stack_available_cs_initialized = TRUE;
 	}
 
 	EnterCriticalSection( &mxp_stack_available_cs );
-
-	/* Create an mbi object on the stack. */
-
-	static MEMORY_BASIC_INFORMATION mbi;
 
 	/* Get the page range that includes the pointer to this object
 	 * on the stack.
