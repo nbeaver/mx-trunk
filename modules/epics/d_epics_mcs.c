@@ -19,7 +19,9 @@
  *
  */
 
-#define MXD_EPICS_MCS_DEBUG_SCALER	FALSE
+#define MXD_EPICS_MCS_DEBUG_SCALER		FALSE
+
+#define MXD_EPICS_MCS_DEBUG_RMR_READ_ALL	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -828,11 +830,13 @@ mxd_epics_mcs_read_all( MX_MCS *mcs )
 		}
 	}
 
+#if MXD_EPICS_MCS_DEBUG_RMR_READ_ALL
 	if ( first_read_retries > 0 ) {
 		MX_DEBUG(-2,
 	("!+!+!+!+!+!+! mcs '%s', first_read_retries = %ld !+!+!+!+!+!+!",
 			mcs->record->name, first_read_retries ));
 	}
+#endif
 
 	epics_mcs->epics_readall_invoked_already = FALSE;
 
@@ -1070,15 +1074,15 @@ mxd_epics_mcs_rmr_read_all( MX_MCS *mcs )
 			epics_mcs->num_measurements_to_read;
 
 	if ( mcs->num_measurements_in_range > mcs->maximum_measurement_range ) {
-	    mcs->returned_measurements_in_range = mcs->maximum_measurement_range;
+	   mcs->returned_measurements_in_range = mcs->maximum_measurement_range;
 	} else {
-	    mcs->returned_measurements_in_range = mcs->num_measurements_in_range;
+	   mcs->returned_measurements_in_range = mcs->num_measurements_in_range;
 	}
 
 	epics_mcs->num_measurements_to_read
 		= mcs->measurement_index + mcs->returned_measurements_in_range;
 
-#if 1
+#if MXD_EPICS_MCS_DEBUG_RMR_READ_ALL
 	MX_DEBUG(-2,("%s: num_measurements_in_range = %lu, "
 		"returned_measurements_in_range = %lu, "
 		"maximum_measurement_range = %ld",
@@ -1095,6 +1099,23 @@ mxd_epics_mcs_rmr_read_all( MX_MCS *mcs )
 
 		return mx_status;
 	}
+
+	/* The debug counter overwrites the contents of the monitor scaler
+	 * with the measurement number.  This is done to check for off-by-one
+	 * errors after this point in the MCS readout.
+	 */
+
+	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_ENABLE_DEBUG_COUNTER ) {
+		unsigned long monitor;
+
+		monitor = epics_mcs->monitor_scaler;
+
+		for ( n = 0; n < mcs->maximum_num_measurements; n++ ) {
+			(mcs->data_array)[ monitor-1 ][ n ] = n;
+		}
+	}
+
+	/*---*/
 
 	first_measurement = mcs->measurement_index;
 

@@ -15,7 +15,7 @@
  *
  */
 
-#define MXMTR_DEBUG_MEASUREMENT_RANGE	TRUE
+#define MXMTR_DEBUG_MEASUREMENT_RANGE	FALSE
 
 #define MXMTR_DEBUG_MEASUREMENT_STATUS	FALSE
 
@@ -246,7 +246,7 @@ motor_mcs_fn( int argc, char *argv[] )
 		 */
 
 		while( TRUE ) {
-#if 1
+#if MXMTR_DEBUG_MEASUREMENT_STATUS
 			MX_DEBUG(-2,("mcs_status = %#lx, "
 				"acquired_num_measurements = %lu, "
 				"saved_num_measurements = %lu",
@@ -280,7 +280,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-#if 1
+#if MXMTR_DEBUG_MEASUREMENT_STATUS
 			MX_DEBUG(-2,
 		    ("***: last_measurement_number = %ld, mcs_status = %#lx",
 				last_measurement_number, mcs_status));
