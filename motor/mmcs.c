@@ -65,13 +65,13 @@ motor_mcs_fn( int argc, char *argv[] )
 	char *endptr;
 	double measurement_time;
 	unsigned long i, j, channel_number, measurement_number;
-	unsigned long num_scalers, num_measurements;
+	unsigned long num_scalers;
 	long last_measurement_number, total_num_measurements;
-	long meas, old_last_measurement_number;
-#if 1
-	long new_num_measurements, deficit;
 	unsigned long returned_num_measurements;
-#endif
+	long meas, old_last_measurement_number;
+	long num_measurements_to_read;
+	unsigned long requested_num_measurements, acquired_num_measurements;
+	unsigned long saved_num_measurements, measurement_range_end;
 	unsigned long mcs_status;
 	long trigger_mode, raw_trigger_mode;
 	long *scaler_data;
@@ -142,7 +142,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		measurement_time = atof( argv[4] );
 
-		num_measurements = atol( argv[5] );
+		requested_num_measurements = atol( argv[5] );
 
 		mx_status = mx_mcs_set_measurement_time(
 				mcs_record, measurement_time );
@@ -151,7 +151,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		mx_status = mx_mcs_set_num_measurements(
-				mcs_record, num_measurements );
+				mcs_record, requested_num_measurements );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
@@ -216,7 +216,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		measurement_time = atof( argv[4] );
 
-		num_measurements = atol( argv[5] );
+		requested_num_measurements = atol( argv[5] );
 
 		mx_status = mx_mcs_set_measurement_time(
 				mcs_record, measurement_time );
@@ -225,7 +225,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		mx_status = mx_mcs_set_num_measurements(
-				mcs_record, num_measurements );
+				mcs_record, requested_num_measurements );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
@@ -238,11 +238,28 @@ motor_mcs_fn( int argc, char *argv[] )
 		mcs_status = MXSF_MCS_IS_BUSY;
 		old_last_measurement_number = -1L;
 
+		acquired_num_measurements = 0;
+		saved_num_measurements = 0;
+
 		/* Wait for measurements to show up.  We read them out
 		 * and print them when they do.
 		 */
 
-		while( mcs_status != 0 ) {
+		while( TRUE ) {
+#if 1
+			MX_DEBUG(-2,("mcs_status = %#lx, "
+				"acquired_num_measurements = %lu, "
+				"saved_num_measurements = %lu",
+				mcs_status,
+				acquired_num_measurements,
+				saved_num_measurements ));
+#endif
+			if( ( mcs_status == 0 )
+		    && ( acquired_num_measurements <= saved_num_measurements ) )
+			{
+				break;	/* Exit the while(TRUE) loop. */
+			}
+
 			if ( mx_kbhit() ) {
 				(void) mx_getch();
 
@@ -263,26 +280,26 @@ motor_mcs_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-#if MXMTR_DEBUG_MEASUREMENT_STATUS
-			MX_DEBUG(-2,("%s: MARKER A", cname));
+#if 1
+			MX_DEBUG(-2,
+		    ("***: last_measurement_number = %ld, mcs_status = %#lx",
+				last_measurement_number, mcs_status));
 #endif
 
-			new_num_measurements = last_measurement_number
-						- old_last_measurement_number;
+			acquired_num_measurements
+				= (last_measurement_number + 1);
 
-			if ( new_num_measurements >
+			num_measurements_to_read = acquired_num_measurements
+						- saved_num_measurements;
+
+			if ( num_measurements_to_read >
 				mcs->maximum_measurement_range )
 			{
-				new_num_measurements =
+				num_measurements_to_read = 
 					mcs->maximum_measurement_range;
 			}
 
-#if MXMTR_DEBUG_MEASUREMENT_STATUS
-			MX_DEBUG(-2,("%s: new_num_measurements = %ld",
-					cname, new_num_measurements));
-#endif
-
-			if ( new_num_measurements < 1 ) {
+			if ( num_measurements_to_read <= 0 ) {
 				/* Go back to the top of the mcs_status
 				 * while() loop.
 				 */
@@ -290,10 +307,13 @@ motor_mcs_fn( int argc, char *argv[] )
 				continue;
 			}
 
+			measurement_range_end = saved_num_measurements
+					  + num_measurements_to_read - 1;
+
 #if MXMTR_DEBUG_MEASUREMENT_RANGE
 			MX_DEBUG(-2,("meas: from %ld to %ld, mcs_status = %#lx",
-			    old_last_measurement_number + 1,
-			    old_last_measurement_number + new_num_measurements,
+			    saved_num_measurements,
+			    measurement_range_end,
 			    mcs_status));
 #endif
 
@@ -303,8 +323,8 @@ motor_mcs_fn( int argc, char *argv[] )
 
 			mx_status = mx_mcs_read_measurement_range(
 					mcs_record,
-					old_last_measurement_number + 1,
-					new_num_measurements,
+					saved_num_measurements,
+					num_measurements_to_read,
 					&returned_num_measurements,
 					&num_scalers,
 					&measurement_range_data );
@@ -312,10 +332,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-#if 0
-			MX_DEBUG(-2,("%s: measurement_range_data = %p",
-				cname, measurement_range_data));
-#endif
+			saved_num_measurements += returned_num_measurements;
 
 #if MXMTR_DEBUG_MEASUREMENT_STATUS
 			MX_DEBUG(-2,("%s: MARKER B", cname));
@@ -337,17 +354,7 @@ motor_mcs_fn( int argc, char *argv[] )
 				fprintf( output, "\n" );
 			}
 
-			deficit = new_num_measurements
-					- returned_num_measurements;
-#if 1
-			if ( deficit != 0 ) {
-				MX_DEBUG(-2,("%s: deficit = %ld",
-					cname, deficit));
-			}
-#endif
-
-			old_last_measurement_number =
-					last_measurement_number - deficit;
+			old_last_measurement_number = last_measurement_number;
 
 			mx_msleep(500);
 		}
@@ -376,7 +383,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		measurement_time = atof( argv[4] );
 
-		num_measurements = atol( argv[5] );
+		requested_num_measurements = atol( argv[5] );
 
 		mx_status = mx_mcs_set_measurement_time(
 				mcs_record, measurement_time );
@@ -385,7 +392,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		mx_status = mx_mcs_set_num_measurements(
-				mcs_record, num_measurements );
+				mcs_record, requested_num_measurements );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
@@ -473,7 +480,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		measurement_time = atof( argv[4] );
 
-		num_measurements = atol( argv[5] );
+		requested_num_measurements = atol( argv[5] );
 
 		mx_status = mx_mcs_set_measurement_time(
 				mcs_record, measurement_time );
@@ -482,7 +489,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		mx_status = mx_mcs_set_num_measurements(
-				mcs_record, num_measurements );
+				mcs_record, requested_num_measurements );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
@@ -501,7 +508,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		mx_status = mx_mcs_read_all( mcs_record,
 					&num_scalers,
-					&num_measurements,
+					&requested_num_measurements,
 					&mcs_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -519,7 +526,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		for ( i = 0; i < num_measurements; i++ ) {
+		for ( i = 0; i < requested_num_measurements; i++ ) {
 			for ( j = 0; j < num_scalers; j++ ) {
 				fprintf(savefile, "%10ld  ", mcs_data[j][i]);
 
@@ -560,7 +567,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		mx_status = mx_mcs_read_scaler( mcs_record,
 						channel_number,
-						&num_measurements,
+						&requested_num_measurements,
 						&scaler_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -578,7 +585,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		for ( i = 0; i < num_measurements; i++ ) {
+		for ( i = 0; i < requested_num_measurements; i++ ) {
 
 			fprintf(savefile, "%10ld\n", scaler_data[i]);
 
@@ -773,14 +780,14 @@ motor_mcs_fn( int argc, char *argv[] )
 				argv[4], strlen(argv[4]) ) == 0 )
 		{
 			mx_status = mx_mcs_get_num_measurements(
-					mcs_record, &num_measurements );
+				mcs_record, &requested_num_measurements );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
 			fprintf( output,
 				"MCS '%s' num measurements = %lu\n",
-				mcs_record->name, num_measurements );
+				mcs_record->name, requested_num_measurements );
 		} else
 		if ( strncmp( "status",
 				argv[4], strlen(argv[4]) ) == 0 )
@@ -900,7 +907,8 @@ motor_mcs_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			num_measurements = strtoul( argv[5], &endptr, 0 );
+			requested_num_measurements =
+				strtoul( argv[5], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -910,7 +918,7 @@ motor_mcs_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_mcs_set_num_measurements(
-					mcs_record, num_measurements );
+				mcs_record, requested_num_measurements );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
