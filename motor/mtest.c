@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012-2013, 2015-2019 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012-2013, 2015-2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +27,7 @@
 #include "mx_signal_alloc.h"
 #include "mx_thread.h"
 #include "mx_debugger.h"
+#include "mx_dynamic_library.h"
 
 int
 motor_test_fn( int argc, char *argv[] )
@@ -395,6 +397,40 @@ motor_test_fn( int argc, char *argv[] )
 			}
 
 			mx_free(signal_array);
+			return SUCCESS;
+		}
+
+		else
+		if ( strcmp( argv[2], "dll_filename" ) == 0 ) {
+			MX_DYNAMIC_LIBRARY *library = NULL;
+			char library_filename[MXU_FILENAME_LENGTH+1];
+
+			mx_breakpoint();
+
+			if ( argc <= 3 ) {
+				fprintf( output,
+					"DLL filename not specified.\n" );
+
+				return FAILURE;
+			} else {
+				mx_status = mx_dynamic_library_open(
+						argv[3], &library, 0 );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+
+				mx_status = mx_dynamic_library_get_filename(
+						library, library_filename,
+						sizeof(library_filename) );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+
+				(void) mx_dynamic_library_close( library );
+
+				fprintf( output, "DLL '%s' filename = '%s'\n",
+						argv[3], library_filename );
+			}
 			return SUCCESS;
 		}
 	}

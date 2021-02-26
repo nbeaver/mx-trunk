@@ -877,14 +877,30 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 		"No function name was found for address %p.", address );
 	}
 
-#if 0
-	MX_DEBUG(-2,("%s: address = %p, dli_fname = '%s', dli_fbase = %p, "
-		"dli_sname = '%s', dli_saddr = %p",
-		fname, address, info.dli_fname, info.dli_fbase,
-		info.dli_sname, info.dli_saddr));
-#endif
+	strlcpy( function_name, info.dli_sname, max_name_length );
 
-	strlcpy( function_name, info.dli_fname, max_name_length );
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
+				char *filename_of_library,
+				size_t max_filename_length )
+{
+	static const char fname[] = "mx_dynamic_library_get_filename()";
+
+	Dl_info info;
+	int status;
+
+	status = dladdr( library->object, &info );
+
+	if ( status == 0 ) {
+		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
+			"No filename name was found for shared library  '%s'.",
+			library->filename );
+	}
+
+	strlcpy( filename_of_library, info.dli_fname, max_filename_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -898,6 +914,17 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 {
 	static const char fname[] =
 		"mx_dynamic_library_get_function_name_from_address()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented for this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
+				char *filename_of_library,
+				size_t max_filename_length );
+{
+	static const char fname[] = "mx_dynamic_library_get_filename()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Not yet implemented for this platform." );
