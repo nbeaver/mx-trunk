@@ -1422,7 +1422,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 				"The attempt to create a duplicate of "
 				"the !getenv string '%s' failed.  "
 				"errno = %d, error message = '%s'",
-					saved_errno, strerror(saved_errno) );
+				buffer, saved_errno, strerror(saved_errno) );
 			}
 
 			mx_string_split( buffer, " ", &env_argc, &env_argv );

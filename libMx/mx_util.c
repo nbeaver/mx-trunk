@@ -722,6 +722,17 @@ mx_expand_env( const char *original_env_value,
 	return os_status;
 }
 
+#elif ( defined(OS_LINUX) || defined(OS_MACOSX) )
+
+MX_EXPORT int
+mx_expand_env( const char *original_env_value,
+		char *new_env_value, size_t max_env_size )
+{
+	strlcpy( new_env_value, original_env_value, max_env_size );
+
+	return strlen( new_env_value );
+}
+
 #else
 #error mx_expand_env() has not been implemented for this platform.
 #endif
