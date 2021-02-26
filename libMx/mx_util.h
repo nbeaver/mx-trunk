@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -399,6 +399,15 @@ extern "C" {
 /* Environment variable related functions. */
 
 MX_API int mx_setenv( const char *env_name, const char *env_value );
+
+/* The mx_expand_env() function replaces instances of %VAR% (for Windows)
+ * or $VAR (for everyone else) in the original string with the contents of
+ * those variables.
+ */
+
+MX_API int mx_expand_env( const char *original_env_value,
+			char *new_env_value,
+			size_t max_env_size );
 
 /*------------------------------------------------------------------------*/
 

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -688,6 +688,42 @@ mx_setenv( const char *env_name,
 
 #else
 #error mx_setenv() has not been implemented for this platform.
+#endif
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_WIN32)
+
+MX_EXPORT int
+mx_expand_env( const char *original_env_value,
+		char *new_env_value, size_t max_env_size )
+{
+	int os_status;
+
+	os_status = (int) ExpandEnvironmentStrings( original_env_value,
+						new_env_value, max_env_size );
+
+	if ( os_status == 0 ) {
+		char error_message[200];
+		DWORD last_error_code;
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+				error_message, sizeof(error_message) );
+
+		mx_warning( "mx_expand_env() failed with "
+			"Win32 error code = %ld, error message = '%s'.  "
+			"Original string was '%s'.",
+				last_error_code, error_message,
+				original_env_value );
+	}
+
+	return os_status;
+}
+
+#else
+#error mx_expand_env() has not been implemented for this platform.
 #endif
 
 /*-------------------------------------------------------------------------*/

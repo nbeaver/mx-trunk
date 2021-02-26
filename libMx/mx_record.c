@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1409,6 +1409,39 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			"'%s' -- Exiting...", buffer );
 
 			exit(1);
+
+		} else if ( strncmp( buffer, "!getenv ", 8 ) == 0 ) {
+			int env_argc; char **env_argv; char *env_dup;
+
+			env_dup = strdup( buffer );
+
+			if ( env_dup == (char *) NULL ) {
+				saved_errno = errno;
+
+				return mx_error( MXE_UNKNOWN_ERROR, fname,
+				"The attempt to create a duplicate of "
+				"the !getenv string '%s' failed.  "
+				"errno = %d, error message = '%s'",
+					saved_errno, strerror(saved_errno) );
+			}
+
+			mx_string_split( buffer, " ", &env_argc, &env_argv );
+
+			if ( env_argc < 2 ) {
+				mx_free( env_argv );
+
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Could not find an environment variable name "
+				"in the directive '%s'.", buffer );
+			}
+
+			mx_info( "getenv: '%s' = '%s'", 
+				env_argv[1], getenv( env_argv[1] ) );
+
+			mx_free( env_argv );
+
+		} else if ( strncmp( buffer, "!setenv", 8 ) == 0 ) {
+			MX_DEBUG(-2,("%s: BOOYAH! #2", fname ));
 
 		} else if ( buffer[0] == '!' ) {
 			mx_warning( "Ignoring unrecognized directive: '%s'",
