@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2007, 2009, 2012, 2015-2016, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,6 +59,11 @@ MX_API mx_status_type mx_dynamic_library_get_library_and_symbol(
 						MX_DYNAMIC_LIBRARY **library,
 						void **symbol,
 						unsigned long flags );
+
+MX_API mx_status_type mx_dynamic_library_get_filename(
+						MX_DYNAMIC_LIBRARY *library,
+						char *filename_of_library,
+						size_t max_filename_length );
 
 #ifdef __cplusplus
 }

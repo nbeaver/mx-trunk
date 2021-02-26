@@ -407,6 +407,55 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 	"Not yet implemented for this platform." );
 }
 
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
+				char *library_filename,
+				size_t max_library_filename_length )
+{
+	static const char fname[] = "mx_dynamic_library_get_filename()";
+
+	DWORD num_bytes_copied, last_error_code;
+
+	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The library pointer passed was NULL." );
+	}
+
+	if ( library_filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The library_filename_pointer passed was NULL." );
+	}
+
+	num_bytes_copied = GetModuleFileName( library->object,
+					library_filename,
+					max_library_filename_length );
+
+	last_error_code = GetLastError();
+
+#if defined( ERROR_INSUFFICIENT_BUFFER )
+	if ( last_error_code == ERROR_INSUFFICIENT_BUFFER ) {
+		mx_warning( "The filename returned by '%s' may "
+			"have been truncated.  filename = '%s'.",
+			fname, library_filename );
+	}
+#endif
+
+	if ( num_bytes_copied == 0 ) {
+		char win32_error_message[200];
+
+		mx_win32_error_message( last_error_code,
+			win32_error_message, sizeof(win32_error_message) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the full filename of DLL '%s' failed.  "
+		"Error code = %ld, error message = '%s'.",
+			library->filename, last_error_code,
+			win32_error_message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /************************ VxWorks ***********************/
 
 #elif defined(OS_VXWORKS)

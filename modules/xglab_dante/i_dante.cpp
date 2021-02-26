@@ -44,6 +44,7 @@
 #include "mx_cfn.h"
 #include "mx_array.h"
 #include "mx_process.h"
+#include "mx_dynamic_library.h"
 #include "mx_mcs.h"
 #include "mx_mca.h"
 #include "i_dante.h"
@@ -287,6 +288,12 @@ mxi_dante_finish_record_initialization( MX_RECORD *record )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(OS_WIN32)
+#  define MXP_DANTE_LIBRARY_NAME	"XGL_DPP.DLL"
+#else
+#  define MXP_DANTE_LIBRARY_NAME	"libXGL_DPP.so"
+#endif
+
 MX_EXPORT mx_status_type
 mxi_dante_open( MX_RECORD *record )
 {
@@ -294,7 +301,9 @@ mxi_dante_open( MX_RECORD *record )
 
 	MX_DANTE *dante = NULL;
 	MX_DANTE_CONFIGURATION *dante_configuration = NULL;
+	MX_DYNAMIC_LIBRARY *dante_library = NULL;
 	unsigned long i, j, attempt;
+	mx_status_type mx_status;
 
 	unsigned long major, minor, update, extra;
 	int num_items;
@@ -309,6 +318,8 @@ mxi_dante_open( MX_RECORD *record )
 	uint16_t board_number, max_identifier_length;
 	uint16_t error_code = DLL_NO_ERROR;
 	uint16_t num_boards;
+
+	char dante_library_filename[MXU_FILENAME_LENGTH+1];
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -325,10 +336,42 @@ mxi_dante_open( MX_RECORD *record )
 			record->name );
 	}
 
+	/* If we get here, the vendor's XGL_DPP library has already been
+	 * loaded.  If requested, we display the filename of the particular
+	 * copy of XGL_DPP that was loaded so that we can see if the
+	 * correct version of the library was loaded.
+	 */
+
+	if ( dante->dante_flags & MXF_DANTE_SHOW_DANTE_LIBRARY_FILENAME ) {
+
+		mx_status = mx_dynamic_library_open( MXP_DANTE_LIBRARY_NAME,
+						&dante_library, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_dynamic_library_get_filename( dante_library,
+						dante_library_filename,
+						sizeof(dante_library_filename));
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG(-2,("%s: The vendor\'s '%s' library was "
+				"loaded from the file '%s'.",
+				fname, dante_library->filename,
+				dante_library_filename ));
+	}
+
+	/*---*/
+
 	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
 	/* Set up an event callback for the DANTE library.  Please notice
 	 * that this _MUST_ be done _before_ the call to InitLibrary().
+	 *
+	 * This is because the DANTE library may start invoking the
+	 * callback _before_ returning from InitLibrary().
 	 */
 
 	dante_status = register_callback( mxi_dante_callback_fn );

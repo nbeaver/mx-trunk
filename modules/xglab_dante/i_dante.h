@@ -37,6 +37,8 @@ extern "C" {
 /* The following flags are used by the 'dante_flags' field. */
 
 #define MXF_DANTE_SHOW_DEVICES			0x1
+#define MXF_DANTE_SHOW_DANTE_LIBRARY_FILENAME	0x2
+
 #define MXF_DANTE_SET_BOARDS_TO_0xFF		0x1000
 
 /* The following are operating modes for the Dante MCA as reported
@@ -139,6 +141,8 @@ typedef struct dante_struct {
 /* Values for 'configuration_flags'. */
 
 #define MXF_DANTE_CONFIGURATION_DEBUG_PARAMETERS	0x1
+
+#define MXF_DANTE_CONFIGURATION_DEBUG_FILENAMES		0x2
 
 #ifdef __cplusplus
 
