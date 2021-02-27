@@ -722,7 +722,7 @@ mx_expand_env( const char *original_env_value,
 	return os_status;
 }
 
-#elif ( defined(OS_LINUX) || defined(OS_MACOSX) )
+#elif ( defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_CYGWIN) )
 
 MX_EXPORT int
 mx_expand_env( const char *original_env_value,

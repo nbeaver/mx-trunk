@@ -922,7 +922,7 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 				char *filename_of_library,
-				size_t max_filename_length );
+				size_t max_filename_length )
 {
 	static const char fname[] = "mx_dynamic_library_get_filename()";
 
