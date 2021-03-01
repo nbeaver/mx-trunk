@@ -643,7 +643,8 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 	dante_flags = dante->dante_flags;
 
 	if ( dante_flags != 0 ) {
-		MX_DEBUG(-2,("%s: dante_flags = %#lx", fname, dante_flags));
+		MX_DEBUG(-2,("%s: '%s',  dante_flags = %#lx",
+			fname, dante_mca->record->name, dante_flags));
 	}
 
 	/*---*/
@@ -906,9 +907,17 @@ mxd_dante_mca_arm( MX_MCA *mca )
 			mca->preset_real_time, mca->current_num_channels );
 
 	if ( call_id == 0 ) {
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"start() #1 returned an error for MCA '%s'.",
-			mca->record->name );
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"start() returned a 'call_id == 0 ' error for MCA '%s'.  "
+		"This means that 'something' is wrong with the parameters "
+		"passed to start().  Those parameters were\n"
+		"    dante_mca->identifier = '%s'\n"
+		"    mca->preset_real_time = %f\n"
+		"    mca->current_num_channels = %lu",
+			mca->record->name,
+			dante_mca->identifier,
+			mca->preset_real_time,
+			mca->current_num_channels );
 	}
 
 	mxi_dante_wait_for_answer( call_id, dante );
@@ -919,19 +928,31 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 		switch( error_code ) {
 		case DLL_ARGUMENT_OUT_OF_RANGE:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"One of the arguments for start( '%s', %f, %lu ) "
-			"is out of range for MCA '%s'.",
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"start() returned a DLL_ARGUMENT_OUT_OF_RANGE "
+			"error for MCA '%s'.  "
+			"The parameters for the call were\n"
+			"    dante_mca->identifier = '%s'\n"
+			"    mca->preset_real_time = %f\n"
+			"    mca->current_num_channels = %lu",
+				mca->record->name,
 				dante_mca->identifier,
 				mca->preset_real_time,
-				mca->current_num_channels,
-				mca->record->name );
+				mca->current_num_channels );
 			break;
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
-			"start() #2 returned an error for MCA '%s'.  "
-			"error_code = %lu",
-			mca->record->name, (unsigned long) error_code );
+			"start() returned an unexpected "
+			"error code (%lu) for MCA '%s'.  "
+			"The parameters for the call were\n"
+			"    dante_mca->identifier = '%s'\n"
+			"    mca->preset_real_time = %f\n"
+			"    mca->current_num_channels = %lu",
+				mca->record->name,
+				dante_mca->identifier,
+				mca->preset_real_time,
+				mca->current_num_channels );
+			break;
 		}
 	}
 

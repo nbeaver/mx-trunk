@@ -1693,6 +1693,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	char *parameter_end = NULL;
 	int saved_errno;
 	char buffer[200];
+	char expanded_filename[MXU_FILENAME_LENGTH+1];
 
 #if 0
 	mx_bool_type parse_status;
@@ -1716,9 +1717,14 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 			dante_record->name );
 	}
 
+	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+				dante->config_filename,
+				expanded_filename,
+				sizeof(expanded_filename) );
+
 	MX_DEBUG(-2,("%s: DANTE record '%s' will load parameters "
 		"from config file '%s'.",
-			fname, dante_record->name, dante->config_filename ));
+			fname, dante_record->name, expanded_filename ));
 
 	/* mx_cfn_fopen( MX_CFN_CONFIG, ... ) tells MX that the default
 	 * location of the Dante XML file is in the MX 'etc' directory.
