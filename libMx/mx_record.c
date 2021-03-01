@@ -1412,6 +1412,9 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 		} else if ( strncmp( buffer, "!getenv ", 8 ) == 0 ) {
 			int env_argc; char **env_argv; char *env_dup;
+			char *variable_name;
+
+			/* Find the name of the environment variable. */
 
 			env_dup = strdup( buffer );
 
@@ -1425,23 +1428,154 @@ mx_read_database_private( MX_RECORD *record_list_head,
 				buffer, saved_errno, strerror(saved_errno) );
 			}
 
-			mx_string_split( buffer, " ", &env_argc, &env_argv );
+			mx_string_split( env_dup, " ", &env_argc, &env_argv );
 
 			if ( env_argc < 2 ) {
 				mx_free( env_argv );
+				mx_free( env_dup );
 
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Could not find an environment variable name "
 				"in the directive '%s'.", buffer );
 			}
 
+			variable_name = env_argv[1];
+
 			mx_info( "getenv: '%s' = '%s'", 
-				env_argv[1], getenv( env_argv[1] ) );
+				variable_name, getenv( variable_name ) );
 
 			mx_free( env_argv );
+			mx_free( env_dup );
 
-		} else if ( strncmp( buffer, "!setenv", 8 ) == 0 ) {
-			MX_DEBUG(-2,("%s: BOOYAH! #2", fname ));
+		} else if ( strncmp( buffer, "!setenv ", 8 ) == 0 ) {
+			int env_argc; char **env_argv; char *env_dup;
+			char variable_delimiter, variable_first_byte;
+			char *old_buffer_value, *ptr;
+			char variable_name[2048];
+			char new_variable_value[10000];
+
+			/* Find the name of the environment variable. */
+
+			env_dup = strdup( buffer );
+
+			if ( env_dup == (char *) NULL ) {
+				saved_errno = errno;
+
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+				"The attempt to create a duplicate of "
+				"the !getenv string '%s' failed.  "
+				"errno = %d, error message = '%s'",
+				buffer, saved_errno, strerror(saved_errno) );
+			}
+
+			mx_string_split( env_dup, " ", &env_argc, &env_argv );
+
+			if ( env_argc < 2 ) {
+				mx_free( env_argv );
+				mx_free( env_dup );
+
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Could not find an environment variable name "
+				"in the directive '%s'.", buffer );
+			}
+
+			strlcpy( variable_name, env_argv[1],
+					sizeof(variable_name) );
+
+			/* Find out if the value of the environment variable
+			 * is in a quoted string or not.
+			 */
+
+			variable_first_byte = env_argv[2][0];
+
+			if ( ( variable_first_byte == '"' )
+			  || ( variable_first_byte == '\'' ) )
+			{
+				variable_delimiter = variable_first_byte;
+			} else {
+				variable_delimiter = '\0';
+			}
+
+			/* mx_string_split() behaves differently from strtok()
+			 * and friends.
+			 *
+			 * For example, if strtok() is using
+			 * space characters ' ' as its delimiter and it is
+			 * parsing the string "arg1   arg2", then strtok()
+			 * will report that there are four arguments, namely,
+			 * 'arg1', '', '', and 'arg2'.  But, mx_string_split()
+			 * will report that there are two arguments, namely,
+			 * 'arg1' and 'arg2'.  In other words, if three copies
+			 * of the space character ' ' are found in a row,
+			 * mx_string_split() treats them as one delimiter,
+			 * while strtok() treats them as three delimiters.
+			 *
+			 * For most of MX's purposes, the behavior of 
+			 * mx_string_split() is more useful than the behavior
+			 * of strtok().  However, this is _not_ one of those
+			 * cases.  For example, if we compare the parsing 
+			 * of a filename that looks like this
+			 * "C:\Documents and Settings\abc.txt" to the parsing
+			 * of "C:\Documents  and  Settings\abc.txt", we
+			 * find that these two different filenames actually
+			 * refer to different files.  So when parsing
+			 * filenames, it is important that we preserve the
+			 * same number of delimiters.
+			 *
+			 * Given that, we discard env_argv and find the value
+			 * of the environment variable directly from the
+			 * 'buffer' variable.
+			 */
+
+			mx_free( env_argv );
+			mx_free( env_dup );
+
+			if ( variable_delimiter != '\0' ) {
+
+				old_buffer_value = 
+					strchr( buffer, variable_delimiter );
+
+				old_buffer_value++;
+
+				/* Null terminate the variable value. */
+
+				ptr = strchr( old_buffer_value,
+						variable_delimiter);
+
+				if ( ptr != NULL ) {
+					*ptr = '\0';
+				}
+			} else {
+				/* Skip over the variable name in the buffer.
+				 *
+				 * We do this by skipping over space characters,
+				 * and then non-space characters, followed by
+				 * more space characters./
+				 */
+
+				old_buffer_value = buffer;
+
+				old_buffer_value +=
+					strspn( old_buffer_value, " " );
+
+				old_buffer_value +=
+					strcspn( old_buffer_value, " " );
+
+				old_buffer_value +=
+					strspn( old_buffer_value, " " );
+			}
+
+			/* Expand any environment values specified in the
+			 * old string like this %env% (Windows) or as
+			 * $env (anybody else).
+			 */
+
+			mx_expand_env( old_buffer_value,
+				new_variable_value, sizeof(new_variable_value));
+
+			/* Update the environment variable's value. */
+
+			mx_setenv( variable_name, new_variable_value );
 
 		} else if ( buffer[0] == '!' ) {
 			mx_warning( "Ignoring unrecognized directive: '%s'",
