@@ -868,6 +868,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	MX_DANTE *dante = NULL;
 	uint32_t call_id;
 	uint16_t error_code;
+	unsigned long i;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
@@ -899,25 +900,43 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	/* Start the MCA in 'normal' mode. */
 
-	(void) resetLastError();
+	for ( i = 0; i < dante_mca->max_attempts; i++ ) {
+		(void) resetLastError();
 
-	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
+		dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
-	call_id = start( dante_mca->identifier,
+		call_id = start( dante_mca->identifier,
 			mca->preset_real_time, mca->current_num_channels );
+
+		if ( call_id != 0 )
+			break;
+
+		mx_status = mxd_dante_mca_stop( mca );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_msleep( dante_mca->attempt_delay_ms );
+	}
 
 	if ( call_id == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"start() returned a 'call_id == 0 ' error for MCA '%s'.  "
+		"We attempted to run start() %lu times.  "
 		"This means that 'something' is wrong with the parameters "
 		"passed to start().  Those parameters were\n"
 		"    dante_mca->identifier = '%s'\n"
 		"    mca->preset_real_time = %f\n"
 		"    mca->current_num_channels = %lu",
 			mca->record->name,
+			dante_mca->max_attempts,
 			dante_mca->identifier,
 			mca->preset_real_time,
 			mca->current_num_channels );
+	}
+
+	if ( i > 0 ) {
+		MX_DEBUG(-2,("%s: %lu retries were performed.", fname, i));
 	}
 
 	mxi_dante_wait_for_answer( call_id, dante );

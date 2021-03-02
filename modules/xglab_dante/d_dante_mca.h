@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,6 +61,11 @@ typedef struct {
 	unsigned long reset_threshold;
 	double tail_coefficient;
 	unsigned long other_param;
+
+	/*---*/
+
+	unsigned long max_attempts;
+	unsigned long attempt_delay_ms;
 
 	/*---*/
 
@@ -181,7 +186,15 @@ typedef struct {
   \
   {-1, -1, "other_param", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, other_param ), \
-	{0}, NULL, 0 }
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "max_attempts", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, max_attempts ), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "attempt_delay_ms", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, attempt_delay_ms ), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 MX_API mx_status_type mxd_dante_mca_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_dante_mca_create_record_structures(
