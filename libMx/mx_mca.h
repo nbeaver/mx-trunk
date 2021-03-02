@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2008, 2012, 2015, 2017
+ * Copyright 1999-2002, 2004-2008, 2012, 2015, 2017, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -42,6 +42,7 @@ typedef struct {
 	mx_bool_type stop;
 	mx_bool_type clear;
 	mx_bool_type busy;
+	mx_bool_type old_busy;
 	mx_bool_type new_data_available;
 
 	unsigned long trigger_mode;
@@ -205,6 +206,10 @@ typedef struct {
   {MXLV_MCA_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, busy), \
 	{0}, NULL, MXFF_POLL}, \
+  \
+  {-1, -1, "old_busy", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, old_busy), \
+	{0}, NULL, 0}, \
   \
   {MXLV_MCA_NEW_DATA_AVAILABLE, -1, "new_data_available", \
 						MXFT_BOOL, NULL, 0, {0}, \

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015-2017, 2020
+ * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015-2017, 2020-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -260,6 +260,7 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 	mca->stop = 0;
 	mca->clear = 0;
 	mca->busy = FALSE;
+	mca->old_busy = FALSE;
 	mca->new_data_available = TRUE;
 	mca->mca_flags = 0;
 
@@ -438,6 +439,7 @@ mx_mca_arm( MX_RECORD *mca_record )
 		return mx_status;
 
 	mca->busy = TRUE;
+	mca->old_busy = FALSE;
 	mca->new_data_available = TRUE;
 
 #if DEBUG_MCA_NEW_DATA_AVAILABLE
@@ -674,7 +676,6 @@ mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
 	MX_MCA *mca;
 	MX_MCA_FUNCTION_LIST *function_list;
 	mx_status_type ( *busy_fn ) ( MX_MCA * );
-	mx_bool_type old_busy;
 	MX_RECORD_FIELD *new_data_available_field;
 	mx_status_type mx_status;
 
@@ -694,7 +695,7 @@ mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
 			mca_record->name );
 	}
 
-	old_busy = mca->busy;
+	mca->old_busy = mca->busy;
 
 	mx_status = (*busy_fn)( mca );
 
@@ -724,7 +725,7 @@ mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
 	 * that are monitoring this field.
 	 */
 
-	if ( (old_busy == TRUE) && (mca->busy == FALSE) ) {
+	if ( (mca->old_busy == TRUE) && (mca->busy == FALSE) ) {
 
 #if 0
 		MX_DEBUG(-2,("%s: MCA '%s' busy just went from TRUE to FALSE.",

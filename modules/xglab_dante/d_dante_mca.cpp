@@ -1103,10 +1103,12 @@ mxd_dante_mca_read( MX_MCA *mca )
 				stats,
 				spectrum_size );
 
+#if 0
 	MX_DEBUG(-2,("%s: after getData(), dante_status = %d",
 		fname, (int) dante_status));
 	MX_DEBUG(-2,("%s: after getData(), spectrum_id = %lu",
 			fname, (unsigned long) spectrum_id ));
+#endif
 
 	if ( dante_status == false ) {
 		getLastError( error_code );
@@ -1170,11 +1172,6 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for MCA '%s'.",
-		fname, mca->record->name ));
-
-	MX_DEBUG(-2,("%s: MARKER C-1", fname));
-
 #if 0
 	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
@@ -1210,8 +1207,6 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	/* Mark all of the MCA channels belonging to this Dante board chain
 	 * as having 'new_data_available' == FALSE.
 	 */
-
-	MX_DEBUG(-2,("%s: MARKER C-2", fname));
 
 	mx_status = mxi_dante_set_data_available_flag_for_chain( mca->record,
 									FALSE );
@@ -1263,8 +1258,10 @@ mxd_dante_mca_busy( MX_MCA *mca )
 		mca->busy = TRUE;
 	}
 
-	MX_DEBUG(-2,("%s: '%s' busy = %d",
-		fname, mca->record->name, (int) mca->busy));
+	if ( mca->busy != mca->old_busy ) {
+		MX_DEBUG(-2,("%s: '%s' busy = %d",
+			fname, mca->record->name, (int) mca->busy));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
