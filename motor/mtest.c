@@ -49,7 +49,7 @@ motor_test_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[2], "offset" ) == 0 ) {
 
-			MX_DEBUG(-2,("xyzzy: stack offset = %ld", 
+			MX_DEBUG(-2,("test: stack offset = %ld", 
 				mx_get_stack_offset( NULL, &mx_status ) ));
 
 			return SUCCESS;
@@ -167,7 +167,7 @@ motor_test_fn( int argc, char *argv[] )
 
 			if ( argc != 5 ) {
 				fprintf(stderr,
-					"Usage: xyzzy address start size\n" );
+					"Usage: test address start size\n" );
 				return FAILURE;
 			}
 
@@ -279,9 +279,10 @@ motor_test_fn( int argc, char *argv[] )
 			return SUCCESS;
 		}
 
-#if ( defined(OS_WIN32) && !defined(__BORLANDC__) )
 		else
 		if ( strcmp( argv[2], "max_fds" ) == 0 ) {
+
+#if ( defined(OS_WIN32) && !defined(__BORLANDC__) )
 			if ( argc >= 4 ) {
 				max_fds = atoi( argv[3] );
 
@@ -291,9 +292,13 @@ motor_test_fn( int argc, char *argv[] )
 
 				mx_info( "max_fds = %d", max_fds );
 			}
+#else
+			max_fds = mx_get_max_file_descriptors();
+
+			mx_info( "max_fds = %d", max_fds );
+#endif
 			return SUCCESS;
 		}
-#endif
 
 		else
 		if ( strcmp( argv[2], "version" ) == 0 ) {
@@ -435,7 +440,29 @@ motor_test_fn( int argc, char *argv[] )
 		}
 	}
 
-	mx_info( "Nothing happens." );
+	fprintf( output,
+"Usage: test 'test_type and arguments'\n"
+"\n"
+"Note: Some of these tests can crash mxmotor\n"
+"\n"
+"test address 'start' 'size'- show information about a memory region\n"
+"test disk 'filename' - show disk space info for disk containing the file\n"
+"test dll_filename 'filename' - show the file that a dll was opened from\n"
+"test max_fds - show the maximum number of file descriptors (Win32)\n"
+"test num_open_fds - show the number of open file descriptors\n"
+"test offset - test stack offset\n"
+"test process - execute all outstanding MX callbacks\n"
+"test remote_host 'ip_address'- show network interface for remote host\n"
+"test show_fd_metadata 'fd' - show information about a file descriptor\n"
+"test show_file_metadata 'filename' - show information about a file\n"
+"test show_handle_metadata 'handle' - show information about a Win32 handle\n"
+"test show_open_fds - show a list of open file descriptors\n"
+"test signals - show how signals are currently allocated\n"
+"test stack - test stack traceback\n"
+"test version - show the operating system version\n"
+"test watch - test watchpoints\n"
+"test zero - test zero divide\n"
+"\n" );
 
 	return FAILURE;
 }

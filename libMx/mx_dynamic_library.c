@@ -890,9 +890,22 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	static const char fname[] = "mx_dynamic_library_get_filename()";
 
 	Dl_info info;
+	void *symbol_pointer;
 	int status;
 
-	status = dladdr( library->object, &info );
+	/* First need to find an address in the shared library that
+	 * we are interested in.  _fini exists in most shared libraries,
+	 * but is not guaranteed to exist.  But it usually works.
+	 */
+
+	symbol_pointer = dlsym( library->object, "_fini" );
+
+	if ( symbol_pointer == NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"dlsym() did not find a pointer to '_fini'." );
+	}
+
+	status = dladdr( symbol_pointer, &info );
 
 	if ( status == 0 ) {
 		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
