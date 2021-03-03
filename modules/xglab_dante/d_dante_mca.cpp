@@ -911,10 +911,12 @@ mxd_dante_mca_arm( MX_MCA *mca )
 		if ( call_id != 0 )
 			break;
 
+#if 0
 		mx_status = mxd_dante_mca_stop( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+#endif
 
 		mx_msleep( dante_mca->attempt_delay_ms );
 	}
