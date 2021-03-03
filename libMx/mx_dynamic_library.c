@@ -456,6 +456,15 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_dynamic_library_show_list( FILE *file )
+{
+	static const char fname[] = "mx_dynamic_library_show_list()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented for this platform." );
+}
+
 /************************ VxWorks ***********************/
 
 #elif defined(OS_VXWORKS)
@@ -902,7 +911,8 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 
 	if ( symbol_pointer == NULL ) {
 		return mx_error( MXE_NOT_FOUND, fname,
-		"dlsym() did not find a pointer to '_fini'." );
+		"dlsym() did not find a pointer to '_fini' in library '%s'.",
+		library->filename );
 	}
 
 	status = dladdr( symbol_pointer, &info );
@@ -944,6 +954,35 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 }
 
 #endif  /* Not __GLIBC__ or MX_MUSL_VERSION */
+
+/*----------------*/
+
+#if defined(OS_LINUX)
+
+#define _GNU_SOURCE
+#include <link.h>
+
+static int
+mxp_dl_show_list_callback( struct dl_phdr_info *info, size_t size, void *file )
+{
+	fprintf( file, "  '%s'\n", info->dlpi_name );
+
+	return 0;
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_show_list( FILE *file )
+{
+	dl_iterate_phdr( mxp_dl_show_list_callback, file );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#undef _GNU_SOURCE
+
+#else
+#error mx_dynamic_library_show_list() not yet implemented for this platform.
+#endif
 
 /************************ Not available ***********************/
 

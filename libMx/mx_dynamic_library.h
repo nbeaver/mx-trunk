@@ -65,6 +65,8 @@ MX_API mx_status_type mx_dynamic_library_get_filename(
 						char *filename_of_library,
 						size_t max_filename_length );
 
+MX_API mx_status_type mx_dynamic_library_show_list( FILE *file );
+
 #ifdef __cplusplus
 }
 #endif

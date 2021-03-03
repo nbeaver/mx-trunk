@@ -406,11 +406,9 @@ motor_test_fn( int argc, char *argv[] )
 		}
 
 		else
-		if ( strcmp( argv[2], "dll_filename" ) == 0 ) {
+		if ( strcmp( argv[2], "library_filename" ) == 0 ) {
 			MX_DYNAMIC_LIBRARY *library = NULL;
 			char library_filename[MXU_FILENAME_LENGTH+1];
-
-			mx_breakpoint();
 
 			if ( argc <= 3 ) {
 				fprintf( output,
@@ -438,6 +436,18 @@ motor_test_fn( int argc, char *argv[] )
 			}
 			return SUCCESS;
 		}
+
+		else
+		if ( strcmp( argv[2], "show_libraries" ) == 0 ) {
+
+			mx_status = mx_dynamic_library_show_list( output );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				return FAILURE;
+			} else {
+				return SUCCESS;
+			}
+		}
 	}
 
 	fprintf( output,
@@ -447,7 +457,7 @@ motor_test_fn( int argc, char *argv[] )
 "\n"
 "test address 'start' 'size'- show information about a memory region\n"
 "test disk 'filename' - show disk space info for disk containing the file\n"
-"test dll_filename 'filename' - show the file that a dll was opened from\n"
+"test library_filename 'filename' - show the file that a dll was opened from\n"
 "test max_fds - show the maximum number of file descriptors (Win32)\n"
 "test num_open_fds - show the number of open file descriptors\n"
 "test offset - test stack offset\n"
@@ -456,6 +466,7 @@ motor_test_fn( int argc, char *argv[] )
 "test show_fd_metadata 'fd' - show information about a file descriptor\n"
 "test show_file_metadata 'filename' - show information about a file\n"
 "test show_handle_metadata 'handle' - show information about a Win32 handle\n"
+"test show_libraries - show all dynamically loaded libraries\n"
 "test show_open_fds - show a list of open file descriptors\n"
 "test signals - show how signals are currently allocated\n"
 "test stack - test stack traceback\n"
