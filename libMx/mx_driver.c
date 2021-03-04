@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -207,6 +207,7 @@
 #include "i_amptek_dp5.h"
 #include "i_keithley199.h"
 #include "i_numato_gpio.h"
+#include "i_flowbus_ascii.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -1159,6 +1160,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_numato_gpio_num_record_fields,
 				&mxi_numato_gpio_rfield_def_ptr},
+
+{"flowbus_ascii",    MXI_CTRL_FLOWBUS_ASCII,   MXI_CONTROLLER,    MXR_INTERFACE,
+				&mxi_flowbus_ascii_record_function_list,
+				NULL,
+				NULL,
+				&mxi_flowbus_ascii_num_record_fields,
+				&mxi_flowbus_ascii_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 

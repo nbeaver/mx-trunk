@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -F ./mflowbus.dat -s ./sflowbus.dat $*
+

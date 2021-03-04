@@ -1,0 +1,2 @@
+fb_rs232 interface rs232 tty "" "" 38400 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyUSB0
+flowbus  interface controller flowbus_ascii "" "" fb_rs232

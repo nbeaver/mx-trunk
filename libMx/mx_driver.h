@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -271,6 +271,7 @@ extern "C" {
 #define MXI_CTRL_KEITHLEY2600		468
 #define MXI_CTRL_KEITHLEY199		469
 #define MXI_CTRL_NUMATO_GPIO		470
+#define MXI_CTRL_FLOWBUS_ASCII		471
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601
