@@ -964,11 +964,12 @@ mxd_dante_mca_arm( MX_MCA *mca )
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"start() returned an unexpected "
-			"error code (%lu) for MCA '%s'.  "
+			"error code (%d) for MCA '%s'.  "
 			"The parameters for the call were\n"
 			"    dante_mca->identifier = '%s'\n"
 			"    mca->preset_real_time = %f\n"
 			"    mca->current_num_channels = %lu",
+				error_code,
 				mca->record->name,
 				dante_mca->identifier,
 				mca->preset_real_time,
