@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2014, 2017, 2019 Illinois Institute of Technology
+ * Copyright 2007-2014, 2017, 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -584,15 +584,15 @@ static void
 timestamp_output_function( char *string )
 {
 	time_t time_struct;
-	struct tm *current_time;
+	struct tm current_time;
 	char time_buffer[80];
 
 	time( &time_struct );
 
-	current_time = localtime( &time_struct );
+	(void) localtime_r( &time_struct, &current_time );
 
 	strftime( time_buffer, sizeof(time_buffer),
-			"%b %d %H:%M:%S ", current_time );
+			"%b %d %H:%M:%S ", &current_time );
 
 	fprintf( stderr, "%s%s\n", time_buffer, string );
 }

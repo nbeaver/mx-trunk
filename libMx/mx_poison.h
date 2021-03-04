@@ -25,7 +25,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2016 Illinois Institute of Technology
+ * Copyright 2006-2007, 2016, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,6 +48,7 @@
 
 #pragma deprecated( gets, sprintf, vsprintf )
 #pragma deprecated( strcpy, strncpy, strcat, strncat, strtok )
+#pragma deprecated( gmtime, localtime, ctime, ctime_r, asctime, asctime_r )
 
 #endif
 
@@ -99,6 +100,36 @@
 #  undef strtok
 #endif
 #pragma GCC poison strtok
+
+#ifdef gmtime
+#  undef gmtime
+#endif
+#pragma GCC poison gmtime
+
+#ifdef localtime
+#  undef localtime
+#endif
+#pragma GCC poison localtime
+
+#ifdef ctime
+#  undef ctime
+#endif
+#pragma GCC poison ctime
+
+#ifdef ctime_r
+#  undef ctime_r
+#endif
+#pragma GCC poison ctime_r
+
+#ifdef asctime
+#  undef asctime
+#endif
+#pragma GCC poison asctime
+
+#ifdef asctime_r
+#  undef asctime_r
+#endif
+#pragma GCC poison asctime_r
 
 #endif /* (__GNUC__ >= 3) */
 
