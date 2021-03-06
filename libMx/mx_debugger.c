@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -149,9 +149,37 @@ mx_breakpoint( void )
  * will probably _never_ be used by MX, but are kept for completeness.
  */
 
-#if ( defined(_MSC_VER) || defined(__INTEL_COMPILER) )
+/*----------------*/
 
-/* Either Microsoft Visual C++ or the Intel C++ compiler. */
+/* Microsoft Visual C++ */
+
+#if defined(_MSC_VER)
+
+#  if (_MSC_VER >= 1300 ) 
+  /* Visual Studio .NET 2002 and later */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__debugbreak();
+}
+
+#  else
+  /* Before Visual Studio .NET 2002. */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	DebugBreak();
+}
+
+#  endif
+
+/*----------------*/
+
+#elif defined(__INTEL_COMPILER)
+
+/* Intel C++ compiler. */
 
 MX_EXPORT void
 mx_raw_breakpoint( void )
