@@ -980,6 +980,17 @@ mx_dynamic_library_show_list( FILE *file )
 
 #undef _GNU_SOURCE
 
+#elif defined(OS_CYGWIN)
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_show_list( FILE *file )
+{
+	fprintf( file, "Warning: mx_dynamic_library_show_list() is not "
+		"implemented for this platform.\n" );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #else
 #error mx_dynamic_library_show_list() not yet implemented for this platform.
 #endif

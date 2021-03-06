@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -397,8 +397,8 @@ mx_json_get_compatible_key( MX_JSON *json,
 
 		switch( mx_datatype ) {
 		case MXFT_STRING:
-			snprintf( key_value, max_key_value_bytes, "%d",
-					bool_array[0] );
+			snprintf( key_value, max_key_value_bytes, "%ld",
+					(long) bool_array[0] );
 			break;
 		case MXFT_BOOL:
 			*((mx_bool_type *) key_value) = bool_array[0];

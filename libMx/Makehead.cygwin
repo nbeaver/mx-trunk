@@ -143,6 +143,8 @@ MXPUT_OBJS        = $(MXPUT_SRCS:.c=.o)
 
 MX_LIB_OBJS += ../tools/xdr_hyper.o
 
+MX_LIB_OBJS += ../tools/strcasestr.o
+
 MX_LIB_OBJS += ../tools/cJSON.o
 
 #

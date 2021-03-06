@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016-2018 Illinois Institute of Technology
+ * Copyright 2016-2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -569,8 +569,9 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 #elif ( defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 2003000L ) ) \
 	|| ( defined( OS_LINUX ) && defined( MX_MUSL_VERSION ) ) \
 	|| ( defined( OS_SOLARIS ) && ( MX_SOLARIS_VERSION >= 5011000L ) ) \
-	|| defined( OS_BSD ) || defined( OS_CYGWIN ) || defined( OS_RTEMS ) \
-	|| defined( OS_QNX ) || defined( OS_HURD )
+	|| ( defined( OS_CYGWIN ) && (CYGWIN_VERSION_DLL_COMBINED >= 2000000) )\
+	|| defined( OS_BSD ) || defined( OS_RTEMS ) || defined( OS_QNX ) \
+	|| defined( OS_HURD )
 
 /*---- Use getifaddrs() ----*/
 
@@ -998,7 +999,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	}
 }
 
-#elif defined( OS_MINIX )
+#elif defined( OS_MINIX ) || defined( OS_CYGWIN )
 
 MX_EXPORT mx_status_type
 mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,

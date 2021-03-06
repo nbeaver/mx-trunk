@@ -2,7 +2,7 @@
 # tools/Makefile.cygwin
 #
 
-all:  ../libMx/mx_private_version.h mx_config xdr_hyper.o cJSON.o
+all:  ../libMx/mx_private_version.h mx_config xdr_hyper.o strcasestr.o cJSON.o
 
 include ../libMx/Makefile.version
 
@@ -29,6 +29,10 @@ mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 	gcc -c $(CFLAGS) -I../libMx -DOS_CYGWIN \
 		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
+
+strcasestr.o: generic/src/strcasestr.c 
+	gcc -c $(CFLAGS) -I../libMx -DOS_CYGWIN -Wno-cast-qual \
+		-D__MX_LIBRARY__ generic/src/strcasestr.c
 
 cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
 	gcc -c $(CFLAGS) -Wno-error -I../libMx -DOS_CYGWIN -D__MX_LIBRARY__ cJSON/cJSON.c
