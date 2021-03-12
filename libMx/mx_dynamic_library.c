@@ -39,7 +39,7 @@ mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
 	void *result_ptr;
 	mx_status_type mx_status;
 
-	mx_status = mx_dynamic_library_find_symbol( library, symbol_name,
+	mx_status = mx_dynamic_library_get_address_from_symbol( library, symbol_name,
 					&result_ptr, MXF_DYNAMIC_LIBRARY_QUIET);
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -325,12 +325,12 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
+mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
 				unsigned long flags )
 {
-	static const char fname[] = "mx_dynamic_library_find_symbol()";
+	static const char fname[] = "mx_dynamic_library_get_address_from_symbol()";
 
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
@@ -396,12 +396,12 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_get_function_name_from_address( void *address,
+mx_dynamic_library_get_symbol_from_address( void *address,
 						char *function_name,
 						size_t max_name_length )
 {
 	static const char fname[] =
-		"mx_dynamic_library_get_function_name_from_address()";
+		"mx_dynamic_library_get_symbol_from_address()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Not yet implemented for this platform." );
@@ -586,12 +586,12 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
  */
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
+mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
 				unsigned long flags )
 {
-	static const char fname[] = "mx_dynamic_library_find_symbol()";
+	static const char fname[] = "mx_dynamic_library_get_address_from_symbol()";
 
 	int os_status;
 	char local_symbol_name[MAX_SYS_SYM_LEN+1];
@@ -686,12 +686,12 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_get_function_name_from_address( void *address,
+mx_dynamic_library_get_symbol_from_address( void *address,
 						char *function_name,
 						size_t max_name_length )
 {
 	static const char fname[] =
-		"mx_dynamic_library_get_function_name_from_address()";
+		"mx_dynamic_library_get_symbol_from_address()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Not yet implemented for this platform." );
@@ -812,12 +812,13 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
+mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
 				unsigned long flags )
 {
-	static const char fname[] = "mx_dynamic_library_find_symbol()";
+	static const char fname[] =
+			"mx_dynamic_library_get_address_from_symbol()";
 
 	long mx_error_code;
 	mx_bool_type quiet;
@@ -866,15 +867,17 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if ( defined(__GLIBC__) || defined(MX_MUSL_VERSION) )
+/*----- mx_dynamic_library_get_symbol_from_address() -----*/
+
+#if defined(OS_LINUX) || defined(OS_BSD)
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_get_function_name_from_address( void *address,
+mx_dynamic_library_get_symbol_from_address( void *address,
 						char *function_name,
 						size_t max_name_length )
 {
 	static const char fname[] =
-		"mx_dynamic_library_get_function_name_from_address()";
+		"mx_dynamic_library_get_symbol_from_address()";
 
 	Dl_info info;
 	int status;
@@ -883,13 +886,35 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 
 	if ( status == 0 ) {
 		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
-		"No function name was found for address %p.", address );
+		"No symbol name was found for address %p.", address );
 	}
 
 	strlcpy( function_name, info.dli_sname, max_name_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#elif 0	/*----*/
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_symbol_from_address( void *address,
+						char *function_name,
+						size_t max_name_length )
+{
+	static const char fname[] =
+		"mx_dynamic_library_get_symbol_from_address()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Not supported for this platform." );
+}
+
+#else
+#error mx_dynamic_library_get_symbol_from_address() not yet implemented for this platform
+#endif 
+
+/*----- mx_dynamic_library_get_filename() -----*/
+
+#if defined(OS_LINUX) || ( defined(OS_BSD) && ! defined(__OpenBSD__) )
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
@@ -928,19 +953,7 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#else  /* Not __GLIBC__ or MX_MUSL_VERSION */
-
-MX_EXPORT mx_status_type
-mx_dynamic_library_get_function_name_from_address( void *address,
-						char *function_name,
-						size_t max_name_length )
-{
-	static const char fname[] =
-		"mx_dynamic_library_get_function_name_from_address()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Not yet implemented for this platform." );
-}
+#elif 0
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
@@ -949,15 +962,17 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 {
 	static const char fname[] = "mx_dynamic_library_get_filename()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Not yet implemented for this platform." );
+	return mx_error( MXE_UNSUPPORTED, fname,
+			"Not supported for this platform." );
 }
 
-#endif  /* Not __GLIBC__ or MX_MUSL_VERSION */
+#else
+#error mx_dynamic_library_get_filename() not yet implemented for this target.
+#endif
 
-/*----------------*/
+/*----- mx_dynamic_library_show_list() -----*/
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_BSD)
 
 #define _GNU_SOURCE
 #include <link.h>
@@ -980,19 +995,21 @@ mx_dynamic_library_show_list( FILE *file )
 
 #undef _GNU_SOURCE
 
-#elif defined(OS_CYGWIN)
+/*--------*/
+
+#elif 0
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_show_list( FILE *file )
 {
 	fprintf( file, "Warning: mx_dynamic_library_show_list() is not "
-		"implemented for this platform.\n" );
+		"supported for this platform.\n" );
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 #else
-#error mx_dynamic_library_show_list() not yet implemented for this platform.
+#error mx_dynamic_library_show_list() not yet implemented for this target.
 #endif
 
 /************************ Not available ***********************/
@@ -1020,24 +1037,24 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
+mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
 				unsigned long flags )
 {
-	static const char fname[] = "mx_dynamic_library_find_symbol()";
+	static const char fname[] = "mx_dynamic_library_get_address_from_symbol()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Dynamic loading of libraries is not supported on this platform." );
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_get_function_name_from_address( void *address,
+mx_dynamic_library_get_symbol_from_address( void *address,
 						char *function_name,
 						size_t max_name_length )
 {
 	static const char fname[] =
-		"mx_dynamic_library_get_function_name_from_address()";
+		"mx_dynamic_library_get_symbol_from_address()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 		"Finding a function name from an address is not supported "
@@ -1057,7 +1074,7 @@ mx_dynamic_library_get_function_name_from_address( void *address,
                   /* Platform independent functions. */
 
 MX_EXPORT mx_status_type
-mx_dynamic_library_get_library_and_symbol( const char *filename,
+mx_dynamic_library_get_library_and_symbol_address( const char *filename,
 					const char *symbol_name,
 					MX_DYNAMIC_LIBRARY **library,
 					void **symbol,
@@ -1072,9 +1089,9 @@ mx_dynamic_library_get_library_and_symbol( const char *filename,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_dynamic_library_find_symbol( library_ptr,
-						symbol_name,
-						&symbol_ptr, flags );
+	mx_status = mx_dynamic_library_get_address_from_symbol( library_ptr,
+							symbol_name,
+							&symbol_ptr, flags );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_dynamic_library_close( library_ptr );

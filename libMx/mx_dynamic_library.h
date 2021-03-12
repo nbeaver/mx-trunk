@@ -39,7 +39,7 @@ MX_API mx_status_type mx_dynamic_library_open( const char *filename,
 
 MX_API mx_status_type mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library );
 
-MX_API mx_status_type mx_dynamic_library_find_symbol(
+MX_API mx_status_type mx_dynamic_library_get_address_from_symbol(
 						MX_DYNAMIC_LIBRARY *library,
 						const char *symbol_name,
 						void **symbol_pointer,
@@ -48,12 +48,12 @@ MX_API mx_status_type mx_dynamic_library_find_symbol(
 MX_API void *mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
 						const char *symbol_name );
 
-MX_API mx_status_type mx_dynamic_library_get_function_name_from_address(
+MX_API mx_status_type mx_dynamic_library_get_symbol_from_address(
 						void *address,
 						char *function_name,
 						size_t max_name_length );
 
-MX_API mx_status_type mx_dynamic_library_get_library_and_symbol(
+MX_API mx_status_type mx_dynamic_library_get_library_and_symbol_address(
 						const char *filename,
 						const char *symbol_name,
 						MX_DYNAMIC_LIBRARY **library,

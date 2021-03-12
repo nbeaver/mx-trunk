@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2019 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -749,7 +749,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	MX_SOCKET *server_socket;
 	MX_LIST_HEAD *list_head;
 	int i, socket_type, max_sockets, handler_array_size;
-	char server_string[MXU_ADDRESS_STRING_LENGTH + 1];
+	char server_string[MXU_FILENAME_LENGTH + 10];
 	mx_status_type mx_status;
 
 	MX_DEBUG( 1,("%s invoked.", fname));

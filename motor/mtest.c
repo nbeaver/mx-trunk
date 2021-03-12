@@ -406,9 +406,9 @@ motor_test_fn( int argc, char *argv[] )
 		}
 
 		else
-		if ( strcmp( argv[2], "library_filename" ) == 0 ) {
+		if ( strcmp( argv[2], "dll_filename" ) == 0 ) {
 			MX_DYNAMIC_LIBRARY *library = NULL;
-			char library_filename[MXU_FILENAME_LENGTH+1];
+			char dll_filename[MXU_FILENAME_LENGTH+1];
 
 			if ( argc <= 3 ) {
 				fprintf( output,
@@ -423,8 +423,8 @@ motor_test_fn( int argc, char *argv[] )
 					return FAILURE;
 
 				mx_status = mx_dynamic_library_get_filename(
-						library, library_filename,
-						sizeof(library_filename) );
+						library, dll_filename,
+						sizeof(dll_filename) );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return FAILURE;
@@ -432,7 +432,7 @@ motor_test_fn( int argc, char *argv[] )
 				(void) mx_dynamic_library_close( library );
 
 				fprintf( output, "DLL '%s' filename = '%s'\n",
-						argv[3], library_filename );
+						argv[3], dll_filename );
 			}
 			return SUCCESS;
 		}
@@ -457,7 +457,7 @@ motor_test_fn( int argc, char *argv[] )
 "\n"
 "test address 'start' 'size'- show information about a memory region\n"
 "test disk 'filename' - show disk space info for disk containing the file\n"
-"test library_filename 'filename' - show the file that a dll was opened from\n"
+"test dll_filename 'filename' - show the file that a dll was opened from\n"
 "test max_fds - show the maximum number of file descriptors (Win32)\n"
 "test num_open_fds - show the number of open file descriptors\n"
 "test offset - test stack offset\n"

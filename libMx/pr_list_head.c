@@ -8,7 +8,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2019 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011-2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -916,7 +917,7 @@ mx_list_head_record_show_clbk_id( MX_LIST_HEAD *list_head )
 	if ( callback->callback_function == NULL ) {
 		strlcpy( function_name, "<null>", sizeof(function_name) );
 	} else {
-		mx_status = mx_dynamic_library_get_function_name_from_address(
+		mx_status = mx_dynamic_library_get_symbol_from_address(
 				(void *) callback->callback_function,
 				function_name, sizeof(function_name) );
 

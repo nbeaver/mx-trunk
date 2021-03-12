@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2014-2016, 2018 Illinois Institute of Technology
+ * Copyright 2010-2012, 2014-2016, 2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,8 +73,8 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	 * for a symbol named __MX_MODULE__.
 	 */
 
-	mx_status = mx_dynamic_library_find_symbol( library,
-					"__MX_MODULE__", &void_ptr, 0 );
+	mx_status = mx_dynamic_library_get_address_from_symbol(
+				library, "__MX_MODULE__", &void_ptr, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -214,8 +214,8 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	snprintf( module_init_name, sizeof(module_init_name),
 		"__MX_MODULE_INIT_%s__", module_ptr->name );
 
-	mx_status = mx_dynamic_library_find_symbol( library,
-			module_init_name, &init_ptr,
+	mx_status = mx_dynamic_library_get_address_from_symbol(
+			library, module_init_name, &init_ptr,
 			MXF_DYNAMIC_LIBRARY_QUIET );
 
 	if ( mx_status.code == MXE_SUCCESS ) {

@@ -722,12 +722,22 @@ mx_expand_env( const char *original_env_value,
 	return os_status;
 }
 
-#elif ( defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_CYGWIN) )
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_CYGWIN) \
+	|| defined(OS_BSD)
+
+/* FIXME FIXME FIXME! -- This is bogus.  A real implementation would
+ * expand environment variables like $PATH _WITHOUT_ invoking an external
+ * shell program.
+ */
 
 MX_EXPORT int
 mx_expand_env( const char *original_env_value,
 		char *new_env_value, size_t max_env_size )
 {
+	static const char fname[] = "mx_expand_env()";
+
+	mx_warning( "%s: FIXME needed here!", fname );
+
 	strlcpy( new_env_value, original_env_value, max_env_size );
 
 	return strlen( new_env_value );

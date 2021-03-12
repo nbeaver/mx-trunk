@@ -310,6 +310,8 @@ motor_mcs_fn( int argc, char *argv[] )
 			measurement_range_end = saved_num_measurements
 					  + num_measurements_to_read - 1;
 
+			MXW_UNUSED( measurement_range_end );
+
 #if MXMTR_DEBUG_MEASUREMENT_RANGE
 			MX_DEBUG(-2,("meas: from %ld to %ld, mcs_status = %#lx",
 			    saved_num_measurements,
