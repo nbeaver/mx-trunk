@@ -106,7 +106,7 @@ mx_network_giat_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	 * GetIpAddrTable() function.
 	 */
 
-	mx_status = mx_dynamic_library_get_library_and_symbol(
+	mx_status = mx_dynamic_library_get_library_and_symbol_address(
 				"iphlpapi.dll", "GetIpAddrTable", NULL,
 				(void **) &ptr_GetIpAddrTable, 0 );
 
@@ -335,7 +335,7 @@ mx_network_gaa_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	 * GetAdapterAddresses() function.
 	 */
 
-	mx_status = mx_dynamic_library_get_library_and_symbol(
+	mx_status = mx_dynamic_library_get_library_and_symbol_address(
 				"iphlpapi.dll", "GetAdaptersAddresses", NULL,
 				(void **) &ptr_GetAdaptersAddresses, 0 );
 

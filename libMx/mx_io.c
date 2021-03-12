@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2017 Illinois Institute of Technology
+ * Copyright 2010-2017, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1802,11 +1802,13 @@ mx_get_fd_name( unsigned long process_id, int fd,
 			/* Next, we try GetMappedFileName(). */
 
 #if defined(_UNICODE)
-			mx_status = mx_dynamic_library_get_library_and_symbol(
+			mx_status =
+			    mx_dynamic_library_get_library_and_symbol_address(
 				"psapi.dll", "GetMappedFileNameW",
 				NULL, (void **) &ptrGetMappedFileName, 0 );
 #else
-			mx_status = mx_dynamic_library_get_library_and_symbol(
+			mx_status =
+			    mx_dynamic_library_get_library_and_symbol_address(
 				"psapi.dll", "GetMappedFileNameA",
 				NULL, (void **) &ptrGetMappedFileName, 0 );
 #endif

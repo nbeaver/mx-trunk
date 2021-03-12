@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005, 2009-2010, 2012, 2014-2016 Illinois Institute of Technology
+ * Copyright 2005, 2009-2010, 2012, 2014-2016, 20211
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -141,7 +142,7 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 	    void *void_ptr;
 	    MX_DYNAMIC_LIBRARY *ntdll_library;
 
-	    mx_status = mx_dynamic_library_get_library_and_symbol(
+	    mx_status = mx_dynamic_library_get_library_and_symbol_address(
 				"ntdll.dll", "RtlGetVersion",
 				&ntdll_library, &void_ptr,
 				MXF_DYNAMIC_LIBRARY_QUIET );

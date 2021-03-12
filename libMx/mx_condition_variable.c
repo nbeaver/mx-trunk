@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2014-2018 Illinois Institute of Technology
+ * Copyright 2014-2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -147,8 +147,9 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	        if ( os_major < 4 ) {
 	            mx_win32_signal_object_and_wait_available = FALSE;
 	        } else {
-	            mx_status = mx_dynamic_library_get_library_and_symbol(
-	                "kernel32.dll", "SignalObjectAndWait",
+	            mx_status =
+			mx_dynamic_library_get_library_and_symbol_address(
+			    "kernel32.dll", "SignalObjectAndWait",
 	                    NULL, (void **) &ptr_SignalObjectAndWait, 0 );
 
 	            if ( mx_status.code != MXE_SUCCESS ) {
@@ -172,8 +173,8 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 			    mx_win32_signal_object_and_wait_available = FALSE;
 
 			    return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			    "mx_dynamic_library_get_library_and_signal() said "
-			    "that it successfully found a pointer to the "
+		        "mx_dynamic_library_get_library_and_symbol_address() "
+			    "said that it successfully found a pointer to the "
 			    "SignalObjectAndWait() API function.  However, "
 			    "the pointer returned is NULL.  This makes "
 			    "no sense." );
