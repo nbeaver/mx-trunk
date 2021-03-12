@@ -993,6 +993,10 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 
 #elif defined(OS_LINUX) || defined(OS_BSD)
 
+#define _GNU_SOURCE
+#include <link.h>
+#include <dlfcn.h>
+
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 				char *filename_of_library,
@@ -1000,32 +1004,24 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 {
 	static const char fname[] = "mx_dynamic_library_get_filename()";
 
-	Dl_info info;
-	void *symbol_pointer;
-	int status;
+	struct link_map link_map_struct;
+	int status, saved_errno;
 
-	/* First need to find an address in the shared library that
-	 * we are interested in.  _fini exists in most shared libraries,
-	 * but is not guaranteed to exist.  But it usually works.
-	 */
+	/* Ask the operating system for information about the library. */
 
-	symbol_pointer = dlsym( library->object, "_fini" );
+	status = dlinfo( library->object, RTLD_DI_LINKMAP, &link_map_struct );
 
-	if ( symbol_pointer == NULL ) {
-		return mx_error( MXE_NOT_FOUND, fname,
-		"dlsym() did not find a pointer to '_fini' in library '%s'.",
-		library->filename );
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"dlinfo() for library '%s' failed with errno = %d, "
+		"error_message = '%s'.",
+		library->filename, saved_errno, strerror(saved_errno) );
 	}
 
-	status = dladdr( symbol_pointer, &info );
-
-	if ( status == 0 ) {
-		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
-			"No filename name was found for shared library  '%s'.",
-			library->filename );
-	}
-
-	strlcpy( filename_of_library, info.dli_fname, max_filename_length );
+	strlcpy( filename_of_library, link_map_struct.l_name,
+					max_filename_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }
