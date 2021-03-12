@@ -914,7 +914,84 @@ mx_dynamic_library_get_symbol_from_address( void *address,
 
 /*----- mx_dynamic_library_get_filename() -----*/
 
-#if defined(OS_LINUX) || ( defined(OS_BSD) && ! defined(__OpenBSD__) )
+#if defined(__OpenBSD__)
+
+#include <link.h>
+
+typedef struct {
+	MX_DYNAMIC_LIBRARY *library;
+	char *filename_of_library;
+	size_t max_filename_length;
+} mxp_dl_openbsd_library_args;
+
+static int
+mxp_dl_openbsd_get_filename_callback( struct dl_phdr_info *current_info,
+					size_t size,
+					void *library_to_find_args_ptr )
+{
+	mxp_dl_openbsd_library_args *library_to_find_args = NULL;
+	void *object_to_find_ptr = NULL;
+	void *current_object_ptr = NULL;
+
+	library_to_find_args = library_to_find_args_ptr;
+
+	object_to_find_ptr = library_to_find_args->library->object;
+
+	/*---*/
+
+	current_object_ptr = (void *) current_info->dlpi_addr;
+
+	MX_DEBUG(-2,("Comparing '%s' %p to '%s' %p",
+		library_to_find_args->library->filename, object_to_find_ptr,
+		current_info->dlpi_name, current_object_ptr ));
+
+	/* Does this library match the library that we are looking for? */
+
+	if ( current_object_ptr == object_to_find_ptr ) {
+		MX_DEBUG(-2,("Object found!"));
+
+		strlcpy( library_to_find_args->filename_of_library,
+			current_info->dlpi_name,
+			library_to_find_args->max_filename_length );
+
+		return 1;
+	}
+
+	return 0;
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
+				char *filename_of_library,
+				size_t max_filename_length )
+{
+	static const char fname[] = "mx_dynamic_library_get_filename()";
+
+	mxp_dl_openbsd_library_args library_args;
+	int iterate_status;
+
+	mx_warning( "mx_dynamic_library_get_filename() does not yet "
+		"work correctly on OpenBSD." );
+
+	library_args.library = library;
+	library_args.filename_of_library = filename_of_library;
+	library_args.max_filename_length = max_filename_length;
+
+	iterate_status = dl_iterate_phdr( mxp_dl_openbsd_get_filename_callback,
+								&library_args );
+
+	MX_DEBUG(-2,("%s: iterate_status = %d", fname, iterate_status ));
+
+	if ( iterate_status == 0 ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"The dynamic library '%s' does not seem to be loaded in "
+		"the current process.",  library->filename );
+	} else {
+		return MX_SUCCESSFUL_RESULT;
+	}
+}
+
+#elif defined(OS_LINUX) || defined(OS_BSD)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,

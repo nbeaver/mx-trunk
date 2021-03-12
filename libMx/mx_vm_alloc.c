@@ -1028,6 +1028,43 @@ mx_vm_show_os_info( FILE *file,
 
 /*-------------------------------------------------------------------------*/
 
+#  elif defined(__OpenBSD__)
+
+MX_EXPORT mx_status_type
+mx_vm_get_region( void *address,
+		size_t range_size_in_bytes,
+		mx_bool_type *valid_address_range,
+		unsigned long *protection_flags,
+		void **region_base_address,
+		size_t *region_size_in_bytes )
+{
+	static const char fname[] = "mx_vm_get_region()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"OpenBSD 6.5 and later versions do not provide any way of implementing "
+	"mx_vm_get_region() since the operating system developers have removed "
+	"mincore().  If you need the functionality of mx_vm_get_region(), then "
+	"the only thing I can suggest is that you abandon OpenBSD and switch "
+	"to some other Unix-like operating system." );
+};
+
+MX_EXPORT mx_status_type
+mx_vm_show_os_info( FILE *file,
+		void *address,
+		size_t range_size_in_bytes )
+{
+	static const char fname[] = "mx_vm_show_os_info()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"OpenBSD 6.5 and later versions do not provide any way of implementing "
+	"mx_vm_show_os_info() since the operating system developers have "
+	"removed mincore().  If you need the functionality of "
+	"mx_vm_get_region(), then the only thing I can suggest is that you "
+	"abandon OpenBSD and switch to some other Unix-like operating system.");
+}
+
+/*-------------------------------------------------------------------------*/
+
 #  elif defined(OS_BSD) || defined(OS_SOLARIS) || defined(OS_UNIXWARE) \
 	|| defined(OS_MACOSX)
 
@@ -1094,7 +1131,6 @@ mx_vm_get_region( void *address,
 	 */
 
 	vector_size = ( modified_length + page_size - 1 ) / page_size;
-
 	vector = malloc( vector_size );
 
 	if ( vector == NULL ) {
