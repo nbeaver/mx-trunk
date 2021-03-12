@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2012, 2014-2015, 2019 Illinois Institute of Technology
+ * Copyright 2001, 2003-2012, 2014-2015, 2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1157,6 +1158,8 @@ create_latex_command( char *buffer,
 	va_start( args, format );
 
 	result = vsnprintf( buffer, max_buffer_length, format, args );
+
+	va_end( args );
 
 	if ( result < 0 ) {
 		return result;

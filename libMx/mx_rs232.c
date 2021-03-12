@@ -1318,6 +1318,8 @@ mx_rs232_putline( MX_RECORD *record,
 
 		/* If it has write, use that to send the buffer. */
 
+		written_1 = 0;
+
 		length = strlen( buffer );
 
 		mx_status = (*write_fn)( rs232, buffer, length, &written_1 );
