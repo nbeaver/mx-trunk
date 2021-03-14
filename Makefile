@@ -2,7 +2,6 @@
 # Change the value of the MX_ARCH variable below to match the platform you
 # are compiling the MX system for.  The available platforms are:
 #
-#   android       - Android 7.1 Bionic with Termux Clang
 #   bsd           - FreeBSD, NetBSD, or OpenBSD
 #   bsd-clang     - FreeBSD with Clang 3.3 or above
 #   cygwin        - Cygwin 1.5 or 1.7
@@ -22,6 +21,7 @@
 #   rtems         - x86/m68k/powerpc with RTEMS
 #   solaris       - sparc/x86 with Solaris 8 or above
 #   solaris-gcc   - sparc/x86 with Solaris 8 or above using GCC
+#   termux        - Android 7.1 Bionic with Termux Clang
 #   tru64         - alpha with HP Tru64 Unix 5.1b
 #   tru64-gcc     - alpha with HP Tru64 Unix 5.1b using GCC
 #   unixware      - UnixWare 7
