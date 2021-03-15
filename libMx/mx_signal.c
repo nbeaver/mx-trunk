@@ -287,10 +287,10 @@ mxp_standard_signal_error_handler( int signal_number,
 
 /*-------------------------------------------------------------------------*/
 
-static void
-mxp_setup_default_signal_handler( int signum )
+MX_EXPORT void
+mx_setup_default_signal_handler( int signum )
 {
-	static const char fname[] = "mxp_setup_default_signal_handler()";
+	static const char fname[] = "mx_setup_default_signal_handler()";
 
 	struct sigaction act;
 	int signal_status, saved_errno;
@@ -322,22 +322,22 @@ MX_EXPORT void
 mx_setup_standard_signal_error_handlers( void )
 {
 #ifdef SIGILL
-	mxp_setup_default_signal_handler( SIGILL );
+	mx_setup_default_signal_handler( SIGILL );
 #endif
 #ifdef SIGTRAP
-	mxp_setup_default_signal_handler( SIGTRAP );
+	mx_setup_default_signal_handler( SIGTRAP );
 #endif
 #ifdef SIGIOT
-	mxp_setup_default_signal_handler( SIGIOT );
+	mx_setup_default_signal_handler( SIGIOT );
 #endif
 #ifdef SIGBUS
-	mxp_setup_default_signal_handler( SIGBUS );
+	mx_setup_default_signal_handler( SIGBUS );
 #endif
 #ifdef SIGFPE
-	mxp_setup_default_signal_handler( SIGFPE );
+	mx_setup_default_signal_handler( SIGFPE );
 #endif
 #ifdef SIGSEGV
-	mxp_setup_default_signal_handler( SIGSEGV );
+	mx_setup_default_signal_handler( SIGSEGV );
 #endif
 	return;
 }

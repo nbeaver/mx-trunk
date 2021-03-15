@@ -84,6 +84,8 @@ MX_API int sigaction( int signum,
 
 MX_API void mx_setup_standard_signal_error_handlers( void );
 
+MX_API void mx_setup_default_signal_handler( int signum );
+
 #ifdef __cplusplus
 }
 #endif
