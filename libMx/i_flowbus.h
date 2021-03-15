@@ -82,12 +82,8 @@ extern long mxi_flowbus_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_flowbus_rfield_def_ptr;
 
 MX_EXPORT mx_status_type
-mxi_flowbus_command( MX_FLOWBUS *flowbus,
-			unsigned long destination_node,
-			char *binary_command,
-			size_t command_length,
-			char *binary_response,
-			size_t max_response_length );
+mxi_flowbus_command( MX_FLOWBUS *flowbus, char *command,
+			char *response, size_t max_response_length );
 			
 
 #endif /* __I_FLOWBUS_H__ */

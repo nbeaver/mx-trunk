@@ -116,6 +116,8 @@ mxi_flowbus_open( MX_RECORD *record )
 	static const char fname[] = "mxi_flowbus_open()";
 
 	MX_FLOWBUS *flowbus = NULL;
+	char command[80];
+	char response[80];
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
@@ -140,118 +142,58 @@ mxi_flowbus_open( MX_RECORD *record )
 			flowbus->protocol_type_string, record->name );
 	}
 
+	/* Discard any unread input that may be left in the rs232 device. */
+
+	mx_status = mx_rs232_discard_unread_input( flowbus->rs232_record,
+								MXF_232_DEBUG );
+
+	/* Ask for the status of node 3. */
+
+	strlcpy( command, ":06030401210121", sizeof(command) );
+
+	mx_status = mxi_flowbus_command( flowbus, command,
+						response, sizeof(response) );
+
 	return MX_SUCCESSFUL_RESULT;
-}
-
-/*--------*/
-
-static void
-mxp_flowbus_set_ascii_byte( uint8_t *ptr, uint8_t value )
-{
-	uint8_t byte0, byte1;
-
-	byte0 = value % 16L;
-	byte1 = value / 16L;
-
-	if ( byte0 >= 0xA ) {
-		*ptr = 'A' + byte0;
-	} else {
-		*ptr = '0' + byte0;
-	}
-
-	ptr++;
-
-	if ( byte1 >= 0xA ) {
-		*ptr = 'A' + byte1;
-	} else {
-		*ptr = '0' + byte1;
-	}
-
-	return;
 }
 
 /* WARNING: mxi_flowbus_command() is incomplete (WML, 2021-03-12) */
 
 MX_EXPORT mx_status_type
 mxi_flowbus_command( MX_FLOWBUS *flowbus,
-			unsigned long destination_node,
-			char *binary_command,
-			size_t command_length,
-			char *binary_response,
+			char *command,
+			char *response,
 			size_t max_response_length )
 {
 	static const char fname[] = "mxi_flowbus_command()";
 
-	uint8_t *ptr = NULL;
-	uint8_t message_length;
-	int i, j;
+	mx_status_type mx_status;
 
 	if ( flowbus == (MX_FLOWBUS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_FLOWBUS pointer passed was NULL." );
 	}
-	if ( binary_command == (char *) NULL ) {
+	if ( command == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The binary_command pointer passed was NULL." );
+		"The command pointer passed was NULL." );
 	}
-	if ( binary_response == (char *) NULL ) {
+	if ( response == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The binary_response pointer passed was NULL." );
+		"The response pointer passed was NULL." );
 	}
 
-	memset( flowbus->command_buffer, 0, sizeof(flowbus->command_buffer) );
-	memset( flowbus->response_buffer, 0, sizeof(flowbus->response_buffer) );
+	/* Send the command using the requested protocol type. */
 
-	/* Construct the command to send to the FLOW-BUS device. */
+	mx_status = mx_rs232_putline( flowbus->rs232_record, command, NULL, 1 );
 
-	switch( flowbus->protocol_type ) {
-	case MXT_FLOWBUS_ASCII:
-		flowbus->command_buffer[0] = ':';
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		message_length = command_length + 3;
+	/* Read back the response. */
 
-		/* Set the command message length. */
-
-		ptr = &(flowbus->command_buffer[1]);
-
-		mxp_flowbus_set_ascii_byte( ptr, message_length );
-
-		/* Set the destination_node. */
-
-		ptr = &(flowbus->command_buffer[3]);
-
-		mxp_flowbus_set_ascii_byte( ptr, destination_node );
-
-		/* Copy in the ASCII representation of the message. */
-
-		for ( i = 0; i < command_length; i++ ) {
-			j = 2*i + 5;
-
-			ptr = &(flowbus->command_buffer[j]);
-
-			mxp_flowbus_set_ascii_byte( ptr, binary_command[i] );
-		}
-
-		/* Copy in the command terminator. */
-
-		j = 2 * command_length + 5;
-
-		flowbus->command_buffer[j] = '\r';
-
-		/* The command should be completely formatted at this point. */
-		break;
-
-	case MXT_FLOWBUS_BINARY:
-		break;
-
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal protocol type %lu requested for "
-		"FLOW-BUS interface '%s'.  The allowed protocols are: "
-		"1 = ASCII, 2 = Extended binary.",
-			flowbus->protocol_type, flowbus->record->name );
-		break;
-	}
+	mx_status = mx_rs232_getline_with_timeout( flowbus->rs232_record,
+						response, max_response_length,
+						NULL, 1, 5.0 );
 
 	return MX_SUCCESSFUL_RESULT;
 }
