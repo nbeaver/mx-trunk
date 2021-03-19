@@ -157,7 +157,7 @@ mxi_flowbus_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* WARNING: mxi_flowbus_command() is incomplete (WML, 2021-03-12) */
+/* ---- */
 
 MX_EXPORT mx_status_type
 mxi_flowbus_command( MX_FLOWBUS *flowbus,
@@ -196,5 +196,38 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 						NULL, 1, 5.0 );
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ---- */
+
+MX_EXPORT mx_status_type
+mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
+				unsigned long node,
+				unsigned long process,
+				unsigned long parameter,
+				char *parameter_value_to_send,
+				char *status_response,
+				size_t max_response_length )
+{
+	static const char fname[] = "mxi_flowbus_send_parameter()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"This function is not yet implemented." );
+}
+
+/* ---- */
+
+MX_EXPORT mx_status_type
+mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
+				unsigned long node,
+				unsigned long process,
+				unsigned long parameter,
+				char *requested_parameter_value,
+				size_t max_response_length )
+{
+	static const char fname[] = "mxi_flowbus_request_parameter()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"This function is not yet implemented." );
 }
 

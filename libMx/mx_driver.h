@@ -147,6 +147,7 @@ extern "C" {
 #define MXV_FIELD			71
 #define MXV_SPECIAL			72
 #define MXV_UMX				73
+#define MXV_FLOWBUS			74
 
 /* --- Server classes --- */
 
@@ -899,6 +900,12 @@ extern "C" {
 #define MXV_UMX_ULONG			509009
 #define MXV_UMX_FLOAT			509010
 #define MXV_UMX_DOUBLE			509011
+
+#define MXV_FLOWBUS_STRING		510001
+#define MXV_FLOWBUS_UCHAR		510003
+#define MXV_FLOWBUS_USHORT		510005
+#define MXV_FLOWBUS_ULONG		510009
+#define MXV_FLOWBUS_FLOAT		510010
 
 #define MXV_SPECIAL_FIX_REGIONS		590001
 

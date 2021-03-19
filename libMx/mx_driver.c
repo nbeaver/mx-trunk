@@ -128,6 +128,7 @@
 #include "i_spec_command.h"
 #include "i_sim900_port.h"
 #include "i_file_rs232.h"
+#include "i_flowbus.h"
 
 #if HAVE_TCPIP
 #include "i_tcp232.h"
@@ -559,6 +560,7 @@
 #include "v_bluice_string.h"
 #include "v_bluice_operation.h"
 #include "v_bluice_self_operation.h"
+#include "v_flowbus.h"
 
 #include "v_fix_regions.h"
 
@@ -4121,6 +4123,43 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxv_file_double_variable_num_record_fields,
 				&mxv_file_double_variable_dptr},
+
+/*----*/
+
+{"flowbus_string",    MXV_FLOWBUS_STRING,   MXV_FLOWBUS, MXR_VARIABLE,
+				&mxv_flowbus_parameter_record_function_list,
+				&mxv_flowbus_parameter_variable_function_list,
+				NULL,
+				&mxv_flowbus_string_num_record_fields,
+				&mxv_flowbus_string_rfield_def_ptr},
+
+{"flowbus_uchar",     MXV_FLOWBUS_UCHAR,    MXV_FLOWBUS,  MXR_VARIABLE,
+				&mxv_flowbus_parameter_record_function_list,
+				&mxv_flowbus_parameter_variable_function_list,
+				NULL,
+				&mxv_flowbus_uchar_num_record_fields,
+				&mxv_flowbus_uchar_rfield_def_ptr},
+
+{"flowbus_ushort",    MXV_FLOWBUS_USHORT,    MXV_FLOWBUS, MXR_VARIABLE,
+				&mxv_flowbus_parameter_record_function_list,
+				&mxv_flowbus_parameter_variable_function_list,
+				NULL,
+				&mxv_flowbus_ushort_num_record_fields,
+				&mxv_flowbus_ushort_rfield_def_ptr},
+
+{"flowbus_ulong",     MXV_FLOWBUS_ULONG,    MXV_FLOWBUS,   MXR_VARIABLE,
+				&mxv_flowbus_parameter_record_function_list,
+				&mxv_flowbus_parameter_variable_function_list,
+				NULL,
+				&mxv_flowbus_ulong_num_record_fields,
+				&mxv_flowbus_ulong_rfield_def_ptr},
+
+{"flowbus_float",     MXV_FLOWBUS_FLOAT,   MXV_FLOWBUS,     MXR_VARIABLE,
+				&mxv_flowbus_parameter_record_function_list,
+				&mxv_flowbus_parameter_variable_function_list,
+				NULL,
+				&mxv_flowbus_float_num_record_fields,
+				&mxv_flowbus_float_rfield_def_ptr},
 
 /*----*/
 
