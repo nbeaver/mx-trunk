@@ -261,6 +261,7 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 					flowbus_parameter->node_address,
 					flowbus_parameter->process_number,
 					flowbus_parameter->parameter_number,
+					flowbus_parameter->parameter_type,
 					value_ptr,
 					flowbus_status_response,
 					sizeof(flowbus_status_response) );
@@ -315,6 +316,7 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 					flowbus_parameter->node_address,
 					flowbus_parameter->process_number,
 					flowbus_parameter->parameter_number,
+					flowbus_parameter->parameter_type,
 					value_ptr,
 					80 /* FIXME */ );
 

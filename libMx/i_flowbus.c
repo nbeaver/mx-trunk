@@ -21,6 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_bit.h"
 #include "mx_rs232.h"
 #include "i_flowbus.h"
 
@@ -202,17 +203,188 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 
 MX_EXPORT mx_status_type
 mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
-				unsigned long node,
-				unsigned long process,
-				unsigned long parameter,
-				char *parameter_value_to_send,
+				unsigned long node_address,
+				unsigned long process_number,
+				unsigned long parameter_number,
+				unsigned long mx_parameter_type,
+				void *parameter_value_to_send,
 				char *status_response,
 				size_t max_response_length )
 {
 	static const char fname[] = "mxi_flowbus_send_parameter()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"This function is not yet implemented." );
+	unsigned long message_length;
+	uint8_t flowbus_parameter_type;
+	uint8_t parameter_byte;
+
+	uint8_t uint8_value;
+	uint16_t uint16_value;
+	uint32_t uint32_value;
+	size_t string_length;
+
+	mx_status_type mx_status;
+
+	flowbus->command_buffer[0] = ':';
+
+	/* The final 'message_length' is the total length of the
+	 * message, except for the first two bytes, and the two
+	 * byte CR-LF terminator at the end.
+	 */
+
+	message_length = 0;
+
+	/*---*/
+
+	flowbus->command_buffer[2] = ( node_address & 0xff );
+
+	message_length++;
+
+	/*---*/
+
+	if ( status_response == (char *) NULL ) {
+		flowbus->command_buffer[3] = 2;		/* no response */
+	} else {
+		flowbus->command_buffer[3] = 1;		/* response expected */
+	}
+
+	message_length++;
+
+	/*---*/
+
+	flowbus->command_buffer[4] = ( process_number & 0x7F );
+
+	message_length++;
+
+	/*---*/
+
+	switch( mx_parameter_type ) {
+	case MXFT_UCHAR:
+		flowbus_parameter_type = 0x0;
+
+		uint8_value = *(( uint8_t * ) parameter_value_to_send);
+
+		flowbus->command_buffer[6] = uint8_value;
+
+		message_length++;
+		break;
+
+	case MXFT_USHORT:
+		flowbus_parameter_type = 0x2;
+
+		uint16_value = *(( uint16_t * ) parameter_value_to_send);
+
+		switch( mx_native_byteorder() ) {
+		case MX_DATAFMT_BIG_ENDIAN:
+		    flowbus->command_buffer[6] = ( uint16_value >> 8 ) & 0xff;
+		    flowbus->command_buffer[7] = ( uint16_value & 0xff );
+		    break;
+		case MX_DATAFMT_LITTLE_ENDIAN:
+		    flowbus->command_buffer[7] = ( uint16_value >> 8 ) & 0xff;
+		    flowbus->command_buffer[6] = ( uint16_value & 0xff );
+		    break;
+		}
+
+		message_length += 2;
+		break;
+
+	case MXFT_ULONG:
+	case MXFT_FLOAT:
+		flowbus_parameter_type = 0x4;
+
+		uint32_value = *(( uint32_t * ) parameter_value_to_send);
+
+		switch( mx_native_byteorder() ) {
+		case MX_DATAFMT_BIG_ENDIAN:
+		    flowbus->command_buffer[6] = ( uint32_value >> 24 ) & 0xff;
+		    flowbus->command_buffer[7] = ( uint32_value >> 16 ) & 0xff;
+		    flowbus->command_buffer[8] = ( uint32_value >> 8 ) & 0xff;
+		    flowbus->command_buffer[9] = ( uint32_value & 0xff );
+		    break;
+		case MX_DATAFMT_LITTLE_ENDIAN:
+		    flowbus->command_buffer[9] = ( uint32_value >> 24 ) & 0xff;
+		    flowbus->command_buffer[8] = ( uint32_value >> 16 ) & 0xff;
+		    flowbus->command_buffer[7] = ( uint32_value >> 8 ) & 0xff;
+		    flowbus->command_buffer[6] = ( uint32_value & 0xff );
+		    break;
+		}
+
+		message_length += 4;
+		break;
+
+	case MXFT_STRING:
+		flowbus_parameter_type = 0x6;
+
+		string_length = strlen( (char *) parameter_value_to_send );
+
+		if ( string_length > UCHAR_MAX ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"FlowBus '%s', node %lu, process %lu, parameter %lu "
+			"is longer (%ld) than the maximum allowed value "
+			"of %d.  String = '%s'",
+				flowbus->record->name, node_address,
+				process_number, parameter_number,
+				(unsigned long) string_length, UCHAR_MAX,
+				(char *) parameter_value_to_send );
+		}
+
+		flowbus->command_buffer[6] = string_length;
+
+		message_length++;
+
+		strlcpy( &(flowbus->command_buffer[7]),
+				parameter_value_to_send,
+				UCHAR_MAX );
+				
+		message_length += string_length;
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Attempted to write unsupported MX datatype (%lu) to "
+		"FlowBus '%s', node %lu, process %lu, parameter %lu.  "
+		"Allowed datatypes are MXFT_UCHAR (%d), MXFT_USHORT (%d), "
+		"MXFT_ULONG (%d), MXFT_FLOAT (%d), and MXFT_STRING (%d).",
+			mx_parameter_type, flowbus->record->name, node_address,
+			process_number, parameter_number, MXFT_UCHAR,
+			MXFT_USHORT, MXFT_ULONG, MXFT_FLOAT, MXFT_STRING );
+		break;
+	}
+
+	/*---*/
+
+	parameter_byte = ( flowbus_parameter_type & 0x3 ) << 5;
+
+	parameter_byte |= ( parameter_number & 0x1F );
+
+	flowbus->command_buffer[5] = parameter_byte;
+
+	message_length++;
+	
+	/*---*/
+
+	flowbus->command_buffer[1] = message_length;
+
+	/*---*/
+
+	/* Handle command type 02 */
+
+	if ( status_response == (char *) NULL ) {
+		mx_status = mxi_flowbus_command( flowbus,
+						flowbus->command_buffer,
+						NULL, 0 );
+
+		return mx_status;
+	}
+
+	/* Handle command type 01 */
+
+	mx_status = mxi_flowbus_command( flowbus, flowbus->command_buffer,
+						flowbus->response_buffer, 
+						max_response_length );
+						
+	mx_warning( "%s: FIXME: Implement handling of status response.", fname);
+
+	return mx_status;
 }
 
 /* ---- */
@@ -222,7 +394,8 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node,
 				unsigned long process,
 				unsigned long parameter,
-				char *requested_parameter_value,
+				unsigned long mx_parameter_type,
+				void *requested_parameter_value,
 				size_t max_response_length )
 {
 	static const char fname[] = "mxi_flowbus_request_parameter()";

@@ -24,6 +24,7 @@ typedef struct {
 	unsigned long node_address;
 	unsigned long process_number;
 	unsigned long parameter_number;
+	unsigned long parameter_type;
 } MX_FLOWBUS_PARAMETER;
 
 #define MXV_FLOWBUS_PARAMETER_STANDARD_FIELDS \

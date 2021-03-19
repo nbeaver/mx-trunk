@@ -26,6 +26,20 @@
 
 #define MXF_FLOWBUS_DEBUG	0x1
 
+/* String length parameters
+ *
+ * Note that commands 01 and 02 can be longer than any other command.
+ */
+
+#define MXU_FLOWBUS_MAX_STRING_LENGTH	255	/* Max unsigned char */
+
+#define MXU_FLOWBUS_HEADER_LENGTH	6	/* Command 01 or 02 */
+
+#define MXU_FLOWBUS_TERMINATOR_LENGTH	2	/* CR, LF */
+
+#define MXU_FLOWBUS_MAX_LENGTH		( MXU_FLOWBUS_MAX_STRING_LENGTH \
+		+ MXU_FLOWBUS_HEADER_LENGTH + MXU_FLOWBUS_TERMINATOR_LENGTH )
+
 /*---*/
 
 #define MXU_FLOWBUS_PROTOCOL_TYPE_STRING_LENGTH		20
@@ -41,8 +55,8 @@ typedef struct {
 	unsigned long server_node;
 	unsigned long sequence_number;
 
-	uint8_t command_buffer[80];
-	uint8_t response_buffer[80];
+	char command_buffer[MXU_FLOWBUS_MAX_LENGTH + 1];
+	char response_buffer[MXU_FLOWBUS_MAX_LENGTH + 1];
 } MX_FLOWBUS;
 
 #define MXI_FLOWBUS_STANDARD_FIELDS \
@@ -89,19 +103,21 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus, char *command,
 
 MX_EXPORT mx_status_type
 mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
-				unsigned long node,
-				unsigned long process,
-				unsigned long parameter,
-				char *parameter_value_to_send,
+				unsigned long node_address,
+				unsigned long process_number,
+				unsigned long parameter_number,
+				unsigned long mx_parameter_type,
+				void *parameter_value_to_send,
 				char *status_response,
 				size_t max_response_length );
 
 MX_EXPORT mx_status_type
 mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
-				unsigned long node,
-				unsigned long process,
-				unsigned long parameter,
-				char *requested_parameter_value,
+				unsigned long node_address,
+				unsigned long process_number,
+				unsigned long parameter_number,
+				unsigned long mx_parameter_type,
+				void *requested_parameter_value,
 				size_t max_response_length );
 
 			
