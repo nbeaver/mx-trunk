@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010, 2012-2017, 2019
+ * Copyright 1999-2006, 2008-2010, 2012-2017, 2019, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -173,6 +173,10 @@ static MX_DRIVER mx_class_table[] = {
 {"field",          0, MXV_FIELD,          MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
 {"special_variable", 0, MXV_SPECIAL,      MXR_VARIABLE,
+				NULL, NULL, NULL, NULL, NULL},
+{"umx_variable",   0, MXV_UMX,            MXR_VARIABLE,
+				NULL, NULL, NULL, NULL, NULL},
+{"flowbus_variable", 0, MXV_FLOWBUS,      MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Server classes ================== */
