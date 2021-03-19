@@ -999,7 +999,7 @@ mx_round_toward_zero( double value, double threshold )
 }
 
 /*
- * mx_multiply_safely multiplies two floating point numbers by each other
+ * mx_multiply_safely() multiplies one floating point number by another
  * while testing for and avoiding infinities.
  */
 
@@ -1036,7 +1036,7 @@ mx_multiply_safely( double multiplier1, double multiplier2 )
 }
 
 /*
- * mx_divide_safely divides two floating point numbers by each other
+ * mx_divide_safely() divides one floating point number by another
  * while testing for and avoiding division by zero.
  */
 
