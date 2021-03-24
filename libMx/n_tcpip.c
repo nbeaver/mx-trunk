@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012, 2014-2017, 2020
+ * Copyright 1999-2008, 2010-2012, 2014-2017, 2020-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -373,6 +373,17 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* SERCAT at the Advanced Photon Source has a forked copy of MX
+	 * that they call MX 1.6.  We remap all such version numbers to
+	 * MX 1.5.4.
+	 */
+
+	if ( ( version >= 1006000L ) && ( version < 2000000L ) ) {
+		version = 1005004L;
+	}
+
+	/* Save the remote MX version. */
 
 	network_server->remote_mx_version = version;
 

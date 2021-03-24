@@ -4592,6 +4592,19 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 		break;
 
 	case MX_NETWORK_OPTION_CLIENT_VERSION:
+		/* SERCAT at the Advanced Photon Source has a forked copy of MX
+		 * that they call MX 1.6.  We remap all such version numbers to
+		 * MX 1.5.4.
+		 */
+
+		if ( ( option_value >= 1006000L )
+				&& ( option_value < 2000000L ) )
+		{
+			option_value = 1005004L;
+		}
+
+		/* Save the remote MX version. */
+
 		socket_handler->remote_mx_version = option_value;
 #if 0
 		MX_DEBUG(-2,("%s: remote_mx_version = %lu",
