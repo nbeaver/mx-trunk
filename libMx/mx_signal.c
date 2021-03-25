@@ -383,6 +383,9 @@ mx_force_immediate_exit( void )
 	TerminateProcess( GetCurrentProcess(), 0 );
 
 #elif defined( OS_LINUX )
+	kill( getpid(), SIGKILL );
+
+#elif 0
 	_exit(1);
 #else
 #  error mx_force_immediate_exit() is not yet implemented for this build target.
