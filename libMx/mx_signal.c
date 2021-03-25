@@ -374,3 +374,20 @@ mx_force_core_dump( void )
 }
 
 /*-------------------------------------------------------------------------*/
+
+MX_EXPORT void
+mx_force_immediate_exit( void )
+{
+
+#if defined( OS_WIN32 )
+	TerminateProcess( GetCurrentProcess(), 0 );
+
+#elif defined( OS_LINUX )
+	_exit(1);
+#else
+#  error mx_force_immediate_exit() is not yet implemented for this build target.
+#endif
+
+}
+
+/*-------------------------------------------------------------------------*/

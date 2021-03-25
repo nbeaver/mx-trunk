@@ -506,6 +506,18 @@ MX_API int mx_pointer_is_valid( void *pointer, size_t length, int access_mode );
 
 MX_API void mx_force_core_dump( void );
 
+/*
+ * mx_force_immediate_exit() attempts to force the current process to
+ * immediately exit without performing any of the normal shutdown procedures.
+ * On some platforms, mx_force_immediate_exit() is more immediate and ugly
+ * than something like _exit().
+ *
+ * For Windows, this ensures that an external debugger will not be invoked
+ * as part of the shutdown.
+ */
+
+MX_API void mx_force_immediate_exit( void );
+
 /* This is a duplicate of the definition in mx_debugger.h.  It is here just
  * so that we do not need to include "mx_debugger.h" everywhere.
  */

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -113,6 +113,8 @@ int mxsrv_num_event_handlers = sizeof( mxsrv_event_handler_list )
 
 /*--------*/
 
+static mx_bool_type mxp_force_immediate_exit_flag = FALSE;
+
 static void
 mxsrv_exit_handler( void )
 {
@@ -125,6 +127,14 @@ mxsrv_exit_handler( void )
 #if defined(DEBUG_MPATROL)
 	heapdiffend( mainloop_heapdiff );
 #endif
+
+	/* If requested, we destroy the world and bypass any further
+	 * shutdown steps.
+	 */
+
+	if ( mxp_force_immediate_exit_flag ) {
+		mx_force_immediate_exit();
+	}
 }
 
 /*--------*/
@@ -652,7 +662,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-	    "aA:b:BcC:d:De:E:f:Jkl:L:m:M:n:NO:p:P:rsStT:u:v:wxX:Y:Z")) != -1)
+	    "aA:b:BcC:d:De:E:f:IJkl:L:m:M:n:NO:p:P:rsStT:u:v:wxX:Y:Z")) != -1)
 	{
                 switch (c) {
 		case 'a':
@@ -710,6 +720,9 @@ mxserver_main( int argc, char *argv[] )
                         strlcpy( mx_database_filename,
 					optarg, MXU_FILENAME_LENGTH );
                         break;
+		case 'I':
+			mxp_force_immediate_exit_flag = TRUE;
+			break;
 		case 'J':
 			just_in_time_debugging = TRUE;
                         break;
