@@ -894,7 +894,7 @@ mx_dynamic_library_get_symbol_from_address( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 0	/*----*/
+#elif defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_symbol_from_address( void *address,
@@ -1026,7 +1026,7 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 0
+#elif defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
@@ -1070,7 +1070,7 @@ mx_dynamic_library_show_list( FILE *file )
 
 /*--------*/
 
-#elif 0
+#elif defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_show_list( FILE *file )

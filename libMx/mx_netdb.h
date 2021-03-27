@@ -25,8 +25,14 @@
 
 #include "mx_socket.h"
 
-#if ( defined( OS_CYGWIN ) && ( CYGWIN_VERSION_DLL_COMBINED < 2000000 ) )
-#  define __MX_NEED_ADDRINFO	TRUE
+#if defined( OS_CYGWIN )
+#  include "cygwin/version.h"
+
+#  if ( CYGWIN_VERSION_DLL_COMBINED >= 2000000 )
+#    define __MX_NEED_ADDRINFO	FALSE
+#  else
+#    define __MX_NEED_ADDRINFO	TRUE
+#  endif
 
 #elif ( defined( _NETDB_H ) || defined( _NETDB_H_ ) || defined( OS_ANDROID ) \
 	|| defined( OS_VXWORKS ) || defined( OS_QNX ) )

@@ -26,6 +26,12 @@
 #include <windows.h>
 #endif
 
+#if defined( OS_CYGWIN )
+#include <windows.h>
+#include <ntdef.h>
+#include <sys/cygwin.h>
+#endif
+
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_signal.h"
@@ -381,6 +387,13 @@ mx_force_immediate_exit( void )
 
 #if defined( OS_WIN32 )
 	TerminateProcess( GetCurrentProcess(), 0 );
+
+#elif defined( OS_CYGWIN )
+	/* FIXME: The 0 status code should be replaced with
+	 * with something like ((NTSTATUS) 0xc0000???)
+	 */
+
+	cygwin_internal( CW_EXIT_PROCESS, GetCurrentProcess(), 0 );
 
 #elif defined( OS_LINUX )
 	kill( getpid(), SIGKILL );
