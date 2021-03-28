@@ -72,10 +72,12 @@ mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
  */
 
 static mx_status_type
-mxp_win32_investigate_code_126(const char *calling_fname,
-				const char *library_filename )
+mxp_win32_investigate_file_access(const char *calling_fname,
+					const char *library_filename,
+					long win32_error_code,
+					char *error_message_buffer )
 {
-	static const char fname[] = "mxp_win32_investigate_code_126()";
+	static const char fname[] = "mxp_win32_investigate_file_access()";
 
 	int access_status, saved_errno;
 
@@ -118,35 +120,38 @@ mxp_win32_investigate_code_126(const char *calling_fname,
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR,
 				calling_fname,
 			"An unexpected error occurred when trying to access "
-			"library'%s'.  errno = %d, error_message = '%s'",
+			"library '%s'.  errno = %d, error_message = '%s'",
 				library_filename,
 				saved_errno, strerror(saved_errno) );
 			break;
 		}
 	}
 
-	return mx_error( MXE_FUNCTION_FAILED, calling_fname,
-	"The library file '%s' exists, but was not loaded for some reason.  "
-	"The most common reason for this is that some _other_ DLL used by "
-	"the library was not found.\n\n"
-	"Finding out which DLL was not found is not straightforward.\n"
-	"One way to figure this out is to make use of the 'Process Monitor' "
-	"program from the 'Sysinternals' package:\n"
-	"Step 1: Tell 'Process Monitor' to filter on the 'Image Path' name "
-	"of the 'exe' executable that you were trying to run.\n"
-	"Step 2: Then you tell it to 'Add' that filter.\n"
-	"Step 3: Clear existing messages with ctrl-X\n"
-	"Step 4: Run the executable.\n"
-	"Step 5: Search with ctrl-F for the name of the library that you "
-	"were trying to load.\n"
-	"Step 6: Look at messages after the one you found in step 5 to see "
-	"if you find a bunch of 'NAME NOT FOUND' or 'PATH NOT FOUND' messages "
-	"soon after that point.\n"
-	"Step 7: If so, then they probably refer to the name "
-	"of the DLL that is failing to load.\n"
-	"Step 8: Remember to reset the filter afterwards.\n"
-	"Sorry that there isn't a simpler way to figure this out.",
-	library_filename );
+	switch( win32_error_code ) {
+	case 5:
+		return mx_error( MXE_PERMISSION_DENIED, calling_fname,
+		"This process has the permissions to access the library file "
+		"'%s' itself.  However, this process does not have the "
+		"permissions to access some other DLL or resource that is "
+		"used indirectly by this library.", library_filename );
+		break;
+
+	case 126:
+		return mx_error( MXE_NOT_FOUND, calling_fname,
+		"The library file '%s' exists.  However, some other DLL or "
+		"resource used by this library does not exist.",
+		library_filename );
+		break;
+
+	default:
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, calling_fname,
+		"An unexpected error occurred when trying to access some "
+		"DLL or resource that is used by the library '%s'.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			library_filename, win32_error_code,
+			error_message_buffer );
+		break;
+	}
 }
 
 /*----*/
@@ -169,7 +174,7 @@ mx_dynamic_library_open( const char *filename,
 	static const char fname[] = "mx_dynamic_library_open()";
 
 	DWORD last_error_code;
-	TCHAR message_buffer[100];
+	char error_message_buffer[100];
 	long mx_error_code;
 	mx_bool_type quiet;
 
@@ -215,7 +220,7 @@ mx_dynamic_library_open( const char *filename,
 		mx_free( *library );
 
 		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
+			error_message_buffer, sizeof(error_message_buffer) );
 
 		mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
 
@@ -233,7 +238,7 @@ mx_dynamic_library_open( const char *filename,
 			return mx_error( mx_error_code, fname,
 				"Unable to open main executable.  "
 				"Win32 error code = %ld, error message = '%s'.",
-				last_error_code, message_buffer );
+				last_error_code, error_message_buffer );
 		} else
 		if ( (MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LLP64)
 		  && (last_error_code == 193) )
@@ -244,19 +249,24 @@ mx_dynamic_library_open( const char *filename,
 			"a 64 bit program is trying to load a 32 bit DLL.",
 				filename );
 		} else
-		if (last_error_code == 126) {
+		if ( (last_error_code == 126)
+		  || (last_error_code == 5 ) )
+		{
 			/* In this case, either the library does not exist or
 			 * one of the DLLs the library uses could not be found.
 			 * We make some attempt to distinguish betweeen these
 			 * two cases.
 			 */
 
-			return mxp_win32_investigate_code_126(fname, filename);
+			return mxp_win32_investigate_file_access( fname,
+						filename, last_error_code,
+						error_message_buffer );
 		} else {
 			return mx_error( mx_error_code, fname,
 				"Unable to open dynamic library '%s'.  "
 				"Win32 error code = %ld, error message = '%s'.",
-				filename, last_error_code, message_buffer );
+				filename, last_error_code,
+				error_message_buffer );
 		}
 	}
 

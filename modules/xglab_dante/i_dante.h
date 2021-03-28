@@ -32,7 +32,7 @@ extern "C" {
 
 #define MX_DANTE_MIN_VERSION			MX_DANTE_VERSION(3,4,0,3)
 
-#define MX_DANTE_MAX_VERSION			MX_DANTE_VERSION(3,5,1,0)
+#define MX_DANTE_MAX_VERSION			MX_DANTE_VERSION(3,7,8,0)
 
 /* The following flags are used by the 'dante_flags' field. */
 
