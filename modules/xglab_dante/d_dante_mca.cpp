@@ -929,12 +929,14 @@ mxd_dante_mca_arm( MX_MCA *mca )
 		"passed to start().  Those parameters were\n"
 		"    dante_mca->identifier = '%s'\n"
 		"    mca->preset_real_time = %f\n"
-		"    mca->current_num_channels = %lu",
+		"    mca->current_num_channels = %lu "
+		"    dante_mca->total_num_measurements = %lu",
 			mca->record->name,
 			dante_mca->max_attempts,
 			dante_mca->identifier,
 			mca->preset_real_time,
-			mca->current_num_channels );
+			mca->current_num_channels,
+			dante_mca->total_num_measurements );
 	}
 
 	if ( i > 0 ) {
