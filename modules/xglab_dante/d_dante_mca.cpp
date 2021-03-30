@@ -289,6 +289,9 @@ mxd_dante_mca_open( MX_RECORD *record )
 	unsigned long board_number;
 	mx_status_type mx_status;
 
+	uint32_t call_id;
+	uint16_t dante_error_code = DLL_NO_ERROR;
+
 #if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
@@ -337,11 +340,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 	mca->input_count_rate = 0.0;
 	mca->output_count_rate = 0.0;
 
-#if 0
 	/* Detect the firmware used by this board. */
-
-	uint32_t call_id;
-	uint16_t dante_error_code = DLL_NO_ERROR;
 
 	call_id = getFirmware( dante_mca->identifier,
 				dante_mca->board_number );
@@ -355,18 +354,30 @@ mxd_dante_mca_open( MX_RECORD *record )
 			record->name, (unsigned long) dante_error_code );
 	}
 
-	mxi_dante_wait_for_answer( call_id );
-
-	fprintf( stderr, "getFirmware() callback data = " );
-#endif
+	mxi_dante_wait_for_answer( call_id, dante );
 
 #if 0
+	int i;
+
+	fprintf( stderr, "getFirmware() callback data = " );
+
 	for ( i = 0; i < 4; i++ ) {
 		fprintf( stderr, "%lu ", mxi_dante_callback_data[i] );
 	}
 
 	fprintf( stderr, "\n" );
 #endif
+
+	dante_mca->firmware_version = 1000000 * mxi_dante_callback_data[0]
+				       + 1000 * mxi_dante_callback_data[1]
+				              + mxi_dante_callback_data[2];
+
+	dante_mca->firmware_type = mxi_dante_callback_data[3];
+
+	MX_DEBUG(-2,("%s: '%s', firmware_version = %lu, firmware_type = %lu",
+	    fname, dante_mca->record->name,
+	    dante_mca->firmware_version,
+	    dante_mca->firmware_type ));
 
 	/*---*/
 
