@@ -29,6 +29,12 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
+#include <fcntl.h>
+
+#if defined(OS_WIN32)
+#include <windows.h>
+#include <io.h>
+#endif
 
 /* Vendor include file. */
 
@@ -45,6 +51,7 @@
 #include "mx_array.h"
 #include "mx_process.h"
 #include "mx_dynamic_library.h"
+#include "mx_thread.h"
 #include "mx_mcs.h"
 #include "mx_mca.h"
 #include "i_dante.h"
@@ -285,6 +292,71 @@ mxi_dante_finish_record_initialization( MX_RECORD *record )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_WIN32)
+
+static mx_status_type
+mxi_dante_intercept_thread_fn( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxi_dante_intercept_thread_fn()";
+
+	MX_DANTE *dante = NULL;
+	HANDLE debug_pipe_out_handle = NULL;
+	HANDLE debug_out_handle = NULL;
+	DWORD wait_status;
+	FILE *debug_pipe_out_file = NULL;
+	FILE *debug_out_file = NULL;
+	char buffer[2000];
+	char *ptr = NULL;
+
+	mx_breakpoint();
+
+	dante = (MX_DANTE *) args;
+
+	/*---*/
+
+	debug_pipe_out_handle = dante->debug_pipe_out_handle;
+
+	debug_pipe_out_file = fdopen( 
+	  _open_osfhandle( (intptr_t) debug_pipe_out_handle, _O_RDONLY ), "r" );
+
+	setvbuf( debug_pipe_out_file, NULL, _IOLBF, 2000 );
+
+	/*---*/
+
+	debug_out_handle = dante->debug_out_handle;
+
+	debug_out_file = fdopen(
+	  _open_osfhandle( (intptr_t) debug_out_handle, _O_TEXT ), "w" );
+
+	setvbuf( debug_out_file, NULL, _IOLBF, 2000 );
+
+	/*---*/
+
+	while( TRUE ) {
+		wait_status = WaitForSingleObject( debug_pipe_out_handle,
+								INFINITE );
+
+		if ( wait_status != WAIT_OBJECT_0 ) {
+			continue;  /* Go back to the top of the while() loop. */
+		}
+
+		ptr = fgets( buffer, sizeof(buffer), debug_pipe_out_file );
+
+		if ( ptr == NULL ) {
+			fprintf( debug_out_file, "%s: fgets() failed.\n",fname);
+			continue;
+		}
+
+		fprintf( debug_out_file, "%s, buffer = '%s'\n", fname, buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -662,6 +734,66 @@ mxi_dante_open( MX_RECORD *record )
 	}
 
 	(void) resetLastError();
+
+#if defined(OS_WIN32)
+
+	dante->debug_pipe_in_handle = NULL;
+	dante->debug_pipe_out_handle = NULL;
+	dante->debug_out_handle = NULL;
+	dante->intercept_thread = NULL;
+
+	if ( dante->dante_flags &
+		(MXF_DANTE_INTERCEPT_STDOUT | MXF_DANTE_INTERCEPT_STDERR) )
+	{
+		BOOL pipe_status;
+		HANDLE pipe_in_handle, pipe_out_handle;
+		MX_THREAD *intercept_thread = NULL;
+
+		dante->debug_out_handle = CreateFile( "CONOUT$",
+					GENERIC_READ | GENERIC_WRITE,
+					FILE_SHARE_WRITE, 0,
+					OPEN_EXISTING, 0, 0 );
+
+		if ( dante->debug_out_handle == INVALID_HANDLE_VALUE ) {
+			mx_warning(
+			    "CreateFile() failed.  Not redirecting output." );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		pipe_status = CreatePipe( &pipe_in_handle, &pipe_out_handle,
+								NULL, 0 );
+
+		if ( pipe_status == 0 ) {
+			mx_warning(
+			    "CreatePipe() failed.  Not redirection output." );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		dante->debug_pipe_in_handle = pipe_in_handle;
+		dante->debug_pipe_out_handle = pipe_out_handle;
+
+		mx_status = mx_thread_create( &intercept_thread,
+					mxi_dante_intercept_thread_fn,
+					dante );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		dante->intercept_thread = intercept_thread;
+
+		if ( dante->dante_flags & MXF_DANTE_INTERCEPT_STDOUT ) {
+			SetStdHandle( STD_OUTPUT_HANDLE,
+				dante->debug_pipe_in_handle );
+		}
+
+		if ( dante->dante_flags & MXF_DANTE_INTERCEPT_STDERR ) {
+			SetStdHandle( STD_ERROR_HANDLE,
+				dante->debug_pipe_in_handle );
+		}
+	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

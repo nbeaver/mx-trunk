@@ -41,6 +41,11 @@ extern "C" {
 
 #define MXF_DANTE_SET_BOARDS_TO_0xFF		0x1000
 
+/* The following are for debugging purposes only. */
+
+#define MXF_DANTE_INTERCEPT_STDOUT		0x100000
+#define MXF_DANTE_INTERCEPT_STDERR		0x200000
+
 /* The following are operating modes for the Dante MCA as reported
  * by the 'dante_mode' field.  At present, only normal and mapping mode
  * are supported.
@@ -136,6 +141,18 @@ typedef struct dante_struct {
 	MX_DANTE_COMMON_CONFIG common;
 
 	MX_RECORD **mca_record_array;
+
+	/* The following are for debugging purposes only. */
+
+#if defined(OS_WIN32)
+	void *debug_pipe_in_handle;
+	void *debug_pipe_out_handle;
+
+	void *debug_out_handle;
+
+	void *intercept_thread;
+#endif
+
 } MX_DANTE;
 
 /* Values for 'configuration_flags'. */
