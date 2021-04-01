@@ -17,6 +17,9 @@
 #ifndef __I_DANTE_H__
 #define __I_DANTE_H__
 
+#include "mx_pipe.h"
+#include "mx_thread.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -145,12 +148,11 @@ typedef struct dante_struct {
 	/* The following are for debugging purposes only. */
 
 #if defined(OS_WIN32)
-	void *debug_pipe_in_handle;
-	void *debug_pipe_out_handle;
+	MX_PIPE *debug_pipe;
 
-	void *debug_out_handle;
+	FILE *debug_out_file;
 
-	void *intercept_thread;
+	MX_THREAD *intercept_thread;
 #endif
 
 } MX_DANTE;
