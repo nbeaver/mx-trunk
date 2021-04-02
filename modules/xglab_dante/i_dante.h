@@ -148,11 +148,12 @@ typedef struct dante_struct {
 	/* The following are for debugging purposes only. */
 
 #if defined(OS_WIN32)
-	MX_PIPE *debug_pipe;
+	void *read_pipe_handle;
 
-	FILE *debug_out_file;
+	FILE *read_pipe_file;
+	FILE *write_output_file;
 
-	MX_THREAD *intercept_thread;
+	MX_THREAD *filter_thread;
 #endif
 
 } MX_DANTE;

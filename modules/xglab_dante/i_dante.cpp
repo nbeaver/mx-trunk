@@ -298,50 +298,48 @@ mxi_dante_finish_record_initialization( MX_RECORD *record )
 #if defined(OS_WIN32)
 
 static mx_status_type
-mxi_dante_intercept_thread_fn( MX_THREAD *intercept_thread, void *args )
+mxi_dante_filter_thread_fn( MX_THREAD *filter_thread, void *args )
 {
-	static const char fname[] = "mxi_dante_intercept_thread_fn()";
+	static const char fname[] = "mxi_dante_filter_thread_fn()";
 
 	MX_DANTE *dante = NULL;
-	MX_PIPE *debug_pipe = NULL;
-	FILE *debug_out_file = NULL;
+	FILE *read_pipe_file = NULL;
+	FILE *write_output_file = NULL;
 	char buffer[2000];
 	char *ptr = NULL;
-	size_t num_bytes_available;
+	DWORD num_bytes_available, bytes_read;
+	BOOL pipe_status;
 	mx_status_type mx_status;
 
 	mx_breakpoint();
 
 	dante = (MX_DANTE *) args;
 
-	dante->intercept_thread = intercept_thread;
+	dante->filter_thread = filter_thread;
 
-	debug_pipe = dante->debug_pipe;
+	read_pipe_file = dante->read_pipe_file;
 
-	debug_out_file = dante->debug_out_file;
+	write_output_file = dante->write_output_file;
 
 	/*---*/
 
 	while( TRUE ) {
-		mx_status = mx_pipe_num_bytes_available( debug_pipe,
-							&num_bytes_available );
+		pipe_status = PeekNamedPipe( (HANDLE) dante->read_pipe_handle,
+					buffer, sizeof(buffer),
+					&bytes_read, &num_bytes_available,
+					NULL );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		fputc( '.', debug_out_file );
+		fputc( '.', write_output_file );
 
 		if ( num_bytes_available == 0 ) {
 			mx_msleep(10);
 			continue;     /* Back to the top of the while() loop. */
 		}
 
-		fprintf( debug_out_file, "! n=%lu, ",
-			(unsigned long) num_bytes_available );
+		mx_fgets( buffer, sizeof(buffer), dante->read_pipe_file );
 
-		mx_pipe_read( debug_pipe, buffer, sizeof(buffer), NULL );
-
-		fprintf( debug_out_file, "%s, buffer = '%s'\n", fname, buffer );
+		fprintf( write_output_file,
+				"%s, buffer = '%s'\n", fname, buffer );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -728,9 +726,10 @@ mxi_dante_open( MX_RECORD *record )
 
 #if defined(OS_WIN32)
 
-	dante->debug_pipe = NULL;
-	dante->debug_out_file = NULL;
-	dante->intercept_thread = NULL;
+	dante->read_pipe_handle = NULL;
+	dante->read_pipe_file = NULL;
+	dante->write_output_file = NULL;
+	dante->filter_thread = NULL;
 
 	if ( dante->dante_flags &
 		(MXF_DANTE_INTERCEPT_STDOUT | MXF_DANTE_INTERCEPT_STDERR) )
@@ -739,85 +738,88 @@ mxi_dante_open( MX_RECORD *record )
 
 		/*---*/
 
-		HANDLE debug_out_handle = NULL;
+		BOOL pipe_status;
+		HANDLE read_pipe = NULL;
+		HANDLE write_pipe = NULL;
+		DWORD pipe_size = 512;
 
-		int debug_out_fd;
+		pipe_status = CreatePipe( &read_pipe, &write_pipe,
+						NULL, pipe_size );
 
-		debug_out_handle = CreateFile( "CONOUT$",
-					GENERIC_READ | GENERIC_WRITE,
-					FILE_SHARE_WRITE, 0,
-					OPEN_EXISTING, 0, 0 );
-
-		if ( debug_out_handle == INVALID_HANDLE_VALUE ) {
-			mx_warning( "CreateFile() failed.  "
-					"Not redirecting output." );
-
-			return MX_SUCCESSFUL_RESULT;
+		if ( pipe_status == 0 ) {
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The call to CreatePipe() failed." );
 		}
 
-		debug_out_fd = _open_osfhandle( (intptr_t) debug_out_handle,
-								_O_TEXT );
-
-		if ( debug_out_fd < 0 ) {
-			CloseHandle( debug_out_handle );
-
-			mx_warning( "_open_osfhandle() failed. "
-					"Not redirecting output." );
-
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		dante->debug_out_file = _fdopen( debug_out_fd, "w" );
-
-		if ( dante->debug_out_file == (FILE *) NULL ) {
-			_close( debug_out_fd );
-
-			mx_warning( "_fdopen() failed.  "
-					"Not redirecting output." );
-
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		setvbuf( dante->debug_out_file, NULL, _IONBF, 2000 );
-
-		fprintf( stderr, "MARKER 1\n" );
-
-		fprintf( dante->debug_out_file,
-			"Main thread: dante->debug_out_file = %p\n",
-			dante->debug_out_file );
+		dante->read_pipe_handle = read_pipe;
 
 		/*---*/
 
-		typedef struct {
-			HANDLE read_handle;
-			HANDLE write_handle;
-		} MX_WIN32_PIPE;
-		
-		MX_WIN32_PIPE *pipe_private = NULL;
+		/* Redirect output to the pipe. */
 
-		mx_status = mx_pipe_open( &(dante->debug_pipe ) );
+		int write_pipe_fd = _open_osfhandle( (intptr_t) write_pipe,
+							_O_WRONLY | _O_TEXT );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( write_pipe_fd < 0 ) {
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The call to _open_osfhandle() for write_pipe failed.");
+		}
 
-		pipe_private = (MX_WIN32_PIPE *) dante->debug_pipe->private_ptr;
+		/* FIXME: What happens if I redirect both stdout and stderr? */
 
 		if ( dante->dante_flags & MXF_DANTE_INTERCEPT_STDOUT ) {
-			SetStdHandle( STD_OUTPUT_HANDLE,
-				pipe_private->read_handle );
+			/* Redirect stdout to the pipe. */
+
+			_dup2( write_pipe_fd, _fileno( stdout ) );
+
+			/* Disable buffering. */
+
+			setvbuf( stdout, NULL, _IONBF, 0 );
 		}
 
 		if ( dante->dante_flags & MXF_DANTE_INTERCEPT_STDERR ) {
-			SetStdHandle( STD_ERROR_HANDLE,
-				pipe_private->read_handle );
+			/* Redirect stderr to the pipe. */
+
+			_dup2( write_pipe_fd, _fileno( stderr ) );
+
+			/* Disable buffering. */
+
+			setvbuf( stderr, NULL, _IONBF, 0 );
 		}
 
 		/*---*/
 
-		MX_THREAD *intercept_thread = NULL;
+		/* dante->read_pipe_file will be used by the filter thread
+		 * to read lines sent to it by write_pipe_fd above.
+		 */
 
-		mx_status = mx_thread_create( &intercept_thread,
-					mxi_dante_intercept_thread_fn,
+		int read_pipe_fd = _open_osfhandle( (intptr_t) read_pipe,
+							_O_RDONLY | _O_TEXT );
+
+		if ( read_pipe_fd < 0 ) {
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The call to _open_osfhandle() for read_pipe failed." );
+		}
+
+		dante->read_pipe_file = _fdopen( read_pipe_fd, "r" );
+
+		if ( dante->read_pipe_file == (FILE *) NULL ) {
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The call to _fdopen for read_pipe_fd failed." );
+		}
+
+		/*---*/
+
+		/* The filter thread will write the results to the console. */
+
+		dante->write_output_file = fopen( "CONOUT$", "w" );
+
+		/*---*/
+
+		MX_THREAD *filter_thread = NULL;
+
+		mx_status = mx_thread_create( &filter_thread,
+					mxi_dante_filter_thread_fn,
 					dante );
 
 		if ( mx_status.code != MXE_SUCCESS )
