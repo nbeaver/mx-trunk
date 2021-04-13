@@ -165,11 +165,20 @@ endif
 #
 # Use of 'musl libc' with MX requires that libtirpc be installed.
 #
+# Recent versions of 'glibc' also require libtirpc.
+#
 
 _libc_version := $(shell ../tools/mx_config library)
 
+_have_tirpc := $(shell ../scripts/file_exists /usr/include/tirpc)
+
+
 ifeq ($(_libc_version),musl)
   MUSL_INCLUDES = -I/usr/include/tirpc
+  LIBRARIES += -ltirpc
+
+else ($(_have_tirpc),true)
+  CFLAGS += -I/usr/include/tirpc
   LIBRARIES += -ltirpc
 endif
 

@@ -1,0 +1,12 @@
+#! /bin/sh
+#
+#  This is a helper script for cases where invoking 'test' directly in
+#  a makefile does not work.  An example where invoking 'test' directly
+#  fails is a Gnu Make $(shell ...) command.
+
+if [ -d $1 ]; then
+	echo true
+else
+	echo false
+fi
+
