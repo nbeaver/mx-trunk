@@ -170,16 +170,20 @@ endif
 
 _libc_version := $(shell ../tools/mx_config library)
 
-_have_tirpc := $(shell ../scripts/file_exists /usr/include/tirpc)
+_have_tirpc := $(shell ../scripts/directory_exists /usr/include/tirpc)
 
+###$(info _libc_version is [${_libc_version}])
+
+$(info _have_tirpc is [${_have_tirpc}])
 
 ifeq ($(_libc_version),musl)
   MUSL_INCLUDES = -I/usr/include/tirpc
   LIBRARIES += -ltirpc
-
-else ($(_have_tirpc),true)
-  CFLAGS += -I/usr/include/tirpc
-  LIBRARIES += -ltirpc
+else
+  ifeq ($(_have_tirpc),true)
+    CFLAGS += -I/usr/include/tirpc
+    LIBRARIES += -ltirpc
+  endif
 endif
 
 #--------------------------------------------------------------------------
