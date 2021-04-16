@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2010, 2015-2016, 2018, 2020
+ * Copyright 1999, 2001, 2003-2006, 2010, 2015-2016, 2018, 2020-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -714,6 +714,7 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 	double k_power_law_exponent;
 	long i, j, n, num_steps;
 	int num_items;
+	size_t num_bytes_needed_for_motor_positions;
 	mx_status_type mx_status;
 
 	if ( scan == (MX_SCAN *) NULL ) {
@@ -887,8 +888,11 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 #endif
 			/* Calculate the region move duration. */
 
+			num_bytes_needed_for_motor_positions
+					= num_steps * sizeof(double);
+
 			motor_positions = (double *)
-					calloc( num_steps, sizeof(double) );
+			    calloc( 1, num_bytes_needed_for_motor_positions );
 
 			if ( motor_positions == (double *) NULL ) {
 				return mx_error( MXE_OUT_OF_MEMORY,

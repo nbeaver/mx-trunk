@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2010, 2013, 2018, 2020
+ * Copyright 1999, 2001, 2003, 2006, 2010, 2013, 2018, 2020-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -350,7 +350,7 @@ mxd_d8_motor_motor_is_busy( MX_MOTOR *motor )
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
-	char command[20];
+	char command[80];
 	char response[80];
 	int num_items;
 	unsigned long drive_status;
@@ -548,7 +548,7 @@ mxd_d8_motor_positive_limit_hit( MX_MOTOR *motor )
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
-	char command[20];
+	char command[80];
 	char response[80];
 	int num_items;
 	unsigned long drive_status;
@@ -591,7 +591,7 @@ mxd_d8_motor_negative_limit_hit( MX_MOTOR *motor )
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
-	char command[20];
+	char command[80];
 	char response[80];
 	int num_items;
 	unsigned long drive_status;

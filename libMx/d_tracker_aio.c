@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2017 Illinois Institute of Technology
+ * Copyright 2004-2007, 2017, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -463,7 +463,19 @@ mxd_tracker_command( MX_RECORD *record,
 {
 	static const char fname[] = "mxd_tracker_command()";
 
+	char local_response[40];
+	size_t local_response_length;
+	char *local_response_ptr = NULL;
+
 	mx_status_type mx_status;
+
+	if ( response == (char *) NULL ) {
+		local_response_ptr = local_response;
+		local_response_length = sizeof(local_response);
+	} else {
+		local_response_ptr = response;
+		local_response_length = max_response_length;
+	}
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 					NULL, MXD_TRACKER_AIO_DEBUG );
@@ -472,8 +484,8 @@ mxd_tracker_command( MX_RECORD *record,
 		return mx_status;
 
 	mx_status = mx_rs232_getline( rs232_record,
-					response, max_response_length,
-					NULL, MXD_TRACKER_AIO_DEBUG );
+				local_response_ptr, local_response_length,
+				NULL, MXD_TRACKER_AIO_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -482,11 +494,11 @@ mxd_tracker_command( MX_RECORD *record,
 
 		/* The returned value is expected to be "OK". */
 
-		if ( strcmp( response, "OK" ) != 0 ) {
+		if ( strcmp( local_response_ptr, "OK" ) != 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"The response for command '%s' to record '%s' "
 			"was not the string 'OK'.  Instead, it responded '%s'",
-				command, record->name, response );
+				command, record->name, local_response_ptr );
 		}
 	} else {
 		if ( response[0] == '?' ) {

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2015, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -675,7 +675,7 @@ mxi_micro488ex_remote_enable( MX_GPIB *gpib, long address )
 	static const char fname[] = "mxi_micro488ex_remote_enable()";
 
 	MX_MICRO488EX *micro488ex = NULL;
-	char command[20];
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxi_micro488ex_get_pointers( gpib, &micro488ex, fname );
@@ -700,7 +700,7 @@ mxi_micro488ex_go_to_local( MX_GPIB *gpib, long address )
 	static const char fname[] = "mxi_micro488ex_go_to_local()";
 
 	MX_MICRO488EX *micro488ex = NULL;
-	char command[20];
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxi_micro488ex_get_pointers( gpib, &micro488ex, fname );
@@ -725,7 +725,7 @@ mxi_micro488ex_trigger( MX_GPIB *gpib, long address )
 	static const char fname[] = "mxi_micro488ex_trigger_device()";
 
 	MX_MICRO488EX *micro488ex = NULL;
-	char command[20];
+	char command[80];
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));

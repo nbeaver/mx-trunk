@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2015, 2017-2018 Illinois Institute of Technology
+ * Copyright 2009-2010, 2015, 2017-2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -449,7 +449,7 @@ mxi_prologix_read( MX_GPIB *gpib,
 
 	MX_PROLOGIX *prologix = NULL;
 	int debug;
-	char command[20];
+	char command[80];
 	size_t local_bytes_read = 0;
 	unsigned long read_terminator;
 	mx_status_type mx_status;

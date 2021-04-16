@@ -15,7 +15,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010-2011, 2013, 2020
+ * Copyright 1999, 2001, 2006, 2010-2011, 2013, 2020-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -486,7 +486,7 @@ mxd_pdi40motor_move_absolute( MX_MOTOR *motor )
 
 	MX_PDI40 *pdi40;
 	MX_PDI40_MOTOR *pdi40_motor;
-	char command[20];
+	char command[80];
 	long motor_steps, current_position, relative_steps;
 	mx_status_type mx_status;
 

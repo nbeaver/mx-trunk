@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2013-2017, 2019 Illinois Institute of Technology
+ * Copyright 1999-2011, 2013-2017, 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -993,7 +993,7 @@ mx_construct_file_name_from_file_pattern( char *filename_buffer,
 	long length_of_leading_segment;
 	char filename_pattern_string[2];
 	char file_number_string[200];
-	char format[20];
+	char format[50];
 
 #if 0
 	MX_DEBUG(-2,("%s: filename_pattern_char = '%c'",

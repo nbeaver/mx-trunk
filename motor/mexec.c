@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006, 2009-2011, 2015
+ * Copyright 1999, 2001, 2005-2006, 2009-2011, 2015, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -103,7 +103,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 	char buffer[256];
 	int buffer_length, whitespace_length;
 	int status, end_of_file;
-	char *name_of_found_script;
+	char *name_of_found_script = NULL;
 	unsigned long flags;
 
 	flags = MXF_FPATH_TRY_WITHOUT_EXTENSION \
@@ -198,8 +198,8 @@ motor_exec_common( char *script_name, int verbose_flag )
 		}
 
 		if ( cmd_argc < 1 ) {
-			fprintf( output, "%s: Invalid command line '%s'.\n",
-				name_of_found_script, buffer );
+			fprintf( output,
+				"mexec: Invalid command line '%s'.\n", buffer );
 
 			status = FAILURE;
 			cmd_free_command_line( cmd_argv, split_buffer );
@@ -217,8 +217,8 @@ motor_exec_common( char *script_name, int verbose_flag )
 
 			if ( command == (COMMAND *) NULL ) {
 				fprintf( output,
-				"%s: Unrecognized motor command '%s'.\n",
-					name_of_found_script, cmd_argv[1] );
+				"mexec: Unrecognized motor command '%s'.\n",
+								cmd_argv[1] );
 
 				status = FAILURE;
 				cmd_free_command_line( cmd_argv, split_buffer );

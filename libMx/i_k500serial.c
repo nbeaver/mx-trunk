@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2007, 2010, 2015 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2007, 2010, 2015, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -763,7 +764,7 @@ mxi_k500serial_trigger( MX_GPIB *gpib, long address )
 
 	MX_K500SERIAL *k500serial;
 	MX_RECORD *rs232_record;
-	char command[20];
+	char command[80];
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));

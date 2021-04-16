@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2008, 2010-2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2005-2008, 2010-2013, 2015-2016, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -135,12 +136,35 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 
 	if ( bluice_server->protocol_version > MX_BLUICE_PROTOCOL_1 ) {
 
+#if 0
 		snprintf( message_header, MX_BLUICE_MSGHDR_LENGTH,
 			"%*lu%*lu",
 			MX_BLUICE_MSGHDR_TEXT_LENGTH,
 			(unsigned long) text_data_length,
 			MX_BLUICE_MSGHDR_BINARY_LENGTH,
 			(unsigned long) binary_data_length );
+#else
+		{
+			/* FIXME: GCC 10 and above generate warnings for
+			 * for the snprintf() call above.  The following
+			 * gives a result that should be equivalent, but
+			 * we do not currently have access to a BluIce
+			 * server to test with.
+			 */
+
+			char temp_format[100];
+
+			snprintf( temp_format, sizeof(temp_format),
+				"%%%dlu%%%dlu",
+				MX_BLUICE_MSGHDR_TEXT_LENGTH,
+				MX_BLUICE_MSGHDR_BINARY_LENGTH );
+
+			snprintf( message_header, MX_BLUICE_MSGHDR_LENGTH,
+				temp_format,
+				(unsigned long) text_data_length,
+				(unsigned long) binary_data_length );
+		}
+#endif
 
 		/* Send the message header. */
 

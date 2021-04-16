@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2019 Illinois Institute of Technology
+ * Copyright 2006-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -7064,7 +7064,7 @@ mx_area_detector_construct_next_datafile_name(
 	char *start_of_varying_number, *trailing_segment;
 	int length_of_varying_number, length_of_leading_segment;
 	char datafile_number_string[40];
-	char format[10];
+	char format[100];
 	unsigned long next_datafile_number;
 	char *local_filename_buffer_ptr;
 	size_t local_filename_buffer_size;
