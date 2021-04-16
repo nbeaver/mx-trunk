@@ -374,10 +374,12 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	dante_mca->firmware_type = mxi_dante_callback_data[3];
 
+#if 0
 	MX_DEBUG(-2,("%s: '%s', firmware_version = %lu, firmware_type = %lu",
 	    fname, dante_mca->record->name,
 	    dante_mca->firmware_version,
 	    dante_mca->firmware_type ));
+#endif
 
 	/*---*/
 
@@ -653,10 +655,12 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	dante_flags = dante->dante_flags;
 
+#if 0
 	if ( dante_flags != 0 ) {
 		MX_DEBUG(-2,("%s: '%s',  dante_flags = %#lx",
 			fname, dante_mca->record->name, dante_flags));
 	}
+#endif
 
 	/*---*/
 
