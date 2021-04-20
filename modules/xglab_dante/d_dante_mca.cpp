@@ -70,13 +70,11 @@
 #include "mx_mcs.h"
 #include "mx_mca.h"
 
+#include "mx_hrt_debug.h"
+
 #include "i_dante.h"
 #include "d_dante_mcs.h"
 #include "d_dante_mca.h"
-
-#if MXD_DANTE_MCA_DEBUG_TIMING
-#  include "mx_hrt_debug.h"
-#endif
 
 /* Initialize the MCA driver jump table. */
 
@@ -886,16 +884,17 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	unsigned long i;
 	mx_status_type mx_status;
 
+	MX_HRT_TIMING configure_measurement;
+	MX_HRT_TIMING start_measurement;
+
 	mx_status = mxd_dante_mca_get_pointers( mca,
 						&dante_mca, &dante, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s invoked for MCA '%s'.", fname, mca->record->name ));
-
-	MX_DEBUG(-2,("%s: MARKER A-1", fname));
 #endif
 
 #if 0
@@ -906,32 +905,51 @@ mxd_dante_mca_arm( MX_MCA *mca )
 				fname, dante_mca->spectrum_data[0]));
 #endif
 
+	/* Command the MCA to stop. The Dante documentation states
+	 * that you have to do this even if the previous acquisition
+	 * sequence has completed.
+	 */
+
+	mx_status = mxd_dante_mca_stop( mca );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Configure the MCA for 'normal' mode. */
 
+	MX_HRT_START( configure_measurement );
+
 	mx_status = mxd_dante_mca_configure( dante_mca, NULL );
+
+	MX_HRT_END( configure_measurement );
+	MX_HRT_RESULTS( configure_measurement, fname, "configure" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Start the MCA in 'normal' mode. */
 
+	MX_DEBUG(-2,("%s: invoking start( '%s', %f, %ld )",
+		fname, dante_mca->identifier,
+		mca->preset_real_time,
+		mca->current_num_channels ));
+
 	for ( i = 0; i < dante_mca->max_attempts; i++ ) {
 		(void) resetLastError();
 
 		dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
+		MX_HRT_START( start_measurement );
+
 		call_id = start( dante_mca->identifier,
 			mca->preset_real_time, mca->current_num_channels );
 
+		MX_HRT_END( start_measurement );
+		MX_HRT_RESULTS( start_measurement, fname,
+				"start(), i = %d", i );
+
 		if ( call_id != 0 )
 			break;
-
-#if 0
-		mx_status = mxd_dante_mca_stop( mca );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-#endif
 
 		mx_msleep( dante_mca->attempt_delay_ms );
 	}
@@ -957,6 +975,9 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	if ( i > 0 ) {
 		MX_DEBUG(-2,("%s: %lu retries were performed.", fname, i));
 	}
+
+	MX_DEBUG(-2,("%s: start() returned call_id = %lu",
+			fname, (unsigned long) call_id ));
 
 	mxi_dante_wait_for_answer( call_id, dante );
 
@@ -999,8 +1020,9 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	 * as having 'new_data_available' == TRUE.
 	 */
 
-#if 0
-	MX_DEBUG(-2,("%s: MARKER A-2", fname));
+#if 1
+	MX_DEBUG(-2,
+	  ("%s: mxi_dante_wait_for_answer() completed successfully", fname));
 #endif
 
 	mx_status = mxi_dante_set_data_available_flag_for_chain( mca->record,
@@ -1036,19 +1058,29 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	bool dante_error_status;
 	mx_status_type mx_status;
 
+	MX_HRT_TIMING stop_measurement;
+	MX_HRT_TIMING wait_measurement;
+
 	mx_status = mxd_dante_mca_get_pointers( mca,
 						&dante_mca, &dante, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
 				fname, dante_mca->spectrum_data));
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
 				fname, dante_mca->spectrum_data[0]));
+#endif
+
+	MX_HRT_START( stop_measurement );
 
 	call_id = stop( dante_mca->identifier );
+
+	MX_HRT_END( stop_measurement );
+	MX_HRT_RESULTS( stop_measurement, fname, "stop" );
 
 	if ( call_id == 0 ) {
 		dante_error_status = getLastError( dante_error_code );
@@ -1068,7 +1100,15 @@ mxd_dante_mca_stop( MX_MCA *mca )
 			(unsigned long) dante_error_code );
 	}
 
+	MX_DEBUG(-2,("%s: stop() returned call_id = %lu",
+				fname, (unsigned long) call_id));
+
+	MX_HRT_START( wait_measurement );
+
 	mxi_dante_wait_for_answer( call_id, dante );
+
+	MX_HRT_END( wait_measurement );
+	MX_HRT_RESULTS( wait_measurement, fname, "mxi_dante_wait_for_answer()");
 
 	if ( mxi_dante_callback_data[0] == 1 ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -1296,6 +1336,12 @@ mxd_dante_mca_busy( MX_MCA *mca )
 	} else {
 		mca->busy = TRUE;
 	}
+
+#if 1
+	MX_DEBUG(-2,("%s: isRunning() callback data = %lu, hrt = %f seconds",
+		fname, mxi_dante_callback_data[0],
+		mx_high_resolution_time_as_double() ));
+#endif
 
 	if ( mca->busy != mca->old_busy ) {
 		MX_DEBUG(-2,("%s: '%s' busy = %d",

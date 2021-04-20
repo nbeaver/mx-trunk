@@ -91,7 +91,7 @@ typedef struct {
 		/* Note: The XML file misspells length as 'lenght'. */
 		unsigned long length;
 	} wave;
-} MX_DANTE_CHAIN;
+} MX_DANTE_CHAIN_MASTER;
 
 typedef struct {
 	struct {
@@ -139,7 +139,7 @@ typedef struct dante_struct {
 	char dante_version_string[MXU_DANTE_MAX_VERSION_LENGTH+1];
 	unsigned long dante_version;
 	unsigned long num_master_devices;
-	MX_DANTE_CHAIN *master;
+	MX_DANTE_CHAIN_MASTER *master;
 
 	MX_DANTE_COMMON_CONFIG common;
 
@@ -167,7 +167,7 @@ typedef struct dante_struct {
 #ifdef __cplusplus
 
 typedef struct dante_configuration {
-	MX_DANTE_CHAIN *chain;
+	MX_DANTE_CHAIN_MASTER *chain;
 	MX_RECORD *mca_record;
 
 	struct configuration configuration;

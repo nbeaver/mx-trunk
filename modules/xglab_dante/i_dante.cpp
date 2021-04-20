@@ -54,6 +54,9 @@
 #include "mx_thread.h"
 #include "mx_mcs.h"
 #include "mx_mca.h"
+
+#include "mx_hrt_debug.h"
+
 #include "i_dante.h"
 #include "d_dante_mcs.h"
 #include "d_dante_mca.h"
@@ -375,12 +378,14 @@ mxi_dante_open( MX_RECORD *record )
 
 	bool dante_status;
 	uint32_t version_length;
-	uint16_t number_of_devices;
+	uint16_t number_of_master_devices;
 	uint16_t board_number, max_identifier_length;
 	uint16_t error_code = DLL_NO_ERROR;
 	uint16_t num_boards;
 
 	char dante_library_filename[MXU_FILENAME_LENGTH+1];
+
+	MX_HRT_TIMING global_reset_measurement;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -552,24 +557,24 @@ mxi_dante_open( MX_RECORD *record )
 
 	/* How many masters are there? */
 
-	dante_status = get_dev_number( number_of_devices );
+	dante_status = get_dev_number( number_of_master_devices );
 
 	if ( dante_status == false ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"DANTE get_dev_number() failed." );
 	}
 
-	dante->num_master_devices = number_of_devices;
+	dante->num_master_devices = number_of_master_devices;
 
 	/* Allocate an array of chain master structures. */
 
-	dante->master = (MX_DANTE_CHAIN *)
-		calloc( number_of_devices, sizeof(MX_DANTE_CHAIN) );
+	dante->master = (MX_DANTE_CHAIN_MASTER *)
+	    calloc( number_of_master_devices, sizeof(MX_DANTE_CHAIN_MASTER) );
 
-	if ( dante->master == (MX_DANTE_CHAIN *) NULL ) {
+	if ( dante->master == (MX_DANTE_CHAIN_MASTER *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu element array of "
-		"MX_DANTE_CHAIN structures for Dante record '%s'.",
+		"MX_DANTE_CHAIN_MASTER structures for Dante record '%s'.",
 			dante->num_master_devices, record->name );
 	}
 
@@ -623,7 +628,7 @@ mxi_dante_open( MX_RECORD *record )
 			}
 		}
 
-#if 0
+#if 1
 		MX_DEBUG(-2,("%s: dante->master[%lu].chain_id = '%s'",
 			fname, i, dante->master[i].chain_id ));
 #endif
@@ -633,6 +638,32 @@ mxi_dante_open( MX_RECORD *record )
 			max_io_delay_ms =
 				mx_round_up( 1000.0 * dante->max_io_delay );
 		}
+
+		/* Reset this chain. */
+
+		MX_HRT_START( global_reset_measurement );
+
+		dante_status = global_reset( dante->master[i].chain_id );
+
+		MX_HRT_END( global_reset_measurement );
+		MX_HRT_RESULTS( global_reset_measurement, fname,"global_reset");
+
+		if ( dante_status == false ) {
+			(void) getLastError( error_code );
+
+			switch( error_code ) {
+			case DLL_NO_ERROR:
+				break;
+			default:
+				return mx_error( MXE_UNKNOWN_ERROR, fname,
+				"A call to global_reset() for record '%s' "
+				"failed.  DANTE error code = %lu",
+				    record->name, (unsigned long) error_code );
+				break;
+			}
+		}
+
+		/* Figure out how many boards are in this chain. */
 
 		for ( attempt = 0; attempt < max_io_attempts; attempt++ ) {
 
@@ -689,7 +720,7 @@ mxi_dante_open( MX_RECORD *record )
 		dante->master[i].num_boards = num_boards;
 
 		/* Allocate and initialize the MX_DANTE_CONFIGURATION array
-		 * for this MX_DANTE_CHAIN struct.
+		 * for this MX_DANTE_CHAIN_MASTER struct.
 		 */
 
 		dante_configuration = (MX_DANTE_CONFIGURATION *)
@@ -1572,7 +1603,7 @@ mxi_dante_set_data_available_flag_for_chain( MX_RECORD *original_mca_record,
 
 	MX_DANTE_MCA *original_dante_mca = NULL;
 	MX_DANTE_CONFIGURATION *original_dante_configuration = NULL;
-	MX_DANTE_CHAIN *dante_chain = NULL;
+	MX_DANTE_CHAIN_MASTER *dante_chain = NULL;
 	unsigned long i;
 	MX_RECORD *current_mca_record = NULL;
 	MX_MCA *current_mca = NULL;
@@ -1609,13 +1640,13 @@ mxi_dante_set_data_available_flag_for_chain( MX_RECORD *original_mca_record,
 
 	dante_chain = original_dante_configuration->chain;
 
-	if ( dante_chain == (MX_DANTE_CHAIN *) NULL ) {
+	if ( dante_chain == (MX_DANTE_CHAIN_MASTER *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_DANTE_CHAIN pointer for Dante MCA '%s' is NULL.",
+		"The MX_DANTE_CHAIN_MASTER pointer for Dante MCA '%s' is NULL.",
 			original_mca_record->name );
 	}
 
-	/* Walk through the MX_DANTE_CHAIN setting 'new_data_available' flags
+	/* Walk through the MX_DANTE_CHAIN_MASTER setting 'new_data_available' flags
 	 * along the way.
 	 */
 
@@ -1625,7 +1656,7 @@ mxi_dante_set_data_available_flag_for_chain( MX_RECORD *original_mca_record,
 
 		if ( current_mca_record == (MX_RECORD *) NULL ) {
 			mx_warning( "The MCA record pointer for chain item %lu "
-			"in the MX_DANTE_CHAIN for original MCA '%s' is NULL.",
+			"in the MX_DANTE_CHAIN_MASTER for original MCA '%s' is NULL.",
 				i, original_mca_record->name );
 
 			continue;	/* Go to the next MCA record. */
@@ -1838,7 +1869,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	static const char fname[] = "mxi_dante_load_config_file()";
 
 	MX_DANTE *dante = NULL;
-	MX_DANTE_CHAIN *chain_master = NULL;
+	MX_DANTE_CHAIN_MASTER *chain_master = NULL;
 	MX_DANTE_CONFIGURATION *dante_configuration = NULL;
 	MX_RECORD *mca_record = NULL;
 	MX_DANTE_MCA *dante_mca = NULL;
