@@ -941,8 +941,18 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 		MX_HRT_START( start_measurement );
 
+		/* KLUDGE: Multiplying the preset_real_time by 0.1 is 
+		 * just a kludge to get the detector to count for 
+		 * approximately the right time.  There is no reason
+		 * to believe that this is the correct, true solution
+		 * for the timing duration problem we see.  However,
+		 * doing this does allow us to test the start() returns
+		 * call_id == 0 issue.
+		 */
+
 		call_id = start( dante_mca->identifier,
-			mca->preset_real_time, mca->current_num_channels );
+				0.1 * mca->preset_real_time, 
+				mca->current_num_channels );
 
 		MX_HRT_END( start_measurement );
 		MX_HRT_RESULTS( start_measurement, fname,
@@ -1103,6 +1113,10 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: stop() returned call_id = %lu",
 				fname, (unsigned long) call_id));
 
+#if 1
+	MX_DEBUG(-2,("%s: Skipping wait for call_id = %lu",
+				fname, (unsigned long) call_id));
+#else
 	MX_HRT_START( wait_measurement );
 
 	mxi_dante_wait_for_answer( call_id, dante );
@@ -1118,6 +1132,7 @@ mxd_dante_mca_stop( MX_MCA *mca )
 		"a failure statis in the callback data for some reason.",
 			mca->record->name );
 	}
+#endif
 
 	return mx_status;
 }
