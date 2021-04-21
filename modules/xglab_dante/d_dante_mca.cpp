@@ -354,12 +354,12 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	mxi_dante_wait_for_answer( call_id, dante );
 
-#if 0
+#if 1
 	int i;
 
 	fprintf( stderr, "getFirmware() callback data = " );
 
-	for ( i = 0; i < 4; i++ ) {
+	for ( i = 0; i < MXU_DANTE_MAX_CALLBACK_DATA_LENGTH; i++ ) {
 		fprintf( stderr, "%lu ", mxi_dante_callback_data[i] );
 	}
 
@@ -372,7 +372,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	dante_mca->firmware_type = mxi_dante_callback_data[3];
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: '%s', firmware_version = %lu, firmware_type = %lu",
 	    fname, dante_mca->record->name,
 	    dante_mca->firmware_version,
@@ -941,6 +941,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 		MX_HRT_START( start_measurement );
 
+#if 0
 		/* KLUDGE: Multiplying the preset_real_time by 0.1 is 
 		 * just a kludge to get the detector to count for 
 		 * approximately the right time.  There is no reason
@@ -953,6 +954,11 @@ mxd_dante_mca_arm( MX_MCA *mca )
 		call_id = start( dante_mca->identifier,
 				0.1 * mca->preset_real_time, 
 				mca->current_num_channels );
+#else
+		call_id = start( dante_mca->identifier,
+				mca->preset_real_time, 
+				mca->current_num_channels );
+#endif
 
 		MX_HRT_END( start_measurement );
 		MX_HRT_RESULTS( start_measurement, fname,
