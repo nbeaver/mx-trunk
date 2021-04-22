@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,13 +16,13 @@
 
 #define MXD_UMX_PULSER_DEBUG			FALSE
 
-#define MXD_UMX_PULSER_DEBUG_CONF		TRUE
+#define MXD_UMX_PULSER_DEBUG_CONF		FALSE
 
-#define MXD_UMX_PULSER_DEBUG_RUNNING		TRUE
+#define MXD_UMX_PULSER_DEBUG_RUNNING		FALSE
 
-#define MXD_UMX_PULSER_DEBUG_SETUP		TRUE
+#define MXD_UMX_PULSER_DEBUG_SETUP		FALSE
 
-#define MXD_UMX_PULSER_DEBUG_LAST_PULSE_NUMBER	TRUE
+#define MXD_UMX_PULSER_DEBUG_LAST_PULSE_NUMBER	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

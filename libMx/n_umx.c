@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2019-2020 Illinois Institute of Technology
+ * Copyright 2019-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -121,10 +121,12 @@ mxn_umx_server_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if 0
 		MX_DEBUG(-2,("%s: num_bytes_read = %ld",
 			fname, (long)num_bytes_read ));
 
 		MX_DEBUG(-2,("%s: response = '%s'", fname, response));
+#endif
 
 		/* If we have just uploaded new firmware to the Arduino,
 		 * then our first read from it may be an empty string.
