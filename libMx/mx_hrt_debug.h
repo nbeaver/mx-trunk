@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2007 Illinois Institute of Technology
+ * Copyright 2003-2004, 2007, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ typedef struct {
 MX_API void
 MX_HRT_RESULTS( MX_HRT_TIMING x,
 		const char *fname,
-		char *format,
+		const char *format,
 		... ) MX_PRINTFLIKE( 3, 4 );
 
 #define MX_HRT_TIME_BETWEEN_MEASUREMENTS(meas1, meas2, fname)		\

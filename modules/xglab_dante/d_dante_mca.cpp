@@ -360,7 +360,8 @@ mxd_dante_mca_open( MX_RECORD *record )
 	fprintf( stderr, "getFirmware() callback data = " );
 
 	for ( i = 0; i < MXU_DANTE_MAX_CALLBACK_DATA_LENGTH; i++ ) {
-		fprintf( stderr, "%lu ", mxi_dante_callback_data[i] );
+		fprintf( stderr, "%lu ",
+			(unsigned long) mxi_dante_callback_data[i] );
 	}
 
 	fprintf( stderr, "\n" );
@@ -962,7 +963,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 		MX_HRT_END( start_measurement );
 		MX_HRT_RESULTS( start_measurement, fname,
-				"start(), i = %d", i );
+				"start(), i = %lu", i );
 
 		if ( call_id != 0 )
 			break;
@@ -1075,7 +1076,10 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	mx_status_type mx_status;
 
 	MX_HRT_TIMING stop_measurement;
+
+#if 0
 	MX_HRT_TIMING wait_measurement;
+#endif
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
 						&dante_mca, &dante, fname );
@@ -1360,7 +1364,7 @@ mxd_dante_mca_busy( MX_MCA *mca )
 
 #if 1
 	MX_DEBUG(-2,("%s: isRunning() callback data = %lu, hrt = %f seconds",
-		fname, mxi_dante_callback_data[0],
+		fname, (unsigned long) mxi_dante_callback_data[0],
 		mx_high_resolution_time_as_double() ));
 #endif
 

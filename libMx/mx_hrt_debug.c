@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2015 Illinois Institute of Technology
+ * Copyright 2003-2004, 2015, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 #include "mx_hrt_debug.h"
 
 MX_EXPORT void
-MX_HRT_RESULTS( MX_HRT_TIMING x, const char *fname, char *format, ... )
+MX_HRT_RESULTS( MX_HRT_TIMING x, const char *fname, const char *format, ... )
 {
 	va_list args;
 	static char buffer[250];
