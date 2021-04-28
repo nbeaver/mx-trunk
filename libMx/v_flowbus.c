@@ -26,7 +26,8 @@
 
 MX_RECORD_FUNCTION_LIST mxv_flowbus_parameter_record_function_list = {
 	mx_variable_initialize_driver,
-	mxv_flowbus_create_record_structures
+	mxv_flowbus_create_record_structures,
+	mxv_flowbus_finish_record_initialization
 };
 
 MX_VARIABLE_FUNCTION_LIST mxv_flowbus_parameter_variable_function_list = {
@@ -209,6 +210,67 @@ mxv_flowbus_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = NULL;
 
 	flowbus_parameter->record = record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxv_flowbus_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxv_flowbus_finish_record_initialization()";
+
+	MX_VARIABLE *variable = NULL;
+	MX_FLOWBUS_PARAMETER *flowbus_parameter = NULL;
+	MX_FLOWBUS *flowbus = NULL;
+	MX_RECORD_FIELD *value_field = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	variable = (MX_VARIABLE *) record->record_superclass_struct;
+
+	mx_status = mxv_flowbus_get_pointers( variable,
+				&flowbus_parameter, &flowbus, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We get the FLOW-BUS parameter type from the MX datatype
+	 * of the variable's "value" field.
+	 */
+
+	mx_status = mx_find_record_field( record, "value", &value_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( value_field->datatype ) {
+	case MXFT_UCHAR:
+		flowbus_parameter->parameter_type = 0x0;
+		break;
+	case MXFT_USHORT:
+		flowbus_parameter->parameter_type = 0x2;
+		break;
+	case MXFT_ULONG:
+	case MXFT_FLOAT:
+		flowbus_parameter->parameter_type = 0x4;
+		break;
+	case MXFT_STRING:
+		flowbus_parameter->parameter_type = 0x6;
+		break;
+	default:
+		flowbus_parameter->parameter_type = 0x99;
+
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported MX datatype (%lu) requested for "
+		"FlowBus variable '%s'.",
+			value_field->datatype, record->name );
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

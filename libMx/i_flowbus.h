@@ -26,6 +26,13 @@
 
 #define MXF_FLOWBUS_DEBUG	0x1
 
+/* FlowBus datatypes */
+
+#define MXDT_FLOWBUS_UCHAR		0x0
+#define MXDT_FLOWBUS_USHORT		0x2
+#define MXDT_FLOWBUS_ULONG_FLOAT	0x4
+#define MXDT_FLOWBUS_STRING		0x6
+
 /* String length parameters
  *
  * Note that commands 01 and 02 can be longer than any other command.
@@ -52,7 +59,7 @@ typedef struct {
 	unsigned long flowbus_flags;
 
 	unsigned long protocol_type;
-	unsigned long server_node;
+	unsigned long server_address;
 	unsigned long sequence_number;
 
 	char command_buffer[MXU_FLOWBUS_MAX_LENGTH + 1];
@@ -77,8 +84,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, protocol_type), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "server_node", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, server_node), \
+  {-1, -1, "server_address", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, server_address), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "sequence_number", MXFT_ULONG, NULL, 0, {0}, \
@@ -106,7 +113,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
 				unsigned long process_number,
 				unsigned long parameter_number,
-				unsigned long mx_parameter_type,
+				unsigned long flowbus_parameter_type,
 				void *parameter_value_to_send,
 				char *status_response,
 				size_t max_response_length );
@@ -116,9 +123,9 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
 				unsigned long process_number,
 				unsigned long parameter_number,
-				unsigned long mx_parameter_type,
+				unsigned long flowbus_parameter_type,
 				void *requested_parameter_value,
-				size_t max_response_length );
+				size_t max_parameter_length );
 
 			
 

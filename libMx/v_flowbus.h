@@ -47,6 +47,9 @@ typedef struct {
 MX_API_PRIVATE mx_status_type mxv_flowbus_create_record_structures(
 							MX_RECORD *record );
 
+MX_API_PRIVATE mx_status_type mxv_flowbus_finish_record_initialization(
+							MX_RECORD *record );
+
 MX_API_PRIVATE mx_status_type mxv_flowbus_send_variable(
 						MX_VARIABLE *variable );
 MX_API_PRIVATE mx_status_type mxv_flowbus_receive_variable(
