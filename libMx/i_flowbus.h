@@ -99,13 +99,13 @@ extern long mxi_flowbus_num_record_fields;
 
 extern MX_RECORD_FIELD_DEFAULTS *mxi_flowbus_rfield_def_ptr;
 
-MX_EXPORT mx_status_type
+MX_API mx_status_type
 mxi_flowbus_command( MX_FLOWBUS *flowbus, char *command,
 			char *response, size_t max_response_length );
 
 /*---*/
 
-MX_EXPORT mx_status_type
+MX_API mx_status_type
 mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
 				unsigned long process_number,
@@ -115,7 +115,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				char *status_response,
 				size_t max_response_length );
 
-MX_EXPORT mx_status_type
+MX_API mx_status_type
 mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
 				unsigned long process_number,
@@ -124,6 +124,13 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				void *requested_parameter_value,
 				size_t max_parameter_length );
 
+/*---*/
+
+MX_API char *
+mxi_flowbus_format_string( char *external_buffer,
+			size_t external_buffer_size,
+			unsigned long mx_datatype,
+			void *value_ptr );
 			
 
 #endif /* __I_FLOWBUS_H__ */
