@@ -407,8 +407,12 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 #endif
 
 	unsigned long message_length;
+#if 0
 	uint8_t parameter_byte;
 	size_t string_length;
+#endif
+
+	uint8_t uint8_value;
 
 	char ascii_command_buffer[500];
 	char ascii_response_buffer[500];
@@ -420,6 +424,9 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	ascii_command_buffer[0] = ':';
 
+	ascii_command_buffer[1] = 'X';
+	ascii_command_buffer[2] = 'X';
+
 	/* The final 'message_length' is the total length of the
 	 * message, except for the first two bytes, and the two
 	 * byte CR-LF terminator at the end.
@@ -429,10 +436,14 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
-	ascii_command_buffer[2] = ( node_address & 0xff );
+	uint8_value = ( node_address & 0xff );
+
+	mxi_flowbus_format_string( &(ascii_command_buffer[3]), 2,
+					MXFT_UCHAR, &uint8_value );
 
 	message_length++;
 
+#if 0
 	/*---*/
 
 	ascii_command_buffer[3] = 4;		/* Request Parameter */
@@ -484,6 +495,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	ascii_command_buffer[1] = message_length;
 
 	/*---*/
+#endif
 
 	mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
 					ascii_response_buffer,
