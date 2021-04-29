@@ -126,7 +126,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 /*---*/
 
-MX_API char *
+MX_API mx_status_type
 mxi_flowbus_format_string( char *external_buffer,
 			size_t external_buffer_size,
 			unsigned long mx_datatype,
