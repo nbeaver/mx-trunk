@@ -41,6 +41,7 @@ mxi_flowbus_format_string( char *external_buffer,
 	uint16_t uint16_value;
 	uint32_t uint32_value;
 	float float_value;
+	size_t i;
 
 	char temp_buffer[500];
 
@@ -85,6 +86,24 @@ mxi_flowbus_format_string( char *external_buffer,
 				"%08x", (unsigned int) float_value );
 		break;
 	}
+
+	/* Copy the formatted string to the external buffer.
+	 *
+	 * Note that we do _NOT_ want to copy a NUL byte onto the end
+	 * of the copied string.  This allows us to overwrite fields
+	 * in the middle of the string buffer without destroying the
+	 * first byte of the next field.  So this is like doing strncpy()
+	 * without actually invoking the poisoned function strncpy().
+	 *
+	 * The Invisible Pink Unicorn told me to do this.  He said that it
+	 * was suggested to him by the Flying Spaghetti Monster.
+	 */
+
+	for ( i = 0; i < external_buffer_size; i++ ) {
+		external_buffer[i] = temp_buffer[i];
+	}
+
+	/* See ma?  No NUL termination! */
 
 	return external_buffer;
 }
