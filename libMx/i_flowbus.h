@@ -61,9 +61,6 @@ typedef struct {
 	unsigned long protocol_type;
 	unsigned long server_address;
 	unsigned long sequence_number;
-
-	char command_buffer[MXU_FLOWBUS_MAX_LENGTH + 1];
-	char response_buffer[MXU_FLOWBUS_MAX_LENGTH + 1];
 } MX_FLOWBUS;
 
 #define MXI_FLOWBUS_STANDARD_FIELDS \

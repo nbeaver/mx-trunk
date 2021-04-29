@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -221,9 +222,15 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 	uint32_t uint32_value;
 	size_t string_length;
 
+	char ascii_command_buffer[500];
+	char ascii_response_buffer[500];
+
 	mx_status_type mx_status;
 
-	flowbus->command_buffer[0] = ':';
+	memset( ascii_command_buffer, 0, sizeof(ascii_command_buffer) );
+	memset( ascii_response_buffer, 0, sizeof(ascii_response_buffer) );
+
+	ascii_command_buffer[0] = ':';
 
 	/* The final 'message_length' is the total length of the
 	 * message, except for the first two bytes, and the two
@@ -234,23 +241,23 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
-	flowbus->command_buffer[2] = ( node_address & 0xff );
+	ascii_command_buffer[2] = ( node_address & 0xff );
 
 	message_length++;
 
 	/*---*/
 
 	if ( status_response == (char *) NULL ) {
-		flowbus->command_buffer[3] = 2;		/* no response */
+		ascii_command_buffer[3] = 2;		/* no response */
 	} else {
-		flowbus->command_buffer[3] = 1;		/* response expected */
+		ascii_command_buffer[3] = 1;		/* response expected */
 	}
 
 	message_length++;
 
 	/*---*/
 
-	flowbus->command_buffer[4] = ( process_number & 0x7F );
+	ascii_command_buffer[4] = ( process_number & 0x7F );
 
 	message_length++;
 
@@ -261,7 +268,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 		uint8_value = *(( uint8_t * ) parameter_value_to_send);
 
-		flowbus->command_buffer[6] = uint8_value;
+		ascii_command_buffer[6] = uint8_value;
 
 		message_length++;
 		break;
@@ -272,12 +279,12 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 		switch( mx_native_byteorder() ) {
 		case MX_DATAFMT_BIG_ENDIAN:
-		    flowbus->command_buffer[6] = ( uint16_value >> 8 ) & 0xff;
-		    flowbus->command_buffer[7] = ( uint16_value & 0xff );
+		    ascii_command_buffer[6] = ( uint16_value >> 8 ) & 0xff;
+		    ascii_command_buffer[7] = ( uint16_value & 0xff );
 		    break;
 		case MX_DATAFMT_LITTLE_ENDIAN:
-		    flowbus->command_buffer[7] = ( uint16_value >> 8 ) & 0xff;
-		    flowbus->command_buffer[6] = ( uint16_value & 0xff );
+		    ascii_command_buffer[7] = ( uint16_value >> 8 ) & 0xff;
+		    ascii_command_buffer[6] = ( uint16_value & 0xff );
 		    break;
 		}
 
@@ -290,16 +297,16 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 		switch( mx_native_byteorder() ) {
 		case MX_DATAFMT_BIG_ENDIAN:
-		    flowbus->command_buffer[6] = ( uint32_value >> 24 ) & 0xff;
-		    flowbus->command_buffer[7] = ( uint32_value >> 16 ) & 0xff;
-		    flowbus->command_buffer[8] = ( uint32_value >> 8 ) & 0xff;
-		    flowbus->command_buffer[9] = ( uint32_value & 0xff );
+		    ascii_command_buffer[6] = ( uint32_value >> 24 ) & 0xff;
+		    ascii_command_buffer[7] = ( uint32_value >> 16 ) & 0xff;
+		    ascii_command_buffer[8] = ( uint32_value >> 8 ) & 0xff;
+		    ascii_command_buffer[9] = ( uint32_value & 0xff );
 		    break;
 		case MX_DATAFMT_LITTLE_ENDIAN:
-		    flowbus->command_buffer[9] = ( uint32_value >> 24 ) & 0xff;
-		    flowbus->command_buffer[8] = ( uint32_value >> 16 ) & 0xff;
-		    flowbus->command_buffer[7] = ( uint32_value >> 8 ) & 0xff;
-		    flowbus->command_buffer[6] = ( uint32_value & 0xff );
+		    ascii_command_buffer[9] = ( uint32_value >> 24 ) & 0xff;
+		    ascii_command_buffer[8] = ( uint32_value >> 16 ) & 0xff;
+		    ascii_command_buffer[7] = ( uint32_value >> 8 ) & 0xff;
+		    ascii_command_buffer[6] = ( uint32_value & 0xff );
 		    break;
 		}
 
@@ -321,11 +328,11 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				(char *) parameter_value_to_send );
 		}
 
-		flowbus->command_buffer[6] = string_length;
+		ascii_command_buffer[6] = string_length;
 
 		message_length++;
 
-		strlcpy( &(flowbus->command_buffer[7]),
+		strlcpy( &(ascii_command_buffer[7]),
 				parameter_value_to_send,
 				UCHAR_MAX );
 				
@@ -353,13 +360,13 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	parameter_byte |= ( parameter_number & 0x1F );
 
-	flowbus->command_buffer[5] = parameter_byte;
+	ascii_command_buffer[5] = parameter_byte;
 
 	message_length++;
 	
 	/*---*/
 
-	flowbus->command_buffer[1] = message_length;
+	ascii_command_buffer[1] = message_length;
 
 	/*---*/
 
@@ -367,7 +374,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	if ( status_response == (char *) NULL ) {
 		mx_status = mxi_flowbus_command( flowbus,
-						flowbus->command_buffer,
+						ascii_command_buffer,
 						NULL, 0 );
 
 		return mx_status;
@@ -375,8 +382,8 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	/* Handle command type 01 */
 
-	mx_status = mxi_flowbus_command( flowbus, flowbus->command_buffer,
-						flowbus->response_buffer, 
+	mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
+						ascii_response_buffer, 
 						max_response_length );
 						
 	mx_warning( "%s: FIXME: Implement handling of status response.", fname);
@@ -403,9 +410,15 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	uint8_t parameter_byte;
 	size_t string_length;
 
+	char ascii_command_buffer[500];
+	char ascii_response_buffer[500];
+
 	mx_status_type mx_status;
 
-	flowbus->command_buffer[0] = ':';
+	memset( ascii_command_buffer, 0, sizeof(ascii_command_buffer) );
+	memset( ascii_response_buffer, 0, sizeof(ascii_response_buffer) );
+
+	ascii_command_buffer[0] = ':';
 
 	/* The final 'message_length' is the total length of the
 	 * message, except for the first two bytes, and the two
@@ -416,19 +429,19 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
-	flowbus->command_buffer[2] = ( node_address & 0xff );
+	ascii_command_buffer[2] = ( node_address & 0xff );
 
 	message_length++;
 
 	/*---*/
 
-	flowbus->command_buffer[3] = 4;		/* Request Parameter */
+	ascii_command_buffer[3] = 4;		/* Request Parameter */
 
 	message_length++;
 
 	/*---*/
 
-	flowbus->command_buffer[4] = ( process_number & 0x7F );
+	ascii_command_buffer[4] = ( process_number & 0x7F );
 
 	message_length++;
 
@@ -438,13 +451,13 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	parameter_byte |= ( (flowbus->sequence_number) & 0x1F );
 
-	flowbus->command_buffer[5] = parameter_byte;
+	ascii_command_buffer[5] = parameter_byte;
 
 	message_length++;
 
 	/*---*/
 
-	flowbus->command_buffer[6] = ( process_number & 0x7F );
+	ascii_command_buffer[6] = ( process_number & 0x7F );
 
 	message_length++;
 
@@ -454,7 +467,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	parameter_byte |= ( parameter_number & 0x1F );
 
-	flowbus->command_buffer[7] = parameter_byte;
+	ascii_command_buffer[7] = parameter_byte;
 
 	message_length++;
 
@@ -462,19 +475,19 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	string_length = 0;
 
-	flowbus->command_buffer[8] = string_length;
+	ascii_command_buffer[8] = string_length;
 
 	message_length++;
 
 	/*---*/
 
-	flowbus->command_buffer[1] = message_length;
+	ascii_command_buffer[1] = message_length;
 
 	/*---*/
 
-	mx_status = mxi_flowbus_command( flowbus, flowbus->command_buffer,
-					flowbus->response_buffer,
-					sizeof(flowbus->response_buffer) );
+	mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
+					ascii_response_buffer,
+					sizeof(ascii_response_buffer) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
