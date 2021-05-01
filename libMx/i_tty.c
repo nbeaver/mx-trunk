@@ -461,7 +461,9 @@ mxi_tty_open( MX_RECORD *record )
 		}
 	}
 
-#elif ( defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) )
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
+	|| defined(OS_HURD)
+
 
 	if ( (rs232->rs232_flags & MXF_232_SHARED) == 0 ) {
 

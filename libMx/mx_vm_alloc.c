@@ -1722,7 +1722,9 @@ MX_EXPORT mx_status_type
 mx_vm_get_region( void *address,
 		size_t range_size_in_bytes,
 		mx_bool_type *valid_address_range,
-		unsigned long *protection_flags )
+		unsigned long *protection_flags,
+		void **region_base_address,
+		size_t *region_size_in_bytes )
 {
 	static const char fname[] = "mx_vm_get_region()";
 

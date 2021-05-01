@@ -395,7 +395,7 @@ mx_force_immediate_exit( void )
 
 	cygwin_internal( CW_EXIT_PROCESS, GetCurrentProcess(), 0 );
 
-#elif defined( OS_LINUX )
+#elif defined( OS_LINUX ) || defined( OS_HURD )
 	kill( getpid(), SIGKILL );
 
 #elif 0

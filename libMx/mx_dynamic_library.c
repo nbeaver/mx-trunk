@@ -879,7 +879,7 @@ mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 
 /*----- mx_dynamic_library_get_symbol_from_address() -----*/
 
-#if defined(OS_LINUX) || defined(OS_BSD)
+#if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_symbol_from_address( void *address,
@@ -1001,7 +1001,7 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	}
 }
 
-#elif defined(OS_LINUX) || defined(OS_BSD)
+#elif defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD)
 
 #define _GNU_SOURCE
 #include <link.h>
@@ -1055,7 +1055,7 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 
 /*----- mx_dynamic_library_show_list() -----*/
 
-#if defined(OS_LINUX) || defined(OS_BSD)
+#if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD)
 
 #define _GNU_SOURCE
 #include <link.h>
