@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008-2009, 2011, 2015-2017, 2019
+ * Copyright 2005-2006, 2008-2009, 2011, 2015-2017, 2019, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -198,7 +198,11 @@ mx_signal_alloc_initialize( void )
 			}
 		}
 
+#if defined( OS_SOLARIS )
+		if ( old_sa.sa_handler != 0 ) {
+#else
 		if ( old_sa.sa_handler != SIG_DFL ) {
+#endif
 			/* This signal is not using the default handler,
 			 * so we assume that it is already being used by 
 			 * something else.

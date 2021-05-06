@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2010, 2012-2014, 2016-2017
+ * Copyright 1999-2007, 2009-2010, 2012-2014, 2016-2017, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -56,7 +56,11 @@ motor_init( char *motor_savefile_name,
 
 		/* Trap ctrl-C interrupts. */
 
+#if defined(OS_SOLARIS)
+		signal( SIGINT, (void(*)(int))1 );
+#else
 		signal( SIGINT, SIG_IGN );
+#endif
 
 	}
 

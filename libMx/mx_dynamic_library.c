@@ -879,7 +879,8 @@ mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 
 /*----- mx_dynamic_library_get_symbol_from_address() -----*/
 
-#if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD)
+#if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD) \
+	|| defined(OS_SOLARIS)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_symbol_from_address( void *address,
@@ -922,7 +923,7 @@ mx_dynamic_library_get_symbol_from_address( void *address,
 #error mx_dynamic_library_get_symbol_from_address() not yet implemented for this platform
 #endif 
 
-/*----- mx_dynamic_library_get_filename() -----*/
+/*----- MX_dynamic_library_get_filename() -----*/
 
 #if defined(__OpenBSD__)
 
@@ -1001,7 +1002,8 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	}
 }
 
-#elif defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD)
+#elif defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD) \
+	|| defined(OS_SOLARIS)
 
 #define _GNU_SOURCE
 #include <link.h>
@@ -1080,7 +1082,7 @@ mx_dynamic_library_show_list( FILE *file )
 
 /*--------*/
 
-#elif defined(OS_CYGWIN)
+#elif defined(OS_CYGWIN) || defined(OS_SOLARIS)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_show_list( FILE *file )

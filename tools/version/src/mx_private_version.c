@@ -603,6 +603,10 @@ mxp_generate_macros( FILE *version_file )
 	int os_status, saved_errno;
 	int num_items, os_major, os_minor, os_update;
 
+#if defined(__GNUC__)
+	mxp_generate_gnuc_macros( version_file );
+#endif
+
 #if defined(__clang__)
 	mxp_generate_clang_macros( version_file );
 #endif

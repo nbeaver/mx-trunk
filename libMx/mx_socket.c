@@ -2284,6 +2284,8 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 
 	keepalive_threshold = keepalive_time_ms;
 
+#if defined( TCP_KEEPALIVE_THRESHOLD )
+
 	sockopt_status = setsockopt( mx_socket->socket_fd,
 				IPPROTO_TCP, TCP_KEEPALIVE_THRESHOLD,
 				&keepalive_threshold,
@@ -2298,6 +2300,7 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 			mx_socket->socket_fd,
 			saved_errno, strerror(saved_errno) );
 	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

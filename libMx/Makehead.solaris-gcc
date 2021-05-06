@@ -109,7 +109,7 @@ AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
 
-MX_LIB_OBJS += ../tools/cJSON.o
+MX_LIB_OBJS += ../tools/strcasestr.o ../tools/cJSON.o
 
 #
 #---------------------------------------------------

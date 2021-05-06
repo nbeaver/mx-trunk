@@ -174,7 +174,11 @@ mx_initialize_runtime( void )
 	 */
 
 #if defined( SIGPIPE )
+#  if defined( OS_SOLARIS )
+	signal( SIGPIPE, (void(*)(int))1 );
+#  else
 	signal( SIGPIPE, SIG_IGN );
+#  endif
 #endif
 
 #if defined( OS_WIN32 ) && defined( _MSC_VER ) && ( _MSC_VER >= 1400 )
@@ -606,7 +610,7 @@ mx_setenv( const char *env_name,
 	}
 }
 
-#elif ( defined(OS_WIN32) || defined(OS_VXWORKS) )
+#elif defined(OS_WIN32) || defined(OS_VXWORKS) || defined(OS_SOLARIS)
 
 /* Some platforms have only putenv(). */
 
@@ -723,7 +727,7 @@ mx_expand_env( const char *original_env_value,
 }
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_CYGWIN) \
-	|| defined(OS_BSD) || defined(OS_HURD)
+	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_SOLARIS)
 
 /* FIXME FIXME FIXME! -- This is bogus.  A real implementation would
  * expand environment variables like $PATH _WITHOUT_ invoking an external

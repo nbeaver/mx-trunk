@@ -197,7 +197,9 @@ struct timespec {
  * definition being an invalid prototype.
  */
 
-#if defined( OS_SOLARIS ) && defined( __GNUC__ )
+/* Not sure which version of Solaris this was for.  For now we disable it. */
+
+#if 0 && defined( OS_SOLARIS ) && defined( __GNUC__ )
 
 # ifdef SIG_DFL
 #   undef SIG_DFL
@@ -680,6 +682,7 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 #endif
 
 #if defined(OS_WIN32) || defined(OS_QNX) || defined(OS_HURD) \
+	|| defined(OS_SOLARIS) \
 	|| ( defined(OS_CYGWIN) && (CYGWIN_VERSION_DLL_COMBINED < 2000000) )
 
 /* This prototype provides a definition of strcasestr() for systems that

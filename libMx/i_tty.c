@@ -412,7 +412,7 @@ mxi_tty_open( MX_RECORD *record )
 	 * we attempt to get exclusive access with flock() or fcntl().
 	 */
 
-#if defined(OS_CYGWIN)
+#if defined(OS_CYGWIN) || defined(OS_SOLARIS)
 
 	if ( (rs232->rs232_flags & MXF_232_SHARED) == 0 ) {
 

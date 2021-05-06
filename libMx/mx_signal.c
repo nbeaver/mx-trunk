@@ -353,7 +353,12 @@ mx_setup_standard_signal_error_handlers( void )
 MX_EXPORT void
 mx_force_core_dump( void )
 {
-#if defined( SIGABRT )
+#if defined( OS_SOLARIS )
+	signal( SIGABRT, 0 );
+
+	raise(SIGABRT);
+
+#elif defined( SIGABRT )
 	signal( SIGABRT, SIG_DFL );
 
 	raise(SIGABRT);
@@ -395,7 +400,9 @@ mx_force_immediate_exit( void )
 
 	cygwin_internal( CW_EXIT_PROCESS, GetCurrentProcess(), 0 );
 
-#elif defined( OS_LINUX ) || defined( OS_HURD )
+#elif defined( OS_LINUX ) || defined( OS_MACOSX ) || defined( OS_HURD ) \
+		|| defined( OS_SOLARIS )
+
 	kill( getpid(), SIGKILL );
 
 #elif 0
