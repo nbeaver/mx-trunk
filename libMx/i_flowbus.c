@@ -402,13 +402,10 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				void *requested_parameter_value,
 				size_t max_parameter_length )
 {
-#if 0
 	static const char fname[] = "mxi_flowbus_request_parameter()";
-#endif
 
 	unsigned long message_length;
 #if 0
-	uint8_t parameter_byte;
 	size_t string_length;
 #endif
 
@@ -436,66 +433,105 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
+	/* Node address (field 2). */
+
 	uint8_value = ( node_address & 0xff );
 
-	mxi_flowbus_format_string( &(ascii_command_buffer[3]), 2,
-					MXFT_UCHAR, &uint8_value );
+	mxi_flowbus_format_string( ascii_command_buffer,
+				sizeof(ascii_command_buffer),
+				2, MXFT_UCHAR, &uint8_value );
 
 	message_length++;
+
+	/*---*/
+
+	uint8_value = 4;	/* 4 = Request Parameter (field 3) */
+
+	mxi_flowbus_format_string( ascii_command_buffer,
+				sizeof(ascii_command_buffer),
+				3, MXFT_UCHAR, &uint8_value );
+
+	message_length++;
+
+	/*---*/
+
+	/* Process number (field 4). */
+
+	uint8_value = ( process_number & 0x7F );
+
+	mxi_flowbus_format_string( ascii_command_buffer,
+				sizeof(ascii_command_buffer),
+				4, MXFT_UCHAR, &uint8_value );
+
+	message_length++;
+
+	/*---*/
+
+	/* Parameter type and sequence number (field 5). */
+
+	uint8_value = ( flowbus_parameter_type & 0x3 ) << 4;
+
+	uint8_value |= ( (flowbus->sequence_number) & 0x1F );
+
+	MX_DEBUG(-2,("%s: flowbus_parameter_type = %lu, sequence_number = %lu, "
+			"parameter_byte = %#lx",
+			fname, flowbus_parameter_type,
+			flowbus->sequence_number,
+			(unsigned long) uint8_value ));
+
+	mxi_flowbus_format_string( ascii_command_buffer,
+				sizeof(ascii_command_buffer),
+				5, MXFT_UCHAR, &uint8_value );
+
+	message_length++;
+
+	/*---*/
+
+	/* Process number (field 6). */
+
+	uint8_value = ( process_number & 0x7F );
+
+	mxi_flowbus_format_string( ascii_command_buffer,
+				sizeof(ascii_command_buffer),
+				6, MXFT_UCHAR, &uint8_value );
+
+	message_length++;
+
+	/*---*/
+
+	/* Parameter type and parameter number (field 7). */
+
+	uint8_value = ( flowbus_parameter_type & 0x3 ) << 4;
+
+	uint8_value |= ( parameter_number & 0x1F );
+
+	mxi_flowbus_format_string( ascii_command_buffer,
+				sizeof(ascii_command_buffer),
+				7, MXFT_UCHAR, &uint8_value );
+
+	message_length++;
+
+	/*---*/
 
 #if 0
-	/*---*/
-
-	ascii_command_buffer[3] = 4;		/* Request Parameter */
-
-	message_length++;
-
-	/*---*/
-
-	ascii_command_buffer[4] = ( process_number & 0x7F );
-
-	message_length++;
-
-	/*---*/
-
-	parameter_byte = ( flowbus_parameter_type & 0x3 ) << 5;
-
-	parameter_byte |= ( (flowbus->sequence_number) & 0x1F );
-
-	ascii_command_buffer[5] = parameter_byte;
-
-	message_length++;
-
-	/*---*/
-
-	ascii_command_buffer[6] = ( process_number & 0x7F );
-
-	message_length++;
-
-	/*---*/
-
-	parameter_byte = ( flowbus_parameter_type & 0x3 ) << 5;
-
-	parameter_byte |= ( parameter_number & 0x1F );
-
-	ascii_command_buffer[7] = parameter_byte;
-
-	message_length++;
-
-	/*---*/
-
 	string_length = 0;
 
 	ascii_command_buffer[8] = string_length;
 
 	message_length++;
-
-	/*---*/
-
-	ascii_command_buffer[1] = message_length;
-
-	/*---*/
 #endif
+
+	/*---*/
+
+	/* Parameter length (field 1). */
+
+	uint8_value = message_length;
+
+	mxi_flowbus_format_string( ascii_command_buffer,
+				sizeof(ascii_command_buffer),
+				1, MXFT_UCHAR, &uint8_value );
+
+	/*---*/
 
 	mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
 					ascii_response_buffer,

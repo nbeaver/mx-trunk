@@ -31,7 +31,8 @@
 
 MX_EXPORT mx_status_type
 mxi_flowbus_format_string( char *external_buffer,
-			size_t external_buffer_size,
+			size_t external_buffer_bytes,
+			unsigned long field_number,
 			unsigned long mx_datatype,
 			void *value_ptr )
 {
@@ -41,7 +42,9 @@ mxi_flowbus_format_string( char *external_buffer,
 	uint16_t uint16_value;
 	uint32_t uint32_value;
 	float float_value;
-	size_t i, needed_buffer_size;
+	size_t i, needed_field_bytes, needed_buffer_bytes;
+	size_t field_buffer_offset;
+	char *field_buffer_ptr;
 
 	char temp_buffer[500];
 
@@ -54,7 +57,44 @@ mxi_flowbus_format_string( char *external_buffer,
 			"The value_ptr pointer passed was NULL." );
 	}
 
-	memset( temp_buffer, 0, sizeof(temp_buffer) );
+	field_buffer_offset = (2 * (field_number - 1)) + 1;
+
+	field_buffer_ptr = external_buffer + field_buffer_offset;
+
+	switch( mx_datatype ) {
+	case MXFT_UCHAR:
+		needed_field_bytes = 2;
+		break;
+	case MXFT_USHORT:
+		needed_field_bytes = 4;
+		break;
+	case MXFT_ULONG:
+	case MXFT_FLOAT:
+		needed_field_bytes = 8;
+		break;
+	case MXFT_STRING:
+		needed_field_bytes = strlen( (char *) value_ptr );
+		break;
+	}
+
+	needed_buffer_bytes = field_buffer_offset + needed_field_bytes;
+
+	if ( needed_buffer_bytes > external_buffer_bytes ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Writing out field %lu (datatype %lu) needs a total buffer "
+		"size of %lu bytes, but only %lu bytes are available.",
+			field_number, mx_datatype,
+			(unsigned long) needed_buffer_bytes,
+			(unsigned long) external_buffer_bytes );
+	}
+				
+	if ( mx_datatype == MXFT_STRING ) {
+		for ( i = 0; i < needed_field_bytes; i++ ) {
+			field_buffer_ptr[i] = '*';
+		}
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	switch( mx_datatype ) {
 	case MXFT_UCHAR:
@@ -62,24 +102,18 @@ mxi_flowbus_format_string( char *external_buffer,
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
 				"%02x", uint8_value );
-
-		needed_buffer_size = 2;
 		break;
 	case MXFT_USHORT:
 		uint16_value = *((uint16_t *) value_ptr );
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
 				"%04x", uint16_value );
-
-		needed_buffer_size = 4;
 		break;
 	case MXFT_ULONG:
 		uint32_value = *((uint32_t *) value_ptr );
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
 				"%08x", uint32_value );
-
-		needed_buffer_size = 8;
 		break;
 	case MXFT_FLOAT:
 		float_value = *((float *) value_ptr );
@@ -88,39 +122,12 @@ mxi_flowbus_format_string( char *external_buffer,
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
 				"%08x", (unsigned int) float_value );
-
-		needed_buffer_size = 8;
 		break;
 	}
 
-	if ( needed_buffer_size > external_buffer_size ) {
-		for ( i = 0; i < external_buffer_size; i++ ) {
-			external_buffer[i] = '*';
-		}
-
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The formatted string value '%s' does not fit "
-		"into the provided external string space!",
-			temp_buffer );
+	for ( i = 0; i < needed_field_bytes; i++ ) {
+		field_buffer_ptr[i] = temp_buffer[i];
 	}
-
-	/* Copy the formatted string to the external buffer.
-	 *
-	 * Note that we do _NOT_ want to copy a NUL byte onto the end of the
-	 * copied string.  This allows us to overwrite fields in the middle
-	 * of the external string buffer without destroying the* first byte
-	 * of the next field.  So this is like doing strncpy() without
-	 * actually invoking the poisoned function strncpy().
-	 *
-	 * The Invisible Pink Unicorn told me to do this.  She said that it
-	 * was suggested to her by the Flying Spaghetti Monster.
-	 */
-
-	for ( i = 0; i < needed_buffer_size; i++ ) {
-		external_buffer[i] = temp_buffer[i];
-	}
-
-	/* See ma?  No NUL termination! */
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -1,6 +1,6 @@
 fb_rs232 interface rs232 tty "" "" 38400 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyUSB0
 flowbus  interface controller flowbus "" "" fb_rs232 ascii 0x0
 #
-fchar    variable flowbus_variable flowbus_uchar "" "" flowbus 0 0 0 1 1 0
+fshort   variable flowbus_variable flowbus_ushort "" "" flowbus 3 1 1 1 1 0
 #
 #fstring  variable flowbus_variable flowbus_string "" "" flowbus 0 0 0 1 20 ""
