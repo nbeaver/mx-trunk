@@ -62,7 +62,8 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010-2014, 2017, 2020 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010-2014, 2017, 2020-2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1377,7 +1378,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
  * can use a noticeable amount of CPU time in the 10% to 20% range.
  */
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) && defined(__GLIBC__)
 #   define MX_SIGEV_TYPE	SIGEV_THREAD_ID
 
 #elif defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_TRU64)
