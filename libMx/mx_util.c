@@ -727,12 +727,8 @@ mx_expand_env( const char *original_env_value,
 }
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_CYGWIN) \
-	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_SOLARIS)
-
-/* FIXME FIXME FIXME! -- This is bogus.  A real implementation would
- * expand environment variables like $PATH _WITHOUT_ invoking an external
- * shell program.
- */
+	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_SOLARIS) \
+	|| defined(OS_VXWORKS)
 
 MX_EXPORT int
 mx_expand_env( const char *original_env_value,

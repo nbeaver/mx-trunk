@@ -161,6 +161,7 @@ mxp_standard_signal_error_handler( int signal_number,
 {
 	static char directory_name[ MXU_FILENAME_LENGTH + 1 ];
 	static int recursion = 0;
+	void *address = NULL;
 
 	if ( recursion ) {
 		mx_warning( "We seem to be crashing inside the signal handler, "
@@ -176,24 +177,37 @@ mxp_standard_signal_error_handler( int signal_number,
 	recursion++;
 
 #if 1
+#  if defined(OS_VXWORKS)
+	MX_DEBUG(-2,("siginfo_t: si_signo = %d, si_code = %d",
+		info->si_signo, info->si_code ));
+#  else
 	MX_DEBUG(-2,
     ("siginfo_t: si_signo = %d, si_errno = %d, si_code = %d, si_addr = %p\n",
 		info->si_signo, info->si_errno, info->si_code, info->si_addr));
+#  endif
 #endif
+
+/*----------------*/
+
+#if defined(OS_VXWORKS)
+	address = info->si_value.sival_ptr;
+#else
+	address = info->si_addr;
+#endif
+
+/*----------------*/
 
 	switch ( signal_number ) {
 #ifdef SIGILL
 	case SIGILL:
 		mx_info( "CRASH: This program has died due to signal SIGILL.\n"
-			"  Illegal instruction at ptr = %p \n",
-			info->si_addr );
+			"  Illegal instruction at ptr = %p \n", address );
 		break;
 #endif
 #ifdef SIGTRAP
 	case SIGTRAP:
 		mx_info( "CRASH: This program has died due to signal SIGTRAP.\n"
-			"  Trap at ptr = %p \n",
-			info->si_addr );
+			"  Trap at ptr = %p \n", address );
 		break;
 #endif
 #ifdef SIGIOT
@@ -205,15 +219,13 @@ mxp_standard_signal_error_handler( int signal_number,
 #ifdef SIGBUS
 	case SIGBUS:
 		mx_info( "CRASH: This program has died due to signal SIGBUS.\n"
-			"  Bus error at ptr = %p \n",
-			info->si_addr );
+			"  Bus error at ptr = %p \n", address );
 		break;
 #endif
 #ifdef SIGFPE
 	case SIGFPE:
 		mx_info( "CRASH: This program has died due to signal SIGFPE.\n"
-			"  Floating point exception at ptr = %p \n",
-			info->si_addr );
+			"  Floating point exception at ptr = %p \n", address );
 		break;
 #endif
 
@@ -222,8 +234,7 @@ mxp_standard_signal_error_handler( int signal_number,
 #ifdef SIGSEGV
 	case SIGSEGV:
 		mx_info( "CRASH: This program has died due to signal SIGSEGV.\n"
-			"  Segmentation violation at ptr = %p",
-			info->si_addr );
+			"  Segmentation violation at ptr = %p", address );
 
 		switch( info->si_code ) {
 #  ifdef SEGV_MAPERR
@@ -386,12 +397,30 @@ mx_force_core_dump( void )
 
 /*-------------------------------------------------------------------------*/
 
+/* mx_force_immediate_exit() attempts to terminate the program
+ * immediately with as little shutdown cleanup as possible.
+ * This may be used if there is some reason to think that
+ * shutdown cleanup may cause something to hang and prevent the
+ * process from actually exiting.
+ *
+ * Note that the intention is that _all_ threads of the process
+ * will exit, rather than just the specific thread that invoked
+ * mx_force_immediate_exit().  If instead you want just the
+ * current thread to exit, then you probably should invoke
+ * mx_thread_kill( mx_get_current_thread_pointer() ) instead.
+ */
+
 MX_EXPORT void
 mx_force_immediate_exit( void )
 {
 
 #if defined( OS_WIN32 )
 	TerminateProcess( GetCurrentProcess(), 0 );
+
+#elif defined( OS_VXWORKS )
+	/* FIXME: Not sure if this is the right thing to do. */
+
+	taskDelete( taskIdSelf() );
 
 #elif defined( OS_CYGWIN )
 	/* FIXME: The 0 status code should be replaced with
