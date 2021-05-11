@@ -393,6 +393,10 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 /* ---- */
 
+/* Note: For Flowbus string parameters, we must pass in to this function
+ * the expected string length in the requested_parameter_value argument.
+ */
+
 MX_EXPORT mx_status_type
 mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
@@ -405,16 +409,29 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	static const char fname[] = "mxi_flowbus_request_parameter()";
 
 	unsigned long message_length;
-#if 0
-	size_t string_length;
-#endif
 
 	uint8_t uint8_value;
+	uint16_t uint16_value;
+	uint32_t uint32_value;
+
+	uint8_t expected_string_length, flowbus_string_length;
+
+	size_t allowed_string_length;
+
+	uint8_t sequence_number;;
 
 	char ascii_command_buffer[500];
 	char ascii_response_buffer[500];
 
+	uint8_t nibble0, nibble1;
+
+	uint8_t command_code;
+
+	char *value_string_ptr = NULL;
+
 	mx_status_type mx_status;
+
+	/******* Begin constructing the command to send to the device *******/
 
 	memset( ascii_command_buffer, 0, sizeof(ascii_command_buffer) );
 	memset( ascii_response_buffer, 0, sizeof(ascii_response_buffer) );
@@ -469,15 +486,21 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	/* Parameter type and sequence number (field 5). */
 
+	sequence_number = flowbus->sequence_number;
+
+	/*---*/
+
 	uint8_value = ( flowbus_parameter_type & 0x3 ) << 4;
 
-	uint8_value |= ( (flowbus->sequence_number) & 0x1F );
+	uint8_value |= ( sequence_number & 0x1F );
 
+#if 0
 	MX_DEBUG(-2,("%s: flowbus_parameter_type = %lu, sequence_number = %lu, "
 			"parameter_byte = %#lx",
 			fname, flowbus_parameter_type,
-			flowbus->sequence_number,
+			(unsigned long) sequence_number,
 			(unsigned long) uint8_value ));
+#endif
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
@@ -513,17 +536,24 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
-#if 0
-	string_length = 0;
+	/* If this is a string field, then we must append 
+	 * the expected string length (field 8).
+	 */
 
-	ascii_command_buffer[8] = string_length;
+	if ( flowbus_parameter_type == MXDT_FLOWBUS_STRING ) {
+		expected_string_length =
+			*( (uint8_t *) requested_parameter_value );
 
-	message_length++;
-#endif
+		mxi_flowbus_format_string( ascii_command_buffer,
+				sizeof(ascii_command_buffer),
+				8, MXFT_UCHAR, &expected_string_length );
+
+		message_length++;
+	}
 
 	/*---*/
 
-	/* Parameter length (field 1). */
+	/* Message length (field 1). */
 
 	uint8_value = message_length;
 
@@ -531,11 +561,112 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				sizeof(ascii_command_buffer),
 				1, MXFT_UCHAR, &uint8_value );
 
-	/*---*/
+	/******* Send the command and receive the response *******/
 
 	mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
 					ascii_response_buffer,
 					sizeof(ascii_response_buffer) );
+
+	flowbus->sequence_number++;
+
+	flowbus->sequence_number &= 0x1F;
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/******* Parse the response from the device *******/
+
+#if 0
+	MX_DEBUG(-2,("%s: response = '%s'", fname, ascii_response_buffer));
+#endif
+
+	/* FIXME? - For now we do not parse most of the message header. */
+
+	/* The command code for a response here should be 2.  Is it? */
+
+	nibble1 = 0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[5]);
+	nibble0 = 0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[6]);
+
+	command_code = (nibble1 << 4) | nibble0;
+
+#if 0
+	MX_DEBUG(-2,("response command code = %#lx",
+		(unsigned long) command_code ));
+#endif
+
+	if ( command_code != 0x2 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"The command code in the response should be 0x2.  "
+		"However, it was %#lx.  response = '%s'.",
+			(unsigned long) command_code,
+			ascii_response_buffer );
+	}
+
+	/* Now we parse the returned parameter value. */
+
+	value_string_ptr = 11 + (char *) ascii_response_buffer;
+
+#if 0
+	MX_DEBUG(-2,("value_string_ptr = '%s'", value_string_ptr));
+#endif
+
+	switch( flowbus_parameter_type ) {
+
+	case MXDT_FLOWBUS_UCHAR:
+		value_string_ptr[2] = '\0';
+
+		uint8_value =
+	    0xFF & mx_hex_string_to_unsigned_long( value_string_ptr );
+
+		*( (uint8_t *) requested_parameter_value ) = uint8_value;
+		break;
+
+	case MXDT_FLOWBUS_USHORT:
+		value_string_ptr[4] = '\0';
+
+		uint16_value = 
+	    0xFFFF & mx_hex_string_to_unsigned_long( value_string_ptr );
+
+		*( (uint16_t *) requested_parameter_value ) = uint16_value;
+		break;
+
+	case MXDT_FLOWBUS_ULONG_FLOAT:
+		value_string_ptr[8] = '\0';
+
+		uint32_value =
+	    0xFFFFFFFF & mx_hex_string_to_unsigned_long( value_string_ptr );
+
+		*( (uint32_t *) requested_parameter_value ) = uint32_value;
+		break;
+
+	case MXDT_FLOWBUS_STRING:
+		nibble1 = 0xF &
+			mx_hex_char_to_unsigned_long( value_string_ptr[0] );
+
+		nibble0 = 0xF &
+			mx_hex_char_to_unsigned_long( value_string_ptr[1] );
+
+		flowbus_string_length = (size_t)( (nibble1 << 4) | nibble0 );
+
+		if ( flowbus_string_length > max_parameter_length ) {
+			allowed_string_length = max_parameter_length;
+		} else {
+			allowed_string_length = flowbus_string_length;
+		}
+
+		/* Move value_string_ptr to the beginning of the
+		 * actual string data.
+		 */
+
+		value_string_ptr += 2;
+
+		/* Copy out the string data. */
+
+		strlcpy( requested_parameter_value,
+			value_string_ptr,
+			allowed_string_length );
+		break;
+	}
 
 	return mx_status;
 }
