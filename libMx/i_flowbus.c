@@ -537,7 +537,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 					ascii_response_buffer,
 					sizeof(ascii_response_buffer) );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*---*/
