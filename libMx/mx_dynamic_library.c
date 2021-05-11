@@ -880,7 +880,7 @@ mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 /*----- mx_dynamic_library_get_symbol_from_address() -----*/
 
 #if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD) \
-	|| defined(OS_SOLARIS)
+	|| defined(OS_SOLARIS) || defined(OS_MACOSX)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_symbol_from_address( void *address,
@@ -1038,6 +1038,33 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#elif defined(OS_MACOSX)
+
+#include <dlfcn.h>
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
+				char *filename_of_library,
+				size_t max_filename_length )
+{
+	static const char fname[] = "mx_dynamic_library_get_filename()";
+
+	Dl_info info;
+	int status;
+
+	status = dladdr( library->object, &info );
+
+	if ( status == 0 ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"The full pathname for library '%s' was not found.",
+			library->filename );
+	}
+
+	strlcpy( filename_of_library, info.dli_fname, max_filename_length );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #elif defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
@@ -1079,6 +1106,26 @@ mx_dynamic_library_show_list( FILE *file )
 }
 
 #undef _GNU_SOURCE
+
+/*--------*/
+
+#elif defined(OS_MACOSX)
+
+#include <mach-o/dyld.h>
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_show_list( FILE *file )
+{
+	uint32_t i, num_dyld_images;
+
+	num_dyld_images = _dyld_image_count();
+
+	for ( i = 0; i < num_dyld_images; i++ ) {
+		fprintf( file, "  '%s'\n", _dyld_get_image_name( i ) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*--------*/
 
