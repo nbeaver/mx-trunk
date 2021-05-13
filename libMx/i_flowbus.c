@@ -306,6 +306,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
+	uint8_t flowbus_string_length = 0;
 	/* Parameter type and parameter number (field 5). */
 
 	sequence_number = flowbus->sequence_number;
@@ -366,7 +367,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 			*( (uint8_t *) parameter_value_to_send );
 
 		snprintf( value_string_ptr, 2+1,
-			"%02x", (unsigned int) uint8_value );
+			"%02X", (unsigned int) uint8_value );
 
 		message_length += 1;
 		break;
@@ -376,7 +377,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 			*( (uint16_t *) parameter_value_to_send );
 
 		snprintf( value_string_ptr, 4+1,
-			"%04x", (unsigned int) uint16_value );
+			"%04X", (unsigned int) uint16_value );
 
 		message_length += 2;
 		break;
@@ -386,7 +387,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 			*( (uint32_t *) parameter_value_to_send );
 
 		snprintf( value_string_ptr, 8+1,
-			"%08lx", (unsigned long) uint32_value );
+			"%08lX", (unsigned long) uint32_value );
 
 		message_length += 4;
 		break;
