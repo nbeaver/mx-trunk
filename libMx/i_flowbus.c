@@ -14,8 +14,6 @@
  *
  */
 
-#define MXI_FLOWBUS_DEBUG	TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,11 +116,15 @@ mxi_flowbus_open( MX_RECORD *record )
 	static const char fname[] = "mxi_flowbus_open()";
 
 	MX_FLOWBUS *flowbus = NULL;
+#if 0
 	char command[80];
 	char response[80];
+#endif
 	mx_status_type mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+#endif
 
 	mx_status = mxi_flowbus_get_pointers( record, &flowbus, fname );
 
@@ -149,14 +151,16 @@ mxi_flowbus_open( MX_RECORD *record )
 	mx_status = mx_rs232_discard_unread_input( flowbus->rs232_record,
 								MXF_232_DEBUG );
 
+#if 0
 	/* Ask for the status of node 3. */
 
 	strlcpy( command, ":06030401210121", sizeof(command) );
 
 	mx_status = mxi_flowbus_command( flowbus, command,
 						response, sizeof(response) );
+#endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /* ---- */
@@ -168,6 +172,8 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 			size_t max_response_length )
 {
 	static const char fname[] = "mxi_flowbus_command()";
+
+	unsigned long debug_flag;
 
 	mx_status_type mx_status;
 
@@ -184,9 +190,16 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 		"The response pointer passed was NULL." );
 	}
 
+	if ( flowbus->flowbus_flags & MXF_FLOWBUS_DEBUG ) {
+		debug_flag = 1;
+	} else {
+		debug_flag = 0;
+	}
+
 	/* Send the command using the requested protocol type. */
 
-	mx_status = mx_rs232_putline( flowbus->rs232_record, command, NULL, 1 );
+	mx_status = mx_rs232_putline( flowbus->rs232_record, command,
+						NULL, debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -195,7 +208,7 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 
 	mx_status = mx_rs232_getline_with_timeout( flowbus->rs232_record,
 						response, max_response_length,
-						NULL, 1, 5.0 );
+						NULL, debug_flag, 5.0 );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -230,6 +243,8 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 	char *value_string_ptr = NULL;
 	char *status_string_ptr = NULL;
 
+	unsigned long flowbus_status;
+
 	mx_bool_type need_status_response = FALSE;
 
 	mx_status_type mx_status;
@@ -246,8 +261,10 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 		need_status_response = TRUE;
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: need_status_response = %d",
 		fname, (int) need_status_response ));
+#endif
 
 	/******* Begin constructing the command to send to the device *******/
 
@@ -316,7 +333,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	uint8_value |= ( parameter_number & 0x1F );
 
-#if 1
+#if 0
 	MX_DEBUG(-2,
 	("%s: flowbus_parameter_type = %lu, parameter_number = %lu, "
 			"uint8_value = %#lx",
@@ -434,6 +451,15 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Check for the illegal command response. */
+
+	if ( strcmp( ascii_response_buffer, ":0104" ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Flowbus interface '%s' said that it received "
+		"an illegal command.  Command = '%s'",
+			flowbus->record->name, ascii_command_buffer );
+	}
+
 	/* If we did not ask for a status response, then we are done. */
 
 	if ( need_status_response == FALSE ) {
@@ -442,103 +468,25 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	/******* Parse the status from the device *******/
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: status = '%s'", fname, ascii_response_buffer));
 #endif
 
 	status_string_ptr = ascii_response_buffer;
 
-#if 0
-	/* FIXME? - For now we do not parse most of the message header. */
+	status_string_ptr += 7;   /* Move up to the start of the status word. */
 
-	/* The command code for a response here should be 2.  Is it? */
+	status_string_ptr[2] = '\0';  /* Null terminate the status word. */
 
-	nibble1 = 0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[5]);
-	nibble0 = 0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[6]);
+	flowbus_status = mx_hex_string_to_unsigned_long( status_string_ptr );
 
-	command_code = (nibble1 << 4) | nibble0;
-
-#if 0
-	MX_DEBUG(-2,("response command code = %#lx",
-		(unsigned long) command_code ));
-#endif
-
-	if ( command_code != 0x2 ) {
-		return mx_error( MXE_PROTOCOL_ERROR, fname,
-		"The command code in the response should be 0x2.  "
-		"However, it was %#lx.  response = '%s'.",
-			(unsigned long) command_code,
-			ascii_response_buffer );
+	if ( flowbus_status != 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The Flowbus device returned an error code of %lu",
+			flowbus_status );
 	}
 
-	/* Now we parse the returned parameter value. */
-
-	value_string_ptr = 11 + (char *) ascii_response_buffer;
-
-#if 0
-	MX_DEBUG(-2,("value_string_ptr = '%s'", value_string_ptr));
-#endif
-
-	switch( flowbus_parameter_type ) {
-
-	case MXDT_FLOWBUS_UCHAR:
-		value_string_ptr[2] = '\0';
-
-		uint8_value =
-	    0xFF & mx_hex_string_to_unsigned_long( value_string_ptr );
-
-		*( (uint8_t *) requested_parameter_value ) = uint8_value;
-		break;
-
-	case MXDT_FLOWBUS_USHORT:
-		value_string_ptr[4] = '\0';
-
-		uint16_value = 
-	    0xFFFF & mx_hex_string_to_unsigned_long( value_string_ptr );
-
-		*( (uint16_t *) requested_parameter_value ) = uint16_value;
-		break;
-
-	case MXDT_FLOWBUS_ULONG_FLOAT:
-		value_string_ptr[8] = '\0';
-
-		uint32_value =
-	    0xFFFFFFFF & mx_hex_string_to_unsigned_long( value_string_ptr );
-
-		*( (uint32_t *) requested_parameter_value ) = uint32_value;
-		break;
-
-	case MXDT_FLOWBUS_STRING:
-		nibble1 = 0xF &
-			mx_hex_char_to_unsigned_long( value_string_ptr[0] );
-
-		nibble0 = 0xF &
-			mx_hex_char_to_unsigned_long( value_string_ptr[1] );
-
-		flowbus_string_length = (size_t)( (nibble1 << 4) | nibble0 );
-
-		if ( flowbus_string_length > max_parameter_length ) {
-			allowed_string_length = max_parameter_length;
-		} else {
-			allowed_string_length = flowbus_string_length;
-		}
-
-		/* Move value_string_ptr to the beginning of the
-		 * actual string data.
-		 */
-
-		value_string_ptr += 2;
-
-		/* Copy out the string data. */
-
-		strlcpy( requested_parameter_value,
-			value_string_ptr,
-			allowed_string_length );
-		break;
-	}
-#endif
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* ---- */
@@ -723,6 +671,15 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Check for the illegal command response. */
+
+	if ( strcmp( ascii_response_buffer, ":0104" ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Flowbus interface '%s' said that it received "
+		"an illegal command.  Command = '%s'",
+			flowbus->record->name, ascii_command_buffer );
+	}
 
 	/******* Parse the response from the device *******/
 
