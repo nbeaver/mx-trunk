@@ -306,7 +306,6 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
-	uint8_t flowbus_string_length = 0;
 	/* Parameter type and parameter number (field 5). */
 
 	sequence_number = flowbus->sequence_number;
