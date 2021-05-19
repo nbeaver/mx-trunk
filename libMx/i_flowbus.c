@@ -235,7 +235,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	uint8_t expected_string_length = 0;
 
-	uint8_t sequence_number;;
+	uint8_t sequence_number;
 
 	char ascii_command_buffer[500];
 	char ascii_response_buffer[500];
@@ -516,7 +516,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	size_t allowed_string_length;
 
-	uint8_t sequence_number;;
+	uint8_t sequence_number;
 
 	char ascii_command_buffer[500];
 	char ascii_response_buffer[500];
