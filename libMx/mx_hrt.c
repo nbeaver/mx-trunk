@@ -83,6 +83,16 @@
 
 /*--------------------------------------------------------------------------*/
 
+static double mx_hrt_counter_ticks_per_microsecond = 0.0;
+
+MX_EXPORT double
+mx_get_hrt_counter_ticks_per_second( void )
+{
+	return ( 1000000.0 * mx_hrt_counter_ticks_per_microsecond );
+}
+
+/*--------------------------------------------------------------------------*/
+
 #if MX_NEED_HRT_FALLBACK
 
 static struct timespec
@@ -235,8 +245,6 @@ mx_high_resolution_time_as_double( void )
 static int mx_high_resolution_time_init_invoked = FALSE;
 
 static int mx_performance_counters_are_available = FALSE;
-
-static double mx_hrt_counter_ticks_per_microsecond = 0.0;
 
 static void
 mx_hrt_error_message( const char *function_name )
@@ -445,8 +453,6 @@ static volatile unsigned long long *mx_iotimer_64bit_addr = NULL;
 
 static volatile unsigned int *mx_iotimer_32bit_addr = NULL;
 
-static double mx_hrt_counter_ticks_per_microsecond = 0.0;
-
 MX_EXPORT void
 mx_udelay( unsigned long microseconds )
 {
@@ -592,8 +598,6 @@ mx_high_resolution_time_init( void )
 
 static int mx_high_resolution_time_init_invoked = FALSE;
 
-static double mx_hrt_counter_ticks_per_microsecond = 0.0;
-
 static __inline__ unsigned long
 mx_rdtsc( void )
 {
@@ -682,8 +686,6 @@ mx_high_resolution_time( void )
 static int mx_cpu_delay_type = MX_CPU_UNKNOWN;
 
 static int mx_high_resolution_time_init_invoked = FALSE;
-
-static double mx_hrt_counter_ticks_per_microsecond = 0.0;
 
 static __inline__ unsigned long long int
 mx_rdtsc( void )
@@ -1060,6 +1062,69 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
+/* Disabled the QNX code below.  It does not work. */
+
+#elif ( 0 && defined(OS_QNX) )
+
+#include <sys/sched_aps.h>
+#include <sys/neutrino.h>
+#include <errno.h>
+
+MX_EXPORT void
+mx_high_resolution_time_init( void )
+{
+	static const char fname[] = "mx_high_resolution_time_init()";
+
+	sched_aps_info sched;
+	int status_code, saved_errno;
+
+	memset( &sched, 0, sizeof(sched) );
+
+	errno = 0;
+
+	status_code = SchedCtl( SCHED_APS_QUERY_PARMS, &sched, sizeof(sched) );
+
+	saved_errno = errno;
+
+	MX_DEBUG(-2,
+	("%s: status_code = %d, errno = %d, sched.cycles_per_ms = %lu",
+	 fname, status_code, saved_errno, (unsigned long) sched.cycles_per_ms));
+
+	if ( status_code == 0 ) {
+		mx_hrt_counter_ticks_per_microsecond =
+					1000.0 * sched.cycles_per_ms;
+
+		MX_DEBUG(-2,("MARKER 0"));
+		return;
+	}
+
+	saved_errno = errno;
+
+	switch( saved_errno ) {
+	case ENOSYS:
+		/* This means that the adaptive partitioning scheduler
+		 * is not installed, so we use the old fashioned way
+		 * and measure the clock frequency directly.
+		 */
+
+		MX_DEBUG(-2,("MARKER 1.1"));
+		break;
+	default:
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to determine the CPU frequency using "
+		"SchedCtl_r() failed with error code %d.", saved_errno );
+
+		MX_DEBUG(-2,("MARKER 1.2"));
+		break;
+	}
+
+	MX_DEBUG(-2,("MARKER 2"));
+
+	return;
+}
+
+/*--------------------------------------------------------------------------*/
+
 #else	/* not OS_LINUX */
 
 #  define MX_NEED_HRT_INIT_FROM_FILE	TRUE
@@ -1118,8 +1183,6 @@ mx_high_resolution_time_init( void )
 /******* GCC on PowerPC *******/
 
 static int mx_high_resolution_time_init_invoked = FALSE;
-
-static double mx_hrt_counter_ticks_per_microsecond = 0.0;
 
 static __inline__ unsigned long long
 mx_read_timebase( void )

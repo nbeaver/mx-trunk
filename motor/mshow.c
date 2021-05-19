@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2020 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1279,6 +1279,9 @@ motor_show_version( void )
 
 	fprintf( output, "\nCurrent Posix time: %lu seconds\n",
 					(unsigned long) time( NULL ) );
+
+	fprintf( output, "\nHigh resolution timer ticks per second = %g\n",
+				mx_get_hrt_counter_ticks_per_second() );
 
 	fprintf( output, "\n" );
 

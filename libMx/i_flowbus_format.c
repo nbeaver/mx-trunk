@@ -75,6 +75,11 @@ mxi_flowbus_format_string( char *external_buffer,
 	case MXFT_STRING:
 		needed_field_bytes = strlen( (char *) value_ptr );
 		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported MX datatype %lu requested for Flowbus.",
+			mx_datatype );
+		break;
 	}
 
 	needed_buffer_bytes = field_buffer_offset + needed_field_bytes;

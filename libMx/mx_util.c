@@ -728,7 +728,7 @@ mx_expand_env( const char *original_env_value,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_CYGWIN) \
 	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_SOLARIS) \
-	|| defined(OS_VXWORKS)
+	|| defined(OS_VXWORKS) || defined(OS_QNX)
 
 MX_EXPORT int
 mx_expand_env( const char *original_env_value,

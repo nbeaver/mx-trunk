@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2003-2005, 2007, 2009 Illinois Institute of Technology
+ * Copyright 2003-2005, 2007, 2009, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,6 +59,10 @@ MX_API struct timespec mx_convert_seconds_to_high_resolution_time(
 
 #define mx_convert_high_resolution_time_to_seconds( value ) \
 	( (double) (value).tv_sec + 1.0e-9 * (double) (value).tv_nsec )
+
+/*---*/
+
+MX_API double mx_get_hrt_counter_ticks_per_second( void );
 
 /* mx_high_resolution_time_as_double() returns the current time as
  * a double in units of seconds.
