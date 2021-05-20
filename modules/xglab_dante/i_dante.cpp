@@ -24,6 +24,8 @@
 
 #define MXI_DANTE_DEBUG_DATA_AVAILABLE			FALSE
 
+#define MXI_DANTE_DEBUG_TIMING				FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

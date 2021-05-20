@@ -7,7 +7,8 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006, 2009-2010, 2014 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2009-2010, 2014, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +20,7 @@
 
 #include "mx_socket.h"
 
-#if HAVE_EPICS
+#if ( defined(HAVE_EPICS) && HAVE_EPICS )
 #  include "mx_epics.h"
 #endif
 
@@ -115,7 +116,7 @@ typedef struct {
 
 	mx_bool_type gplib_initialized;
 
-#if HAVE_EPICS
+#if ( defined(HAVE_EPICS) && HAVE_EPICS )
 	/* Parameters used by the PMAC 'ethernet' port type. */
 
 	MX_EPICS_PV strcmd_pv;

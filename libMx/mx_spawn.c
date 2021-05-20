@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013-2020 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -158,7 +158,7 @@ mx_spawn( char *command_line,
 			for ( i = 0; i < max_attempts; i++ ) {
 				ptr = getenv( "LD_PRELOAD" );
 
-#if SPAWN_DEBUG
+#if MX_SPAWN_DEBUG
 				MX_DEBUG(-2,("%s: i = %d, LD_PRELOAD = '%s'",
 					fname, i, ptr));
 #endif

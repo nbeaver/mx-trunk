@@ -7,20 +7,24 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2013, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013, 2015-2016, 2018, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_MAR345_DEBUG	TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 
 #include "mx_util.h"
+
+#define MXD_MAR345_DEBUG			TRUE
+
+#define MXD_MAR345_DEBUG_FRAME_CORRECTION	TRUE
+
 #include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_bit.h"

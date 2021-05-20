@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009-2010, 2014 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009-2010, 2014, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -630,7 +630,7 @@ mxd_network_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_NETWORK_VIDEO_INPUT_DEBUG
+#if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -642,7 +642,7 @@ mxd_network_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_NETWORK_VIDEO_INPUT_DEBUG
+#if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: vinput->extended_status = '%s'",
 		fname, vinput->extended_status));
 #endif
@@ -661,7 +661,7 @@ mxd_network_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 			"extended_status", vinput->extended_status );
 	}
 
-#if MXD_NETWORK_VIDEO_INPUT_DEBUG
+#if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
 		fname, vinput->last_frame_number,

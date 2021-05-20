@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -122,6 +122,14 @@ extern "C" {
 
 #else
 #  error "Socket definitions not configured for this operating system."
+#endif
+
+/*---*/
+
+#if 0
+#  define HAVE_IPV6_SOCKETS	TRUE
+#else
+#  define HAVE_IPV6_SOCKETS	FALSE
 #endif
 
 /* Note: The receive_buffer item in MX_SOCKET is actually an

@@ -8,21 +8,22 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_AMPTEK_DP4_DEBUG		FALSE
-
-#define MXD_AMPTEK_DP4_DEBUG_TIMING	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "mx_util.h"
+
+#define MXD_AMPTEK_DP4_DEBUG		FALSE
+
+#define MXD_AMPTEK_DP4_DEBUG_TIMING	FALSE
+
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_stdint.h"
@@ -208,7 +209,7 @@ mxd_amptek_dp4_open( MX_RECORD *record )
 	unsigned long flags;
 	mx_status_type mx_status;
 
-#if MXI_AMPTEK_DP4_DEBUG
+#if MXD_AMPTEK_DP4_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
 

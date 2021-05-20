@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013, 2015-2016, 2018-2019
+ * Copyright 2008-2010, 2013, 2015-2016, 2018-2019, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -16,13 +16,16 @@
  *
  */
 
-#define MXD_MARCCD_DEBUG	TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 
 #include "mx_util.h"
+
+#define MXD_MARCCD_DEBUG			TRUE
+
+#define MXD_MARCCD_DEBUG_FRAME_CORRECTION	FALSE
+
 #include "mx_record.h"
 #include "mx_socket.h"
 #include "mx_thread.h"

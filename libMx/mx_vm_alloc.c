@@ -19,6 +19,8 @@
 
 #define MX_VM_ALLOC_DEBUG	FALSE
 
+#define MX_VM_POINTER_DEBUG	FALSE
+
 #include <stdio.h>
 
 #include "mx_util.h"
@@ -1209,7 +1211,7 @@ mx_vm_get_region( void *address,
 
 	pointer_addr = (unsigned long) address;
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 	MX_DEBUG(-2,("%s: pointer_addr = %#lx", fname, pointer_addr));
 #endif
 
@@ -1233,7 +1235,7 @@ mx_vm_get_region( void *address,
 		if ( items_read < 1 ) {
 
 			if ( feof(proc_file) ) {
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 				MX_DEBUG(-2,("%s: Reached the end of the "
 				"virtual address map array.", fname));
 #endif
@@ -1258,7 +1260,7 @@ mx_vm_get_region( void *address,
 		if ( map_entry.pr_size == 0 )
 			continue;
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 		MX_DEBUG(-2,("%s: %#lx, %#lx, %#x, '%s'", fname,
 			(unsigned long) map_entry.pr_vaddr,
 			(unsigned long) map_entry.pr_size,
@@ -1274,7 +1276,7 @@ mx_vm_get_region( void *address,
 			 * mapping or is inbetween mappings.  Either
 			 * way the pointer is invalid.
 			 */
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 			MX_DEBUG(-2,("%s: Invalid pointer %p", fname, pointer));
 #endif
 			fclose( proc_file );
@@ -1295,7 +1297,7 @@ mx_vm_get_region( void *address,
 			/* We have found the correct map entry. */
 
 			fclose( proc_file );
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 			MX_DEBUG(-2,("%s: map entry found!", fname));
 			MX_DEBUG(-2,
 			("%s: object_offset = %#lx, object_end = %#lx",
@@ -1354,7 +1356,7 @@ mx_vm_get_region( void *address,
 
 	pointer_addr = (unsigned long) address;
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 	MX_DEBUG(-2,
 	("%s: pointer_addr = %#lx, range_size_in_bytes = %lu",
 		fname, pointer_addr, (unsigned long) range_size_in_bytes));
@@ -1365,7 +1367,7 @@ mx_vm_get_region( void *address,
 	snprintf( proc_filename, sizeof(proc_filename),
 		"/proc/%lu", mx_process_id() );
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 	MX_DEBUG(-2,("%s: About to open '%s' for read-only access.",
 		fname, proc_filename));
 #endif
@@ -1398,7 +1400,7 @@ mx_vm_get_region( void *address,
 			proc_filename, saved_errno, strerror(saved_errno) );
 	}
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 	MX_DEBUG(-2,("%s: number of memory mappings = %d",
 		fname, num_mappings));
 #endif
@@ -1464,7 +1466,7 @@ mx_vm_get_region( void *address,
 			break;
 		}
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 		MX_DEBUG(-2,("%s: %#lx %#lx %#x", fname, pr_vaddr,
 			(unsigned long) array_element->pr_size,
 			(unsigned int) array_element->pr_mflags ));
@@ -1479,7 +1481,7 @@ mx_vm_get_region( void *address,
 			 * way the pointer is invalid.
 			 */
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 			MX_DEBUG(-2,("%s: Invalid pointer %p", fname, pointer));
 #endif
 			mx_free( prmap_array );
@@ -1498,7 +1500,7 @@ mx_vm_get_region( void *address,
 		if ( object_end < array_element->pr_size ) {
 
 			/* We have found the correct map entry. */
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 			MX_DEBUG(-2,("%s: map entry found!", fname));
 			MX_DEBUG(-2,
 			("%s: object_offset = %#lx, object_end = %#lx",
@@ -1523,7 +1525,7 @@ mx_vm_get_region( void *address,
 		}
 	}
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 	MX_DEBUG(-2,("%s: No entry found in array.", fname));
 #endif
 	mx_free( prmap_array );
@@ -1777,7 +1779,7 @@ mx_vm_show_os_info( FILE *file,
 MX_EXPORT int
 mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 {
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 	static const char fname[] = "mx_pointer_is_valid()";
 #endif
 
@@ -1811,7 +1813,7 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 		}
 	}
 
-#if MX_POINTER_DEBUG
+#if MX_VM_POINTER_DEBUG
 	MX_DEBUG(-2,
 	("%s: pointer %p, length = %lu, access_mode = %#x, valid = %d",
 		fname, pointer, (unsigned long) length, access_mode, valid ));

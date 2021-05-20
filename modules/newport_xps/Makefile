@@ -17,7 +17,7 @@ all: newport_xps.mxo
 # Note that Newport has move the XPS-C source code from the Current directory
 # to the Archive directory.
 
-NEWPORT_XPS_SOURCE = ftp://download.newport.com/MotionControl/Archive/MotionControllers/XPS-C/Software/Drivers/DLL/
+NEWPORT_XPS_SOURCE = "ftp://download.newport.com/MotionControl/Archive/Motion%20Controllers/XPS-C/Software/Drivers/DLL/"
 
 VENDOR_OBJS = XPS_C8_drivers.$(OBJ)
 

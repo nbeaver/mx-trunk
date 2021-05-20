@@ -26,6 +26,8 @@
 
 #define MXD_HANDEL_MCA_DEBUG_GET_PRESETS	FALSE
 
+#define MX_IGNORE_XIA_NULL_STRING		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -1269,7 +1271,7 @@ mxd_handel_mca_read( MX_MCA *mca )
 	unsigned long *array_ptr;
 	mx_status_type mx_status;
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -1293,14 +1295,14 @@ mxd_handel_mca_read( MX_MCA *mca )
 			fname, mca->current_num_channels, mca->record->name));
 	}
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
 	xia_status = xiaGetRunData( handel_mca->detector_channel,
 					"mca", array_ptr );
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname, mca->record->name );
@@ -1462,7 +1464,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 	unsigned long roi[2];
 	mx_status_type mx_status;
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -1472,14 +1474,14 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
 #endif
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
@@ -1490,7 +1492,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		 * from the hardware.
 		 */
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: mca->channel_number = %lu",
 			fname, mca->channel_number));
 #endif
@@ -1505,7 +1507,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 
 		mca->current_num_channels = mx_round( acquisition_value );
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: mca->current_num_channels = %ld",
 			fname, mca->current_num_channels));
 #endif
@@ -1553,7 +1555,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 			break;
 		}
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: mca->preset_type = %ld",
 			fname, mca->preset_type));
 #endif
@@ -1606,7 +1608,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 				"preset_value", &(mca->preset_real_time) );
 		}
 
-#if MXI_HANDEL_DEBUG_GET_PRESETS
+#if MXD_HANDEL_MCA_DEBUG_GET_PRESETS
 		MX_DEBUG(-2,("%s: mca->preset_real_time = %g",
 			fname, mca->preset_real_time));
 #endif
@@ -1659,7 +1661,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 				"preset_value", &(mca->preset_live_time) );
 		}
 
-#if MXI_HANDEL_DEBUG_GET_PRESETS
+#if MXD_HANDEL_MCA_DEBUG_GET_PRESETS
 		MX_DEBUG(-2,("%s: mca->preset_live_time = %g",
 			fname, mca->preset_live_time));
 #endif
@@ -1716,7 +1718,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 			mca->preset_count = mx_round( acquisition_value );
 		}
 
-#if MXI_HANDEL_DEBUG_GET_PRESETS
+#if MXD_HANDEL_MCA_DEBUG_GET_PRESETS
 		MX_DEBUG(-2,("%s: mca->preset_count = %g",
 			fname, mca->preset_count));
 #endif
@@ -1725,7 +1727,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 	case MXLV_MCA_CHANNEL_VALUE:
 		mca->channel_value = mca->channel_array[ mca->channel_number ];
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: mca->channel_value = %lu",
 			fname, mca->channel_value));
 #endif
@@ -1795,7 +1797,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 
 			mca->roi_array[i][1] = mx_round( acquisition_value );
 		    }
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		    MX_DEBUG(-2,("%s: mca->roi_array[%lu][0] = %lu",
 				fname, i, mca->roi_array[i][0]));
 		    MX_DEBUG(-2,("%s: mca->roi_array[%lu][1] = %lu",
@@ -1807,7 +1809,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 	case MXLV_MCA_ROI_INTEGRAL_ARRAY:
 	case MXLV_MCA_ROI_INTEGRAL:
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: Reading roi_integral_array", fname));
 #endif
 		if ( handel_mca->hardware_scas_are_enabled ) {
@@ -1815,7 +1817,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 			 * by the firmware.
 			 */
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,("%s: use_double_roi_integral_array = %d",
 			  fname, (int) handel_mca->double_roi_integral_array));
 #endif
@@ -1874,7 +1876,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 			if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL ) {
 				mca->roi_integral =
 				    mca->roi_integral_array[ mca->roi_number ];
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 				MX_DEBUG(-2,("%s: mca->roi_integral = %lu",
 					fname, mca->roi_integral));
 #endif
@@ -1961,7 +1963,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 				mxi_handel_strerror( xia_status ) );
 		    }
 
-#if MXI_HANDEL_DEBUG		
+#if MXD_HANDEL_MCA_DEBUG		
 		    MX_DEBUG(-2,
 		("%s: acquisition_value_name = '%s', acquisition_value = %g",
 			fname, acquisition_value_name, acquisition_value));
@@ -1994,7 +1996,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 				mxi_handel_strerror( xia_status ) );
 		    }
 
-#if MXI_HANDEL_DEBUG		
+#if MXD_HANDEL_MCA_DEBUG		
 		    MX_DEBUG(-2,
 		("%s: acquisition_value_name = '%s', acquisition_value = %g",
 			fname, acquisition_value_name, acquisition_value));
@@ -2005,7 +2007,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		    mca->roi_array[i][1] = mca->roi[1];
 		}
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: mca->roi[0] = %lu", fname, mca->roi[0]));
 		MX_DEBUG(-2,("%s: mca->roi[1] = %lu", fname, mca->roi[1]));
 #endif
@@ -2022,7 +2024,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 		}
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: mca->real_time = %g",
 			fname, mca->real_time));
 #endif
@@ -2039,7 +2041,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 		}
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: mca->live_time = %g",
 			fname, mca->live_time));
 #endif
@@ -2056,7 +2058,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 		}
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: $$$ mca->input_count_rate = %g",
 			fname, mca->input_count_rate));
 #endif
@@ -2073,7 +2075,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 		}
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: $$$ mca->output_count_rate = %g",
 			fname, mca->output_count_rate));
 #endif
@@ -2090,7 +2092,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 		}
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 		MX_DEBUG(-2,("%s: mca->counts = %lu", fname, mca->counts));
 #endif
 		break;
@@ -2100,7 +2102,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		break;
 	}
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname, "parameter type '%s' (%ld)",
@@ -2123,7 +2125,7 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 	long i, handel_preset_type;
 	mx_status_type mx_status;
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -2133,14 +2135,14 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_HANDEL_DEBUG
+#if MXD_HANDEL_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
 #endif
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
@@ -2325,7 +2327,7 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 		break;
 	}
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname, "parameter type '%s' (%ld)",
@@ -2616,7 +2618,7 @@ mxd_handel_mca_get_run_data( MX_MCA *mca,
 	int xia_status;
 	mx_status_type mx_status;
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 	mx_status = mxd_handel_mca_get_pointers( mca,
@@ -2636,14 +2638,14 @@ mxd_handel_mca_get_run_data( MX_MCA *mca,
 			mca->record->name );
 	}
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
 	xia_status = xiaGetRunData( handel_mca->detector_channel,
 					name, value_ptr );
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname,
@@ -2845,7 +2847,7 @@ mxd_handel_mca_start_run( MX_MCA *mca, mx_bool_type clear_flag )
 	int xia_status;
 	mx_status_type mx_status;
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -2868,13 +2870,13 @@ mxd_handel_mca_start_run( MX_MCA *mca, mx_bool_type clear_flag )
 		resume_flag = 1;
 	}
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
 	xia_status = xiaStartRun( handel_mca->detector_channel, resume_flag );
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname, mca->record->name );
@@ -2901,7 +2903,7 @@ mxd_handel_mca_stop_run( MX_MCA *mca )
 	int xia_status;
 	mx_status_type mx_status;
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -2915,13 +2917,13 @@ mxd_handel_mca_stop_run( MX_MCA *mca )
 		MX_DEBUG(-2,("%s: Record '%s'.", fname, mca->record->name));
 	}
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
 	xia_status = xiaStopRun( handel_mca->detector_channel );
 
-#if MXI_HANDEL_DEBUG_TIMING
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname, mca->record->name );

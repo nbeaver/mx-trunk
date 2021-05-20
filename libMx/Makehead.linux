@@ -118,7 +118,9 @@ GCCFLAGS = -Wall -Werror \
 -Wcast-align \
 -Wcast-qual \
 -Wshadow \
--Winline
+-Winline \
+-Wundef \
+-fexceptions
 
 ### -Wno-format-security
 
@@ -163,6 +165,29 @@ endif
 
 #--------------------------------------------------------------------------
 #
+# For doing architecture-specific stuff
+#
+
+_machine_name := $(shell uname -m)
+
+#--------------------------------------------------------------------------
+#
+# Intel x86/m68k/sparc with GCC under Linux.
+#
+CC      = gcc
+
+CFLAGS  += -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_LINUX \
+				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
+CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
+				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
+LINKFLAGS = $(CFLAGS)
+
+LINKFLAGS += -rdynamic
+
+#--------------------------------------------------------------------------
+#
 # Use of 'musl libc' with MX requires that libtirpc be installed.
 #
 # Recent versions of 'glibc' also require libtirpc.
@@ -187,29 +212,6 @@ else
 endif
 
 #--------------------------------------------------------------------------
-#
-# For doing architecture-specific stuff
-#
-
-_machine_name := $(shell uname -m)
-
-#--------------------------------------------------------------------------
-#
-# Intel x86/m68k/sparc with GCC under Linux.
-#
-CC      = gcc
-
-CFLAGS  += -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_LINUX \
-				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
-
-CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
-				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
-
-LINKFLAGS = $(CFLAGS)
-
-LINKFLAGS += -rdynamic
-
-#---
 
 # Special cases for individual files.
 

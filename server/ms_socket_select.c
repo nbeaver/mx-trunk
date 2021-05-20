@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014, 2016, 2019 Illinois Institute of Technology
+ * Copyright 2014, 2016, 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,6 +25,8 @@
 #include "mx_process.h"
 
 #include "ms_mxserver.h"
+
+#define MS_PROCESS_SOCKETS_DEBUG_SIGNALS	FALSE
 
 /*-------------------------------------------------------------------------*/
 

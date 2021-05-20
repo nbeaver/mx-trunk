@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014, 2016, 2019
+ * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014, 2016, 2019, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -36,8 +36,16 @@
 #include "mx_rs232.h"
 #include "mx_socket.h"
 
+#if !defined( HAVE_EPICS )
+#  define HAVE_EPICS			FALSE
+#endif
+
 #if HAVE_EPICS
 #  include "mx_epics.h"
+#endif
+
+#if !defined( HAVE_POWERPMAC_LIBRARY )
+#  define HAVE_POWERPMAC_LIBRARY	FALSE
 #endif
 
 #if HAVE_POWERPMAC_LIBRARY

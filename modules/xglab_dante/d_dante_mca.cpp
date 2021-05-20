@@ -54,6 +54,8 @@
 
 #define MXD_DANTE_MCA_DEBUG_CONFIGURE				FALSE
 
+#define MXD_DANTE_MCA_DEBUG_TIMING				FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -1163,7 +1165,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 	uint16_t error_code = DLL_NO_ERROR;
 	mx_status_type mx_status;
 
-#if MXI_DANTE_DEBUG_TIMING
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -1385,7 +1387,7 @@ mxd_dante_mca_get_parameter( MX_MCA *mca )
 	MX_DANTE *dante;
 	mx_status_type mx_status;
 
-#if MXI_DANTE_DEBUG_TIMING
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -1410,7 +1412,7 @@ mxd_dante_mca_get_parameter( MX_MCA *mca )
 		mca->parameter_type));
 #endif
 
-#if MXI_DANTE_DEBUG_TIMING
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
@@ -1434,7 +1436,7 @@ mxd_dante_mca_get_parameter( MX_MCA *mca )
 		break;
 	}
 
-#if MXI_DANTE_DEBUG_TIMING
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname, "parameter type '%s' (%ld)",
@@ -1454,7 +1456,7 @@ mxd_dante_mca_set_parameter( MX_MCA *mca )
 	MX_DANTE *dante;
 	mx_status_type mx_status;
 
-#if MXI_DANTE_DEBUG_TIMING
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -1479,7 +1481,7 @@ mxd_dante_mca_set_parameter( MX_MCA *mca )
 		mca->parameter_type));
 #endif
 
-#if MXI_DANTE_DEBUG_TIMING
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
@@ -1489,7 +1491,7 @@ mxd_dante_mca_set_parameter( MX_MCA *mca )
 		break;
 	}
 
-#if MXI_DANTE_DEBUG_TIMING
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname, "parameter type '%s' (%ld)",

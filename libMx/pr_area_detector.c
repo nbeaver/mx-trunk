@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2015, 2017-2019 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2015, 2017-2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -903,7 +904,7 @@ mx_status_type
 mx_setup_area_detector_process_functions( MX_RECORD *record )
 {
 
-#if PR_AREA_DETECTOR_DEBUG || PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+#if (PR_AREA_DETECTOR_DEBUG_PROCESS || PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION)
 	static const char fname[] =
 			"mx_setup_area_detector_process_functions()";
 #endif

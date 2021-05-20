@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009-2012, 2016-2019 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2012, 2016-2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +19,8 @@
 #define MXI_HANDEL_DEBUG		FALSE
 
 #define MXI_HANDEL_DEBUG_TIMING		FALSE
+
+#define MX_IGNORE_XIA_NULL_STRING	FALSE
 
 #include <stdio.h>
 #include <limits.h>

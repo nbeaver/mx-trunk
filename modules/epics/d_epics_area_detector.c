@@ -7,14 +7,17 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2013-2016, 2018-2019 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013-2016, 2018-2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_EPICS_AREA_DETECTOR_DEBUG	FALSE
+#define MXD_EPICS_AREA_DETECTOR_DEBUG			FALSE
+
+#define MXD_EPICS_AREA_DETECTOR_DEBUG_FRAME_CORRECTION	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -179,7 +179,8 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
-#if (_MSC_VER >= 1400)		/* Visual C++ 2005 Express and above. */
+#if ( defined(_MSC_VER) && (_MSC_VER >= 1400) )
+   /* Visual C++ 2005 Express and above. */
 
    /* FIXME: The following statement disables Visual C++ warning messages
     *        about deprecated functions.  Someday we should rewrite the
@@ -868,7 +869,7 @@ MX_API void mx_warning_default_output_function( char *string );
 
 #define MXU_ERROR_MESSAGE_LENGTH	2000
 
-#if USE_STACK_BASED_MX_ERROR
+#if ( defined(USE_STACK_BASED_MX_ERROR) && USE_STACK_BASED_MX_ERROR )
 
 typedef struct {
 	long code;		/* The error code. */

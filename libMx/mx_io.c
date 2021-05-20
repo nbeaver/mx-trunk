@@ -466,7 +466,7 @@ mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
 
 /* Recent versions of Linux/MacOS X/Posix operating systems. */
 
-#elif ( (_FILE_OFFSET_BITS == 64) \
+#elif ( ( defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS == 64) ) \
 	|| (_POSIX_C_SOURCE >= 200112L) \
 	|| (_XOPEN_SOURCE >= 600) )
 

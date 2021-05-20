@@ -7,14 +7,12 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2009-2013 Illinois Institute of Technology
+ * Copyright 2009-2013, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define MX_MULTI_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +23,12 @@
 #include "mx_net.h"
 #include "mx_module.h"
 #include "mx_multi.h"
+
+#define MX_MULTI_DEBUG		FALSE
+
+#if !defined( HAVE_EPICS )
+#  define HAVE_EPICS		FALSE
+#endif
 
 #if HAVE_EPICS
 #  include "mx_epics.h"

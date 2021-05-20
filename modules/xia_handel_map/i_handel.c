@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009-2012, 2016-2019 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2012, 2016-2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +29,8 @@
 #define MXI_HANDEL_DEBUG_MAPPING_PIXEL_NEXT	TRUE
 
 #define MXI_HANDEL_DEBUG_MUTEX			TRUE
+
+#define MXI_HANDEL_IGNORE_XIA_NULL_STRING	FALSE
 
 #define MXI_HANDEL_CHANNELS_PER_MODULE		4
 
@@ -1259,7 +1262,7 @@ mxi_handel_open( MX_RECORD *record )
 	int os_status, saved_errno;
 	mx_status_type mx_status;
 
-#if MX_IGNORE_XIA_NULL_STRING
+#if MXI_HANDEL_IGNORE_XIA_NULL_STRING
 	char *ignore_this_pointer;
 #endif
 
@@ -1272,7 +1275,7 @@ mxi_handel_open( MX_RECORD *record )
 	 * not actually use the variable 'ignore_this_pointer' for anything.
 	 */
 
-#if MX_IGNORE_XIA_NULL_STRING
+#if MXI_HANDEL_IGNORE_XIA_NULL_STRING
 	ignore_this_pointer = XIA_NULL_STRING;
 #endif
 

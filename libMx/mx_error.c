@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012, 2014-2015, 2017-2018
+ * Copyright 1999-2010, 2012, 2014-2015, 2017-2018, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -22,6 +22,10 @@
 
 #include "mx_util.h"
 #include "mx_stdint.h"
+
+#if !defined( USE_STACK_BASED_MX_ERROR )
+#  define USE_STACK_BASED_MX_ERROR	FALSE
+#endif
 
 typedef struct {
 	int error_code;

@@ -814,7 +814,7 @@ mx_stack_traceback( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif ( (MX_DARWIN_VERSION >= 9000000L) \
+#elif ( ( defined(MX_DARWIN_VERSION) && (MX_DARWIN_VERSION >= 9000000L) ) \
      || (MX_GLIBC_VERSION >= 2001000L) )
 
 /* GNU Glibc 2.1 introduces the backtrace() family of functions.

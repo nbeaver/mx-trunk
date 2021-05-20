@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2012, 2014-2017, 2019
+ * Copyright 1999-2007, 2009-2012, 2014-2017, 2019, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -40,6 +40,10 @@
 #include "mx_debugger.h"
 
 #include "ms_autosave.h"
+
+#if !defined( HAVE_EPICS )
+#  define HAVE_EPICS		FALSE
+#endif
 
 int msauto_quiet_exit;
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,6 +25,8 @@
 #define MXN_HTTP_DEBUG_PUT_MESSAGE		FALSE
 #define MXN_HTTP_DEBUG_PUT_RESPONSE		FALSE
 #define MXN_HTTP_DEBUG_PUT_RESPONSE_BODY	TRUE
+
+#define MXN_HTTP_DEBUG_PARSE_ADDRESS		FALSE
 
 /* On Linux, we must define _GNU_SOURCE before including any C library header
  * in order to get strcasestr() from string.h
@@ -212,7 +214,7 @@ mxn_http_server_parse_address( char *url,
 		"The filename pointer passed was NULL." );
 	}
 
-#if MX_HTTP_DEBUG_PARSE_ADDRESS
+#if MXN_HTTP_DEBUG_PARSE_ADDRESS
 	MX_DEBUG(-2,("%s: url = '%s'", fname, url ));
 #endif
 
@@ -238,7 +240,7 @@ mxn_http_server_parse_address( char *url,
 
 	strlcpy( protocol, protocol_ptr, protocol_length );
 
-#if MX_HTTP_DEBUG_PARSE_ADDRESS
+#if MXN_HTTP_DEBUG_PARSE_ADDRESS
 	MX_DEBUG(-2,("%s: protocol = '%s'", fname, protocol ));
 #endif
 
@@ -279,7 +281,7 @@ mxn_http_server_parse_address( char *url,
 
 	strlcpy( hostname, hostname_ptr, hostname_length );
 
-#if MX_HTTP_DEBUG_PARSE_ADDRESS
+#if MXN_HTTP_DEBUG_PARSE_ADDRESS
 	MX_DEBUG(-2,("%s: hostname = '%s'", fname, hostname ));
 #endif
 
@@ -297,7 +299,7 @@ mxn_http_server_parse_address( char *url,
 
 	strlcpy( filename, filename_ptr, filename_length );
 
-#if MX_HTTP_DEBUG_PARSE_ADDRESS
+#if MXN_HTTP_DEBUG_PARSE_ADDRESS
 	MX_DEBUG(-2,("%s: filename = '%s'", fname, filename ));
 #endif
 

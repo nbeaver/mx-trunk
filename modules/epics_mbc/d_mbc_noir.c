@@ -7,14 +7,18 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2013, 2015, 2018 Illinois Institute of Technology
+ * Copyright 2010-2013, 2015, 2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_MBC_NOIR_DEBUG	TRUE
+#define MXD_MBC_NOIR_DEBUG			TRUE
+
+#define MXD_MBC_NOIR_DEBUG_FRAME_CORRECTION	FALSE
+
+#define MXD_MBC_NOIR_SERVER_SOCKET_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

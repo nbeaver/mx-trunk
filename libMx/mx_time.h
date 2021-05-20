@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2015-2017 Illinois Institute of Technology
+ * Copyright 2010-2012, 2015-2017, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,12 @@
 #elif defined(OS_SOLARIS)
 #   if ( MX_SOLARIS_VERSION < 5010000L )
 #      define MXP_NEED_REENTRANT_GMTIME_LOCALTIME	TRUE
+#   else
+#      define MXP_NEED_REENTRANT_GMTIME_LOCALTIME	FALSE
 #   endif
+#else
+#   define MXP_NEED_REENTRANT_ASCTIME_CTIME		FALSE
+#   define MXP_NEED_REENTRANT_GMTIME_LOCALTIME		FALSE
 #endif
 
 #if MXP_NEED_REENTRANT_ASCTIME_CTIME

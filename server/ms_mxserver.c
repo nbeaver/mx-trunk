@@ -2987,7 +2987,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			array_is_dynamically_allocated = FALSE;
 		}
 
-#if NETWORK_DEBUG_DEBUG_FIELD_NAMES
+#if NETWORK_DEBUG_FIELD_NAMES
 	        MX_DEBUG(-2,("%s: record_name = '%s'", fname, record->name));
 		MX_DEBUG(-2,("%s: field_name = '%s'", fname,
 						record_field->name));

@@ -7,12 +7,17 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2015, 2017, 2019-2020 Illinois Institute of Technology
+ * Copyright 2007-2015, 2017, 2019-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "mx_util.h"
 
 #define MX_CALLBACK_DEBUG				FALSE
 
@@ -59,10 +64,6 @@
 
 #define MX_CALLBACK_DEBUG_WITHOUT_TIMER			FALSE
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "mx_util.h"
 #include "mx_signal.h"
 #include "mx_record.h"
 #include "mx_hrt.h"

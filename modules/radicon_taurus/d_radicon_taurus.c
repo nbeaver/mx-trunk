@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2019 Illinois Institute of Technology
+ * Copyright 2012-2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,6 +43,8 @@
 #define MXD_RADICON_TAURUS_DEBUG_ARM_TIMING			FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING			TRUE
+
+#define MXD_RADICON_TAURUS_ENABLE_ROWFIX			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
