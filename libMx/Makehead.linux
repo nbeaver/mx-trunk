@@ -120,7 +120,8 @@ GCCFLAGS = -Wall -Werror \
 -Wshadow \
 -Winline \
 -Wundef \
--fexceptions
+-fexceptions \
+-fno-strict-aliasing
 
 ### -Wno-format-security
 
