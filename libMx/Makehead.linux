@@ -120,8 +120,7 @@ GCCFLAGS = -Wall -Werror \
 -Wshadow \
 -Winline \
 -Wundef \
--fexceptions \
--fno-strict-aliasing
+-fexceptions
 
 ### -Wno-format-security
 
@@ -161,6 +160,14 @@ ifeq ($(_have_mx_config),true)
 
   ifeq ($(_have_fwrapv),1)
       GCCFLAGS += -fwrapv
+  endif
+
+  # -fno-strict-aliasing in GCC 3.0 and above
+  
+  _have_no_strict_aliasing := $(shell expr $(_gccver) \>= 3000000 )
+
+  ifeq ($(_have_no_strict_aliasing),1)
+      GCCFLAGS += -fno-strict-aliasing
   endif
 endif
 
