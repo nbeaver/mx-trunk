@@ -381,8 +381,8 @@ extern "C" {
 #elif defined(__GNUC__)
 #   define MX_INLINE	__inline__
 
-#elif 0
-    /* For use by old compilers that do not implement inline functions. */
+#elif defined(__USLC__)
+    /* UnixWare C compiler. */
 #   define MX_INLINE
 
 #else
