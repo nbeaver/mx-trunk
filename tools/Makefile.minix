@@ -20,12 +20,12 @@ EDITLINE_MAKECMD = \
 #
 
 all: ../libMx/mx_private_version.h mx_config \
-		xdr.o xdr_hyper.o \
+		xdr.o xdr_hyper.o cJSON.o \
 		unix/src/editline/libedit.a
 
 include ../libMx/Makefile.version
 
-include ../libMx/Makehead.bsd
+include ../libMx/Makehead.minix
 
 CFLAGS += -Wno-cast-align
 
@@ -58,6 +58,10 @@ xdr.o: xdr/src/xdr.c xdr/src/xdr.h xdr/src/xdr.h
 xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 	clang -c $(CFLAGS) -I../libMx -DOS_MINIX \
 		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	clang -c $(CFLAGS) -I../libMx -DOS_MINIX \
+		-D__MX_LIBRARY__ cJSON/cJSON.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )

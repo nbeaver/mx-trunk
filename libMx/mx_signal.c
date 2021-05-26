@@ -314,7 +314,9 @@ mx_setup_default_signal_handler( int signum )
 
 	memset( &act, 0, sizeof(act) );
 
+#if defined( SA_SIGINFO )
 	act.sa_flags = SA_SIGINFO;
+#endif
 
 	act.sa_sigaction = mxp_standard_signal_error_handler;
 
@@ -430,7 +432,8 @@ mx_force_immediate_exit( void )
 	cygwin_internal( CW_EXIT_PROCESS, GetCurrentProcess(), 0 );
 
 #elif defined( OS_LINUX ) || defined( OS_MACOSX ) || defined( OS_HURD ) \
-		|| defined( OS_SOLARIS ) || defined( OS_QNX )
+		|| defined( OS_SOLARIS ) || defined( OS_QNX ) \
+		|| defined( OS_MINIX )
 
 	kill( getpid(), SIGKILL );
 

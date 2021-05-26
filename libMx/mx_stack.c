@@ -868,7 +868,7 @@ mx_stack_traceback( void )
 /*--------------------------------------------------------------------------*/
 
 #elif ( (defined(MX_GCC_VERSION) || defined(MX_CLANG_VERSION)) \
-		& !defined(__FreeBSD__) )
+		&& !defined(__FreeBSD__) && !defined(__minix__) )
 
 /* FIXME: It may be necessary to use -funwind-tables on ARM to get stack traces.
  */

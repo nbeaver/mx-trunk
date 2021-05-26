@@ -51,7 +51,7 @@ GCCFLAGS = -Wall -Werror \
 -Winline
 
 #
-# Intel x86 with GCC under Minix 3.3.0
+# Intel x86 with Clang under Minix 3.3.0
 #
 CC		= clang
 CFLAGS		= -g -O -fPIC $(GCCFLAGS) \
@@ -107,6 +107,7 @@ MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.o)
 
 MX_LIB_OBJS += ../tools/xdr.o
 MX_LIB_OBJS += ../tools/xdr_hyper.o
+MX_LIB_OBJS += ../tools/cJSON.o
 
 #
 #---------------------------------------------------

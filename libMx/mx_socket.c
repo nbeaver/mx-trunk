@@ -2353,7 +2353,7 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 0
+#elif defined( OS_MINIX )
 
 /* This case is for platforms with no keepalive functionality at all. */
 
