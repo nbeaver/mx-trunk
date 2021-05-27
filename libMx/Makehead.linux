@@ -119,7 +119,6 @@ GCCFLAGS = -Wall -Werror \
 -Wcast-qual \
 -Wshadow \
 -Winline \
--Wundef \
 -fexceptions
 
 ### -Wno-format-security
