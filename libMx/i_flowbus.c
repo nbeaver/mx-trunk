@@ -20,6 +20,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_process.h"
 #include "mx_bit.h"
 #include "mx_rs232.h"
 #include "i_flowbus.h"
@@ -30,7 +31,11 @@ MX_RECORD_FUNCTION_LIST mxi_flowbus_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxi_flowbus_open
+	mxi_flowbus_open,
+	NULL,
+	NULL,
+	NULL,
+	mxi_flowbus_special_processing_setup
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_flowbus_record_field_defaults[] = {
@@ -44,6 +49,13 @@ long mxi_flowbus_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_flowbus_rfield_def_ptr
 			= &mxi_flowbus_record_field_defaults[0];
+
+/*---*/
+
+static mx_status_type mxi_flowbus_process_function( void *record_ptr,
+						void *record_field_ptr,
+						void *socket_handler_ptr,
+						int operation );
 
 /*---*/
 
@@ -778,5 +790,173 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	return mx_status;
 }
 
-/*---*/
+/*==================================================================*/
+
+MX_EXPORT mx_status_type
+mxi_flowbus_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_FB_UCHAR_VALUE:
+		case MXLV_FB_USHORT_VALUE:
+		case MXLV_FB_ULONG_VALUE:
+		case MXLV_FB_FLOAT_VALUE:
+		case MXLV_FB_STRING_VALUE:
+			record_field->process_function
+					= mxi_flowbus_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+
+/*==================================================================*/
+
+static mx_status_type
+mxi_flowbus_process_function( void *record_ptr,
+			void *record_field_ptr,
+			void *socket_handler_ptr,
+			int operation )
+{
+	static const char fname[] = "mxi_flowbus_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_FLOWBUS *flowbus;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	flowbus = (MX_FLOWBUS *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_FB_UCHAR_VALUE:
+			mx_status = mxi_flowbus_request_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_UCHAR,
+						&(flowbus->uchar_value),
+						sizeof(unsigned char) );
+			break;
+		case MXLV_FB_USHORT_VALUE:
+			mx_status = mxi_flowbus_request_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_USHORT,
+						&(flowbus->ushort_value),
+						sizeof(unsigned short) );
+			break;
+		case MXLV_FB_ULONG_VALUE:
+			mx_status = mxi_flowbus_request_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_ULONG,
+						&(flowbus->ulong_value),
+						sizeof(unsigned long) );
+			break;
+		case MXLV_FB_FLOAT_VALUE:
+			mx_status = mxi_flowbus_request_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_FLOAT,
+						&(flowbus->float_value),
+						sizeof(float) );
+			break;
+		case MXLV_FB_STRING_VALUE:
+			mx_status = mxi_flowbus_request_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_STRING,
+						flowbus->string_value,
+						sizeof(flowbus->string_value) );
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_FB_UCHAR_VALUE:
+			mx_status = mxi_flowbus_send_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_UCHAR,
+						&(flowbus->uchar_value),
+						NULL, 0 );
+			break;
+		case MXLV_FB_USHORT_VALUE:
+			mx_status = mxi_flowbus_send_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_USHORT,
+						&(flowbus->ushort_value),
+						NULL, 0 );
+			break;
+		case MXLV_FB_ULONG_VALUE:
+			mx_status = mxi_flowbus_send_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_ULONG,
+						&(flowbus->ulong_value),
+						NULL, 0 );
+			break;
+		case MXLV_FB_FLOAT_VALUE:
+			mx_status = mxi_flowbus_send_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_FLOAT,
+						&(flowbus->float_value),
+						NULL, 0 );
+			break;
+		case MXLV_FB_STRING_VALUE:
+			mx_status = mxi_flowbus_send_parameter( flowbus,
+						flowbus->node_address,
+						flowbus->process_number,
+						flowbus->parameter_number,
+						MXFT_STRING,
+						flowbus->string_value,
+						NULL, 0 );
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+	}
+
+	return mx_status;
+}
 

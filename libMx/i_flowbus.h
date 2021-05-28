@@ -24,7 +24,8 @@
 
 /* Values for flowbus_flags */
 
-#define MXF_FLOWBUS_DEBUG	0x1
+#define MXF_FLOWBUS_DEBUG		0x1
+#define	MXF_FLOWBUS_CACHE_VALUES	0x2
 
 /* FlowBus datatypes */
 
@@ -61,7 +62,28 @@ typedef struct {
 	unsigned long protocol_type;
 	unsigned long server_address;
 	unsigned long sequence_number;
+
+	/* Command can be sent across the Flow-Bus either by using
+	 * Flow-Bus variable records or by manually constructing
+	 * and sending the commands using the variables below.
+	 */
+
+	unsigned long node_address;
+	unsigned long process_number;
+	unsigned long parameter_number;
+
+	unsigned char uchar_value;
+	unsigned short ushort_value;
+	unsigned long ulong_value;
+	float float_value;
+	char string_value[ MXU_FLOWBUS_MAX_STRING_LENGTH + 1];
 } MX_FLOWBUS;
+
+#define MXLV_FB_UCHAR_VALUE		87340
+#define MXLV_FB_USHORT_VALUE		87341
+#define MXLV_FB_ULONG_VALUE		87342
+#define MXLV_FB_FLOAT_VALUE		87343
+#define MXLV_FB_STRING_VALUE		87344
 
 #define MXI_FLOWBUS_STANDARD_FIELDS \
   {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -87,11 +109,46 @@ typedef struct {
   \
   {-1, -1, "sequence_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, sequence_number), \
-	{0}, NULL, 0 }
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "node_address", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, node_address), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "process_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, process_number), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "parameter_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, parameter_number), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_FB_UCHAR_VALUE, -1, "uchar_value", MXFT_UCHAR, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, uchar_value), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_FB_USHORT_VALUE, -1, "ushort_value", MXFT_USHORT, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, ushort_value), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_FB_ULONG_VALUE, -1, "ulong_value", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, ulong_value), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_FB_FLOAT_VALUE, -1, "float_value", MXFT_FLOAT, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, float_value), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_FB_STRING_VALUE, -1, "string_value", \
+			MXFT_STRING, NULL, 1, {MXU_FLOWBUS_MAX_STRING_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, string_value), \
+	{sizeof(char)}, NULL, 0 }
 
 MX_API mx_status_type mxi_flowbus_create_record_structures( MX_RECORD *record );
 
 MX_API mx_status_type mxi_flowbus_open( MX_RECORD *record );
+
+MX_API mx_status_type mxi_flowbus_special_processing_setup( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_flowbus_record_function_list;
 
