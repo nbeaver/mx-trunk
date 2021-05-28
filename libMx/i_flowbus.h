@@ -27,12 +27,22 @@
 #define MXF_FLOWBUS_DEBUG		0x1
 #define	MXF_FLOWBUS_CACHE_VALUES	0x2
 
-/* FlowBus datatypes */
+/* Values for flowbus_command_flags */
+
+#define MXFCF_FLOWBUS_DEBUG		MXF_FLOWBUS_DEBUG
+#define MXFCF_FLOWBUS_QUIET		0x1000
+
+/* Flowbus parameter types */
 
 #define MXDT_FLOWBUS_UCHAR		0x0
-#define MXDT_FLOWBUS_USHORT		0x2
-#define MXDT_FLOWBUS_ULONG_FLOAT	0x4
-#define MXDT_FLOWBUS_STRING		0x6
+#define MXDT_FLOWBUS_USHORT		0x1
+#define MXDT_FLOWBUS_ULONG_FLOAT	0x2
+#define MXDT_FLOWBUS_STRING		0x3
+
+/* Flowbus node address range. */
+
+#define MXA_FLOWBUS_MIN_NODE_ADDRESS	3
+#define MXA_FLOWBUS_MAX_NODE_ADDRESS	120
 
 /* String length parameters
  *
@@ -63,6 +73,8 @@ typedef struct {
 	unsigned long server_address;
 	unsigned long sequence_number;
 
+	mx_bool_type show_nodes;
+
 	/* Command can be sent across the Flow-Bus either by using
 	 * Flow-Bus variable records or by manually constructing
 	 * and sending the commands using the variables below.
@@ -79,11 +91,12 @@ typedef struct {
 	char string_value[ MXU_FLOWBUS_MAX_STRING_LENGTH + 1];
 } MX_FLOWBUS;
 
-#define MXLV_FB_UCHAR_VALUE		87340
-#define MXLV_FB_USHORT_VALUE		87341
-#define MXLV_FB_ULONG_VALUE		87342
-#define MXLV_FB_FLOAT_VALUE		87343
-#define MXLV_FB_STRING_VALUE		87344
+#define MXLV_FB_SHOW_NODES		87340
+#define MXLV_FB_UCHAR_VALUE		87341
+#define MXLV_FB_USHORT_VALUE		87342
+#define MXLV_FB_ULONG_VALUE		87343
+#define MXLV_FB_FLOAT_VALUE		87344
+#define MXLV_FB_STRING_VALUE		87345
 
 #define MXI_FLOWBUS_STANDARD_FIELDS \
   {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -123,6 +136,10 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, parameter_number), \
 	{0}, NULL, 0 }, \
   \
+  {MXLV_FB_SHOW_NODES, -1, "show_nodes", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, show_nodes), \
+	{0}, NULL, 0 }, \
+  \
   {MXLV_FB_UCHAR_VALUE, -1, "uchar_value", MXFT_UCHAR, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, uchar_value), \
 	{0}, NULL, 0 }, \
@@ -158,7 +175,8 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_flowbus_rfield_def_ptr;
 
 MX_API mx_status_type
 mxi_flowbus_command( MX_FLOWBUS *flowbus, char *command,
-			char *response, size_t max_response_length );
+			char *response, size_t max_response_length,
+			unsigned long flowbus_command_flags );
 
 /*---*/
 
@@ -170,7 +188,8 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				unsigned long flowbus_parameter_type,
 				void *parameter_value_to_send,
 				char *status_response,
-				size_t max_response_length );
+				size_t max_response_length,
+				unsigned long flowbus_command_flags );
 
 MX_API mx_status_type
 mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
@@ -179,7 +198,8 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				unsigned long parameter_number,
 				unsigned long flowbus_parameter_type,
 				void *requested_parameter_value,
-				size_t max_parameter_length );
+				size_t max_parameter_length,
+				unsigned long flowbus_command_flags );
 
 /*---*/
 

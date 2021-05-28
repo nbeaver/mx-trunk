@@ -57,6 +57,8 @@ static mx_status_type mxi_flowbus_process_function( void *record_ptr,
 						void *socket_handler_ptr,
 						int operation );
 
+static mx_status_type mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus );
+
 /*---*/
 
 static mx_status_type
@@ -163,15 +165,6 @@ mxi_flowbus_open( MX_RECORD *record )
 	mx_status = mx_rs232_discard_unread_input( flowbus->rs232_record,
 								MXF_232_DEBUG );
 
-#if 0
-	/* Ask for the status of node 3. */
-
-	strlcpy( command, ":06030401210121", sizeof(command) );
-
-	mx_status = mxi_flowbus_command( flowbus, command,
-						response, sizeof(response) );
-#endif
-
 	return mx_status;
 }
 
@@ -181,11 +174,12 @@ MX_EXPORT mx_status_type
 mxi_flowbus_command( MX_FLOWBUS *flowbus,
 			char *command,
 			char *response,
-			size_t max_response_length )
+			size_t max_response_length,
+			unsigned long flowbus_command_flags )
 {
 	static const char fname[] = "mxi_flowbus_command()";
 
-	unsigned long debug_flag;
+	unsigned long debug_flag, quiet_flag;
 
 	mx_status_type mx_status;
 
@@ -202,11 +196,24 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 		"The response pointer passed was NULL." );
 	}
 
+	/*---*/
+
 	if ( flowbus->flowbus_flags & MXF_FLOWBUS_DEBUG ) {
-		debug_flag = 1;
+		debug_flag = TRUE;
+	} else
+	if ( flowbus_command_flags & MXFCF_FLOWBUS_DEBUG ) {
+		debug_flag = TRUE;
 	} else {
 		debug_flag = 0;
 	}
+
+	if ( flowbus_command_flags & MXFCF_FLOWBUS_QUIET ) {
+		quiet_flag = MXE_QUIET;
+	} else {
+		quiet_flag = 0;
+	}
+
+	/*---*/
 
 	/* Send the command using the requested protocol type. */
 
@@ -222,6 +229,50 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 						response, max_response_length,
 						NULL, debug_flag, 5.0 );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Check for error responses. */
+
+	if ( strcmp( response, ":0104" ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Flowbus interface '%s' said that it received "
+		"an illegal command.  Command = '%s'",
+			flowbus->record->name, command );
+	} else
+	if ( strcmp( response, ":0105" ) == 0 ) {
+		return mx_error( (MXE_NOT_FOUND | quiet_flag), fname,
+		"The node address specified in command '%s' "
+		"for Flowbus interface '%s' does not exist.",
+			command, flowbus->record->name );
+		
+	} else
+	if ( strncmp( response, ":01", 3 ) == 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"Unrecognized error response '%s' received for command '%s' "
+		"sent to Flowbus interface '%s'.",
+			response, command, flowbus->record->name );
+	} else
+	if ( ( strncmp( response, ":04", 3 ) == 0 )
+	  && ( strncmp( response + 5, "00", 2 ) == 0 ) )
+	{
+		/* An error status was returned. */
+
+		char * status_ptr = response + 7;
+
+		if ( strncmp( status_ptr, "00", 2 ) == 0 ) {
+			return MX_SUCCESSFUL_RESULT;
+		} else {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname, 
+			"Error status code '%c%c' received for command '%s' "
+			"sent to Flowbus interface '%s'.  This error code "
+			"is described in Section 3.6 of the Flowbus RS232 "
+			"interface manual #9.17.027.",
+				status_ptr[0], status_ptr[1],
+				command, flowbus->record->name );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -235,7 +286,8 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				unsigned long flowbus_parameter_type,
 				void *parameter_value_to_send,
 				char *status_response,
-				size_t max_response_length )
+				size_t max_response_length,
+				unsigned long flowbus_command_flags )
 {
 	static const char fname[] = "mxi_flowbus_send_parameter()";
 
@@ -341,7 +393,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
-	uint8_value = ( flowbus_parameter_type & 0x3 ) << 4;
+	uint8_value = ( flowbus_parameter_type & 0x3 ) << 5;
 
 	uint8_value |= ( parameter_number & 0x1F );
 
@@ -454,7 +506,8 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
 					ascii_response_buffer,
-					max_response_length );
+					max_response_length,
+					flowbus_command_flags );
 
 	flowbus->sequence_number++;
 
@@ -514,7 +567,8 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				unsigned long parameter_number,
 				unsigned long flowbus_parameter_type,
 				void *requested_parameter_value,
-				size_t max_parameter_length )
+				size_t max_parameter_length,
+				unsigned long flowbus_command_flags )
 {
 	static const char fname[] = "mxi_flowbus_request_parameter()";
 
@@ -538,6 +592,10 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	uint8_t command_code;
 
 	char *value_string_ptr = NULL;
+
+	unsigned long i, ulong_value;
+	char byte_string[3];
+	char *requested_string_ptr = NULL;
 
 	mx_status_type mx_status;
 
@@ -600,7 +658,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	/*---*/
 
-	uint8_value = ( flowbus_parameter_type & 0x3 ) << 4;
+	uint8_value = ( flowbus_parameter_type & 0x3 ) << 5;
 
 	uint8_value |= ( sequence_number & 0x1F );
 
@@ -634,7 +692,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	/* Parameter type and parameter number (field 7). */
 
-	uint8_value = ( flowbus_parameter_type & 0x3 ) << 4;
+	uint8_value = ( flowbus_parameter_type & 0x3 ) << 5;
 
 	uint8_value |= ( parameter_number & 0x1F );
 
@@ -651,8 +709,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	 */
 
 	if ( flowbus_parameter_type == MXDT_FLOWBUS_STRING ) {
-		expected_string_length =
-			*( (uint8_t *) requested_parameter_value );
+		expected_string_length = max_parameter_length;
 
 		mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
@@ -675,7 +732,8 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
 					ascii_response_buffer,
-					sizeof(ascii_response_buffer) );
+					sizeof(ascii_response_buffer),
+					flowbus_command_flags );
 
 	flowbus->sequence_number++;
 
@@ -683,15 +741,6 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Check for the illegal command response. */
-
-	if ( strcmp( ascii_response_buffer, ":0104" ) == 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Flowbus interface '%s' said that it received "
-		"an illegal command.  Command = '%s'",
-			flowbus->record->name, ascii_command_buffer );
-	}
 
 	/******* Parse the response from the device *******/
 
@@ -741,8 +790,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 		break;
 
 	case MXDT_FLOWBUS_USHORT:
-		value_string_ptr[4] = '\0';
-
+		value_string_ptr[4] = '\0'; 
 		uint16_value = 
 	    0xFFFF & mx_hex_string_to_unsigned_long( value_string_ptr );
 
@@ -781,9 +829,21 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 		/* Copy out the string data. */
 
-		strlcpy( requested_parameter_value,
-			value_string_ptr,
-			allowed_string_length );
+		requested_string_ptr = requested_parameter_value;
+
+		for ( i = 0; i < flowbus_string_length; i++ ) {
+			byte_string[0] = value_string_ptr[2*i];
+			byte_string[1] = value_string_ptr[2*i + 1];
+			byte_string[2] = '\0';
+
+			ulong_value =
+				mx_hex_string_to_unsigned_long( byte_string );
+
+			requested_string_ptr[i] =
+				(unsigned char)( 0xff & ulong_value );
+		}
+
+		requested_string_ptr[ flowbus_string_length ] = '\0';
 		break;
 	}
 
@@ -806,6 +866,7 @@ mxi_flowbus_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_FB_SHOW_NODES:
 		case MXLV_FB_UCHAR_VALUE:
 		case MXLV_FB_USHORT_VALUE:
 		case MXLV_FB_ULONG_VALUE:
@@ -837,118 +898,88 @@ mxi_flowbus_process_function( void *record_ptr,
 	MX_FLOWBUS *flowbus;
 	mx_status_type mx_status;
 
+	unsigned long flowbus_parameter_type;
+	void *flowbus_parameter_ptr;
+	size_t flowbus_max_length;
+
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	flowbus = (MX_FLOWBUS *) record->record_type_struct;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
+	switch( record_field->label_value ) {
+	case MXLV_FB_SHOW_NODES:
+		break;
+	case MXLV_FB_UCHAR_VALUE:
+		flowbus_parameter_type = MXDT_FLOWBUS_UCHAR;
+		flowbus_parameter_ptr = &(flowbus->uchar_value);
+		flowbus_max_length = sizeof(unsigned char);
+		break;
+	case MXLV_FB_USHORT_VALUE:
+		flowbus_parameter_type = MXDT_FLOWBUS_USHORT;
+		flowbus_parameter_ptr = &(flowbus->ushort_value);
+		flowbus_max_length = sizeof(unsigned short);
+		break;
+	case MXLV_FB_ULONG_VALUE:
+		flowbus_parameter_type = MXDT_FLOWBUS_ULONG_FLOAT;
+		flowbus_parameter_ptr = &(flowbus->ulong_value);
+		flowbus_max_length = sizeof(unsigned long);
+		break;
+	case MXLV_FB_FLOAT_VALUE:
+		flowbus_parameter_type = MXDT_FLOWBUS_ULONG_FLOAT;
+		flowbus_parameter_ptr = &(flowbus->float_value);
+		flowbus_max_length = sizeof(float);
+		break;
+	case MXLV_FB_STRING_VALUE:
+		flowbus_parameter_type = MXDT_FLOWBUS_STRING;
+		flowbus_parameter_ptr = flowbus->string_value;
+		flowbus_max_length = MXU_FLOWBUS_MAX_STRING_LENGTH;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal datatype %lu requested for Flowbus interface '%s'.",
+			record_field->label_value, record->name );
+		break;
+	}
+
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_FB_SHOW_NODES:
+			break;
 		case MXLV_FB_UCHAR_VALUE:
-			mx_status = mxi_flowbus_request_parameter( flowbus,
-						flowbus->node_address,
-						flowbus->process_number,
-						flowbus->parameter_number,
-						MXFT_UCHAR,
-						&(flowbus->uchar_value),
-						sizeof(unsigned char) );
-			break;
 		case MXLV_FB_USHORT_VALUE:
-			mx_status = mxi_flowbus_request_parameter( flowbus,
-						flowbus->node_address,
-						flowbus->process_number,
-						flowbus->parameter_number,
-						MXFT_USHORT,
-						&(flowbus->ushort_value),
-						sizeof(unsigned short) );
-			break;
 		case MXLV_FB_ULONG_VALUE:
-			mx_status = mxi_flowbus_request_parameter( flowbus,
-						flowbus->node_address,
-						flowbus->process_number,
-						flowbus->parameter_number,
-						MXFT_ULONG,
-						&(flowbus->ulong_value),
-						sizeof(unsigned long) );
-			break;
 		case MXLV_FB_FLOAT_VALUE:
-			mx_status = mxi_flowbus_request_parameter( flowbus,
-						flowbus->node_address,
-						flowbus->process_number,
-						flowbus->parameter_number,
-						MXFT_FLOAT,
-						&(flowbus->float_value),
-						sizeof(float) );
-			break;
 		case MXLV_FB_STRING_VALUE:
 			mx_status = mxi_flowbus_request_parameter( flowbus,
 						flowbus->node_address,
 						flowbus->process_number,
 						flowbus->parameter_number,
-						MXFT_STRING,
-						flowbus->string_value,
-						sizeof(flowbus->string_value) );
-			break;
-		default:
-			MX_DEBUG( 1,(
-			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
-				fname, record_field->label_value));
+						flowbus_parameter_type,
+						flowbus_parameter_ptr,
+						flowbus_max_length, 0 );
 			break;
 		}
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_FB_SHOW_NODES:
+			mx_status = mxi_flowbus_show_nodes( flowbus );
+			break;
 		case MXLV_FB_UCHAR_VALUE:
-			mx_status = mxi_flowbus_send_parameter( flowbus,
-						flowbus->node_address,
-						flowbus->process_number,
-						flowbus->parameter_number,
-						MXFT_UCHAR,
-						&(flowbus->uchar_value),
-						NULL, 0 );
-			break;
 		case MXLV_FB_USHORT_VALUE:
-			mx_status = mxi_flowbus_send_parameter( flowbus,
-						flowbus->node_address,
-						flowbus->process_number,
-						flowbus->parameter_number,
-						MXFT_USHORT,
-						&(flowbus->ushort_value),
-						NULL, 0 );
-			break;
 		case MXLV_FB_ULONG_VALUE:
-			mx_status = mxi_flowbus_send_parameter( flowbus,
-						flowbus->node_address,
-						flowbus->process_number,
-						flowbus->parameter_number,
-						MXFT_ULONG,
-						&(flowbus->ulong_value),
-						NULL, 0 );
-			break;
 		case MXLV_FB_FLOAT_VALUE:
-			mx_status = mxi_flowbus_send_parameter( flowbus,
-						flowbus->node_address,
-						flowbus->process_number,
-						flowbus->parameter_number,
-						MXFT_FLOAT,
-						&(flowbus->float_value),
-						NULL, 0 );
-			break;
 		case MXLV_FB_STRING_VALUE:
 			mx_status = mxi_flowbus_send_parameter( flowbus,
 						flowbus->node_address,
 						flowbus->process_number,
 						flowbus->parameter_number,
-						MXFT_STRING,
-						flowbus->string_value,
-						NULL, 0 );
-			break;
-		default:
-			MX_DEBUG( 1,(
-			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
-				fname, record_field->label_value));
+						flowbus_parameter_type,
+						flowbus_parameter_ptr,
+						NULL, 0, 0 );
 			break;
 		}
 		break;
@@ -960,3 +991,49 @@ mxi_flowbus_process_function( void *record_ptr,
 	return mx_status;
 }
 
+
+/*==================================================================*/
+
+static mx_status_type
+mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
+{
+	static const char fname[] = "mxi_flowbus_show_nodes()";
+
+	unsigned long node;
+	char device_type[10];
+	mx_status_type mx_status;
+
+	if ( flowbus == (MX_FLOWBUS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FLOWBUS pointer passed was NULL." );
+	}
+
+	for ( node = MXA_FLOWBUS_MIN_NODE_ADDRESS;
+		node <= MXA_FLOWBUS_MAX_NODE_ADDRESS;
+		node++ )
+	{
+		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						113, 1,
+						MXDT_FLOWBUS_STRING,
+						device_type,
+						sizeof(device_type)-1,
+						MXFCF_FLOWBUS_QUIET );
+
+		/* Strip off the 'quiet' flag if present. */
+
+		mx_status.code &= (~MXE_QUIET);
+
+		if ( mx_status.code == MXE_NOT_FOUND ) {
+			continue;
+		} else
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return mx_status;
+		}
+
+		fprintf( stderr, "Node %3lu: type '%s' ", node, device_type );
+
+		fprintf( stderr, "\n" );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}

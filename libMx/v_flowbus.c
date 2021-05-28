@@ -326,7 +326,7 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 					flowbus_parameter->parameter_type,
 					value_ptr,
 					flowbus_status_response,
-					sizeof(flowbus_status_response) );
+					sizeof(flowbus_status_response), 0 );
 
 	return mx_status;
 }
@@ -380,7 +380,7 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 					flowbus_parameter->parameter_number,
 					flowbus_parameter->parameter_type,
 					value_ptr,
-					80 /* FIXME */ );
+					80 /* FIXME */, 0 );
 
 	return mx_status;
 }
