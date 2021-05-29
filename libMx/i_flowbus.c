@@ -1000,7 +1000,11 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 	static const char fname[] = "mxi_flowbus_show_nodes()";
 
 	unsigned long node;
-	char device_type[10];
+	char device_type[8];
+	unsigned char identification_number;
+	char firmware_version[8];
+	char model_number[30];
+	char serial_number[24];
 	mx_status_type mx_status;
 
 	if ( flowbus == (MX_FLOWBUS *) NULL ) {
@@ -1012,6 +1016,8 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 		node <= MXA_FLOWBUS_MAX_NODE_ADDRESS;
 		node++ )
 	{
+		/* Begin by getting the device type string. */
+
 		mx_status = mxi_flowbus_request_parameter( flowbus, node,
 						113, 1,
 						MXDT_FLOWBUS_STRING,
@@ -1030,7 +1036,72 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 			return mx_status;
 		}
 
-		fprintf( stderr, "Node %3lu: type '%s' ", node, device_type );
+		fprintf( stderr, "Node %3lu: type '%s'", node, device_type );
+
+		/* Next we get the identification number. */
+
+		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						113, 12,
+						MXDT_FLOWBUS_UCHAR,
+						&identification_number,
+						sizeof(identification_number),
+						MXFCF_FLOWBUS_QUIET );
+
+		mx_status.code &= (~MXE_QUIET);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fprintf( stderr, ", id number %lu",
+			(unsigned long) identification_number );
+
+		/* Get the firmware version. */
+
+		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						113, 5,
+						MXDT_FLOWBUS_STRING,
+						firmware_version,
+						sizeof(firmware_version)-1,
+						MXFCF_FLOWBUS_QUIET );
+
+		mx_status.code &= (~MXE_QUIET);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fprintf( stderr, ", firmware '%s'", firmware_version );
+
+		/* Get the model number. */
+
+		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						113, 2,
+						MXDT_FLOWBUS_STRING,
+						model_number,
+						sizeof(model_number)-1,
+						MXFCF_FLOWBUS_QUIET );
+
+		mx_status.code &= (~MXE_QUIET);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fprintf( stderr, ", model number '%s'", model_number );
+
+		/* Get the serial number. */
+
+		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						113, 3,
+						MXDT_FLOWBUS_STRING,
+						serial_number,
+						sizeof(serial_number)-1,
+						MXFCF_FLOWBUS_QUIET );
+
+		mx_status.code &= (~MXE_QUIET);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fprintf( stderr, ", serial number '%s'", serial_number );
 
 		fprintf( stderr, "\n" );
 	}
