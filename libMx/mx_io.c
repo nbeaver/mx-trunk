@@ -709,7 +709,8 @@ mx_get_disk_space( char *filename,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_ANDROID) \
-	|| defined(OS_CYGWIN) || defined(OS_HURD) || defined(OS_MINIX)
+	|| defined(OS_CYGWIN) || defined(OS_HURD) || defined(OS_MINIX) \
+	|| defined(OS_UNIXWARE)
 
 /* statvfs() version */
 

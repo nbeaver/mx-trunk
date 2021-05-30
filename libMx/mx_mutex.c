@@ -856,7 +856,7 @@ mx_mutex_create( MX_MUTEX **mutex )
 		"Unable to allocate memory for a pthread_mutex_t structure." );
 	}
 
-	(*mutex)->mutex_ptr = p_mutex_ptr;
+	(*mutex)->mutex_ptr = (void *) p_mutex_ptr;
 
 	/* Configure a pthread_mutexattr_t object to request
 	 * recursive mutexes.

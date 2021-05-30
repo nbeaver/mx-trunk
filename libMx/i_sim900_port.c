@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2011, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -892,9 +892,7 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 		mx_msleep(1);
 	}
 
-#if !defined(OS_SOLARIS)
-	return MX_SUCCESSFUL_RESULT;
-#endif
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT; )
 }
 
 MX_EXPORT mx_status_type

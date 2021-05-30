@@ -881,7 +881,7 @@ mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 
 #if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD) \
 	|| defined(OS_SOLARIS) || defined(OS_MACOSX) || defined(OS_QNX) \
-	|| defined(OS_MINIX)
+	|| defined(OS_MINIX) || defined(OS_UNIXWARE)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_symbol_from_address( void *address,
@@ -1039,7 +1039,7 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_MACOSX) || defined(OS_QNX)
+#elif defined(OS_MACOSX) || defined(OS_QNX) || defined(OS_UNIXWARE)
 
 #include <dlfcn.h>
 
@@ -1131,7 +1131,8 @@ mx_dynamic_library_show_list( FILE *file )
 
 /*--------*/
 
-#elif defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_QNX)
+#elif defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_QNX) \
+	|| defined(OS_UNIXWARE)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_show_list( FILE *file )

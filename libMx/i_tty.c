@@ -37,6 +37,10 @@
 #include <sys/file.h>
 #include <errno.h>
 
+#if defined(OS_UNIXWARE)
+#include <sys/fcntl.h>
+#endif
+
 #if HAVE_READV_WRITEV
 #include <sys/uio.h>
 #endif
@@ -412,7 +416,8 @@ mxi_tty_open( MX_RECORD *record )
 	 * we attempt to get exclusive access with flock() or fcntl().
 	 */
 
-#if defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_QNX)
+#if defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_QNX) \
+	|| defined(OS_UNIXWARE)
 
 	if ( (rs232->rs232_flags & MXF_232_SHARED) == 0 ) {
 

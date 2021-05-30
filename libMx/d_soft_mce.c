@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016, 2018, 2020 Illinois Institute of Technology
+ * Copyright 2016, 2018, 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1123,6 +1123,6 @@ mxd_soft_mce_set_parameter( MX_MCE *mce )
 		break;
 	}
 
-	return mx_status;
+	MXW_NOT_REACHED( return mx_status; )
 }
 

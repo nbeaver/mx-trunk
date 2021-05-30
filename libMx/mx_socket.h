@@ -203,6 +203,9 @@ typedef struct {
 #if defined(OS_VMS) || defined(OS_ANDROID)
 #  define mx_socklen_t		unsigned int
 
+#elif defined(__USLC__)
+#  define mx_socklen_t		size_t
+
 #elif defined(__BORLANDC__)
 #  if defined(OS_LINUX)
 #    define mx_socklen_t	socklen_t

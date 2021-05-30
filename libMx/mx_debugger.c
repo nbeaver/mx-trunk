@@ -2772,7 +2772,8 @@ mx_show_watchpoints( void )
 #elif defined(OS_MACOSX) || defined(OS_ANDROID) \
 	|| defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_BSD) \
 	|| defined(OS_MINIX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
-	|| defined(OS_HURD) || defined(OS_QNX) || defined(__MINGW32__)
+	|| defined(OS_HURD) || defined(OS_QNX) || defined(__MINGW32__) \
+	|| defined(OS_UNIXWARE)
 
 /* FIXME: Implement real watchpoints for these build targets. */
 

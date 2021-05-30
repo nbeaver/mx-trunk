@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010 Illinois Institute of Technology
+ * Copyright 2008-2010, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -432,9 +432,7 @@ mxi_spellman_df3_command( MX_SPELLMAN_DF3 *spellman_df3,
 		break;
 	}
 
-#if !defined(OS_SOLARIS)
-	return MX_SUCCESSFUL_RESULT;
-#endif
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT; )
 }
 
 MX_EXPORT mx_status_type

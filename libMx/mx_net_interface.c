@@ -775,7 +775,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 
 #elif defined( OS_MACOSX ) || defined( OS_LINUX ) || defined( OS_ANDROID ) \
 	|| defined( OS_SOLARIS ) || defined( OS_VXWORKS ) || defined( OS_VMS ) \
-	|| defined( OS_DJGPP )
+	|| defined( OS_DJGPP ) || defined( OS_UNIXWARE )
 
 /*---- Use SIOCGIFCONF and SIOCGIFMTU ----*/
 
@@ -788,7 +788,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 #include <errno.h>
 #include <net/if.h>
 
-#if defined(OS_SOLARIS)
+#if defined(OS_SOLARIS) || defined(OS_UNIXWARE)
 #include <unistd.h>
 #include <sys/sockio.h>
 #endif

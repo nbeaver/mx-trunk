@@ -75,7 +75,9 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.o)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
 
-EXTRA_LIB_OBJS    = ../tools/xdr_hyper.o
+MX_LIB_OBJS	+= ../tools/strcasestr.o
+MX_LIB_OBJS	+= ../tools/xdr_hyper.o
+MX_LIB_OBJS	+= ../tools/cJSON.o
 
 #
 #---------------------------------------------------
@@ -125,6 +127,7 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/sbin
 	-mkdir $(MX_INSTALL_DIR)/state
 	/usr/ucb/install -m 644 mx*.h $(MX_INSTALL_DIR)/include 
+	/usr/ucb/install -m 644 ../tools/cJSON/cJSON.h $(MX_INSTALL_DIR)/include
 	/usr/ucb/install -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
 	/usr/ucb/install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	-( cd $(MX_INSTALL_DIR)/lib ; rm libMx.so )

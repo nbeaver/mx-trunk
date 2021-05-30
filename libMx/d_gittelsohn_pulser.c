@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2015-2019 Illinois Institute of Technology
+ * Copyright 2015-2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1119,7 +1119,7 @@ mxd_gittelsohn_pulser_external_get_last_pulse_number(
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT; )
 }
 
 /*-----*/

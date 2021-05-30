@@ -2040,7 +2040,11 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 
 #   endif
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) || defined(OS_UNIXWARE)
+
+#if defined(OS_UNIXWARE)
+#  include <sys/xti.h>
+#endif
 
 MX_EXPORT mx_status_type
 mx_socket_set_keepalive( MX_SOCKET *mx_socket,

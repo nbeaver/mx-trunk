@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2018, 2020 Illinois Institute of Technology
+ * Copyright 1999-2018, 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1269,9 +1269,7 @@ mx_network_wait_for_messages( MX_RECORD *record,
 		}
 	}
 
-#if !defined(OS_SOLARIS)
-	return MX_SUCCESSFUL_RESULT;
-#endif
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT; )
 }
 
 /* ====================================================================== */

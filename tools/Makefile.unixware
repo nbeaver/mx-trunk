@@ -2,7 +2,8 @@
 # tools/Makefile.unixware
 #
 
-all: ../libMx/mx_private_version.h unix/src/editline/libedit.a xdr_hyper.o
+all: ../libMx/mx_private_version.h unix/src/editline/libedit.a \
+	xdr_hyper.o strcasestr.o cJSON.o
 
 include ../libMx/Makefile.version
 
@@ -39,6 +40,13 @@ unix/src/editline/libedit.a:
 xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 	$(CC) -c -I../libMx -DOS_UNIXWARE \
 		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
+
+strcasestr.o: generic/src/strcasestr.c
+	$(CC) -c -I../libMx -DOS_UNIXWARE \
+		-D__MX_LIBRARY__ generic/src/strcasestr.c
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	$(CC) -g -c $(OPTIMIZE) cJSON/cJSON.c
 
 mx_clean:
 	-rm mx_private_version

@@ -727,19 +727,9 @@ motor_main( int argc, char *argv[] )
 		cmd_free_command_line( cmd_argv, split_buffer );
 	}
 
-#if defined(__SUNPRO_C) || ( defined(OS_HPUX) && defined(__ia64) )
-
-	/* The Sparcworks C compiler emits a warning if we have 
-	 * unreachable code like below.
-	 */
-#else
-
-	exit(0);
-
 	/* Some compilers emit a warning if main() doesn't return a value. */
 
-	return 0;
-#endif
+	MXW_NOT_REACHED( exit(0); return 0; )
 }
 
 int

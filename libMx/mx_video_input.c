@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009, 2011-2012, 2015-2017
+ * Copyright 2006-2007, 2009, 2011-2012, 2015-2017, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1615,7 +1615,7 @@ mx_video_input_register_capture_callback( MX_RECORD *record,
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"This feature is not yet implemented for Solaris." );
 #else
-	vinput->capture_callback_function = capture_callback_function;
+	vinput->capture_callback_function = (void *) capture_callback_function;
 
 	vinput->capture_callback_argument = capture_callback_argument;
 

@@ -551,9 +551,9 @@ mx_get_extension_from_module( MX_MODULE *module,
 		}
 	}
 
-	return mx_error( MXE_NOT_FOUND, fname,
+	MXW_NOT_REACHED( return mx_error( MXE_NOT_FOUND, fname,
 	"Did not find extension '%s' in the extension table for module '%s'.",
-		extension_name, module->name );
+		extension_name, module->name ); )
 }
 
 /*-------------------------------------------------------------------------*/
@@ -624,9 +624,7 @@ mxp_extension_traverse_fn( MX_LIST_ENTRY *list_entry,
 		}
 	}
 
-#if !defined(OS_SOLARIS)
-	return MX_SUCCESSFUL_RESULT;
-#endif
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT; )
 }
 
 /*-------------------------------------------------------------------------*/

@@ -628,7 +628,9 @@ mxd_pilatus_get_target_directory_from_grimsel( MX_PILATUS *pilatus )
 				"Pilatus detector '%s'.",
 				grimsel_filename, pilatus->record->name );
 
+#if 0
 			(void) fclose( grimsel_file );
+#endif
 			break;
 		}
 

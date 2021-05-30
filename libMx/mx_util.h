@@ -317,7 +317,8 @@ struct timespec {
  *   which is not valid C.
  */
 
-#if defined(__SUNPRO_C)
+#if defined(__SUNPRO_C) || defined(__USLC__) \
+	|| ( defined(OS_HPUX) && defined(__ia64) )
 #  define MXW_NOT_REACHED( x )
 #else
 #  define MXW_NOT_REACHED( x )    x
@@ -683,7 +684,7 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 #endif
 
 #if defined(OS_WIN32) || defined(OS_QNX) || defined(OS_HURD) \
-	|| defined(OS_SOLARIS) \
+	|| defined(OS_SOLARIS) || defined(OS_UNIXWARE) \
 	|| ( defined(OS_CYGWIN) && (CYGWIN_VERSION_DLL_COMBINED < 2000000) )
 
 /* This prototype provides a definition of strcasestr() for systems that

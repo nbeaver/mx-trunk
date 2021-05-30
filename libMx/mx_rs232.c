@@ -733,9 +733,7 @@ mx_rs232_find_terminators( char *buffer,
 		buffer_left--;
 	}
 
-#if !defined(OS_SOLARIS)
-	return NULL;
-#endif
+	MXW_NOT_REACHED( return NULL; )
 }
 
 MX_EXPORT mx_status_type

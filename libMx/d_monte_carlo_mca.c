@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2017 Illinois Institute of Technology
+ * Copyright 2012-2017, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -669,9 +669,7 @@ mxd_monte_carlo_mca_event_thread( MX_THREAD *thread, void *args )
 		mx_usleep( monte_carlo_mca->sleep_microseconds );
 	}
 
-#if !defined(OS_SOLARIS)
-	return MX_SUCCESSFUL_RESULT;
-#endif
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT; )
 }
 
 /*-------------------------------------------------------------------------*/

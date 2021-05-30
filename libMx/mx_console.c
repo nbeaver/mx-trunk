@@ -328,8 +328,6 @@ mx_paged_console_output( FILE *console,
 		}
 	}
 
-#if !defined(OS_SOLARIS)
-	return MX_SUCCESSFUL_RESULT;
-#endif
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 

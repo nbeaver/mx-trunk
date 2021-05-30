@@ -610,7 +610,8 @@ mx_setenv( const char *env_name,
 	}
 }
 
-#elif defined(OS_WIN32) || defined(OS_VXWORKS) || defined(OS_SOLARIS)
+#elif defined(OS_WIN32) || defined(OS_VXWORKS) || defined(OS_SOLARIS) \
+	|| defined(OS_UNIXWARE)
 
 /* Some platforms have only putenv(). */
 
@@ -728,7 +729,8 @@ mx_expand_env( const char *original_env_value,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_CYGWIN) \
 	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_SOLARIS) \
-	|| defined(OS_VXWORKS) || defined(OS_QNX) || defined(OS_MINIX)
+	|| defined(OS_VXWORKS) || defined(OS_QNX) || defined(OS_MINIX) \
+	|| defined(OS_UNIXWARE)
 
 MX_EXPORT int
 mx_expand_env( const char *original_env_value,
@@ -1337,18 +1339,7 @@ mx_parse_command_line( const char *command_line,
 		}
 	}
 
-	/* It should not be possible for us to get here. */
-
-#if defined(OS_SOLARIS)
-	/* Do nothing */
-
-#elif ( defined(OS_HPUX) && defined(__ia64) )
-	/* Do nothing */
-
-#else
-	errno = ERANGE;
-	return (-1);
-#endif
+	MXW_NOT_REACHED( errno = ERANGE; return (-1); )
 }
 
 MX_EXPORT void
