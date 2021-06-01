@@ -2614,7 +2614,12 @@ mx_print_field_value( FILE *file,
 		fprintf( file, "'%c'", *((char *) value_ptr) );
 		break;
 	case MXFT_UCHAR:
+#if 0
 		fprintf( file, "'%c'", *((unsigned char *) value_ptr) );
+#else
+		fprintf( file, "%hu",
+			(unsigned short) *((unsigned char *) value_ptr) );
+#endif
 		break;
 	case MXFT_SHORT:
 		fprintf( file, "%hd", *((short *) value_ptr) );
