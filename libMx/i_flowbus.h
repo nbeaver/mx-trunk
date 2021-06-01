@@ -35,9 +35,9 @@
 /* Flowbus parameter types */
 
 #define MXDT_FLOWBUS_UCHAR		0x0
-#define MXDT_FLOWBUS_USHORT		0x1
-#define MXDT_FLOWBUS_ULONG_FLOAT	0x2
-#define MXDT_FLOWBUS_STRING		0x3
+#define MXDT_FLOWBUS_USHORT		0x2
+#define MXDT_FLOWBUS_ULONG_FLOAT	0x4
+#define MXDT_FLOWBUS_STRING		0x6
 
 /* Flowbus node address range. */
 
