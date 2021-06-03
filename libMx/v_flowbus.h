@@ -17,6 +17,9 @@
 #ifndef __V_FLOWBUS_H__
 #define __V_FLOWBUS_H__
 
+#define MXF_FLOWBUS_PARAMETER_READ	0x1
+#define MXF_FLOWBUS_PARAMETER_WRITE	0x2
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -25,6 +28,7 @@ typedef struct {
 	unsigned long process_number;
 	unsigned long parameter_number;
 	unsigned long parameter_type;
+	unsigned long access_mode;
 } MX_FLOWBUS_PARAMETER;
 
 #define MXV_FLOWBUS_PARAMETER_STANDARD_FIELDS \
@@ -42,6 +46,10 @@ typedef struct {
   \
   {-1, -1, "parameter_number", MXFT_ULONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS_PARAMETER, parameter_number), \
+        {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "access_mode", MXFT_HEX, NULL, 0, {0}, \
+        MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS_PARAMETER, access_mode), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API_PRIVATE mx_status_type mxv_flowbus_create_record_structures(

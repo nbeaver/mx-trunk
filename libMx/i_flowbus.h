@@ -70,7 +70,7 @@ typedef struct {
 	unsigned long flowbus_flags;
 
 	unsigned long protocol_type;
-	unsigned long server_address;
+	unsigned long master_address;
 	unsigned long sequence_number;
 
 	mx_bool_type show_nodes;
@@ -116,8 +116,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, protocol_type), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "server_address", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, server_address), \
+  {-1, -1, "master_address", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, master_address), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "sequence_number", MXFT_ULONG, NULL, 0, {0}, \

@@ -295,6 +295,19 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If this is not a writeable parameter, then we return
+	 * an error message that says so.
+	 */
+
+	if ( ( flowbus_parameter->access_mode
+			& MXF_FLOWBUS_PARAMETER_WRITE ) == 0 )
+	{
+		return mx_error( MXE_READ_ONLY, fname,
+		"Flowbus variable '%s' is read-only.", variable->record->name );
+	}
+
+	/* Get the variable parameters. */
+
 	mx_status = mx_find_record_field( variable->record,
 					"value", &field );
 
@@ -318,6 +331,8 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 			variable->record->name,
 			num_dimensions );
 	}
+
+	/* Send the new variable value. */
 
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_parameter->node_address,
@@ -350,6 +365,18 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If this is not a readable parameter, then we just return
+	 * without doing anything.
+	 */
+
+	if ( ( flowbus_parameter->access_mode
+			& MXF_FLOWBUS_PARAMETER_READ ) == 0 )
+	{
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Get the variable parameters */
+
 	mx_status = mx_find_record_field( variable->record,
 					"value", &field );
 
@@ -373,6 +400,8 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 			variable->record->name,
 			num_dimensions );
 	}
+
+	/* Update the variable value. */
 
 	mx_status = mxi_flowbus_request_parameter( flowbus,
 					flowbus_parameter->node_address,

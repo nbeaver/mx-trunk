@@ -259,13 +259,23 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 		/* An error status was returned. */
 
 		char flowbus_status_string[3];
+		char flowbus_offset_string[3];
 		unsigned long flowbus_status;
+		unsigned long error_offset;
 
 		flowbus_status_string[0] = response[7];
 		flowbus_status_string[1] = response[8];
 		flowbus_status_string[2] = '\0';
 
-		flowbus_status = atol( flowbus_status_string );
+		flowbus_status =
+			mx_hex_string_to_unsigned_long( flowbus_status_string );
+
+		flowbus_offset_string[0] = response[9];
+		flowbus_offset_string[1] = response[10];
+		flowbus_offset_string[2] = '\0';
+
+		error_offset =
+			mx_hex_string_to_unsigned_long( flowbus_offset_string );
 
 		switch( flowbus_status ) {
 		case 0:
@@ -273,213 +283,213 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 			break;
 		case 0x01:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Process claimed (0x01) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Process claimed (0x01, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x02:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Command error (0x02) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Command error (0x02, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x03:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Process error (0x03) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Process error (0x03, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x04:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Parameter error (0x04) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Parameter error (0x04, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x05:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Parameter type error (0x05) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Parameter type error (0x05, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x06:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Parameter value error (0x06) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Parameter value error (0x06, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x07:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Network not active (0x07) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Network not active (0x07, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x08:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Time-out start character(0x08) for command '%s' "
+			"Time-out start character(0x08, %lu) for command '%s' "
 			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x09:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Time-out serial line (0x09) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Time-out serial line (0x09, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x0A:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Hardware memory error (0x0A) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Hardware memory error (0x0A, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x0B:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Node number error (0x0B) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Node number error (0x0B, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x0C:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"General communication error (0x0C) for command '%s' "
-			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"General communication error (0x0C, %lu) for "
+			"command '%s' sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x0D:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Read only parameter (0x0D) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Read only parameter (0x0D, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x0E:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Error PC communication (0x0E) for command '%s' "
+			"Error PC communication (0x0E, %lu) for command '%s' "
 			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x0F:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"No RS232 connection (0x0F) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"No RS232 connection (0x0F, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x10:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"PC out of memory (0x10) for command '%s' sent to "
+			"PC out of memory (0x10, %lu) for command '%s' sent to "
 			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x11:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Write only parameter (0x11) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Write only parameter (0x11, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x12:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"System configuration unknown (0x12) for command '%s' "
-			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"System configuration unknown (0x12, %lu) for "
+			"command '%s' sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x13:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"No free node address (0x13) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"No free node address (0x13, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x14:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Wrong interface type (0x14) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Wrong interface type (0x14, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x15:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Error serial port connection (0x15) for command '%s' "
-			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Error serial port connection (0x15, %lu) for "
+			"command '%s' sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x16:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Error opening communication (0x16) for command '%s' "
-			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Error opening communication (0x16, %lu) for "
+			"command '%s' sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x17:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Communication error (0x17) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Communication error (0x17, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x18:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Error interface bus master (0x18) for command '%s' "
-			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Error interface bus master (0x18, %lu) for "
+			"command '%s' sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x19:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Timeout answer (0x19) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Timeout answer (0x19, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x1A:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"No start character (0x1A) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"No start character (0x1A, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x1B:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Error first digit (0x1B) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Error first digit (0x1B, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x1C:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Buffer overflow in host (0x1C) for command '%s' "
+			"Buffer overflow in host (0x1C, %lu) for command '%s' "
 			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x1D:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Buffer overflow (0x1D) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Buffer overflow (0x1D, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x1E:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"No answer found (0x1E) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"No answer found (0x1E, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x1F:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Error closing communication (0x1F) for command '%s' "
-			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Error closing communication (0x1F, %lu) for "
+			"command '%s' sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x20:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Synchronization error (0x20) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Synchronization error (0x20, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x21:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Send error (0x21) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Send error (0x21, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x22:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Protocol error (0x22) for command '%s' sent to "
-			"Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Protocol error (0x22, %lu) for command '%s' "
+			"sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		case 0x23:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Buffer overflow in module (0x23) for command '%s' "
-			"sent to Flowbus interface '%s'.",
-				command, flowbus->record->name );
+			"Buffer overflow in module (0x23, %lu) for "
+			"command '%s' sent to Flowbus interface '%s'.",
+				error_offset, command, flowbus->record->name );
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname, 
