@@ -670,6 +670,8 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		current_tick = mx_current_clock_tick();
 
 		end_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
+	} else {
+		end_tick = mx_max_clock_tick();
 	}
 
 	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_ANY ) {
@@ -1197,6 +1199,8 @@ mx_network_wait_for_messages( MX_RECORD *record,
 
 	if ( timeout_in_seconds < 0.0 ) {
 		timeout_enabled = FALSE;
+
+		end_tick = mx_max_clock_tick();
 	} else {
 		timeout_enabled = TRUE;
 

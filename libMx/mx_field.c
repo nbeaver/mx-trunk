@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2016, 2018-2019 Illinois Institute of Technology
+ * Copyright 1999-2016, 2018-2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -306,7 +306,7 @@ mx_get_field_type_string( long field_type )
 	static int num_field_types
 		= sizeof(field_type_list) / sizeof(field_type_list[0]);
 
-	const char unknown_field_type[] = "MXFT_UNKNOWN";
+	static const char unknown_field_type[] = "MXFT_UNKNOWN";
 
 	int i;
 	const char *ptr;

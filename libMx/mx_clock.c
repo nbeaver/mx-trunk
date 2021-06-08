@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009, 2011, 2015-2018 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009, 2011, 2015-2018, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -390,6 +391,17 @@ mx_current_clock_tick( void )
 		current_clock_tick.high_order, current_clock_tick.low_order));
 #endif
 	return current_clock_tick;
+}
+
+MX_EXPORT MX_CLOCK_TICK
+mx_max_clock_tick( void )
+{
+	MX_CLOCK_TICK max_tick;
+
+	max_tick.high_order = ULONG_MAX;
+	max_tick.low_order = ULONG_MAX;
+
+	return max_tick;
 }
 
 MX_EXPORT MX_CLOCK_TICK

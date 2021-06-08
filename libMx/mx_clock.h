@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2004, 2007, 2013, 2017 Illinois Institute of Technology
+ * Copyright 1999, 2004, 2007, 2013, 2017, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +36,8 @@ MX_API double mx_clock_ticks_per_second( void );
 MX_API void mx_initialize_clock_ticks( void );
 
 MX_API MX_CLOCK_TICK mx_current_clock_tick( void );
+
+MX_API MX_CLOCK_TICK mx_max_clock_tick( void );
 
 MX_API MX_CLOCK_TICK mx_relative_clock_tick( double relative_time_in_seconds );
 
