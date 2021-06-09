@@ -1,7 +1,7 @@
 /*
- * Name:    v_flowbus.c
+ * Name:    v_flowbus_capacity.c
  *
- * Purpose: Support for Bronkhorst FLOW-BUS parameters.
+ * Purpose: Support for Bronkhorst FLOW-BUS capacity values.
  *
  * Author:  William Lavender
  *
@@ -22,111 +22,47 @@
 #include "mx_driver.h"
 #include "mx_variable.h"
 #include "i_flowbus.h"
-#include "v_flowbus.h"
+#include "v_flowbus_capacity.h"
 
-MX_RECORD_FUNCTION_LIST mxv_flowbus_parameter_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxv_flowbus_capacity_record_function_list = {
 	mx_variable_initialize_driver,
-	mxv_flowbus_create_record_structures,
-	mxv_flowbus_finish_record_initialization
+	mxv_flowbus_capacity_create_record_structures,
+	mxv_flowbus_capacity_finish_record_initialization
 };
 
-MX_VARIABLE_FUNCTION_LIST mxv_flowbus_parameter_variable_function_list = {
-	mxv_flowbus_send_variable,
-	mxv_flowbus_receive_variable
+MX_VARIABLE_FUNCTION_LIST mxv_flowbus_capacity_variable_function_list = {
+	mxv_flowbus_capacity_send_variable,
+	mxv_flowbus_capacity_receive_variable
 };
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_flowbus_string_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_flowbus_capacity_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MXV_FLOWBUS_PARAMETER_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_STRING_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_flowbus_string_num_record_fields
-	= sizeof( mxv_flowbus_string_field_defaults )
-	/ sizeof( mxv_flowbus_string_field_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_string_rfield_def_ptr
-		= &mxv_flowbus_string_field_defaults[0];
-
-/*---*/
-
-MX_RECORD_FIELD_DEFAULTS mxv_flowbus_uchar_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MXV_FLOWBUS_PARAMETER_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_UCHAR_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_flowbus_uchar_num_record_fields
-	= sizeof( mxv_flowbus_uchar_field_defaults )
-	/ sizeof( mxv_flowbus_uchar_field_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_uchar_rfield_def_ptr
-		= &mxv_flowbus_uchar_field_defaults[0];
-
-/*---*/
-
-MX_RECORD_FIELD_DEFAULTS mxv_flowbus_ushort_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MXV_FLOWBUS_PARAMETER_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_USHORT_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_flowbus_ushort_num_record_fields
-	= sizeof( mxv_flowbus_ushort_field_defaults )
-	/ sizeof( mxv_flowbus_ushort_field_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_ushort_rfield_def_ptr
-		= &mxv_flowbus_ushort_field_defaults[0];
-
-/*---*/
-
-MX_RECORD_FIELD_DEFAULTS mxv_flowbus_ulong_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MXV_FLOWBUS_PARAMETER_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_ULONG_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_flowbus_ulong_num_record_fields
-	= sizeof( mxv_flowbus_ulong_field_defaults )
-	/ sizeof( mxv_flowbus_ulong_field_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_ulong_rfield_def_ptr
-		= &mxv_flowbus_ulong_field_defaults[0];
-
-/*---*/
-
-MX_RECORD_FIELD_DEFAULTS mxv_flowbus_float_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MXV_FLOWBUS_PARAMETER_STANDARD_FIELDS,
+	MXV_FLOWBUS_CAPACITY_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
 	MX_FLOAT_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_flowbus_float_num_record_fields
-	= sizeof( mxv_flowbus_float_field_defaults )
-	/ sizeof( mxv_flowbus_float_field_defaults[0] );
+long mxv_flowbus_capacity_num_record_fields
+	= sizeof( mxv_flowbus_capacity_field_defaults )
+	/ sizeof( mxv_flowbus_capacity_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_float_rfield_def_ptr
-		= &mxv_flowbus_float_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_capacity_rfield_def_ptr
+		= &mxv_flowbus_capacity_field_defaults[0];
 
 /*---*/
 
 static mx_status_type
-mxv_flowbus_get_pointers( MX_VARIABLE *variable,
-			MX_FLOWBUS_PARAMETER **flowbus_parameter,
+mxv_flowbus_capacity_get_pointers( MX_VARIABLE *variable,
+			MX_FLOWBUS_CAPACITY **flowbus_capacity,
 			MX_FLOWBUS **flowbus,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxv_flowbus_get_pointers()";
+	static const char fname[] = "mxv_flowbus_capacity_get_pointers()";
 
 	MX_RECORD *flowbus_record;
-	MX_FLOWBUS_PARAMETER *flowbus_parameter_ptr;
+	MX_FLOWBUS_CAPACITY *flowbus_capacity_ptr;
 
 	if ( variable == (MX_VARIABLE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -139,14 +75,14 @@ mxv_flowbus_get_pointers( MX_VARIABLE *variable,
 			calling_fname );
 	}
 
-	flowbus_parameter_ptr = (MX_FLOWBUS_PARAMETER *)
+	flowbus_capacity_ptr = (MX_FLOWBUS_CAPACITY *)
 				variable->record->record_type_struct;
 
-	if ( flowbus_parameter != (MX_FLOWBUS_PARAMETER **) NULL ) {
-		*flowbus_parameter = flowbus_parameter_ptr;
+	if ( flowbus_capacity != (MX_FLOWBUS_CAPACITY **) NULL ) {
+		*flowbus_capacity = flowbus_capacity_ptr;
 	}
 
-	flowbus_record = flowbus_parameter_ptr->flowbus_record;
+	flowbus_record = flowbus_capacity_ptr->flowbus_record;
 
 	if ( flowbus_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -173,12 +109,13 @@ mxv_flowbus_get_pointers( MX_VARIABLE *variable,
 /********************************************************************/
 
 MX_EXPORT mx_status_type
-mxv_flowbus_create_record_structures( MX_RECORD *record )
+mxv_flowbus_capacity_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxv_flowbus_create_record_structures()";
+	static const char fname[] =
+		"mxv_flowbus_capacity_create_record_structures()";
 
 	MX_VARIABLE *variable_struct;
-	MX_FLOWBUS_PARAMETER *flowbus_parameter;
+	MX_FLOWBUS_CAPACITY *flowbus_capacity;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -189,12 +126,12 @@ mxv_flowbus_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for MX_VARIABLE structure." );
 	}
 
-	flowbus_parameter = (MX_FLOWBUS_PARAMETER *)
-				malloc( sizeof(MX_FLOWBUS_PARAMETER) );
+	flowbus_capacity = (MX_FLOWBUS_CAPACITY *)
+				malloc( sizeof(MX_FLOWBUS_CAPACITY) );
 
-	if ( flowbus_parameter == (MX_FLOWBUS_PARAMETER *) NULL ) {
+	if ( flowbus_capacity == (MX_FLOWBUS_CAPACITY *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate memory for MX_FLOWBUS_PARAMETER structure." );
+		"Cannot allocate memory for MX_FLOWBUS_CAPACITY structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -203,27 +140,26 @@ mxv_flowbus_create_record_structures( MX_RECORD *record )
 
 	record->record_superclass_struct = variable_struct;
 	record->record_class_struct = NULL;
-	record->record_type_struct = flowbus_parameter;
+	record->record_type_struct = flowbus_capacity;
 
 	record->superclass_specific_function_list =
-				&mxv_flowbus_parameter_variable_function_list;
+				&mxv_flowbus_capacity_variable_function_list;
 	record->class_specific_function_list = NULL;
 
-	flowbus_parameter->record = record;
+	flowbus_capacity->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxv_flowbus_finish_record_initialization( MX_RECORD *record )
+mxv_flowbus_capacity_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxv_flowbus_finish_record_initialization()";
+		"mxv_flowbus_capacity_finish_record_initialization()";
 
 	MX_VARIABLE *variable = NULL;
-	MX_FLOWBUS_PARAMETER *flowbus_parameter = NULL;
+	MX_FLOWBUS_CAPACITY *flowbus_capacity = NULL;
 	MX_FLOWBUS *flowbus = NULL;
-	MX_RECORD_FIELD *value_field = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -233,54 +169,21 @@ mxv_flowbus_finish_record_initialization( MX_RECORD *record )
 
 	variable = (MX_VARIABLE *) record->record_superclass_struct;
 
-	mx_status = mxv_flowbus_get_pointers( variable,
-				&flowbus_parameter, &flowbus, fname );
+	mx_status = mxv_flowbus_capacity_get_pointers( variable,
+				&flowbus_capacity, &flowbus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* We get the FLOW-BUS parameter type from the MX datatype
-	 * of the variable's "value" field.
-	 */
-
-	mx_status = mx_find_record_field( record, "value", &value_field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	switch( value_field->datatype ) {
-	case MXFT_UCHAR:
-		flowbus_parameter->parameter_type = 0x0;
-		break;
-	case MXFT_USHORT:
-		flowbus_parameter->parameter_type = 0x2;
-		break;
-	case MXFT_ULONG:
-	case MXFT_FLOAT:
-		flowbus_parameter->parameter_type = 0x4;
-		break;
-	case MXFT_STRING:
-		flowbus_parameter->parameter_type = 0x6;
-		break;
-	default:
-		flowbus_parameter->parameter_type = 0x99;
-
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported MX datatype (%lu) requested for "
-		"FlowBus variable '%s'.",
-			value_field->datatype, record->name );
-		break;
-	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxv_flowbus_send_variable( MX_VARIABLE *variable )
+mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 {
-	static const char fname[] = "mxv_flowbus_send_variable()";
+	static const char fname[] = "mxv_flowbus_capacity_send_variable()";
 
-	MX_FLOWBUS_PARAMETER *flowbus_parameter = NULL;
+	MX_FLOWBUS_CAPACITY *flowbus_capacity = NULL;
 	MX_FLOWBUS *flowbus = NULL;
 	MX_RECORD_FIELD *field = NULL;
 	long num_dimensions, field_type;
@@ -289,8 +192,8 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 	char flowbus_status_response[80];
 	mx_status_type mx_status;
 
-	mx_status = mxv_flowbus_get_pointers( variable,
-				&flowbus_parameter, &flowbus, fname );
+	mx_status = mxv_flowbus_capacity_get_pointers( variable,
+				&flowbus_capacity, &flowbus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -299,8 +202,8 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 	 * an error message that says so.
 	 */
 
-	if ( ( flowbus_parameter->access_mode
-			& MXF_FLOWBUS_PARAMETER_WRITE ) == 0 )
+	if ( ( flowbus_capacity->access_mode
+			& MXF_FLOWBUS_CAPACITY_WRITE ) == 0 )
 	{
 		return mx_error( MXE_READ_ONLY, fname,
 		"Flowbus variable '%s' is read-only.", variable->record->name );
@@ -326,19 +229,29 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 	if ( num_dimensions != 1) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Only 1-dimensional parameters are supported "
-		"for 'flowbus_parameter' records, but record '%s' "
+		"for 'flowbus_capacity' records, but record '%s' "
 		"is %ld-dimensional.",
 			variable->record->name,
 			num_dimensions );
 	}
 
-	/* Send the new variable value. */
+	/* Select the capacity unit. */
 
 	mx_status = mxi_flowbus_send_parameter( flowbus,
-					flowbus_parameter->node_address,
-					flowbus_parameter->process_number,
-					flowbus_parameter->parameter_number,
-					flowbus_parameter->parameter_type,
+					flowbus_capacity->node_address,
+					1, 31, MXDT_FLOWBUS_STRING,
+					flowbus_capacity->capacity_unit,
+					flowbus_status_response,
+					sizeof(flowbus_status_response), 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Send the new capacity value. */
+
+	mx_status = mxi_flowbus_send_parameter( flowbus,
+					flowbus_capacity->node_address,
+					1, 13, MXDT_FLOWBUS_ULONG_FLOAT,
 					value_ptr,
 					flowbus_status_response,
 					sizeof(flowbus_status_response), 0 );
@@ -347,11 +260,11 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 }
 
 MX_EXPORT mx_status_type
-mxv_flowbus_receive_variable( MX_VARIABLE *variable )
+mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 {
-	static const char fname[] = "mxv_flowbus_receive_variable()";
+	static const char fname[] = "mxv_flowbus_capacity_receive_variable()";
 
-	MX_FLOWBUS_PARAMETER *flowbus_parameter = NULL;
+	MX_FLOWBUS_CAPACITY *flowbus_capacity = NULL;
 	MX_FLOWBUS *flowbus = NULL;
 	MX_RECORD_FIELD *field = NULL;
 	long num_dimensions, mx_field_type;
@@ -359,10 +272,11 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 	void *value_ptr;
 	long max_value_length_in_bytes;
 	size_t *sizeof_array;
+	char flowbus_status_response[80];
 	mx_status_type mx_status;
 
-	mx_status = mxv_flowbus_get_pointers( variable,
-				&flowbus_parameter, &flowbus, fname );
+	mx_status = mxv_flowbus_capacity_get_pointers( variable,
+				&flowbus_capacity, &flowbus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -371,8 +285,8 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 	 * without doing anything.
 	 */
 
-	if ( ( flowbus_parameter->access_mode
-			& MXF_FLOWBUS_PARAMETER_READ ) == 0 )
+	if ( ( flowbus_capacity->access_mode
+			& MXF_FLOWBUS_CAPACITY_READ ) == 0 )
 	{
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -397,7 +311,7 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 	if ( num_dimensions != 1 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Only 1-dimensional parameters are supported "
-		"for 'flowbus_parameter' records, but record '%s' "
+		"for 'flowbus_capacity' records, but record '%s' "
 		"is %ld-dimensional.",
 			variable->record->name,
 			num_dimensions );
@@ -417,13 +331,23 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 		fname, variable->record->name, max_value_length_in_bytes));
 #endif
 
-	/* Update the variable value. */
+	/* Select the capacity unit. */
+
+	mx_status = mxi_flowbus_send_parameter( flowbus,
+					flowbus_capacity->node_address,
+					1, 31, MXDT_FLOWBUS_STRING,
+					flowbus_capacity->capacity_unit,
+					flowbus_status_response,
+					sizeof(flowbus_status_response), 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the capacity value. */
 
 	mx_status = mxi_flowbus_request_parameter( flowbus,
-					flowbus_parameter->node_address,
-					flowbus_parameter->process_number,
-					flowbus_parameter->parameter_number,
-					flowbus_parameter->parameter_type,
+					flowbus_capacity->node_address,
+					1, 13, MXDT_FLOWBUS_STRING,
 					value_ptr,
 					max_value_length_in_bytes, 0 );
 

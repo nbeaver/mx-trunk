@@ -907,6 +907,8 @@ extern "C" {
 #define MXV_FLOWBUS_ULONG		510009
 #define MXV_FLOWBUS_FLOAT		510010
 
+#define MXV_FLOWBUS_CAPACITY		510050
+
 #define MXV_SPECIAL_FIX_REGIONS		590001
 
 /* --- Server types --- */

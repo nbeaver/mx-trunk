@@ -561,6 +561,7 @@
 #include "v_bluice_operation.h"
 #include "v_bluice_self_operation.h"
 #include "v_flowbus.h"
+#include "v_flowbus_capacity.h"
 
 #include "v_fix_regions.h"
 
@@ -4160,6 +4161,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxv_flowbus_float_num_record_fields,
 				&mxv_flowbus_float_rfield_def_ptr},
+
+{"flowbus_capacity",  MXV_FLOWBUS_CAPACITY, MXV_FLOWBUS,    MXR_VARIABLE,
+				&mxv_flowbus_capacity_record_function_list,
+				&mxv_flowbus_capacity_variable_function_list,
+				NULL,
+				&mxv_flowbus_capacity_num_record_fields,
+				&mxv_flowbus_capacity_rfield_def_ptr},
 
 /*----*/
 
