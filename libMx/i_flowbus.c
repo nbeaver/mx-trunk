@@ -653,7 +653,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 		mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				8, MXFT_UCHAR, &expected_string_length );
+				6, MXFT_UCHAR, &expected_string_length );
 
 		message_length++;
 	}
@@ -703,7 +703,8 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	case MXDT_FLOWBUS_STRING:
 		{
-			size_t bytes_to_copy;
+			size_t i, bytes_to_copy;
+			char *parameter_string = NULL;
 
 			size_t buffer_space_left = sizeof(ascii_command_buffer)
 			    - ( value_string_ptr - ascii_command_buffer );
@@ -714,11 +715,19 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				bytes_to_copy = expected_string_length;
 			}
 
-			strlcpy( value_string_ptr,
-				(char *) parameter_value_to_send,
-				bytes_to_copy );
+			parameter_string = (char *) parameter_value_to_send;
 
-			message_length += ( bytes_to_copy / 2L );
+			for ( i = 0; i < bytes_to_copy; i++ ) {
+
+				uint8_value = parameter_string[i];
+
+				snprintf( value_string_ptr, 2+1,
+					"%02X", (unsigned int) uint8_value );
+
+				value_string_ptr += 2;
+			}
+
+			message_length += bytes_to_copy;
 		}
 		break;
 	}

@@ -106,27 +106,27 @@ mxi_flowbus_format_string( char *external_buffer,
 		uint8_value = *((uint8_t *) value_ptr );
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
-				"%02x", uint8_value );
+				"%02X", uint8_value );
 		break;
 	case MXFT_USHORT:
 		uint16_value = *((uint16_t *) value_ptr );
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
-				"%04x", uint16_value );
+				"%04X", uint16_value );
 		break;
 	case MXFT_ULONG:
 		uint32_value = *((uint32_t *) value_ptr );
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
-				"%08x", uint32_value );
+				"%08X", uint32_value );
 		break;
 	case MXFT_FLOAT:
 		float_value = *((float *) value_ptr );
 
-		/* FIXME, FIXME, FIXME: The cast to unsigned int is WRONG. */
+		/* FIXME, FIXME, FIXME: The cast to unsigned int is WRONG? */
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
-				"%08x", (unsigned int) float_value );
+				"%08X", (unsigned int) float_value );
 		break;
 	}
 
