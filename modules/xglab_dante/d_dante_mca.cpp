@@ -1364,7 +1364,7 @@ mxd_dante_mca_busy( MX_MCA *mca )
 		mca->busy = TRUE;
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: isRunning() callback data = %lu, hrt = %f seconds",
 		fname, (unsigned long) mxi_dante_callback_data[0],
 		mx_high_resolution_time_as_double() ));
