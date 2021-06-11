@@ -918,6 +918,8 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mca->old_busy = FALSE;
+
 	/* Configure the MCA for 'normal' mode. */
 
 	MX_HRT_START( configure_measurement );
@@ -995,8 +997,10 @@ mxd_dante_mca_arm( MX_MCA *mca )
 		MX_DEBUG(-2,("%s: %lu retries were performed.", fname, i));
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: start() returned call_id = %lu",
 			fname, (unsigned long) call_id ));
+#endif
 
 	mxi_dante_wait_for_answer( call_id, dante );
 
@@ -1039,9 +1043,16 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	 * as having 'new_data_available' == TRUE.
 	 */
 
-#if 1
+#if 0
 	MX_DEBUG(-2,
 	  ("%s: mxi_dante_wait_for_answer() completed successfully", fname));
+#endif
+
+	mca->old_busy = -1;
+	mca->busy = -1;
+#if 1
+	MX_DEBUG(-2,("%s: '%s' busy = %d",
+		fname, mca->record->name, (int) mca->busy));
 #endif
 
 	mx_status = mxi_dante_set_data_available_flag_for_chain( mca->record,
@@ -1122,13 +1133,15 @@ mxd_dante_mca_stop( MX_MCA *mca )
 			(unsigned long) dante_error_code );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: stop() returned call_id = %lu",
 				fname, (unsigned long) call_id));
 
-#if 1
 	MX_DEBUG(-2,("%s: Skipping wait for call_id = %lu",
 				fname, (unsigned long) call_id));
-#else
+#endif
+
+#if 0
 	MX_HRT_START( wait_measurement );
 
 	mxi_dante_wait_for_answer( call_id, dante );
@@ -1368,6 +1381,12 @@ mxd_dante_mca_busy( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: isRunning() callback data = %lu, hrt = %f seconds",
 		fname, (unsigned long) mxi_dante_callback_data[0],
 		mx_high_resolution_time_as_double() ));
+#endif
+
+#if 1
+	MX_DEBUG(-2,("%s: '%s' old_busy = %d, busy = %d",
+		fname, mca->record->name,
+		mca->old_busy, mca->busy));
 #endif
 
 	if ( mca->busy != mca->old_busy ) {
