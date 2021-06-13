@@ -374,6 +374,10 @@ MX_API mx_status_type mx_socket_num_input_bytes_available(
 					MX_SOCKET *mx_socket,
 					long *num_input_bytes_available );
 
+MX_API mx_status_type mx_socket_num_output_bytes_in_transit(
+					MX_SOCKET *mx_socket,
+					long *num_output_bytes_in_transit );
+
 MX_API mx_status_type mx_socket_discard_unread_input( MX_SOCKET *mx_socket );
 
 MX_API mx_status_type mx_socket_wait_for_event( MX_SOCKET *mx_socket,

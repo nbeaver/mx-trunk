@@ -3297,6 +3297,95 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if defined( OS_LINUX )
+#  include <linux/sockios.h>
+#endif
+
+MX_EXPORT mx_status_type
+mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
+					long *num_output_bytes_in_transit )
+{
+	static const char fname[] = "mx_socket_num_output_bytes_in_transit()";
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( num_output_bytes_in_transit == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_output_bytes_in_transit pointer passed was NULL." );
+	}
+
+	*num_output_bytes_in_transit = 0;
+
+#if ( defined( OS_LINUX ) && defined( SIOCOUTQ ) )
+	{
+		int ioctl_status, bytes_in_transit, saved_errno;
+
+		if ( mx_get_os_version_number() < 2004000L ) {
+			/* SIOCOUTQ requires Linux 2.4 or better. */
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		ioctl_status = mx_socket_ioctl( mx_socket,
+						SIOCOUTQ, &bytes_in_transit );
+
+		if ( ioctl_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"ioctl( %d, SIOCOUTQ, ... )  returned errno %d.",
+				mx_socket->socket_fd, saved_errno );
+		}
+
+		*num_output_bytes_in_transit = bytes_in_transit;
+	}
+#elif defined( OS_MACOSX )
+	{
+		int sockopt_status, bytes_in_transit, saved_errno;
+		socklen_t arg_length = sizeof(bytes_in_transit);
+
+		sockopt_status = getsockopt( mx_socket->socket_fd,
+					SOL_SOCKET, SO_NWRITE,
+					&bytes_in_transit, &arg_length );
+
+		if ( sockopt_status < 0 ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"getsockopt( %d, SOL_SOCKET, SO_NWRITE, ... ) "
+			"returned errno %d.",
+				mx_socket->socket_fd, saved_errno );
+		}
+
+		*num_output_bytes_in_transit = bytes_in_transit;
+	}
+#elif defined( OS_WIN32 )
+	{
+		/* FIXME: Implementation is incomplete for Windows. */
+
+		MIB_TCPROW row;		/* FIXME: Where do we get this? */
+
+		TCP_ESTATS_SEND_BUFF_RW_v0 Rw;
+		TCP_ESTATS_SEND_BUFF_ROD_v0 Rod;
+		ULONG os_status;
+
+		memset( &Rw, 0, sizeof(Rw) );
+		memset( &Rod, 0, sizeof(Rod) );
+
+		os_status = GetPerTcpConnectionEStats( &row,
+					TcpConnectionEstatsSendBuff,
+					&Rw, 0, sizeof(Rw),
+					NULL, 0, 0,
+					&Rod, 0, sizeof(Rod) );
+#error More work to do here.
+	}
+#else
+#error mx_socket_num_output_bytes_in_transit() not yet implemented for this build target.
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #define MXU_SOCKET_DISCARD_BUFFER_LENGTH	1000
 
 MX_EXPORT mx_status_type
