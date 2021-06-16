@@ -1212,7 +1212,7 @@ mx_socket_resynchronize( MX_SOCKET **mx_socket )
 
 	/* Save information about the existing socket. */
 
-	mx_status = mx_get_socket_information( *mx_socket,
+	mx_status = mx_get_socket_metadata( *mx_socket,
 					&net_address_family,
 					&net_socket_type,
 					&mx_socket_type,
@@ -1489,7 +1489,7 @@ mx_get_socket_name_by_fd( MX_SOCKET_FD socket_fd,
 /*---------*/
 
 MX_EXPORT mx_status_type
-mx_get_socket_information( MX_SOCKET *mx_socket,
+mx_get_socket_metadata( MX_SOCKET *mx_socket,
 				int *net_address_family,
 				int *net_socket_type,
 				long *mx_socket_type,
@@ -1500,7 +1500,7 @@ mx_get_socket_information( MX_SOCKET *mx_socket,
 				mx_bool_type *is_non_blocking,
 				long *receive_buffer_size )
 {
-	static const char fname[] = "mx_get_socket_information()";
+	static const char fname[] = "mx_get_socket_metadata()";
 
 	union {
 		struct sockaddr socket_address;
@@ -3299,6 +3299,14 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 #if defined( OS_LINUX )
 #  include <linux/sockios.h>
+
+#elif defined( OS_WIN32 ) && 0
+#  include <iphlpapi.h>
+static HINSTANCE hinst_iphlpapi = NULL;
+
+typedef ULONG (*GetTcpTable_type)( PMID_TCPTABLE, PULONG, BOOL );
+
+static GetTcpTable_type ptrGetTcpTable = NULL;
 #endif
 
 MX_EXPORT mx_status_type
@@ -3361,13 +3369,42 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 	}
 #elif defined( OS_WIN32 )
 	{
-		/* FIXME: Implementation is incomplete for Windows. */
+#if 1
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Getting the number of output bytes in transit "
+			"is not yet implemented for Windows." );
+#else
+		MIB_TCPTABLE tcp_table;
+		ULONG tcp_table_size = sizeof(tcp_table);
 
-		MIB_TCPROW row;		/* FIXME: Where do we get this? */
+		MIB_TCPROW row;
 
 		TCP_ESTATS_SEND_BUFF_RW_v0 Rw;
 		TCP_ESTATS_SEND_BUFF_ROD_v0 Rod;
 		ULONG os_status;
+		DWORD last_error_code;
+		TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
+
+		if ( ptrGetTcpTable  == NULL ) {
+			if ( hinst_iphlpapi ) {
+			}
+		}
+
+		memset( &tcp_table, 0, tcp_table_size );
+
+		os_status = GetTcpTable( &tcp_table, &tcp_table_size, FALSE );
+
+		if ( os_status != NO_ERROR ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"A call to GetTcpTable() failed.  "
+			"Win32 error code = %ld, error message = '%s'",
+				last_error_code, message_buffer );
+		}
 
 		memset( &Rw, 0, sizeof(Rw) );
 		memset( &Rod, 0, sizeof(Rod) );
@@ -3377,7 +3414,7 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 					&Rw, 0, sizeof(Rw),
 					NULL, 0, 0,
 					&Rod, 0, sizeof(Rod) );
-#error More work to do here.
+#endif
 	}
 #else
 #error mx_socket_num_output_bytes_in_transit() not yet implemented for this build target.

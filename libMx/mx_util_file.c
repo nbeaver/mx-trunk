@@ -554,8 +554,6 @@ mx_copy_file_classic( char *existing_filename,
 
 /*=========================================================================*/
 
-#if defined(OS_WIN32)
-
 MX_EXPORT mx_status_type
 mx_show_file_metadata( char *filename )
 {
@@ -567,6 +565,8 @@ mx_show_fd_metadata( int fd )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#if defined( OS_WIN32 )
 
 MX_EXPORT mx_status_type
 mx_show_handle_metadata( void *win32_handle )
@@ -574,22 +574,6 @@ mx_show_handle_metadata( void *win32_handle )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 1
-
-MX_EXPORT mx_status_type
-mx_show_file_metadata( char *filename )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_show_fd_metadata( int fd )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#else
-#error mx_show_file_metadata() and friends not implemented on this build target.
 #endif
 
 /*=========================================================================*/

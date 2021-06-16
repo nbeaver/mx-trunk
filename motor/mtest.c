@@ -138,6 +138,9 @@ motor_test_fn( int argc, char *argv[] )
 			mx_show_fd_metadata( file_descriptor );
 
 			return SUCCESS;
+		} else
+		if ( strcmp( argv[2], "show_socket_metadata" ) == 0 ) {
+
 #if defined(OS_WIN32)
 		} else
 		if ( strcmp( argv[2], "show_handle_metadata" ) == 0 ) {
