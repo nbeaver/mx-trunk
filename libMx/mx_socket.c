@@ -3359,6 +3359,8 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 					&bytes_in_transit, &arg_length );
 
 		if ( sockopt_status < 0 ) {
+			saved_errno = errno;
+
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"getsockopt( %d, SOL_SOCKET, SO_NWRITE, ... ) "
 			"returned errno %d.",
