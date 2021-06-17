@@ -1248,6 +1248,21 @@ mxd_dante_mca_read( MX_MCA *mca )
 			break;
 		}
 	}
+#if 1
+	{
+		int i;
+		unsigned long data_value;
+
+		fprintf( stderr, "\n" );
+
+		for ( i = 450; i < 650; i++ ) {
+			data_value = (unsigned long) spectrum_array[i];
+			fprintf( stderr, "%lu  ", data_value );
+		}
+
+		fprintf( stderr, "\n" );
+	}
+#endif
 
 	dante_mca->total_num_measurements++;
 
@@ -1383,7 +1398,7 @@ mxd_dante_mca_busy( MX_MCA *mca )
 		mx_high_resolution_time_as_double() ));
 #endif
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: '%s' old_busy = %d, busy = %d",
 		fname, mca->record->name,
 		mca->old_busy, mca->busy));
