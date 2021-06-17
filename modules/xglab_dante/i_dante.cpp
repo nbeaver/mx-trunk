@@ -14,13 +14,17 @@
  *
  */
 
-#define MXI_DANTE_DEBUG_SHOW_PARAMETERS_FOR_CHAIN	TRUE
+#define MXI_DANTE_TRACE_CALLS				TRUE
+
+#define MXI_DANTE_DEBUG_CALLBACKS			TRUE
+
+#define MXI_DANTE_DEBUG_MISC				FALSE
+
+#define MXI_DANTE_DEBUG_SHOW_PARAMETERS_FOR_CHAIN	FALSE
 
 #define MXI_DANTE_DEBUG_SHOW_CONFIG_FILE_BUFFERS	FALSE
 
 #define MXI_DANTE_DEBUG_SECTIONS			FALSE
-
-#define MXI_DANTE_DEBUG_CALLBACKS			FALSE
 
 #define MXI_DANTE_DEBUG_DATA_AVAILABLE			FALSE
 
@@ -103,7 +107,7 @@ extern const char *mxi_dante_strerror( int xia_status );
 
 /* FIXME: The following set of callback-related functions basically serialize
  * the handling of callbacks.  If we find ourself needing to deserialize the
- * handling of callbacks, then we will need to replace the following code.
+ * handling of callbacks, then we will need to redesign this stuff.
  */
 
 uint32_t mxi_dante_callback_id;
@@ -124,8 +128,7 @@ mxi_dante_callback_fn( uint16_t type,
 
 #if MXI_DANTE_DEBUG_CALLBACKS
 	fprintf( stderr,
-	"\n>>> %s invoked.  type = %lu, call_id = %lu, length = %lu, "
-	"mxi_dante_callback_data = ",
+	">>> %s: type = %lu, call_id = %lu, length = %lu, data = ",
 		fname, (unsigned long) type,
 		(unsigned long) call_id, (unsigned long) length);
 #endif
@@ -145,7 +148,7 @@ mxi_dante_callback_fn( uint16_t type,
 		(unsigned long) mxi_dante_callback_data[i] );
 	}
 
-	fprintf( stderr, "\n" );
+	fprintf( stderr, "<<<\n", fname );
 	fflush( stderr );
 #endif
 
@@ -173,8 +176,8 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 	mxi_dante_callback_id = call_id;
 
 #if MXI_DANTE_DEBUG_CALLBACKS
-	MX_DEBUG(-2,("%s: Waiting for callback %lu",
-		fname, (unsigned long) call_id));
+	fprintf( stderr,
+		"((( Waiting for callback %lu ...\n", (unsigned long) call_id);
 #endif
 
 	if ( dante->max_io_delay <= 0.0 ) {
@@ -187,8 +190,8 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 		if ( mxi_dante_callback_id != call_id ) {
 
 #if MXI_DANTE_DEBUG_CALLBACKS
-			MX_DEBUG(-2,("Callback %lu seen.",
-				(unsigned long) call_id ));
+			fprintf( stderr, "Callback %lu seen. )))\n",
+				(unsigned long) call_id );
 #endif
 
 			return TRUE;
@@ -394,7 +397,9 @@ mxi_dante_open( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+#if MXI_DANTE_TRACE_CALLS
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
+#endif
 
 	dante = (MX_DANTE *) record->record_type_struct;
 
@@ -425,15 +430,25 @@ mxi_dante_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if MXI_DANTE_TRACE_CALLS
 		MX_DEBUG(-2,("%s: The vendor\'s '%s' library was "
 				"loaded from the file '%s'.",
 				fname, dante_library->filename,
 				dante_library_filename ));
+#endif
 	}
 
 	/* Clear out any pre-existing errors from previous runs. */
 
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "%s: resetLastError()",fname );
+#endif
+
 	(void) resetLastError();
+
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr,"\n" );
+#endif
 
 	/*---*/
 
@@ -446,6 +461,11 @@ mxi_dante_open( MX_RECORD *record )
 	 * callback _before_ returning from InitLibrary().
 	 */
 
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr,
+		"%s: register_callback( mxi_dante_callback_fn ) = ", fname );
+#endif
+
 	dante_status = register_callback( mxi_dante_callback_fn );
 
 	if ( dante_status == false ) {
@@ -457,7 +477,15 @@ mxi_dante_open( MX_RECORD *record )
 		"error code %lu.", (unsigned long) error_code );
 	}
 
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "true\n" );
+#endif
+
 	/* Initialize the DANTE library. */
+
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "%s: InitLibrary() = ", fname );
+#endif
 
 	dante_status = InitLibrary();
 
@@ -469,9 +497,18 @@ mxi_dante_open( MX_RECORD *record )
 			(unsigned long) error_code );
 	}
 
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "true\n" );
+#endif
+
 	/* Get the DANTE API version number. */
 
 	version_length = MXU_DANTE_MAX_VERSION_LENGTH;
+
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "%s: libVersion( dante_version_string, %lu ) = ",
+						fname, version_length );
+#endif
 
 	dante_status = libVersion( dante->dante_version_string,
 						version_length );
@@ -483,6 +520,12 @@ mxi_dante_open( MX_RECORD *record )
 		"DANTE libVersion() failed with error code %lu.",
 			(unsigned long) error_code );
 	}
+
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "true\n" );
+	fprintf( stderr, "%s: dante_version_string = '%s'\n",
+		fname, dante->dante_version_string );
+#endif
 
 	num_items = sscanf( dante->dante_version_string, "%lu.%lu.%lu.%lu",
 					&major, &minor, &update, &extra );
@@ -557,9 +600,19 @@ mxi_dante_open( MX_RECORD *record )
 		fname, dante->max_init_delay));
 #endif
 
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "%s: Sleeping for %lu milliseconds\n",
+					fname, max_init_delay_ms );
+#endif
+
 	mx_msleep( max_init_delay_ms );
 
 	/* How many masters are there? */
+
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr,
+		"%s: get_dev_number( number_of_master_devices ) = ", fname );
+#endif
 
 	dante_status = get_dev_number( number_of_master_devices );
 
@@ -567,6 +620,12 @@ mxi_dante_open( MX_RECORD *record )
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"DANTE get_dev_number() failed." );
 	}
+
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "true\n" );
+	fprintf( stderr, "%s: number_of_master_devices = %lu\n",
+				fname, number_of_master_devices );
+#endif
 
 	dante->num_master_devices = number_of_master_devices;
 
@@ -614,6 +673,11 @@ mxi_dante_open( MX_RECORD *record )
 
 		board_number = 0;
 
+#if MXI_DANTE_TRACE_CALLS
+		fprintf( stderr, "%s: get_ids( chain_id, %lu, %lu ) = ",
+				fname, board_number, max_identifier_length );
+#endif
+
 		dante_status = get_ids( dante->master[i].chain_id,
 					board_number, max_identifier_length );
 
@@ -632,7 +696,13 @@ mxi_dante_open( MX_RECORD *record )
 			}
 		}
 
-#if 1
+#if MXI_DANTE_TRACE_CALLS
+		fprintf( stderr, "true\n" );
+		fprintf( stderr, "%s: chain_id # %lu = '%s'\n",
+			fname, i, dante->master[i].chain_id );
+#endif
+
+#if 0
 		MX_DEBUG(-2,("%s: dante->master[%lu].chain_id = '%s'",
 			fname, i, dante->master[i].chain_id ));
 #endif
@@ -673,14 +743,37 @@ mxi_dante_open( MX_RECORD *record )
 
 		for ( attempt = 0; attempt < max_io_attempts; attempt++ ) {
 
+#if MXI_DANTE_TRACE_CALLS
+			fflush( stderr );
+			fprintf( stderr,
+			"%s: get_boards_in_chain( '%s', num_boards ) = ",
+				fname, dante->master[i].chain_id );
+#endif
+
 			dante_status = get_boards_in_chain(
 				dante->master[i].chain_id, num_boards );
 
 			if ( dante_status != false ) {
+#if MXI_DANTE_TRACE_CALLS
+				fprintf( stderr, "true\n" );
+				fflush( stderr );
+#endif
 				break;	/* Exit the for(attempt) loop. */
 			}
 
+#if MXI_DANTE_TRACE_CALLS
+			fprintf( stderr, "false\n" );
+			fflush( stderr );
+#endif
+
 			(void) getLastError( error_code );
+
+#if MXI_DANTE_TRACE_CALLS
+			fprintf( stderr,
+			    "%s: get_lastErrorCode( error_code )\n", fname );
+			fprintf( stderr, "%s: error_code = %lu\n",
+				fname, error_code );
+#endif
 
 			switch( error_code ) {
 			case DLL_NO_ERROR:
@@ -696,9 +789,9 @@ mxi_dante_open( MX_RECORD *record )
 			mx_msleep( max_io_delay_ms );
 		}
 
-#if 0
-		MX_DEBUG(-2,("%s: num_boards = %lu",
-			fname, (unsigned long) num_boards));
+#if MXI_DANTE_TRACE_CALLS
+		fprintf( stderr,"%s: num_boards = %lu\n",
+			fname, (unsigned long) num_boards );
 #endif
 
 		if ( num_boards > dante->max_boards_per_chain ) {
@@ -862,6 +955,10 @@ mxi_dante_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+#endif
+
+#if MXI_DANTE_TRACE_CALLS
+	fprintf( stderr, "%s complete.\n", fname );
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

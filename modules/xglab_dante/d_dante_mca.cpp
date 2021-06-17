@@ -42,7 +42,9 @@
  *
  */
 
-#define MXD_DANTE_MCA_DEBUG					TRUE
+#define MXD_DANTE_MCA_TRACE_CALLS				TRUE
+
+#define MXD_DANTE_MCA_DEBUG					FALSE
 
 #define MXI_DANTE_DEBUG_PARAMETERS				FALSE
 
@@ -300,9 +302,9 @@ mxd_dante_mca_open( MX_RECORD *record )
 			"MX_RECORD pointer passed is NULL." );
 	}
 
-#if 0
-	MX_DEBUG(-2,("**** %s invoked for record '%s'. ****",
-			fname, record->name));
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "vvvv %s invoked for record '%s'. vvvv\n",
+			fname, record->name );
 #endif
 
 	mca = (MX_MCA *) (record->record_class_struct);
@@ -342,8 +344,17 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	/* Detect the firmware used by this board. */
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: getFirmware( '%s', 0 ) = ",
+		fname, dante_mca->identifier, dante_mca->board_number );
+#endif
+
 	call_id = getFirmware( dante_mca->identifier,
 				dante_mca->board_number );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "call_id %lu\n", call_id );
+#endif
 
 	if ( call_id == 0 ) {
 		(void) getLastError( dante_error_code );
@@ -356,7 +367,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	mxi_dante_wait_for_answer( call_id, dante );
 
-#if 1
+#if 0
 	int i;
 
 	fprintf( stderr, "getFirmware() callback data = " );
@@ -441,6 +452,11 @@ mxd_dante_mca_open( MX_RECORD *record )
 	}	
 
 	dante->mca_record_array[ board_number ] = mca->record;
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "^^^^ %s complete for record '%s' ^^^^\n",\
+			fname, record->name );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
