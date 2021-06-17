@@ -431,6 +431,10 @@ mxi_dante_open( MX_RECORD *record )
 				dante_library_filename ));
 	}
 
+	/* Clear out any pre-existing errors from previous runs. */
+
+	(void) resetLastError();
+
 	/*---*/
 
 	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
@@ -454,8 +458,6 @@ mxi_dante_open( MX_RECORD *record )
 	}
 
 	/* Initialize the DANTE library. */
-
-	(void) resetLastError();
 
 	dante_status = InitLibrary();
 
@@ -641,6 +643,7 @@ mxi_dante_open( MX_RECORD *record )
 				mx_round_up( 1000.0 * dante->max_io_delay );
 		}
 
+#if 0
 		/* Reset this chain. */
 
 		MX_HRT_START( global_reset_measurement );
@@ -664,6 +667,7 @@ mxi_dante_open( MX_RECORD *record )
 				break;
 			}
 		}
+#endif
 
 		/* Figure out how many boards are in this chain. */
 
@@ -1116,8 +1120,8 @@ mxi_dante_set_configuration_to_defaults(
 	mx_dante_configuration->timestamp_delay = 0;
 	mx_dante_configuration->baseline_offset = 0;
 
-	mx_dante_configuration->offset[0] = 0;
-	mx_dante_configuration->offset[1] = 0;
+	mx_dante_configuration->cfg_offset.offset_val1 = 0;
+	mx_dante_configuration->cfg_offset.offset_val2 = 0;
 
 	mx_dante_configuration->calib_energies_bins[0] = 0;
 	mx_dante_configuration->calib_energies_bins[1] = 0;
@@ -1264,13 +1268,18 @@ mxi_dante_set_parameter_from_string(
 						atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "Offset" ) == 0 ) {
-		mx_dante_configuration->offset[0] = atol( parameter_string );
+		uint32_t offset_value = atol( parameter_string );
+
+		mx_dante_configuration->cfg_offset.offset_val1 = offset_value;
+		mx_dante_configuration->cfg_offset.offset_val2 = offset_value;
 
 	} else if ( strcmp( parameter_name, "offset_1" ) == 0 ) {
-		mx_dante_configuration->offset[0] = atol( parameter_string );
+		mx_dante_configuration->cfg_offset.offset_val1
+						= atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "offset_2" ) == 0 ) {
-		mx_dante_configuration->offset[1] = atol( parameter_string );
+		mx_dante_configuration->cfg_offset.offset_val2
+						= atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "calib_energies_bins" ) == 0 ) {
 		num_items = sscanf( parameter_string, "%lu;%lu",
@@ -1513,9 +1522,9 @@ mxi_dante_show_parameters( MX_RECORD *record )
 	MX_DEBUG(-2,("  baseline_offset = %lu",
 		mx_dante_configuration->baseline_offset));
 
-	MX_DEBUG(-2,("  offset = [ %lu, %lu ]",
-		mx_dante_configuration->offset[0],
-		mx_dante_configuration->offset[1] ));
+	MX_DEBUG(-2,("  cfg_offset = [ %lu, %lu ]",
+		mx_dante_configuration->cfg_offset.offset_val1,
+		mx_dante_configuration->cfg_offset.offset_val2 ));
 
 	MX_DEBUG(-2,("  calib_energies_bins = [ %lu, %lu ]",
 		mx_dante_configuration->calib_energies_bins[0],

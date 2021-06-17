@@ -870,6 +870,18 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	mxi_dante_wait_for_answer( call_id, dante );
 
+	/* Finish by setting up the configuration offsets. */
+
+	if ( dante_flags & MXF_DANTE_SET_BOARDS_TO_0xFF ) {
+		call_id = configure_offset( dante_mca->identifier,
+				0xff, mx_dante_configuration->cfg_offset );
+	} else {
+		call_id = configure_offset( dante_mca->identifier,
+		  dante_mca->board_number, mx_dante_configuration->cfg_offset );
+	}
+
+	mxi_dante_wait_for_answer( call_id, dante );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1347,6 +1359,7 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if 0
 MX_EXPORT mx_status_type
 mxd_dante_mca_busy( MX_MCA *mca )
 {
@@ -1380,7 +1393,7 @@ mxd_dante_mca_busy( MX_MCA *mca )
 
 	if ( call_id == 0 ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-			"isRunning() failed for MCA '%s'.",
+			"isRunning_system() failed for MCA '%s'.",
 			mca->record->name );
 	}
 
@@ -1393,7 +1406,8 @@ mxd_dante_mca_busy( MX_MCA *mca )
 	}
 
 #if 0
-	MX_DEBUG(-2,("%s: isRunning() callback data = %lu, hrt = %f seconds",
+	MX_DEBUG(-2,("%s: isRunning_system() callback data = %lu, "
+	"hrt = %f seconds",
 		fname, (unsigned long) mxi_dante_callback_data[0],
 		mx_high_resolution_time_as_double() ));
 #endif
@@ -1411,6 +1425,77 @@ mxd_dante_mca_busy( MX_MCA *mca )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#else
+
+MX_EXPORT mx_status_type
+mxd_dante_mca_busy( MX_MCA *mca )
+{
+	static const char fname[] = "mxd_dante_mca_busy()";
+
+	MX_DANTE_MCA *dante_mca = NULL;
+	MX_DANTE *dante = NULL;
+	bool dll_status = false;
+	bool last_data_received = false;
+	mx_status_type mx_status;
+
+#if MXD_DANTE_MCA_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+#endif
+
+	mx_status = mxd_dante_mca_get_pointers( mca,
+					&dante_mca, &dante, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 0
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
+#endif
+
+	dll_status = isLastDataReceived( dante_mca->identifier,
+					dante_mca->board_number,
+					last_data_received );
+
+	if ( dll_status == false ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"isLastDataReceived() failed for MCA '%s'.",
+			mca->record->name );
+	}
+
+	mca->old_busy = mca->busy;
+
+	if ( last_data_received ) {
+		mca->busy = FALSE;
+	} else {
+		mca->busy = TRUE;
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: isLastDataReceived() callback data = %lu, "
+	"hrt = %f seconds",
+		fname, (unsigned long) mxi_dante_callback_data[0],
+		mx_high_resolution_time_as_double() ));
+#endif
+
+#if 0
+	MX_DEBUG(-2,("%s: '%s' old_busy = %d, busy = %d",
+		fname, mca->record->name,
+		mca->old_busy, mca->busy));
+#endif
+
+	if ( mca->busy != mca->old_busy ) {
+		MX_DEBUG(-2,("%s: '%s' busy = %d",
+			fname, mca->record->name, (int) mca->busy));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+#endif
 
 MX_EXPORT mx_status_type
 mxd_dante_mca_get_parameter( MX_MCA *mca )
