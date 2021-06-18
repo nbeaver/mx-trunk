@@ -995,14 +995,27 @@ mxi_dante_close( MX_RECORD *record )
 	 * in a call to exit().
 	 */
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: CloseLibrary() = ", fname );
+#endif
+
 	dante_status = CloseLibrary();
 
 	if ( dante_status == false ) {
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+		fprintf( stderr, "false\n" );
+#endif
+
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"The attempt to shutdown the DANTE library by calling "
 		"CloseLibrary() failed.  Seemingly there is not really "
 		"much that we can do about this.  But please report it." );
 	}
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "true\n" );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

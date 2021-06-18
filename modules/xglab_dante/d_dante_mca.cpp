@@ -70,6 +70,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_inttypes.h"
 #include "mx_process.h"
 #include "mx_mcs.h"
 #include "mx_mca.h"
@@ -1010,30 +1011,25 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 		dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+		fprintf( stderr, "%s: start( '%s', %f, %ld ) = ",
+			fname, dante_mca->identifier,
+			mca->preset_real_time,
+			mca->current_num_channels );
+#endif
 		MX_HRT_START( start_measurement );
 
-#if 0
-		/* KLUDGE: Multiplying the preset_real_time by 0.1 is 
-		 * just a kludge to get the detector to count for 
-		 * approximately the right time.  There is no reason
-		 * to believe that this is the correct, true solution
-		 * for the timing duration problem we see.  However,
-		 * doing this does allow us to test the start() returns
-		 * call_id == 0 issue.
-		 */
-
-		call_id = start( dante_mca->identifier,
-				0.1 * mca->preset_real_time, 
-				mca->current_num_channels );
-#else
 		call_id = start( dante_mca->identifier,
 				mca->preset_real_time, 
 				mca->current_num_channels );
-#endif
 
 		MX_HRT_END( start_measurement );
 		MX_HRT_RESULTS( start_measurement, fname,
 				"start(), i = %lu", i );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+		fprintf( stderr, "call_id %lu\n", call_id );
+#endif
 
 		if ( call_id != 0 )
 			break;
@@ -1124,6 +1120,9 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	mx_status = mxi_dante_set_data_available_flag_for_chain( mca->record,
 									TRUE );
 
+#if 1
+	MX_DEBUG(-2,("%s complete for MCA '%s'.", fname, mca->record->name ));
+#endif
 	return mx_status;
 }
 
@@ -1174,12 +1173,20 @@ mxd_dante_mca_stop( MX_MCA *mca )
 				fname, dante_mca->spectrum_data[0]));
 #endif
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: stop( '%s' ) = ", fname, dante_mca->identifier );
+#endif
+
 	MX_HRT_START( stop_measurement );
 
 	call_id = stop( dante_mca->identifier );
 
 	MX_HRT_END( stop_measurement );
 	MX_HRT_RESULTS( stop_measurement, fname, "stop" );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "call_id %lu\n", call_id );
+#endif
 
 	if ( call_id == 0 ) {
 		dante_error_status = getLastError( dante_error_code );
@@ -1256,6 +1263,10 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 	(void) resetLastError();
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: resetLastError()\n", fname );
+#endif
+
 	spectrum_size = mca->current_num_channels;
 
 	spectrum_array = dante_mca->spectrum_data;
@@ -1281,6 +1292,12 @@ mxd_dante_mca_read( MX_MCA *mca )
 			fname, (unsigned long) spectrum_size ));
 #endif /* MXD_DANTE_MCA_DEBUG_READ */
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr,
+	"%s: getData( '%s', %lu, spectrum_array, spectrum_id, stats, %lu ) = ",
+	fname, dante_mca->identifier, dante_mca->board_number, spectrum_size );
+#endif
+
 	dante_status = getData( dante_mca->identifier,
 				dante_mca->board_number,
 				spectrum_array,
@@ -1296,6 +1313,10 @@ mxd_dante_mca_read( MX_MCA *mca )
 #endif
 
 	if ( dante_status == false ) {
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+		fprintf( stderr, "false\n" );
+#endif
 		getLastError( error_code );
 
 		switch( error_code ) {
@@ -1314,14 +1335,38 @@ mxd_dante_mca_read( MX_MCA *mca )
 			break;
 		}
 	}
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "true\n" );
+	fprintf( stderr, "%s: spectrum_id = %lu\n", fname, spectrum_id );
+	fprintf( stderr, "%s: statistics:\n", fname );
+	fprintf( stderr,
+		"%s:   real_time = %" PRIu64 ", live_time = %" PRIu64 "\n",
+			fname, stats.real_time, stats.live_time );
+	fprintf( stderr,
+		"%s:   ICR = %f, OCR = %f, last_timestamp = %" PRIu64 "\n",
+			fname, stats.ICR, stats.OCR, stats.last_timestamp );
+	fprintf( stderr, "%s:   detected = %lu, measured = %lu\n",
+			fname, stats.detected, stats.measured );
+	fprintf( stderr, "%s:   edge_dt = %lu, filt1_dt = %lu\n",
+			fname, stats.edge_dt, stats.filt1_dt );
+	fprintf( stderr, "%s:   zerocounts = %lu, baselines_value = %lu\n",
+			fname, stats.zerocounts, stats.baselines_value );
+	fprintf( stderr, "%s:   pup_value = %lu, pup_f1_value = %lu\n",
+			fname, stats.pup_value, stats.pup_f1_value );
+	fprintf( stderr,
+		"%s:   pup_notf1_value = %lu, reset_counter_value = %lu\n",
+		fname, stats.pup_notf1_value, stats.reset_counter_value );
+#endif
+
 #if 1
 	{
 		int i;
 		unsigned long data_value;
 
-		fprintf( stderr, "\n" );
+		fprintf( stderr,
+		"\nPrinting spectrum values from bin 450 to 650:\n" );
 
-		for ( i = 450; i < 650; i++ ) {
+		for ( i = 450; i <= 650; i++ ) {
 			data_value = (unsigned long) spectrum_array[i];
 			fprintf( stderr, "%lu  ", data_value );
 		}
@@ -1384,11 +1429,20 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	 * but does not exist.
 	 */
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: clear_chain( '%s' ) = ",
+		fname, dante_mca->identifier );
+#endif
+
 	clear_status = clear_chain( dante_mca->identifier );
 
 	if ( clear_status == false ) {
+
 		(void) getLastError( dante_error_code );
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+		fprintf( stderr, "false\n" );
+#endif
 		switch( dante_error_code ) {
 		case DLL_UNSUPPORTED_BY_FIRMWARE:
 			return mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
@@ -1403,6 +1457,10 @@ mxd_dante_mca_clear( MX_MCA *mca )
 			break;
 		}
 	}
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "true\n" );
+#endif
 
 	/* Mark all of the MCA channels belonging to this Dante board chain
 	 * as having 'new_data_available' == FALSE.
@@ -1511,15 +1569,35 @@ mxd_dante_mca_busy( MX_MCA *mca )
 				fname, dante_mca->spectrum_data[0]));
 #endif
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr,
+	"%s: isLastDataReceived( '%s', %lu, last_data_received ) = ",
+		fname, dante_mca->identifier, dante_mca->board_number );
+#endif
+
 	dll_status = isLastDataReceived( dante_mca->identifier,
 					dante_mca->board_number,
 					last_data_received );
 
 	if ( dll_status == false ) {
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+		fprintf( stderr, "false\n" );
+#endif
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"isLastDataReceived() failed for MCA '%s'.",
 			mca->record->name );
 	}
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "true\n" );
+
+	if ( last_data_received ) {
+		fprintf( stderr, "last_data_received = true\n" );
+	} else {
+		fprintf( stderr, "last_data_received = false\n" );
+	}
+#endif
 
 	mca->old_busy = mca->busy;
 
@@ -1540,6 +1618,10 @@ mxd_dante_mca_busy( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: '%s' old_busy = %d, busy = %d",
 		fname, mca->record->name,
 		mca->old_busy, mca->busy));
+#endif
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: mca->busy = %lu\n", fname, mca->busy );
 #endif
 
 	if ( mca->busy != mca->old_busy ) {
