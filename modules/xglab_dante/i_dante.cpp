@@ -1021,7 +1021,7 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if 0
+#if MXI_DANTE_TRACE_CALLS
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
 #endif
 
@@ -1031,6 +1031,10 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 		return mx_status;
 
 	mx_status = mxi_dante_configure( record );
+
+#if MXI_DANTE_TRACE_CALLS
+	MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name ));
+#endif
 
 	return mx_status;
 }
@@ -1150,7 +1154,7 @@ mxi_dante_configure( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if 0
+#if MXI_DANTE_TRACE_CALLS
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
 #endif
 
@@ -1183,6 +1187,10 @@ mxi_dante_configure( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+#if MXI_DANTE_TRACE_CALLS
+	MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1619,7 +1627,7 @@ mxi_dante_show_parameters( MX_RECORD *record )
 	MX_DEBUG(-2,("  baseline_offset = %lu",
 		mx_dante_configuration->baseline_offset));
 
-	MX_DEBUG(-2,("  cfg_offset = [ %lu, %lu ]",
+	MX_DEBUG(-2,("  cfg_offset = ( %lu, %lu )",
 		mx_dante_configuration->cfg_offset.offset_val1,
 		mx_dante_configuration->cfg_offset.offset_val2 ));
 
@@ -2008,7 +2016,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if 0
+#if MXI_DANTE_TRACE_CALLS
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, dante_record->name));
 #endif
 
@@ -2532,6 +2540,10 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	} /* End of the for() loop over chain masters. */
 
 	mx_fclose( config_file );
+
+#if MXI_DANTE_TRACE_CALLS
+	MX_DEBUG(-2,("%s complete for '%s'.", fname, dante_record->name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -617,6 +617,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 	MX_MCS *mcs = NULL;
 	MX_RECORD *dante_record = NULL;
 	MX_DANTE *dante = NULL;
+	unsigned long board_number;
 	uint32_t call_id;
 	uint16_t dante_error_code = DLL_NO_ERROR;
 	bool dante_error_status;
@@ -643,6 +644,11 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 		dante_mca = (MX_DANTE_MCA *)
 				dante_mcs->mca_record->record_type_struct;
 	}
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	MX_DEBUG(-2,("%s invoked for record '%s'",
+		fname, dante_mca->record->name ));
+#endif
 
 	mca = (MX_MCA *) dante_mca->record->record_class_struct;
 
@@ -713,16 +719,29 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	dante_error_status = resetLastError();
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	(void) mxi_dante_show_parameters( dante_mca->record );
+#endif
+
 	/* Configure the standard acquisition parameters. */
 
 	if ( dante_flags & MXF_DANTE_SET_BOARDS_TO_0xFF ) {
-		call_id = configure( dante_mca->identifier, 0xff,
-				mx_dante_configuration->configuration );
+		board_number = 0xff;
 	} else {
-		call_id = configure( dante_mca->identifier,
-				dante_mca->board_number,
-				mx_dante_configuration->configuration );
+		board_number= dante_mca->board_number;
 	}
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: configure( '%s', %lu, configuration ) = ",
+			fname, dante_mca->identifier, board_number );
+#endif
+
+	call_id = configure( dante_mca->identifier, board_number,
+				mx_dante_configuration->configuration );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "call_id %lu\n", (unsigned long) call_id );
+#endif
 
 #if MXD_DANTE_MCA_DEBUG_CONFIGURE
 	MX_DEBUG(-2,("%s: Configuring MCA '%s' with call_id = %lu",
@@ -800,13 +819,17 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	mx_dante_configuration->input_mode = input_mode;
 
-	if ( dante_flags & MXF_DANTE_SET_BOARDS_TO_0xFF ) {
-		call_id = configure_input( dante_mca->identifier,
-						0xff, input_mode );
-	} else {
-		call_id = configure_input( dante_mca->identifier,
-				dante_mca->board_number, input_mode );
-	}
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: configure_input( '%s', %lu, %lu ) = ",
+		fname, dante_mca->identifier, board_number, input_mode );
+#endif
+
+	call_id = configure_input( dante_mca->identifier,
+				board_number, input_mode );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "call_id %lu\n", call_id );
+#endif
 
 	mxi_dante_wait_for_answer( call_id, dante );
 
@@ -876,27 +899,42 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	mx_dante_configuration->gating_mode = gating_mode;
 
-	if ( dante_flags & MXF_DANTE_SET_BOARDS_TO_0xFF ) {
-		call_id = configure_gating( dante_mca->identifier,
-						gating_mode, 0xff );
-	} else {
-		call_id = configure_gating( dante_mca->identifier,
-					gating_mode, dante_mca->board_number );
-	}
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: configure_gating( '%s', %lu, %lu ) = ",
+		fname, dante_mca->identifier, gating_mode, board_number );
+#endif
+
+	call_id = configure_gating( dante_mca->identifier,
+					gating_mode, board_number );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "call_id = %lu\n", call_id );
+#endif
 
 	mxi_dante_wait_for_answer( call_id, dante );
 
 	/* Finish by setting up the configuration offsets. */
 
-	if ( dante_flags & MXF_DANTE_SET_BOARDS_TO_0xFF ) {
-		call_id = configure_offset( dante_mca->identifier,
-				0xff, mx_dante_configuration->cfg_offset );
-	} else {
-		call_id = configure_offset( dante_mca->identifier,
-		  dante_mca->board_number, mx_dante_configuration->cfg_offset );
-	}
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: configure_offset( '%s', %lu, (%lu, %lu) ) = ",
+		fname, dante_mca->identifier, board_number,
+		mx_dante_configuration->cfg_offset.offset_val1,
+		mx_dante_configuration->cfg_offset.offset_val2 );
+#endif
+
+	call_id = configure_offset( dante_mca->identifier,
+		board_number, mx_dante_configuration->cfg_offset );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "call_id = %lu\n", call_id );
+#endif
 
 	mxi_dante_wait_for_answer( call_id, dante );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	MX_DEBUG(-2,("%s complete for record '%s'",
+		fname, dante_mca->record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
