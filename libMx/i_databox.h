@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006, 2010, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ typedef struct {
 
 	int command_mode;
 	int limit_mode;
-	char moving_motor;
+	char moving_motor[2];
 	int last_start_action;
 	double degrees_per_x_step;
 
@@ -138,7 +138,7 @@ MX_API mx_status_type mxi_databox_set_limit_mode( MX_DATABOX *databox,
 
 MX_API mx_status_type mxi_databox_get_record_from_motor_name(
 						MX_DATABOX *databox,
-						char motor_name,
+						char *motor_name,
 						MX_RECORD **motor_record );
 
 MX_API mx_status_type mxi_databox_define_sequence( MX_DATABOX *databox,

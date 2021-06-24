@@ -8,14 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 2005-2006, 2010, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_CM17A_DOUTPUT_DEBUG	TRUE
+#define MXD_CM17A_DOUTPUT_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -240,12 +240,12 @@ mxd_cm17a_doutput_open( MX_RECORD *record )
 
 	/* See if the house code and device code are legal. */
 
-	house_index  = cm17a_doutput->house_code - 'A';
+	house_index  = cm17a_doutput->house_code[0] - 'A';
 	device_index = (int) cm17a_doutput->device_code - 1;
 
 	if ( (house_index < 0) || (house_index >= 16 ) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Illegal house code '%c' selected for CM17A digital output '%s'.  "
+	"Illegal house code '%s' selected for CM17A digital output '%s'.  "
 	"The allowed values are from 'A' to 'P'.",
 			cm17a_doutput->house_code, record->name );
 	}

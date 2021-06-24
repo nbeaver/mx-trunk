@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006, 2010, 2015, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,14 +69,14 @@ mxi_databox_create_record_structures( MX_RECORD *record )
 
 	if ( generic == (MX_GENERIC *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_GENERIC structure." );
+		"Cannot allocate memory for MX_GENERIC structure." );
 	}
 
 	databox = (MX_DATABOX *) malloc( sizeof(MX_DATABOX) );
 
 	if ( databox == (MX_DATABOX *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Can't allocate memory for MX_DATABOX structure." );
+		"Cannot allocate memory for MX_DATABOX structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -94,7 +94,8 @@ mxi_databox_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_databox_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_databox_finish_record_initialization()";
+	static const char fname[] =
+		"mxi_databox_finish_record_initialization()";
 
 	MX_DATABOX *databox;
 	int i;
@@ -103,7 +104,7 @@ mxi_databox_finish_record_initialization( MX_RECORD *record )
 
 	databox->command_mode = 0;
 	databox->limit_mode = 0;
-	databox->moving_motor = '\0';
+	databox->moving_motor[0] = '\0';
 	databox->last_start_action = MX_DATABOX_NO_ACTION;
 	databox->degrees_per_x_step = 0.0;
 
@@ -212,7 +213,7 @@ mxi_databox_open( MX_RECORD *record )
 
 				snprintf( command, sizeof(command),
 					"S%c%g\r",
-					databox_motor->axis_name,
+					databox_motor->axis_name[0],
 					databox_motor->steps_per_degree );
 
 				mx_status = mxi_databox_command( databox,
@@ -225,7 +226,7 @@ mxi_databox_open( MX_RECORD *record )
 
 				snprintf( command, sizeof(command),
 					"A%c%g\r",
-					databox_motor->axis_name,
+					databox_motor->axis_name[0],
 					motor->raw_position.analog );
 
 				mx_status = mxi_databox_command( databox,
@@ -287,7 +288,7 @@ mxi_databox_resynchronize_basic( MX_RECORD *record )
 
 	MX_DEBUG( 2,("%s: databox->last_start_action = %d",
 			fname, databox->last_start_action));
-	MX_DEBUG( 2,("%s: databox->moving_motor = '%c'",
+	MX_DEBUG( 2,("%s: databox->moving_motor = '%s'",
 			fname, databox->moving_motor));
 
 	/* Discard any characters that may still be in the input buffer. */
@@ -831,7 +832,7 @@ mxi_databox_get_limit_mode( MX_DATABOX *databox )
 	 * to the Databox, then it is not possible to ask for the limit mode.
 	 */
 
-	if ( databox->moving_motor != '\0' ) {
+	if ( databox->moving_motor[0] != '\0' ) {
 		mx_status = mxi_databox_get_record_from_motor_name(
 				databox, databox->moving_motor,
 				&motor_record );
@@ -909,7 +910,7 @@ mxi_databox_set_limit_mode( MX_DATABOX *databox, int limit_mode )
 	 * to the Databox, then it is not possible to set the limit mode.
 	 */
 
-	if ( databox->moving_motor != '\0' ) {
+	if ( databox->moving_motor[0] != '\0' ) {
 		mx_status = mxi_databox_get_record_from_motor_name(
 				databox, databox->moving_motor,
 				&motor_record );
@@ -965,7 +966,7 @@ mxi_databox_set_limit_mode( MX_DATABOX *databox, int limit_mode )
 
 MX_EXPORT mx_status_type
 mxi_databox_get_record_from_motor_name( MX_DATABOX *databox,
-					char motor_name,
+					char *motor_name,
 					MX_RECORD **motor_record )
 {
 	static const char fname[] = "mxi_databox_get_record_from_motor_name()";
@@ -979,7 +980,7 @@ mxi_databox_get_record_from_motor_name( MX_DATABOX *databox,
 		"The motor_record pointer passed was NULL." );
 	}
 
-	switch ( motor_name ) {
+	switch ( motor_name[0] ) {
 	case 'X':
 		*motor_record = databox->motor_record_array[0];
 		break;
@@ -995,8 +996,8 @@ mxi_databox_get_record_from_motor_name( MX_DATABOX *databox,
 			databox->record->name );
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"The motor name '%c' (%#x) passed for Databox '%s' is an illegal motor name.",
-			motor_name, motor_name, databox->record->name );
+"The motor name '%s' (%#x) passed for Databox '%s' is an illegal motor name.",
+			motor_name, motor_name[0], databox->record->name );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

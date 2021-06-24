@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006, 2010, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -182,7 +182,7 @@ mxd_databox_timer_is_busy( MX_TIMER *timer )
 
 	MX_DEBUG( 2,("%s: databox->last_start_action = %d",
 			fname, databox->last_start_action));
-	MX_DEBUG( 2,("%s: databox->moving_motor = '%c'",
+	MX_DEBUG( 2,("%s: databox->moving_motor = '%s'",
 			fname, databox->moving_motor));
 
 	/* Read and discard any characters that may be available from the
@@ -262,10 +262,10 @@ mxd_databox_timer_start( MX_TIMER *timer )
 
 	MX_DEBUG( 2,("%s: databox->last_start_action = %d",
 			fname, databox->last_start_action));
-	MX_DEBUG( 2,("%s: databox->moving_motor = '%c'",
+	MX_DEBUG( 2,("%s: databox->moving_motor = '%s'",
 			fname, databox->moving_motor));
 
-	if ( databox->moving_motor != '\0' ) {
+	if ( databox->moving_motor[0] != '\0' ) {
 		mx_status = mxi_databox_get_record_from_motor_name(
 				databox, databox->moving_motor,
 				&other_motor_record );

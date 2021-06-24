@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,12 +25,12 @@
 
 typedef struct {
 	MX_RECORD *interface_record;
-	char port;
+	char port[2];
 } MX_6821_IN;
 
 typedef struct {
 	MX_RECORD *interface_record;
-	char port;
+	char port[2];
 } MX_6821_OUT;
 
 #define MXD_6821_IN_STANDARD_FIELDS \
@@ -38,18 +38,18 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_6821_IN, interface_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port", MXFT_CHAR, NULL, 0, {0}, \
+  {-1, -1, "port", MXFT_STRING, NULL, 1, {2}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_6821_IN, port), \
-        {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+        {sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #define MXD_6821_OUT_STANDARD_FIELDS \
   {-1, -1, "interface_record", MXFT_RECORD, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_6821_OUT, interface_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port", MXFT_CHAR, NULL, 0, {0}, \
+  {-1, -1, "port", MXFT_STRING, NULL, 1, {2}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_6821_OUT, port), \
-        {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+        {sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 /* Define all of the interface functions. */
 

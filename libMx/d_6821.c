@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006, 2010-2012 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006, 2010-2012, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -205,7 +206,8 @@ mxd_6821_in_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_6821_in_finish_record_initialization( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_6821_in_finish_record_initialization()";
+        static const char fname[] =
+		"mxd_6821_in_finish_record_initialization()";
 
         MX_6821_IN *mc6821_in;
 
@@ -239,20 +241,20 @@ mxd_6821_in_finish_record_initialization( MX_RECORD *record )
 	 * name to upper case.
 	 */
 
-	switch( mc6821_in->port ) {
+	switch( mc6821_in->port[0] ) {
 	case 'a':
-		mc6821_in->port = 'A';
 	case 'A':
+		strlcpy( mc6821_in->port, "A", sizeof(mc6821_in->port) );
 		break;
 
 	case 'b':
-		mc6821_in->port = 'B';
 	case 'B':
+		strlcpy( mc6821_in->port, "B", sizeof(mc6821_in->port) );
 		break;
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unrecognized port name '%c'", mc6821_in->port);
+			"Unrecognized port name '%s'", mc6821_in->port);
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -284,7 +286,7 @@ mxd_6821_in_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( mc6821_in->port ) {
+	switch( mc6821_in->port[0] ) {
 	case 'A':
 		address = mc6821->base_address + MX_MC6821_PORT_A_DATA;
 		break;
@@ -293,7 +295,7 @@ mxd_6821_in_read( MX_DIGITAL_INPUT *dinput )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unrecognized port name '%c'", mc6821_in->port);
+			"Unrecognized port name '%s'", mc6821_in->port);
 	}
 
 	dinput->value = (long) mx_portio_inp8( mc6821->portio_record, address );
@@ -378,20 +380,20 @@ mxd_6821_out_finish_record_initialization( MX_RECORD *record )
 	 * name to upper case.
 	 */
 
-	switch( mc6821_out->port ) {
+	switch( mc6821_out->port[0] ) {
 	case 'a':
-		mc6821_out->port = 'A';
 	case 'A':
+		strlcpy( mc6821_out->port, "A", sizeof(mc6821_out->port) );
 		break;
 
 	case 'b':
-		mc6821_out->port = 'B';
 	case 'B':
+		strlcpy( mc6821_out->port, "B", sizeof(mc6821_out->port) );
 		break;
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unrecognized port name '%c'", mc6821_out->port);
+			"Unrecognized port name '%s'", mc6821_out->port);
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -444,7 +446,7 @@ mxd_6821_out_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( mc6821_out->port ) {
+	switch( mc6821_out->port[0] ) {
 	case 'A':
 		address = mc6821->base_address + MX_MC6821_PORT_A_DATA;
 		break;
@@ -453,7 +455,7 @@ mxd_6821_out_read( MX_DIGITAL_OUTPUT *doutput )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unrecognized port name '%c'", mc6821_out->port);
+			"Unrecognized port name '%s'", mc6821_out->port);
 	}
 
 	doutput->value = (long) mx_portio_inp8(
@@ -484,7 +486,7 @@ mxd_6821_out_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( mc6821_out->port ) {
+	switch( mc6821_out->port[0] ) {
 	case 'A':
 		address = mc6821->base_address + MX_MC6821_PORT_A_DATA;
 		break;
@@ -493,7 +495,7 @@ mxd_6821_out_write( MX_DIGITAL_OUTPUT *doutput )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unrecognized port name '%c'", mc6821_out->port);
+			"Unrecognized port name '%s'", mc6821_out->port);
 	}
 
 	value = (uint8_t) ( doutput->value & 0xff );
