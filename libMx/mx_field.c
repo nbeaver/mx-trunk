@@ -72,6 +72,18 @@ mx_get_datatype_from_datatype_name( const char *datatype_name )
 	if ( mx_strcasecmp( datatype_name, "uchar" ) == 0 ) {
 		return MXFT_UCHAR;
 	}
+	if ( mx_strcasecmp( datatype_name, "int8" ) == 0 ) {
+		return MXFT_INT8;
+	}
+	if ( mx_strcasecmp( datatype_name, "uint8" ) == 0 ) {
+		return MXFT_UINT8;
+	}
+	if ( mx_strcasecmp( datatype_name, "int8" ) == 0 ) {
+		return MXFT_INT8;
+	}
+	if ( mx_strcasecmp( datatype_name, "uint8" ) == 0 ) {
+		return MXFT_UINT8;
+	}
 	if ( mx_strcasecmp( datatype_name, "short" ) == 0 ) {
 		return MXFT_SHORT;
 	}
@@ -141,6 +153,12 @@ mx_get_datatype_name_from_datatype( long datatype )
 		break;
 	case MXFT_UCHAR:
 		strlcpy( datatype_name, "uchar", sizeof(datatype_name) );
+		break;
+	case MXFT_INT8:
+		strlcpy( datatype_name, "int8", sizeof(datatype_name) );
+		break;
+	case MXFT_UINT8:
+		strlcpy( datatype_name, "uint8", sizeof(datatype_name) );
 		break;
 	case MXFT_SHORT:
 		strlcpy( datatype_name, "short", sizeof(datatype_name) );
@@ -285,6 +303,8 @@ mx_get_field_type_string( long field_type )
 	{ MXFT_STRING,		"MXFT_STRING" },
 	{ MXFT_CHAR,		"MXFT_CHAR" },
 	{ MXFT_UCHAR,		"MXFT_UCHAR" },
+	{ MXFT_INT8,		"MXFT_INT8" },
+	{ MXFT_UINT8,		"MXFT_UINT8" },
 	{ MXFT_SHORT,		"MXFT_SHORT" },
 	{ MXFT_USHORT,		"MXFT_USHORT" },
 	{ MXFT_BOOL,		"MXFT_BOOL" },
@@ -1237,6 +1257,67 @@ mx_construct_uchar_field( void *dataptr,
 {
 	snprintf( token_buffer, token_buffer_length,
 			"%c", *((unsigned char *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_int8_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	static const char fname[] = "mx_parse_int8_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%hd", (int8_t *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Int8 not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_int8_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%hd", *((int8_t *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_uint8_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	static const char fname[] = "mx_parse_uint8_field()";
+
+	int num_items;
+	unsigned short ushort_value;
+
+	num_items = sscanf( token, "%hu", &ushort_value );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Uint8 not found in token '%s'", token );
+
+	*((uint8_t *) dataptr) = (uint8_t) ushort_value;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_uint8_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%hu", *((uint8_t *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2874,6 +2955,12 @@ mx_get_token_parser( long field_type,
 	case MXFT_UCHAR:
 		*token_parser = mx_parse_uchar_field;
 		break;
+	case MXFT_INT8:
+		*token_parser = mx_parse_int8_field;
+		break;
+	case MXFT_UINT8:
+		*token_parser = mx_parse_uint8_field;
+		break;
 	case MXFT_SHORT:
 		*token_parser = mx_parse_short_field;
 		break;
@@ -2953,6 +3040,12 @@ mx_get_token_constructor( long field_type,
 		break;
 	case MXFT_UCHAR:
 		*token_constructor = mx_construct_uchar_field;
+		break;
+	case MXFT_INT8:
+		*token_constructor = mx_construct_int8_field;
+		break;
+	case MXFT_UINT8:
+		*token_constructor = mx_construct_uint8_field;
 		break;
 	case MXFT_SHORT:
 		*token_constructor = mx_construct_short_field;
@@ -3840,6 +3933,8 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 							= MXA_STRING_SIZEOF;
 	static size_t char_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_CHAR_SIZEOF;
 	static size_t uchar_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_UCHAR_SIZEOF;
+	static size_t int8_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_INT8_SIZEOF;
+	static size_t uint8_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_UINT8_SIZEOF;
 	static size_t short_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_SHORT_SIZEOF;
 	static size_t ushort_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_USHORT_SIZEOF;
@@ -3869,6 +3964,12 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 		break;
 	case MXFT_UCHAR:
 		*sizeof_array = uchar_sizeof;
+		break;
+	case MXFT_INT8:
+		*sizeof_array = int8_sizeof;
+		break;
+	case MXFT_UINT8:
+		*sizeof_array = uint8_sizeof;
 		break;
 	case MXFT_SHORT:
 		*sizeof_array = short_sizeof;

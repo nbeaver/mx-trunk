@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005, 2010, 2015 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2005, 2010, 2015, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -449,6 +450,12 @@ mx_set_1d_array( MX_RECORD *record,
 		case MXFT_UCHAR:
 			value_size = num_elements * sizeof(unsigned char);
 			break;
+		case MXFT_INT8:
+			value_size = num_elements * sizeof(int8_t);
+			break;
+		case MXFT_UINT8:
+			value_size = num_elements * sizeof(uint8_t);
+			break;
 		case MXFT_SHORT:
 			value_size = num_elements * sizeof(short);
 			break;
@@ -682,6 +689,58 @@ mx_get_unsigned_char_variable( MX_RECORD *record,
 		return status;
 
 	*unsigned_char_value = *( (unsigned char *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_int8_variable( MX_RECORD *record,
+			int8_t *int8_value )
+{
+	static const char fname[] = "mx_get_int8_variable()";
+
+	long num_elements;
+	void *pointer_to_value;
+	mx_status_type status;
+
+	if ( int8_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"int8_value pointer passed was NULL." );
+	}
+
+	status = mx_get_1d_array( record, MXFT_INT8,
+					&num_elements, &pointer_to_value );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*int8_value = *( (int8_t *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_uint8_variable( MX_RECORD *record,
+			uint8_t *uint8_value )
+{
+	static const char fname[] = "mx_get_uint8_variable()";
+
+	long num_elements;
+	void *pointer_to_value;
+	mx_status_type status;
+
+	if ( uint8_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"uint8_value pointer passed was NULL." );
+	}
+
+	status = mx_get_1d_array( record, MXFT_UINT8,
+					&num_elements, &pointer_to_value );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*uint8_value = *( (uint8_t *) pointer_to_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -963,6 +1022,18 @@ mx_set_unsigned_char_variable( MX_RECORD *record,
 			unsigned char unsigned_char_value )
 {
 	return mx_set_1d_array( record, MXFT_UCHAR, 1L, &unsigned_char_value );
+}
+
+MX_EXPORT mx_status_type
+mx_set_int8_variable( MX_RECORD *record, int8_t int8_value )
+{
+	return mx_set_1d_array( record, MXFT_INT8, 1L, &int8_value );
+}
+
+MX_EXPORT mx_status_type
+mx_set_uint8_variable( MX_RECORD *record, uint8_t uint8_value )
+{
+	return mx_set_1d_array( record, MXFT_UINT8, 1L, &uint8_value );
 }
 
 MX_EXPORT mx_status_type

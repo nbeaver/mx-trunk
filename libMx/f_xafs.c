@@ -871,6 +871,14 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 			    fprintf( output_file, " %c",
 					    *((unsigned char *) value_ptr) );
 			    break;
+			case MXFT_INT8:
+			    fprintf( output_file, " %hd",
+					    *((int8_t *) value_ptr) );
+			    break;
+			case MXFT_UINT8:
+			    fprintf( output_file, " %hu",
+					   *((uint8_t *) value_ptr) );
+			    break;
 			case MXFT_SHORT:
 			    fprintf( output_file, " %hd",
 					    *((short *) value_ptr) );

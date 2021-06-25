@@ -5895,6 +5895,12 @@ mx_area_detector_default_get_register( MX_AREA_DETECTOR *ad )
 	case MXFT_UCHAR:
 		ad->register_value = *((unsigned char *) value_ptr);
 		break;
+	case MXFT_INT8:
+		ad->register_value = *((int8_t *) value_ptr);
+		break;
+	case MXFT_UINT8:
+		ad->register_value = *((uint8_t *) value_ptr);
+		break;
 	case MXFT_SHORT:
 		ad->register_value = *((short *) value_ptr);
 		break;
@@ -5988,6 +5994,12 @@ mx_area_detector_default_set_register( MX_AREA_DETECTOR *ad )
 	case MXFT_UCHAR:
 		*((unsigned char *) value_ptr)
 				= (unsigned char) ad->register_value;
+		break;
+	case MXFT_INT8:
+		*((int8_t *) value_ptr) = (int8_t) ad->register_value;
+		break;
+	case MXFT_UINT8:
+		*((uint8_t *) value_ptr) = (uint8_t) ad->register_value;
 		break;
 	case MXFT_SHORT:
 		*((short *) value_ptr) = (short) ad->register_value;

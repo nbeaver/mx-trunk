@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2017, 2020 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2017, 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -166,6 +166,8 @@ mx_get_scalar_element_size( long mx_datatype,
 	case MXFT_STRING:     element_size = sizeof(char);                break;
 	case MXFT_CHAR:       element_size = sizeof(char);                break;
 	case MXFT_UCHAR:      element_size = sizeof(unsigned char);       break;
+	case MXFT_INT8:       element_size = sizeof(int8_t);             break;
+	case MXFT_UINT8:      element_size = sizeof(uint8_t);            break;
 	case MXFT_SHORT:      element_size = sizeof(short);               break;
 	case MXFT_USHORT:     element_size = sizeof(unsigned short);      break;
 	case MXFT_BOOL:       element_size = sizeof(mx_bool_type);        break;
@@ -1842,6 +1844,8 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 				"MX does not support 0-dimensional strings." );
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
+		case MXFT_INT8:
+		case MXFT_UINT8:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
 		case MXFT_BOOL:
@@ -1983,6 +1987,8 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
+		case MXFT_INT8:
+		case MXFT_UINT8:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
 		case MXFT_BOOL:
@@ -2275,6 +2281,8 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 				"MX does not support 0-dimensional strings." );
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
+		case MXFT_INT8:
+		case MXFT_UINT8:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
 		case MXFT_BOOL:
@@ -2358,6 +2366,8 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
+		case MXFT_INT8:
+		case MXFT_UINT8:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
 		case MXFT_BOOL:
@@ -2482,6 +2492,8 @@ mx_xdr_get_scalar_element_size( long mx_datatype ) {
 		break;
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
+	case MXFT_INT8:
+	case MXFT_UINT8:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
 	case MXFT_BOOL:
@@ -2734,6 +2746,12 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		case MXFT_UCHAR:
 			xdr_status = xdr_u_char( &xdrs, array_pointer );
 			break;
+		case MXFT_INT8:
+			xdr_status = xdr_char( &xdrs, array_pointer );
+			break;
+		case MXFT_UINT8:
+			xdr_status = xdr_u_char( &xdrs, array_pointer );
+			break;
 		case MXFT_SHORT:
 			xdr_status = xdr_short( &xdrs, array_pointer );
 			break;
@@ -2949,6 +2967,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			switch( mx_datatype ) {
 			case MXFT_CHAR:   XDR_DO_ARRAY(xdr_char);    break;
 			case MXFT_UCHAR:  XDR_DO_ARRAY(xdr_u_char);  break;
+			case MXFT_INT8:   XDR_DO_ARRAY(xdr_char);    break;
+			case MXFT_UINT8:  XDR_DO_ARRAY(xdr_u_char);  break;
 			case MXFT_SHORT:  XDR_DO_ARRAY(xdr_short);   break;
 			case MXFT_USHORT: XDR_DO_ARRAY(xdr_u_short); break;
 			case MXFT_BOOL:   XDR_DO_ARRAY(xdr_int);     break;
@@ -5944,6 +5964,8 @@ mx_status_type mx_copy_mx_array_to_ascii_buffer(
 	case MXFT_STRING:
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
+	case MXFT_INT8:
+	case MXFT_UINT8:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
 	case MXFT_BOOL:
@@ -6078,6 +6100,8 @@ mx_copy_ascii_buffer_to_mx_array( char *source_ascii_buffer,
 	case MXFT_STRING:
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
+	case MXFT_INT8:
+	case MXFT_UINT8:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
 	case MXFT_BOOL:

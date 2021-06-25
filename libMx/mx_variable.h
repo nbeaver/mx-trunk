@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007, 2010, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -107,6 +107,12 @@ MX_API mx_status_type mx_get_char_variable( MX_RECORD *record,
 MX_API mx_status_type mx_get_unsigned_char_variable( MX_RECORD *record,
 					unsigned char *unsigned_char_value );
 
+MX_API mx_status_type mx_get_int8_variable( MX_RECORD *record,
+					int8_t *int8_value );
+
+MX_API mx_status_type mx_get_uint8_variable( MX_RECORD *record,
+					uint8_t *uint8_value );
+
 MX_API mx_status_type mx_get_short_variable( MX_RECORD *record,
 					short *short_value );
 
@@ -145,6 +151,12 @@ MX_API mx_status_type mx_set_char_variable( MX_RECORD *record,
 
 MX_API mx_status_type mx_set_unsigned_char_variable( MX_RECORD *record,
 					unsigned char unsigned_char_value );
+
+MX_API mx_status_type mx_set_int8_variable( MX_RECORD *record,
+					int8_t int8_value );
+
+MX_API mx_status_type mx_set_uint8_variable( MX_RECORD *record,
+					uint8_t uint8_value );
 
 MX_API mx_status_type mx_set_short_variable( MX_RECORD *record,
 					short short_value );
@@ -195,6 +207,18 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(unsigned char **), sizeof(unsigned char ***), \
 	sizeof(unsigned char ****), sizeof(unsigned char *****), \
 	sizeof(unsigned char ******), sizeof(unsigned char *******) }
+
+#define MXA_INT8_SIZEOF \
+	{ sizeof(int8_t), sizeof(int8_t *), \
+	sizeof(int8_t **), sizeof(int8_t ***), \
+	sizeof(int8_t ****), sizeof(int8_t *****), \
+	sizeof(int8_t ******), sizeof(int8_t *******) }
+
+#define MXA_UINT8_SIZEOF \
+	{ sizeof(uint8_t), sizeof(uint8_t *), \
+	sizeof(uint8_t **), sizeof(uint8_t ***), \
+	sizeof(uint8_t ****), sizeof(uint8_t *****), \
+	sizeof(uint8_t ******), sizeof(uint8_t *******) }
 
 #define MXA_SHORT_SIZEOF \
 	{ sizeof(short), sizeof(short *), \
