@@ -288,7 +288,7 @@ mxd_databox_mcs_start_sequence( MX_RECORD *mcs_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( databox->moving_motor[0] != '\0' ) {
+	if ( databox->moving_motor != '\0' ) {
 		mx_status = mxi_databox_get_record_from_motor_name(
 				databox, databox->moving_motor,
 				&other_motor_record );
@@ -690,7 +690,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 
 	MX_DEBUG( 2,("%s: databox->last_start_action = %d",
 				fname, databox->last_start_action));
-	MX_DEBUG( 2,("%s: databox->moving_motor = '%s'",
+	MX_DEBUG( 2,("%s: databox->moving_motor = '%c'",
 			fname, databox->moving_motor));
 
 	/* If mcs->current_num_measurements == 1, then probably we are

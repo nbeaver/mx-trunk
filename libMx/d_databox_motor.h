@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2010, 2013, 2021 Illinois Institute of Technology
+ * Copyright 2000-2001, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 
 typedef struct {
 	MX_RECORD *databox_record;
-	char axis_name[2];
+	char axis_name;
 
 	double steps_per_degree;
 } MX_DATABOX_MOTOR;
@@ -53,9 +53,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_databox_motor_rfield_def_ptr;
 		offsetof(MX_DATABOX_MOTOR, databox_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_name", MXFT_STRING, NULL, 1, {2}, \
+  {-1, -1, "axis_name", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DATABOX_MOTOR, axis_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "steps_per_degree", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DATABOX_MOTOR, steps_per_degree), \

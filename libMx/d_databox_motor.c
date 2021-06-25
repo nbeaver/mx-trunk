@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006, 2010, 2015, 2021
+ * Copyright 2000-2001, 2003, 2005-2006, 2010, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -220,17 +220,17 @@ mxd_databox_motor_finish_record_initialization( MX_RECORD *record )
 
 	/* Store a pointer to this record in the MX_DATABOX structure. */
 
-	if ( islower( (int)(databox_motor->axis_name[0]) ) ) {
-		databox_motor->axis_name[0]
-			= toupper( (int)(databox_motor->axis_name[0]) );
+	if ( islower( (int)(databox_motor->axis_name) ) ) {
+		databox_motor->axis_name
+			= toupper( (int)(databox_motor->axis_name) );
 	}
 
-	switch( databox_motor->axis_name[0] ) {
+	switch( databox_motor->axis_name ) {
 	case 'X': i = 0; break;
 	case 'Y': i = 1; break;
 	case 'Z': i = 2; break;
 	default: return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The axis name '%s' for Databox motor '%s' is illegal.  "
+		"The axis name '%c' for Databox motor '%s' is illegal.  "
 		"The only allowed names are 'X', 'Y', and 'Z'.",
 			databox_motor->axis_name,
 			record->name );
@@ -238,7 +238,7 @@ mxd_databox_motor_finish_record_initialization( MX_RECORD *record )
 
 	(databox->motor_record_array)[i] = record;
 
-	if ( databox_motor->axis_name[0] == 'X' ) {
+	if ( databox_motor->axis_name == 'X' ) {
 		databox->degrees_per_x_step = mx_divide_safely( 1.0,
 					databox_motor->steps_per_degree );
 	}
@@ -277,7 +277,7 @@ mxd_databox_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  name              = %s\n", record->name);
 	fprintf(file, "  controller        = %s\n",
 					databox->record->name);
-	fprintf(file, "  axis name         = %s\n", databox_motor->axis_name);
+	fprintf(file, "  axis name         = %c\n", databox_motor->axis_name);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -367,7 +367,7 @@ mxd_databox_motor_motor_is_busy( MX_MOTOR *motor )
 
 	MX_DEBUG( 2,("%s: databox->last_start_action = %d",
 			fname, databox->last_start_action));
-	MX_DEBUG( 2,("%s: databox->moving_motor = '%s'",
+	MX_DEBUG( 2,("%s: databox->moving_motor = '%c'",
 			fname, databox->moving_motor));
 
 	motor->busy = TRUE;
@@ -405,7 +405,7 @@ mxd_databox_motor_motor_is_busy( MX_MOTOR *motor )
 	 */
 
 	motor->busy = FALSE;
-	databox->moving_motor[0] = '\0';
+	databox->moving_motor = '\0';
 	databox->last_start_action = MX_DATABOX_NO_ACTION;
 
 	MX_DEBUG( 2,("%s: assigned %d to databox->last_start_action",
@@ -446,7 +446,7 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 
 	MX_DEBUG( 2,("%s: databox->last_start_action = %d",
 			fname, databox->last_start_action));
-	MX_DEBUG( 2,("%s: databox->moving_motor = '%s'",
+	MX_DEBUG( 2,("%s: databox->moving_motor = '%c'",
 			fname, databox->moving_motor));
 
 	/* If this is axis 'X' and a Databox MCS scan is scheduled to start,
@@ -455,7 +455,7 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 
 	if ( databox->last_start_action == MX_DATABOX_MCS_START_ACTION ) {
 
-		if ( databox_motor->axis_name[0] == 'X' ) {
+		if ( databox_motor->axis_name == 'X' ) {
 
 			mx_status = mxd_databox_mcs_start_sequence(
 					databox->mcs_record,
@@ -485,7 +485,7 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 
 	/* If a motor axis is already moving, we cannot start a new move. */
 
-	if ( databox->moving_motor[0] != '\0' ) {
+	if ( databox->moving_motor != '\0' ) {
 		mx_status = mxi_databox_get_record_from_motor_name(
 				databox, databox->moving_motor,
 				&other_motor_record );
@@ -512,7 +512,7 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 	destination = motor->raw_destination.analog;
 
 	snprintf( command, sizeof(command),
-			"G%c%g\r", databox_motor->axis_name[0], destination );
+			"G%c%g\r", databox_motor->axis_name, destination );
 
 	mx_status = mxi_databox_command( databox, command,
 					NULL, 0, DATABOX_MOTOR_DEBUG );
@@ -560,8 +560,7 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 		mx_msleep(10);
 	}
 
-	strlcpy( databox->moving_motor, databox_motor->axis_name,
-					sizeof( databox->moving_motor ) );
+	databox->moving_motor = databox_motor->axis_name;
 
 	databox->last_start_action = MX_DATABOX_FREE_MOVE_ACTION;
 
@@ -595,7 +594,7 @@ mxd_databox_motor_get_position( MX_MOTOR *motor )
 	 * position at this time, so just return the old value.
 	 */
 
-	if ( databox->moving_motor[0] != '\0' )
+	if ( databox->moving_motor != '\0' )
 		return MX_SUCCESSFUL_RESULT;
 
 	if ( databox->command_mode != MX_DATABOX_CALIBRATE_MODE ) {
@@ -606,8 +605,7 @@ mxd_databox_motor_get_position( MX_MOTOR *motor )
 			return mx_status;
 	}
 
-	snprintf( command, sizeof(command),
-			"A%c\r", databox_motor->axis_name[0] );
+	snprintf( command, sizeof(command), "A%c\r", databox_motor->axis_name );
 
 	mx_status = mxi_databox_command( databox, command,
 			response, sizeof response, DATABOX_MOTOR_DEBUG );
@@ -650,7 +648,7 @@ mxd_databox_motor_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( databox->moving_motor[0] != '\0' ) {
+	if ( databox->moving_motor != '\0' ) {
 		mx_status = mxi_databox_get_record_from_motor_name(
 				databox, databox->moving_motor,
 				&other_motor_record );
@@ -678,7 +676,7 @@ mxd_databox_motor_set_position( MX_MOTOR *motor )
 	position = motor->raw_set_position.analog;
 
 	snprintf( command, sizeof(command),
-			"A%c%g\r", databox_motor->axis_name[0], position );
+			"A%c%g\r", databox_motor->axis_name, position );
 
 	mx_status = mxi_databox_command( databox, command,
 					response, sizeof response,
@@ -717,7 +715,7 @@ mxd_databox_motor_immediate_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	databox->moving_motor[0] = '\0';
+	databox->moving_motor = '\0';
 
 	/* Put us back into Monitor mode by calling the
 	 * resynchronize function.

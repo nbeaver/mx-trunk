@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2021 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *cm17a_record;
-	char house_code[2];
+	char house_code;
 	long device_code;
 
 	uint16_t on_command;
@@ -37,9 +37,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CM17A_DOUTPUT, cm17a_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "house_code", MXFT_STRING, NULL, 1, {2}, \
+  {-1, -1, "house_code", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CM17A_DOUTPUT, house_code), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "device_code", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CM17A_DOUTPUT, device_code), \
