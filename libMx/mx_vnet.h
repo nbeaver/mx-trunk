@@ -7,7 +7,8 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2007, 2010, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,6 +65,8 @@ extern MX_VARIABLE_FUNCTION_LIST mxv_network_variable_variable_function_list;
 extern long mxv_network_string_variable_num_record_fields;
 extern long mxv_network_char_variable_num_record_fields;
 extern long mxv_network_uchar_variable_num_record_fields;
+extern long mxv_network_int8_variable_num_record_fields;
+extern long mxv_network_uint8_variable_num_record_fields;
 extern long mxv_network_short_variable_num_record_fields;
 extern long mxv_network_ushort_variable_num_record_fields;
 extern long mxv_network_bool_variable_num_record_fields;
@@ -78,6 +81,8 @@ extern long mxv_network_record_variable_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_string_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_char_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uchar_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_int8_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uint8_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_short_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_ushort_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_bool_variable_dptr;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005, 2010, 2016 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005, 2010, 2016, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,6 +73,36 @@ long mxv_inline_uchar_variable_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxv_inline_uchar_variable_def_ptr
 			= &mxv_inline_uchar_variable_defaults[0];
+
+/* ==== */
+
+MX_RECORD_FIELD_DEFAULTS mxv_inline_int8_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_INT8_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_inline_int8_variable_num_record_fields
+			= sizeof( mxv_inline_int8_variable_defaults )
+			/ sizeof( mxv_inline_int8_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_inline_int8_variable_def_ptr
+			= &mxv_inline_int8_variable_defaults[0];
+
+/* ==== */
+
+MX_RECORD_FIELD_DEFAULTS mxv_inline_uint8_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_UINT8_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_inline_uint8_variable_num_record_fields
+			= sizeof( mxv_inline_uint8_variable_defaults )
+			/ sizeof( mxv_inline_uint8_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint8_variable_def_ptr
+			= &mxv_inline_uint8_variable_defaults[0];
 
 /* ==== */
 
