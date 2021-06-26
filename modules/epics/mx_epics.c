@@ -11,7 +11,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2013, 2017-2018 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2013, 2017-2018, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3570,6 +3571,8 @@ mx_epics_convert_mx_type_to_epics_type( long mx_type,
 		break;
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
+	case MXFT_INT8:
+	case MXFT_UINT8:
 		*epics_type = DBR_CHAR;
 		break;
 	case MXFT_SHORT:

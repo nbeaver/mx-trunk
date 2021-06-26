@@ -572,6 +572,8 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	void *array_ptr;
 	char *char_array;
 	unsigned char *uchar_array;
+	int8_t *int8_array;
+	uint8_t *uint8_array;
 	short *short_array;
 	unsigned short *ushort_array;
 	mx_bool_type *bool_array;
@@ -654,6 +656,20 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 			
 			for ( i = 0; i < num_elements; i++ ) {
 				sum += uchar_array[i];
+			}
+			break;
+		case MXFT_INT8:
+			int8_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += int8_array[i];
+			}
+			break;
+		case MXFT_UINT8:
+			uint8_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += uint8_array[i];
 			}
 			break;
 		case MXFT_SHORT:

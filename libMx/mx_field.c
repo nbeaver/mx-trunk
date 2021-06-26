@@ -78,12 +78,6 @@ mx_get_datatype_from_datatype_name( const char *datatype_name )
 	if ( mx_strcasecmp( datatype_name, "uint8" ) == 0 ) {
 		return MXFT_UINT8;
 	}
-	if ( mx_strcasecmp( datatype_name, "int8" ) == 0 ) {
-		return MXFT_INT8;
-	}
-	if ( mx_strcasecmp( datatype_name, "uint8" ) == 0 ) {
-		return MXFT_UINT8;
-	}
 	if ( mx_strcasecmp( datatype_name, "short" ) == 0 ) {
 		return MXFT_SHORT;
 	}

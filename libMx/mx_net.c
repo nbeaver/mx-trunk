@@ -2046,6 +2046,18 @@ mx_network_buffer_show_value( void *buffer,
 					((unsigned char *) raw_buffer)[i] );
 			}
 			break;
+		case MXFT_INT8:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%hd ",
+					((int8_t *) raw_buffer)[i] );
+			}
+			break;
+		case MXFT_UINT8:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%hu ",
+					((uint8_t *) raw_buffer)[i] );
+			}
+			break;
 		case MXFT_SHORT:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%hd ",
@@ -2888,6 +2900,8 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 	case MXFT_STRING:
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
+	case MXFT_INT8:
+	case MXFT_UINT8:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
 	case MXFT_BOOL:

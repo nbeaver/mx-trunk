@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2005-2007, 2016 Illinois Institute of Technology
+ * Copyright 2001, 2005-2007, 2016, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -248,6 +248,8 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 	mx_bool_type bool_value;
 	char char_value;
 	unsigned char uchar_value;
+	int8_t int8_value;
+	uint8_t uint8_value;
 	short short_value;
 	unsigned short ushort_value;
 	long long_value;
@@ -326,6 +328,26 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 				return mx_status;
 
 			if ( uchar_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_INT8:
+			mx_status = mx_get_int8_variable( permit_record,
+								&int8_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( int8_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_UINT8:
+			mx_status = mx_get_uint8_variable( permit_record,
+								&uint8_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uint8_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;

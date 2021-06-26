@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012, 2014-2018 Illinois Institute of Technology
+ * Copyright 1999-2012, 2014-2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2767,6 +2767,19 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 				input_device->name );
 		}
 		switch( field_type ) {
+		case MXFT_CHAR:
+			*returned_value = (double) *((char *) ptr_to_value);
+			break;
+		case MXFT_UCHAR:
+			*returned_value = (double)
+					*((unsigned char *) ptr_to_value);
+			break;
+		case MXFT_INT8:
+			*returned_value = (double) *((int8_t *) ptr_to_value);
+			break;
+		case MXFT_UINT8:
+			*returned_value = (double) *((uint8_t *) ptr_to_value);
+			break;
 		case MXFT_SHORT:
 			*returned_value = (double) *((short *) ptr_to_value);
 			break;
@@ -2789,10 +2802,10 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 					*((unsigned long *) ptr_to_value);
 			break;
 		case MXFT_INT64:
-			*returned_value = (double) *((int32_t *) ptr_to_value);
+			*returned_value = (double) *((int64_t *) ptr_to_value);
 			break;
 		case MXFT_UINT64:
-			*returned_value = (double) *((uint32_t *) ptr_to_value);
+			*returned_value = (double) *((uint64_t *) ptr_to_value);
 			break;
 		case MXFT_FLOAT:
 			*returned_value = (double) *((float *) ptr_to_value);

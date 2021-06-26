@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2015-2016 Illinois Institute of Technology
+ * Copyright 2004-2006, 2015-2016, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -764,6 +764,12 @@ mx_spec_get_number( MX_RECORD *spec_server_record,
 	case MXFT_UCHAR:
 		strlcpy( format, "%c", sizeof(format) );
 		break;
+	case MXFT_INT8:
+		strlcpy( format, "%" SCNd8, sizeof(format) );
+		break;
+	case MXFT_UINT8:
+		strlcpy( format, "%" SCNu8, sizeof(format) );
+		break;
 	case MXFT_SHORT:
 		strlcpy( format, "%hd", sizeof(format) );
 		break;
@@ -830,6 +836,14 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 	case MXFT_UCHAR:
 		snprintf( string_buffer, sizeof(string_buffer),
 				"%c", *((char *) value));
+		break;
+	case MXFT_INT8:
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%hd", *((int8_t *) value));
+		break;
+	case MXFT_UINT8:
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%hu", *((uint8_t *) value));
 		break;
 	case MXFT_SHORT:
 		snprintf( string_buffer, sizeof(string_buffer),

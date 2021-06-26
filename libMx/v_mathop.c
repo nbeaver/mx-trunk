@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2004-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2001-2002, 2004-2006, 2008, 2010, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -482,29 +483,36 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 
 		switch( field_type ) {
 		case MXFT_BOOL:
-			*value = (double) *(mx_bool_type *) pointer_to_value;
+			*value = (double) *((mx_bool_type *) pointer_to_value);
 			break;
 		case MXFT_CHAR:
-			*value = (double) *(char *) pointer_to_value;
+			*value = (double) *((char *) pointer_to_value);
 			break;
 		case MXFT_UCHAR:
-			*value = (double) *(unsigned char *) pointer_to_value;
+			*value = (double) *((unsigned char *) pointer_to_value);
+			break;
+		case MXFT_INT8:
+			*value = (double) *((int8_t *) pointer_to_value);
+			break;
+		case MXFT_UINT8:
+			*value = (double) *((uint8_t *) pointer_to_value);
 			break;
 		case MXFT_SHORT:
-			*value = (double) *(short *) pointer_to_value;
+			*value = (double) *((short *) pointer_to_value);
 			break;
 		case MXFT_USHORT:
-			*value = (double) *(unsigned short *) pointer_to_value;
+			*value = (double)
+				*((unsigned short *) pointer_to_value);
 			break;
 		case MXFT_LONG:
-			*value = (double) *(long *) pointer_to_value;
+			*value = (double) *((long *) pointer_to_value);
 			break;
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			*value = (double) *(unsigned long *) pointer_to_value;
+			*value = (double) *((unsigned long *) pointer_to_value);
 			break;
 		case MXFT_INT64:
-			*value = (double) *(int64_t *) pointer_to_value;
+			*value = (double) *((int64_t *) pointer_to_value);
 			break;
 		case MXFT_UINT64:
 
@@ -516,14 +524,14 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 #else
 			/* For everyone else. */
 
-			*value = (double) *(uint64_t *) pointer_to_value;
+			*value = (double) *((uint64_t *) pointer_to_value);
 #endif
 			break;
 		case MXFT_FLOAT:
-			*value = (double) *(float *) pointer_to_value;
+			*value = (double) *((float *) pointer_to_value);
 			break;
 		case MXFT_DOUBLE:
-			*value = *(double *) pointer_to_value;
+			*value = *((double *) pointer_to_value);
 			break;
 		default:
 			return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -553,6 +561,8 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 	mx_bool_type *bool_ptr;
 	char *char_ptr;
 	unsigned char *uchar_ptr;
+	int8_t *int8_ptr;
+	uint8_t *uint8_ptr;
 	short *short_ptr;
 	unsigned short *ushort_ptr;
 	long *long_ptr;
@@ -660,6 +670,16 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 			uchar_ptr = (unsigned char *) pointer_to_value;
 
 			*uchar_ptr = (unsigned char) mx_round( new_value );
+			break;
+		case MXFT_INT8:
+			int8_ptr = (int8_t *) pointer_to_value;
+
+			*int8_ptr = (int8_t) mx_round( new_value );
+			break;
+		case MXFT_UINT8:
+			uint8_ptr = (uint8_t *) pointer_to_value;
+
+			*uint8_ptr = (uint8_t) mx_round( new_value );
 			break;
 		case MXFT_SHORT:
 			short_ptr = (short *) pointer_to_value;
