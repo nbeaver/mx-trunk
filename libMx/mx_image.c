@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2020 Illinois Institute of Technology
+ * Copyright 2006-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -483,6 +483,8 @@ mx_image_get_image_format_from_mx_datatype( long mx_datatype )
 	switch( mx_datatype ) {
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
+	case MXFT_INT8:
+	case MXFT_UINT8:
 		image_format = MXT_IMAGE_FORMAT_GREY8;
 		break;
 	case MXFT_SHORT:

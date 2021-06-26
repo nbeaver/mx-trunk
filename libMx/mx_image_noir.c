@@ -580,6 +580,16 @@ mxp_image_noir_info_update_record_value( MX_RECORD *record,
 			array_element->u.long_value =
 				*( (unsigned char *) value_pointer );
 			break;
+		case MXFT_INT8:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (int8_t *) value_pointer );
+			break;
+		case MXFT_UINT8:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (uint8_t *) value_pointer );
+			break;
 		case MXFT_SHORT:
 			array_element->datatype = MXFT_LONG;
 			array_element->u.long_value =

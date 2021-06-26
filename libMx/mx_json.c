@@ -289,6 +289,12 @@ mx_json_get_key( MX_JSON *json,
 	case MXFT_UCHAR:
 		*((unsigned char *) key_value ) = found_cjson_value->valueint;
 		break;
+	case MXFT_INT8:
+		*((int8_t *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_UINT8:
+		*((uint8_t *) key_value ) = found_cjson_value->valueint;
+		break;
 	case MXFT_SHORT:
 		*((short *) key_value ) = found_cjson_value->valueint;
 		break;
@@ -409,6 +415,12 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_UCHAR:
 			*((unsigned char *) key_value) = bool_array[0];
 			break;
+		case MXFT_INT8:
+			*((int8_t *) key_value) = bool_array[0];
+			break;
+		case MXFT_UINT8:
+			*((uint8_t *) key_value) = bool_array[0];
+			break;
 		case MXFT_SHORT:
 			*((short *) key_value) = bool_array[0];
 			break;
@@ -421,6 +433,12 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_ULONG:
 		case MXFT_HEX:
 			*((unsigned long *) key_value) = bool_array[0];
+			break;
+		case MXFT_INT64:
+			*((int64_t *) key_value) = bool_array[0];
+			break;
+		case MXFT_UINT64:
+			*((uint64_t *) key_value) = bool_array[0];
 			break;
 		case MXFT_FLOAT:
 			*((float *) key_value) = bool_array[0];
@@ -458,6 +476,12 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_UCHAR:
 			*((unsigned char *) key_value) = long_array[0];
 			break;
+		case MXFT_INT8:
+			*((int8_t *) key_value) = long_array[0];
+			break;
+		case MXFT_UINT8:
+			*((uint8_t *) key_value) = long_array[0];
+			break;
 		case MXFT_SHORT:
 			*((short *) key_value) = long_array[0];
 			break;
@@ -470,6 +494,12 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_ULONG:
 		case MXFT_HEX:
 			*((unsigned long *) key_value) = long_array[0];
+			break;
+		case MXFT_INT64:
+			*((int64_t *) key_value) = long_array[0];
+			break;
+		case MXFT_UINT64:
+			*((uint64_t *) key_value) = long_array[0];
 			break;
 		case MXFT_FLOAT:
 			*((float *) key_value) = long_array[0];
@@ -507,6 +537,12 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_UCHAR:
 			*((unsigned char *) key_value) = ulong_array[0];
 			break;
+		case MXFT_INT8:
+			*((int8_t *) key_value) = ulong_array[0];
+			break;
+		case MXFT_UINT8:
+			*((uint8_t *) key_value) = ulong_array[0];
+			break;
 		case MXFT_SHORT:
 			*((short *) key_value) = ulong_array[0];
 			break;
@@ -519,6 +555,12 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_ULONG:
 		case MXFT_HEX:
 			*((unsigned long *) key_value) = ulong_array[0];
+			break;
+		case MXFT_INT64:
+			*((int64_t *) key_value) = ulong_array[0];
+			break;
+		case MXFT_UINT64:
+			*((uint64_t *) key_value) = ulong_array[0];
 			break;
 		case MXFT_FLOAT:
 			*((float *) key_value) = ulong_array[0];
@@ -556,6 +598,12 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_UCHAR:
 			*((unsigned char *) key_value) = float_array[0];
 			break;
+		case MXFT_INT8:
+			*((int8_t *) key_value) = float_array[0];
+			break;
+		case MXFT_UINT8:
+			*((uint8_t *) key_value) = float_array[0];
+			break;
 		case MXFT_SHORT:
 			*((short *) key_value) = float_array[0];
 			break;
@@ -568,6 +616,12 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_ULONG:
 		case MXFT_HEX:
 			*((unsigned long *) key_value) = float_array[0];
+			break;
+		case MXFT_INT64:
+			*((int64_t *) key_value) = float_array[0];
+			break;
+		case MXFT_UINT64:
+			*((uint64_t *) key_value) = float_array[0];
 			break;
 		case MXFT_FLOAT:
 			*((float *) key_value) = float_array[0];

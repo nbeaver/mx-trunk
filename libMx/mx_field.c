@@ -1269,12 +1269,15 @@ mx_parse_int8_field( void *dataptr, char *token,
 	static const char fname[] = "mx_parse_int8_field()";
 
 	int num_items;
+	short short_value;
 
-	num_items = sscanf( token, "%hd", (int8_t *) dataptr );
+	num_items = sscanf( token, "%hd", &short_value );
 
 	if ( num_items != 1 )
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"Int8 not found in token '%s'", token );
+
+	*((int8_t *) dataptr) = (int8_t) short_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
