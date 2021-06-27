@@ -67,13 +67,13 @@ extern MX_RECORD_FUNCTION_LIST mxv_flowbus_parameter_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_flowbus_parameter_variable_function_list;
 
 extern long mxv_flowbus_string_num_record_fields;
-extern long mxv_flowbus_uchar_num_record_fields;
+extern long mxv_flowbus_uint8_num_record_fields;
 extern long mxv_flowbus_ushort_num_record_fields;
 extern long mxv_flowbus_ulong_num_record_fields;
 extern long mxv_flowbus_float_num_record_fields;
 
 extern MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_string_rfield_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_uchar_rfield_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_uint8_rfield_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_ushort_rfield_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_ulong_rfield_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_float_rfield_def_ptr;

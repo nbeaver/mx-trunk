@@ -189,6 +189,7 @@ mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 	long num_dimensions, field_type;
 	long *dimension_array;
 	void *value_ptr;
+	uint8_t init_reset;
 	char flowbus_status_response[80];
 	mx_status_type mx_status;
 
@@ -235,6 +236,20 @@ mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 			num_dimensions );
 	}
 
+	/* Unlock the secured parameters. */
+
+	init_reset = 64;
+
+	mx_status = mxi_flowbus_send_parameter( flowbus,
+					flowbus_capacity->node_address,
+					0, 10, MXDT_FLOWBUS_UINT8,
+					&init_reset,
+					flowbus_status_response,
+					sizeof(flowbus_status_response), 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Select the capacity unit. */
 
 	mx_status = mxi_flowbus_send_parameter( flowbus,
@@ -256,6 +271,20 @@ mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 					flowbus_status_response,
 					sizeof(flowbus_status_response), 0 );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Relock the secured parameters. */
+
+	init_reset = 82;
+
+	mx_status = mxi_flowbus_send_parameter( flowbus,
+					flowbus_capacity->node_address,
+					0, 10, MXDT_FLOWBUS_UINT8,
+					&init_reset,
+					flowbus_status_response,
+					sizeof(flowbus_status_response), 0 );
+
 	return mx_status;
 }
 
@@ -272,6 +301,7 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 	void *value_ptr;
 	long max_value_length_in_bytes;
 	size_t *sizeof_array;
+	uint8_t init_reset;
 	char flowbus_status_response[80];
 	mx_status_type mx_status;
 
@@ -330,6 +360,19 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 	MX_DEBUG(-2,("%s: Variable '%s' max_value_length_in_bytes = %ld",
 		fname, variable->record->name, max_value_length_in_bytes));
 #endif
+	/* Unlock the secured parameters. */
+
+	init_reset = 64;
+
+	mx_status = mxi_flowbus_send_parameter( flowbus,
+					flowbus_capacity->node_address,
+					0, 10, MXDT_FLOWBUS_UINT8,
+					&init_reset,
+					flowbus_status_response,
+					sizeof(flowbus_status_response), 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Select the capacity unit. */
 
@@ -343,11 +386,25 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Relock the secured parameters. */
+
+	init_reset = 82;
+
+	mx_status = mxi_flowbus_send_parameter( flowbus,
+					flowbus_capacity->node_address,
+					0, 10, MXDT_FLOWBUS_UINT8,
+					&init_reset,
+					flowbus_status_response,
+					sizeof(flowbus_status_response), 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Get the capacity value. */
 
 	mx_status = mxi_flowbus_request_parameter( flowbus,
 					flowbus_capacity->node_address,
-					1, 13, MXDT_FLOWBUS_STRING,
+					1, 13, MXDT_FLOWBUS_ULONG_FLOAT,
 					value_ptr,
 					max_value_length_in_bytes, 0 );
 

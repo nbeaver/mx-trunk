@@ -62,7 +62,7 @@ mxi_flowbus_format_string( char *external_buffer,
 	field_buffer_ptr = external_buffer + field_buffer_offset;
 
 	switch( mx_datatype ) {
-	case MXFT_UCHAR:
+	case MXFT_UINT8:
 		needed_field_bytes = 2;
 		break;
 	case MXFT_USHORT:
@@ -102,7 +102,7 @@ mxi_flowbus_format_string( char *external_buffer,
 	}
 
 	switch( mx_datatype ) {
-	case MXFT_UCHAR:
+	case MXFT_UINT8:
 		uint8_value = *((uint8_t *) value_ptr );
 
 		snprintf( temp_buffer, sizeof(temp_buffer),

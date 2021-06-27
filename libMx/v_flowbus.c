@@ -53,19 +53,19 @@ MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_string_rfield_def_ptr
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_flowbus_uchar_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_flowbus_uint8_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_FLOWBUS_PARAMETER_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_UCHAR_VARIABLE_STANDARD_FIELDS
+	MX_UINT8_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_flowbus_uchar_num_record_fields
-	= sizeof( mxv_flowbus_uchar_field_defaults )
-	/ sizeof( mxv_flowbus_uchar_field_defaults[0] );
+long mxv_flowbus_uint8_num_record_fields
+	= sizeof( mxv_flowbus_uint8_field_defaults )
+	/ sizeof( mxv_flowbus_uint8_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_uchar_rfield_def_ptr
-		= &mxv_flowbus_uchar_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_flowbus_uint8_rfield_def_ptr
+		= &mxv_flowbus_uint8_field_defaults[0];
 
 /*---*/
 
@@ -249,7 +249,7 @@ mxv_flowbus_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	switch( value_field->datatype ) {
-	case MXFT_UCHAR:
+	case MXFT_UINT8:
 		flowbus_parameter->parameter_type = 0x0;
 		break;
 	case MXFT_USHORT:

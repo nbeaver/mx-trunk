@@ -4156,12 +4156,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxv_flowbus_string_num_record_fields,
 				&mxv_flowbus_string_rfield_def_ptr},
 
-{"flowbus_uchar",     MXV_FLOWBUS_UCHAR,    MXV_FLOWBUS,  MXR_VARIABLE,
+{"flowbus_uint8",     MXV_FLOWBUS_UINT8,    MXV_FLOWBUS,  MXR_VARIABLE,
 				&mxv_flowbus_parameter_record_function_list,
 				&mxv_flowbus_parameter_variable_function_list,
 				NULL,
-				&mxv_flowbus_uchar_num_record_fields,
-				&mxv_flowbus_uchar_rfield_def_ptr},
+				&mxv_flowbus_uint8_num_record_fields,
+				&mxv_flowbus_uint8_rfield_def_ptr},
 
 {"flowbus_ushort",    MXV_FLOWBUS_USHORT,    MXV_FLOWBUS, MXR_VARIABLE,
 				&mxv_flowbus_parameter_record_function_list,

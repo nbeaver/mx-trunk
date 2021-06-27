@@ -34,7 +34,7 @@
 
 /* Flowbus parameter types */
 
-#define MXDT_FLOWBUS_UCHAR		0x0
+#define MXDT_FLOWBUS_UINT8		0x0
 #define MXDT_FLOWBUS_USHORT		0x2
 #define MXDT_FLOWBUS_ULONG_FLOAT	0x4
 #define MXDT_FLOWBUS_STRING		0x6
@@ -84,7 +84,7 @@ typedef struct {
 	unsigned long process_number;
 	unsigned long parameter_number;
 
-	unsigned char uchar_value;
+	uint8_t uint8_value;
 	unsigned short ushort_value;
 	unsigned long ulong_value;
 	float float_value;
@@ -92,7 +92,7 @@ typedef struct {
 } MX_FLOWBUS;
 
 #define MXLV_FB_SHOW_NODES		87340
-#define MXLV_FB_UCHAR_VALUE		87341
+#define MXLV_FB_UINT8_VALUE		87341
 #define MXLV_FB_USHORT_VALUE		87342
 #define MXLV_FB_ULONG_VALUE		87343
 #define MXLV_FB_FLOAT_VALUE		87344
@@ -140,8 +140,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, show_nodes), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_FB_UCHAR_VALUE, -1, "uchar_value", MXFT_UCHAR, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, uchar_value), \
+  {MXLV_FB_UINT8_VALUE, -1, "uint8_value", MXFT_UINT8, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS, uint8_value), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_FB_USHORT_VALUE, -1, "ushort_value", MXFT_USHORT, NULL, 0, {0}, \

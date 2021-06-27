@@ -528,7 +528,9 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	uint8_t expected_string_length = 0;
 
+#if 0
 	uint8_t sequence_number;
+#endif
 
 	char ascii_command_buffer[500];
 	char ascii_response_buffer[500];
@@ -584,7 +586,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				2, MXFT_UCHAR, &uint8_value );
+				2, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -598,7 +600,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				3, MXFT_UCHAR, &uint8_value );
+				3, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -610,7 +612,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				4, MXFT_UCHAR, &uint8_value );
+				4, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -618,7 +620,9 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	/* Parameter type and parameter number (field 5). */
 
+#if 0
 	sequence_number = flowbus->sequence_number;
+#endif
 
 	/*---*/
 
@@ -637,7 +641,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				5, MXFT_UCHAR, &uint8_value );
+				5, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -653,7 +657,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 		mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				6, MXFT_UCHAR, &expected_string_length );
+				6, MXFT_UINT8, &expected_string_length );
 
 		message_length++;
 	}
@@ -671,7 +675,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 	/*---*/
 
 	switch( flowbus_parameter_type ) {
-	case MXDT_FLOWBUS_UCHAR:
+	case MXDT_FLOWBUS_UINT8:
 		uint8_value = 0xFF &
 			*( (uint8_t *) parameter_value_to_send );
 
@@ -738,7 +742,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				1, MXFT_UCHAR, &uint8_value );
+				1, MXFT_UINT8, &uint8_value );
 
 	/******* Send the command and receive the response *******/
 
@@ -862,7 +866,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				2, MXFT_UCHAR, &uint8_value );
+				2, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -872,7 +876,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				3, MXFT_UCHAR, &uint8_value );
+				3, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -884,7 +888,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				4, MXFT_UCHAR, &uint8_value );
+				4, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -910,7 +914,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				5, MXFT_UCHAR, &uint8_value );
+				5, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -922,7 +926,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				6, MXFT_UCHAR, &uint8_value );
+				6, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -936,7 +940,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				7, MXFT_UCHAR, &uint8_value );
+				7, MXFT_UINT8, &uint8_value );
 
 	message_length++;
 
@@ -951,7 +955,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 		mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				8, MXFT_UCHAR, &expected_string_length );
+				8, MXFT_UINT8, &expected_string_length );
 
 		message_length++;
 	}
@@ -964,7 +968,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
-				1, MXFT_UCHAR, &uint8_value );
+				1, MXFT_UINT8, &uint8_value );
 
 	/******* Send the command and receive the response *******/
 
@@ -1018,7 +1022,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	switch( flowbus_parameter_type ) {
 
-	case MXDT_FLOWBUS_UCHAR:
+	case MXDT_FLOWBUS_UINT8:
 		value_string_ptr[2] = '\0';
 
 		uint8_value =
@@ -1105,7 +1109,7 @@ mxi_flowbus_special_processing_setup( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_FB_SHOW_NODES:
-		case MXLV_FB_UCHAR_VALUE:
+		case MXLV_FB_UINT8_VALUE:
 		case MXLV_FB_USHORT_VALUE:
 		case MXLV_FB_ULONG_VALUE:
 		case MXLV_FB_FLOAT_VALUE:
@@ -1149,9 +1153,9 @@ mxi_flowbus_process_function( void *record_ptr,
 	switch( record_field->label_value ) {
 	case MXLV_FB_SHOW_NODES:
 		break;
-	case MXLV_FB_UCHAR_VALUE:
-		flowbus_parameter_type = MXDT_FLOWBUS_UCHAR;
-		flowbus_parameter_ptr = &(flowbus->uchar_value);
+	case MXLV_FB_UINT8_VALUE:
+		flowbus_parameter_type = MXDT_FLOWBUS_UINT8;
+		flowbus_parameter_ptr = &(flowbus->uint8_value);
 		flowbus_max_length = sizeof(unsigned char);
 		break;
 	case MXLV_FB_USHORT_VALUE:
@@ -1186,7 +1190,7 @@ mxi_flowbus_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_FB_SHOW_NODES:
 			break;
-		case MXLV_FB_UCHAR_VALUE:
+		case MXLV_FB_UINT8_VALUE:
 		case MXLV_FB_USHORT_VALUE:
 		case MXLV_FB_ULONG_VALUE:
 		case MXLV_FB_FLOAT_VALUE:
@@ -1206,7 +1210,7 @@ mxi_flowbus_process_function( void *record_ptr,
 		case MXLV_FB_SHOW_NODES:
 			mx_status = mxi_flowbus_show_nodes( flowbus );
 			break;
-		case MXLV_FB_UCHAR_VALUE:
+		case MXLV_FB_UINT8_VALUE:
 		case MXLV_FB_USHORT_VALUE:
 		case MXLV_FB_ULONG_VALUE:
 		case MXLV_FB_FLOAT_VALUE:
@@ -1280,7 +1284,7 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 
 		mx_status = mxi_flowbus_request_parameter( flowbus, node,
 						113, 12,
-						MXDT_FLOWBUS_UCHAR,
+						MXDT_FLOWBUS_UINT8,
 						&identification_number,
 						sizeof(identification_number),
 						MXFCF_FLOWBUS_QUIET );
