@@ -1282,7 +1282,7 @@ mx_construct_int8_field( void *dataptr,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
 	snprintf( token_buffer, token_buffer_length,
-			"%hd", *((int8_t *) dataptr) );
+			"%hd", (short) *((int8_t *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1314,7 +1314,7 @@ mx_construct_uint8_field( void *dataptr,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
 	snprintf( token_buffer, token_buffer_length,
-			"%hu", *((uint8_t *) dataptr) );
+			"%hu", (unsigned short) *((uint8_t *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }

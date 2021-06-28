@@ -2049,13 +2049,13 @@ mx_network_buffer_show_value( void *buffer,
 		case MXFT_INT8:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%hd ",
-					((int8_t *) raw_buffer)[i] );
+					(short) ((int8_t *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_UINT8:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%hu ",
-					((uint8_t *) raw_buffer)[i] );
+				(unsigned short) ((uint8_t *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_SHORT:

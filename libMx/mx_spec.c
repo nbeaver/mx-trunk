@@ -839,11 +839,11 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 		break;
 	case MXFT_INT8:
 		snprintf( string_buffer, sizeof(string_buffer),
-				"%hd", *((int8_t *) value));
+				"%hd", (short) *((int8_t *) value));
 		break;
 	case MXFT_UINT8:
 		snprintf( string_buffer, sizeof(string_buffer),
-				"%hu", *((uint8_t *) value));
+				"%hu", (unsigned short) *((uint8_t *) value));
 		break;
 	case MXFT_SHORT:
 		snprintf( string_buffer, sizeof(string_buffer),

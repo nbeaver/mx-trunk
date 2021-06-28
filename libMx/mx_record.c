@@ -2617,10 +2617,12 @@ mx_print_field_value( FILE *file,
 		fprintf( file, "'%c'", *((unsigned char *) value_ptr) );
 		break;
 	case MXFT_INT8:
-		fprintf( file, "%hd", *((int8_t *) value_ptr ) );
+		fprintf( file, "%hd",
+			(short) *((int8_t *) value_ptr ) );
 		break;
 	case MXFT_UINT8:
-		fprintf( file, "%hu", *((uint8_t *) value_ptr ) );
+		fprintf( file, "%hu",
+			(unsigned short) *((uint8_t *) value_ptr ) );
 		break;
 	case MXFT_SHORT:
 		fprintf( file, "%hd", *((short *) value_ptr) );

@@ -11,7 +11,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010, 2015-2019 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010, 2015-2019, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -873,11 +874,11 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 			    break;
 			case MXFT_INT8:
 			    fprintf( output_file, " %hd",
-					    *((int8_t *) value_ptr) );
+				    (short) *((int8_t *) value_ptr) );
 			    break;
 			case MXFT_UINT8:
 			    fprintf( output_file, " %hu",
-					   *((uint8_t *) value_ptr) );
+				   (unsigned short) *((uint8_t *) value_ptr) );
 			    break;
 			case MXFT_SHORT:
 			    fprintf( output_file, " %hd",
