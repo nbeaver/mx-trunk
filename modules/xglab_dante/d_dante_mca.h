@@ -29,6 +29,10 @@ extern "C" {
 
 #define MXU_DANTE_MCA_MAX_SPECTRUM_BINS		4096
 
+/* The following flags are used by the 'dante_mca_flags' field. */
+
+#define MXF_DANTE_MCA_VALIDATE_CONFIGURATION	0x10
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -36,6 +40,7 @@ typedef struct {
 	char identifier[MXU_DANTE_MCA_CHANNEL_NAME_LENGTH+1];
 	unsigned long board_number;
 	char input_mode_name[MXU_DANTE_MCA_INPUT_MODE_NAME_LENGTH+1];
+	unsigned long dante_mca_flags;
 
 	unsigned long firmware_version;
 	unsigned long firmware_type;
@@ -102,6 +107,10 @@ typedef struct {
 	  		1, {MXU_DANTE_MCA_INPUT_MODE_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, input_mode_name ), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "dante_mca_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, dante_mca_flags ), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, firmware_version ), \
@@ -230,6 +239,9 @@ MX_API mx_status_type mxd_dante_mca_clear( MX_MCA *mca );
 MX_API mx_status_type mxd_dante_mca_busy( MX_MCA *mca );
 MX_API mx_status_type mxd_dante_mca_get_parameter( MX_MCA *mca );
 MX_API mx_status_type mxd_dante_mca_set_parameter( MX_MCA *mca );
+
+MX_API mx_status_type mxd_dante_mca_validate_configuration(
+						MX_DANTE_MCA *dante_mca );
 
 extern MX_RECORD_FUNCTION_LIST mxd_dante_mca_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_dante_mca_mca_function_list;

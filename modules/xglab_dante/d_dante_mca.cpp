@@ -626,6 +626,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 	InputMode input_mode;
 	GatingMode gating_mode;
 	unsigned long dante_flags;
+	mx_status_type mx_status;
 
 	/* FIXME: We should probably test the consistency of the
 	 * pointers passed to us, but not now.
@@ -713,16 +714,24 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 		mx_dante_configuration->mca_record = dante_mca->record;
 	}
 
+#if MXD_DANTE_MCA_TRACE_CALLS
+	(void) mxi_dante_show_parameters( dante_mca->record );
+#endif
+
+	if( dante_mca->dante_mca_flags & MXF_DANTE_MCA_VALIDATE_CONFIGURATION )
+	{
+	    mx_status = mxd_dante_mca_validate_configuration( dante_mca );
+
+	    if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+	}
+
 #if 0
 	MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
 		fname, dante_mca->record->name ));
 #endif
 
 	dante_error_status = resetLastError();
-
-#if MXD_DANTE_MCA_TRACE_CALLS
-	(void) mxi_dante_show_parameters( dante_mca->record );
-#endif
 
 	/* Configure the standard acquisition parameters. */
 
@@ -1755,6 +1764,46 @@ mxd_dante_mca_set_parameter( MX_MCA *mca )
 #endif
 
 	return mx_status;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_dante_mca_validate_configuration( MX_DANTE_MCA *dante_mca )
+{
+	static const char fname[] = "mxd_dante_mca_validate_configuration()";
+
+	MX_DANTE_CONFIGURATION *mx_dante_configuration = NULL;
+	struct configuration *configuration = NULL;
+
+	if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DANTE_MCA pointer passed was NULL." );
+	}
+
+	mx_dante_configuration = dante_mca->mx_dante_configuration;
+
+	if ( mx_dante_configuration == (MX_DANTE_CONFIGURATION *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_DANTE_CONFIGURATION pointer for Dante MCA '%s' is NULL.",
+			dante_mca->record->name );
+	}
+
+	configuration = &(mx_dante_configuration->configuration);
+
+	if ( configuration->max_peaking_time == 0 ) {
+		mx_warning( "The max_peaking_time for Dante MCA '%s' is 0.",
+			dante_mca->record->name );
+	}
+	if ( configuration->peaking_time > configuration->max_peaking_time ) {
+		mx_warning( "The peaking_time (%lu) for Dante MCA '%s' "
+			"is greater than the max_peaking_time (%lu).",
+			configuration->peaking_time,
+			dante_mca->record->name,
+			configuration->max_peaking_time );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---------------------------------------------------------------------------*/
