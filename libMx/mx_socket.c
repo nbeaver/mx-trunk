@@ -3418,6 +3418,12 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 					&Rod, 0, sizeof(Rod) );
 #endif
 	}
+#elif defined( OS_CYGWIN )
+
+	/* mx_socket_num_output_bytes_in_transit() is not currently
+	 * implemented for Cygwin, etc.
+	 */
+
 #else
 #error mx_socket_num_output_bytes_in_transit() not yet implemented for this build target.
 #endif
