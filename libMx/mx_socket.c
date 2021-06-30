@@ -3297,17 +3297,11 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----------------------------------------------------------------------*/
+
 #if defined( OS_LINUX )
-#  include <linux/sockios.h>
 
-#elif defined( OS_WIN32 ) && 0
-#  include <iphlpapi.h>
-static HINSTANCE hinst_iphlpapi = NULL;
-
-typedef ULONG (*GetTcpTable_type)( PMID_TCPTABLE, PULONG, BOOL );
-
-static GetTcpTable_type ptrGetTcpTable = NULL;
-#endif
+#include <linux/sockios.h>
 
 MX_EXPORT mx_status_type
 mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
@@ -3326,7 +3320,7 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 
 	*num_output_bytes_in_transit = 0;
 
-#if ( defined( OS_LINUX ) && defined( SIOCOUTQ ) )
+#if defined( SIOCOUTQ )
 	{
 		int ioctl_status, bytes_in_transit, saved_errno;
 
@@ -3349,87 +3343,164 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 
 		*num_output_bytes_in_transit = bytes_in_transit;
 	}
-#elif defined( OS_MACOSX )
-	{
-		int sockopt_status, bytes_in_transit, saved_errno;
-		socklen_t arg_length = sizeof(bytes_in_transit);
-
-		sockopt_status = getsockopt( mx_socket->socket_fd,
-					SOL_SOCKET, SO_NWRITE,
-					&bytes_in_transit, &arg_length );
-
-		if ( sockopt_status < 0 ) {
-			saved_errno = errno;
-
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"getsockopt( %d, SOL_SOCKET, SO_NWRITE, ... ) "
-			"returned errno %d.",
-				mx_socket->socket_fd, saved_errno );
-		}
-
-		*num_output_bytes_in_transit = bytes_in_transit;
-	}
-#elif defined( OS_WIN32 )
-	{
-#if 1
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Getting the number of output bytes in transit "
-			"is not yet implemented for Windows." );
 #else
-		MIB_TCPTABLE tcp_table;
-		ULONG tcp_table_size = sizeof(tcp_table);
-
-		MIB_TCPROW row;
-
-		TCP_ESTATS_SEND_BUFF_RW_v0 Rw;
-		TCP_ESTATS_SEND_BUFF_ROD_v0 Rod;
-		ULONG os_status;
-		DWORD last_error_code;
-		TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
-
-		if ( ptrGetTcpTable  == NULL ) {
-			if ( hinst_iphlpapi ) {
-			}
-		}
-
-		memset( &tcp_table, 0, tcp_table_size );
-
-		os_status = GetTcpTable( &tcp_table, &tcp_table_size, FALSE );
-
-		if ( os_status != NO_ERROR ) {
-			last_error_code = GetLastError();
-
-			mx_win32_error_message( last_error_code,
-				message_buffer, sizeof(message_buffer) );
-
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"A call to GetTcpTable() failed.  "
-			"Win32 error code = %ld, error message = '%s'",
-				last_error_code, message_buffer );
-		}
-
-		memset( &Rw, 0, sizeof(Rw) );
-		memset( &Rod, 0, sizeof(Rod) );
-
-		os_status = GetPerTcpConnectionEStats( &row,
-					TcpConnectionEstatsSendBuff,
-					&Rw, 0, sizeof(Rw),
-					NULL, 0, 0,
-					&Rod, 0, sizeof(Rod) );
-#endif
-	}
-#elif defined( OS_CYGWIN )
-
-	/* mx_socket_num_output_bytes_in_transit() is not currently
-	 * implemented for Cygwin, etc.
-	 */
-
-#else
-#error mx_socket_num_output_bytes_in_transit() not yet implemented for this build target.
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"This function does not work on this version of Linux, since it "
+	"does not have the SIOCOUTQ ioctl available." );
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*------*/
+
+#elif defined( OS_MACOSX )
+
+MX_EXPORT mx_status_type
+mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
+					long *num_output_bytes_in_transit )
+{
+	static const char fname[] = "mx_socket_num_output_bytes_in_transit()";
+
+	int sockopt_status, bytes_in_transit, saved_errno;
+	socklen_t arg_length = sizeof(bytes_in_transit);
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( num_output_bytes_in_transit == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_output_bytes_in_transit pointer passed was NULL." );
+	}
+
+	*num_output_bytes_in_transit = 0;
+
+	sockopt_status = getsockopt( mx_socket->socket_fd,
+					SOL_SOCKET, SO_NWRITE,
+					&bytes_in_transit, &arg_length );
+
+	if ( sockopt_status < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"getsockopt( %d, SOL_SOCKET, SO_NWRITE, ... ) "
+		"returned errno %d.", mx_socket->socket_fd, saved_errno );
+	}
+
+	*num_output_bytes_in_transit = bytes_in_transit;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+#elif defined( OS_WIN32 )
+
+#include <iphlpapi.h>
+
+static HINSTANCE hinst_iphlpapi = NULL;
+
+typedef ULONG (*GetTcpTable_type)( PMID_TCPTABLE, PULONG, BOOL );
+
+static GetTcpTable_type ptrGetTcpTable = NULL;
+
+MX_EXPORT mx_status_type
+mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
+					long *num_output_bytes_in_transit )
+{
+	static const char fname[] = "mx_socket_num_output_bytes_in_transit()";
+
+	MIB_TCPTABLE tcp_table;
+	ULONG tcp_table_size = sizeof(tcp_table);
+
+	MIB_TCPROW row;
+
+	TCP_ESTATS_SEND_BUFF_RW_v0 Rw;
+	TCP_ESTATS_SEND_BUFF_ROD_v0 Rod;
+	ULONG os_status;
+	DWORD last_error_code;
+	TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( num_output_bytes_in_transit == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_output_bytes_in_transit pointer passed was NULL." );
+	}
+
+	*num_output_bytes_in_transit = 0;
+
+	if ( ptrGetTcpTable  == NULL ) {
+		if ( hinst_iphlpapi ) {
+		}
+	}
+
+	memset( &tcp_table, 0, tcp_table_size );
+
+	os_status = GetTcpTable( &tcp_table, &tcp_table_size, FALSE );
+
+	if ( os_status != NO_ERROR ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"A call to GetTcpTable() failed.  "
+		"Win32 error code = %ld, error message = '%s'",
+			last_error_code, message_buffer );
+	}
+
+	memset( &Rw, 0, sizeof(Rw) );
+	memset( &Rod, 0, sizeof(Rod) );
+
+	os_status = GetPerTcpConnectionEStats( &row,
+					TcpConnectionEstatsSendBuff,
+					&Rw, 0, sizeof(Rw),
+					NULL, 0, 0,
+					&Rod, 0, sizeof(Rod) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+#elif defined( OS_CYGWIN )
+
+/* Cygwin and other targets do not appear to implement the functionality
+ * needed for mx_socket_num_output_bytes_in_transit().
+ */
+
+MX_EXPORT mx_status_type
+mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
+					long *num_output_bytes_in_transit )
+{
+	static const char fname[] = "mx_socket_num_output_bytes_in_transit()";
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( num_output_bytes_in_transit == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_output_bytes_in_transit pointer passed was NULL." );
+	}
+
+	*num_output_bytes_in_transit = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+#else
+#error mx_socket_num_output_bytes_in_transit() is not yet implemented for this build target.
+#endif
+
+/*----------------------------------------------------------------------*/
 
 #define MXU_SOCKET_DISCARD_BUFFER_LENGTH	1000
 
