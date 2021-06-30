@@ -46,6 +46,7 @@
 #include "mx_record.h"
 #include "mx_ascii.h"
 #include "mx_mutex.h"
+#include "mx_dynamic_library.h"
 #include "mx_circular_buffer.h"
 #include "mx_socket.h"
 #include "mx_select.h"
@@ -3399,11 +3400,16 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 
 #include <iphlpapi.h>
 
-static HINSTANCE hinst_iphlpapi = NULL;
+static MX_DYNAMIC_LIBRARY *iphlpapi_library = NULL;
 
-typedef ULONG (*GetTcpTable_type)( PMID_TCPTABLE, PULONG, BOOL );
+typedef ULONG (GetTcpTable_type)( MIB_TCPTABLE *, ULONG *, BOOL );
 
-static GetTcpTable_type ptrGetTcpTable = NULL;
+static GetTcpTable_type *ptr_GetTcpTable = NULL;
+
+typedef ULONG (GetPerTcpConnectionEStats_type)( MIB_TCPROW *, TCP_ESTATS_TYPE,
+	UCHAR *, ULONG, ULONG, UCHAR *, ULONG, ULONG, UCHAR *, ULONG, ULONG );
+
+static GetPerTcpConnectionEStats_type *ptr_GetPerTcpConnectionEStats = NULL;
 
 MX_EXPORT mx_status_type
 mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
@@ -3411,16 +3417,24 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_socket_num_output_bytes_in_transit()";
 
-	MIB_TCPTABLE tcp_table;
-	ULONG tcp_table_size = sizeof(tcp_table);
+	MIB_TCPTABLE *tcp_table = NULL;
+	DWORD tcp_table_size = 0;
 
-	MIB_TCPROW row;
+	MIB_TCPROW *row = NULL;
 
-	TCP_ESTATS_SEND_BUFF_RW_v0 Rw;
 	TCP_ESTATS_SEND_BUFF_ROD_v0 Rod;
 	ULONG os_status;
 	DWORD last_error_code;
 	TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
+
+	int net_address_family, net_socket_type;
+	long mx_socket_type, local_port_number, receive_buffer_size;
+	char socket_name[ MXU_FILENAME_LENGTH + 1 ];
+	unsigned long socket_flags;
+	mx_bool_type is_non_blocking;
+
+	int i;
+	mx_status_type mx_status;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3433,14 +3447,78 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 
 	*num_output_bytes_in_transit = 0;
 
-	if ( ptrGetTcpTable  == NULL ) {
-		if ( hinst_iphlpapi ) {
+	if ( ptr_GetTcpTable == (GetTcpTable_type *) NULL ) {
+		mx_status = mx_dynamic_library_get_library_and_symbol_address(
+			"iphlpapi.dll", "GetTcpTable", &iphlpapi_library,
+			(void **) &ptr_GetTcpTable, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( ptr_GetPerTcpConnectionEStats
+			== (GetPerTcpConnectionEStats_type *) NULL )
+	{
+		mx_status = mx_dynamic_library_get_address_from_symbol(
+			iphlpapi_library, "GetPerTcpConnectionEStats",
+			(void **) &ptr_GetPerTcpConnectionEStats, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Which local port number is this socket connected to? */
+
+	mx_status = mx_get_socket_metadata( mx_socket,
+					&net_address_family,
+					&net_socket_type,
+					&mx_socket_type,
+					socket_name, sizeof(socket_name),
+					&local_port_number,
+					&socket_flags,
+					&is_non_blocking,
+					&receive_buffer_size );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( net_socket_type != SOCK_STREAM ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"MX socket %p (fd %d) is not a stream socket.",
+			mx_socket, mx_socket->socket_fd );
+	}
+
+	/* Make an initial call to figure out how big the TCP data buffer
+	 * needs to be.
+	 */
+
+	tcp_table = (MIB_TCPTABLE *) malloc( sizeof(MIB_TCPTABLE) );
+
+	if ( tcp_table == (MIB_TCPTABLE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate MIB_TCPTABLE #1." );
+	}
+
+	tcp_table_size = sizeof(MIB_TCPTABLE);
+
+	os_status = (*ptr_GetTcpTable)( tcp_table, &tcp_table_size, FALSE );
+
+	if ( os_status == ERROR_INSUFFICIENT_BUFFER ) {
+		mx_free( tcp_table );
+
+		tcp_table = (MIB_TCPTABLE *) malloc( tcp_table_size );
+
+		if ( tcp_table == (MIB_TCPTABLE *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate MIB_TCPTABLE #2." );
 		}
 	}
 
-	memset( &tcp_table, 0, tcp_table_size );
+	/* Now we can get the real TCP table data. */
 
-	os_status = GetTcpTable( &tcp_table, &tcp_table_size, FALSE );
+	memset( tcp_table, 0, tcp_table_size );
+
+	os_status = (*ptr_GetTcpTable)( tcp_table, &tcp_table_size, FALSE );
 
 	if ( os_status != NO_ERROR ) {
 		last_error_code = GetLastError();
@@ -3454,16 +3532,46 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 			last_error_code, message_buffer );
 	}
 
-	memset( &Rw, 0, sizeof(Rw) );
-	memset( &Rod, 0, sizeof(Rod) );
+	/* Now loop through all of the existing TCP connections for
+	 * the particular socket that we are interested in.
+	 */
 
-	os_status = GetPerTcpConnectionEStats( &row,
+	for ( i = 0; i < tcp_table->dwNumEntries; i++ ) {
+		row = &( tcp_table->table[i] );
+
+		if ( row->dwLocalPort == local_port_number ) {
+			/* We have found the socket we are looking for. */
+
+			memset( &Rod, 0, sizeof(Rod) );
+
+			os_status = (*ptr_GetPerTcpConnectionEStats)( row,
 					TcpConnectionEstatsSendBuff,
-					&Rw, 0, sizeof(Rw),
 					NULL, 0, 0,
-					&Rod, 0, sizeof(Rod) );
+					NULL, 0, 0,
+					(UCHAR *) &Rod, 0, sizeof(Rod) );
 
-	return MX_SUCCESSFUL_RESULT;
+			if ( os_status != NO_ERROR ) {
+				last_error_code = GetLastError();
+
+				mx_win32_error_message( last_error_code,
+					message_buffer, sizeof(message_buffer));
+
+				return mx_error( MXE_FUNCTION_FAILED, fname,
+				"A call to GetPerTcpConnectionEStats() failed. "
+				" Win32 error code = %ld, error message = '%s'",
+					last_error_code, message_buffer );
+			}
+
+			*num_output_bytes_in_transit = Rod.CurRetxQueue
+							+ Rod.CurAppWQueue;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return mx_error( MXE_NOT_FOUND, fname,
+	"MX socket %p (fd %d) was not found in the Win32 TCP socket table.",
+		mx_socket, mx_socket->socket_fd );
 }
 
 /*------*/
