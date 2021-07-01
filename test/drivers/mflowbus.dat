@@ -13,5 +13,5 @@ temperature  variable flowbus_variable flowbus_float "" "" flowbus 3 33 7 0x1 1 
 capacity     variable flowbus_variable flowbus_float "" "" flowbus 3 1 13 0x3 1 1 0
 capacity_unit variable flowbus_variable flowbus_string "" "" flowbus 3 1 31 0x3 1 20 ""
 #
-flow_rate    variable flowbus_variable flowbus_capacity "" "" flowbus 3 "ccn/s" 0x1 1 1 0
-density      variable flowbus_variable flowbus_capacity "" "" flowbus 3 "slm" 0x3 1 1 0
+flow_rate    variable flowbus_variable flowbus_capacity "" "" flowbus 3 "kg/h" 0x1 1 1 0
+###density      variable flowbus_variable flowbus_capacity "" "" flowbus 3 "slm" 0x3 1 1 0
