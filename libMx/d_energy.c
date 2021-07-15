@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2013, 2016
+ * Copyright 1999-2004, 2006-2007, 2010, 2013, 2016, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -646,7 +646,6 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
-	case MXLV_MTR_ACCELERATION_TYPE:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 	case MXLV_MTR_ACCELERATION_DISTANCE:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -655,6 +654,11 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
 			motor->parameter_type );
+		break;
+
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_NONE;
+		break;
 
 	case MXLV_MTR_SPEED:
 		mx_status = mx_motor_get_position(
