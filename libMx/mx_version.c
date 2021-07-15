@@ -53,6 +53,26 @@ mx_get_update_version( void )
 	return MX_UPDATE_VERSION;
 }
 
+MX_EXPORT long
+mx_get_version_number( void )
+{
+	long version_number = 1000000L * MX_MAJOR_VERSION
+				+ 1000L * MX_MINOR_VERSION
+				+ MX_UPDATE_VERSION;
+
+	return version_number;
+}
+
+MX_EXPORT long
+mx_get_version_hex( void )
+{
+	long version_number = 0x10000L * MX_MAJOR_VERSION
+				+ 0x100L * MX_MINOR_VERSION
+				+ MX_UPDATE_VERSION;
+
+	return version_number;
+}
+
 MX_EXPORT char *
 mx_get_version_full_string( void )
 {
