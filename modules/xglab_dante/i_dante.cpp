@@ -14,9 +14,11 @@
  *
  */
 
-#define MXI_DANTE_TRACE_CALLS				TRUE
+#define MXI_DANTE_TRACE_CALLS				FALSE
 
-#define MXI_DANTE_DEBUG_CALLBACKS			TRUE
+#define MXI_DANTE_TRACE_CALLBACKS			FALSE
+
+#define MXI_DANTE_TRACE_MCA_CALLS			FALSE
 
 #define MXI_DANTE_DEBUG_MISC				FALSE
 
@@ -58,6 +60,7 @@
 #include "mx_process.h"
 #include "mx_dynamic_library.h"
 #include "mx_thread.h"
+#include "mx_atomic.h"
 #include "mx_mcs.h"
 #include "mx_mca.h"
 
@@ -108,11 +111,32 @@ extern const char *mxi_dante_strerror( int xia_status );
 /* FIXME: The following set of callback-related functions basically serialize
  * the handling of callbacks.  If we find ourself needing to deserialize the
  * handling of callbacks, then we will need to redesign this stuff.
+ *
+ * FIXME, FIXME, FIXME, FIXME!!!: The variables mxi_dante_callback_id,
+ * mxi_dante_callback_data, and mxi_dante_trace_callbacks are _GLOBAL_
+ * variables.  This means that their usage is _NOT_ thread safe.
+ * Please, please, please find a way to fix this someday!
+ *
+ * FIXME:  Please find a way to persuade Bruker to add an extra function
+ * argument like this 'void *user_pointer' to the function signature of
+ * the callback below like this:
+ *
+ * static void
+ * mxi_dante_callback_fn( uint16_t type,
+ *                         uint32_t call_id,
+ *                         uint32_t length,
+ *                         uint32_t *data,
+ *                         void *user_pointer );
+ *
+ * That way we could pass in the MX_DANTE pointer to the callback function
+ * in a way that is closer to being thread safe.
  */
 
 uint32_t mxi_dante_callback_id;
 
 uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
+
+static mx_bool_type mxi_dante_trace_callbacks = FALSE;
 
 static void
 mxi_dante_callback_fn( uint16_t type,
@@ -120,18 +144,16 @@ mxi_dante_callback_fn( uint16_t type,
 			uint32_t length,
 			uint32_t *data )
 {
-#if MXI_DANTE_DEBUG_CALLBACKS
 	static const char fname[] = "mxi_dante_callback_fn()";
 
 	uint32_t i;
-#endif
 
-#if MXI_DANTE_DEBUG_CALLBACKS
-	fprintf( stderr,
-	">>> %s: type = %lu, call_id = %lu, length = %lu, data = ",
-		fname, (unsigned long) type,
-		(unsigned long) call_id, (unsigned long) length);
-#endif
+	if ( mxi_dante_trace_callbacks ) {
+		fprintf( stderr,
+		">>> %s: type = %lu, call_id = %lu, length = %lu, data = ",
+			fname, (unsigned long) type,
+			(unsigned long) call_id, (unsigned long) length);
+	}
 
 	if ( length > MXU_DANTE_MAX_CALLBACK_DATA_LENGTH ) {
 		length = MXU_DANTE_MAX_CALLBACK_DATA_LENGTH;
@@ -142,20 +164,26 @@ mxi_dante_callback_fn( uint16_t type,
 
 	memcpy( mxi_dante_callback_data, data, length );
 
-#if MXI_DANTE_DEBUG_CALLBACKS
-	for ( i = 0; i < length; i++ ) {
-		fprintf( stderr, "%lu ",
-		(unsigned long) mxi_dante_callback_data[i] );
+	if ( mxi_dante_trace_callbacks ) {
+
+		for ( i = 0; i < length; i++ ) {
+			fprintf( stderr, "%lu ",
+			(unsigned long) mxi_dante_callback_data[i] );
+		}
+
+		fprintf( stderr, "<<<\n", fname );
+		fflush( stderr );
 	}
 
-	fprintf( stderr, "<<<\n", fname );
-	fflush( stderr );
-#endif
-
-	mxi_dante_callback_id = 0;
+	mx_atomic_write32( (int32_t *) &mxi_dante_callback_id, 0 );
 
 	return;
 }
+
+/* This wait function sets mxi_dante_callback_id to the callback id value
+ * that was returned by a previous call to a DANTE API function.  It then
+ * waits until mxi_dante_callback_id is reset to 0.
+ */
 
 int
 mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
@@ -163,6 +191,15 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 	static const char fname[] = "mxi_dante_wait_for_answer()";
 
 	unsigned long i, max_io_delay_ms;
+	uint32_t shared_callback_id;
+
+	/* Set mxi_dante_callback_id to be the same as the
+	 * value of call_id that was just passed to us.
+	 */
+
+	mx_atomic_write32( (int32_t *) &mxi_dante_callback_id, call_id );
+
+	/* Check for null MX_DANTE pointer being passed. */
 
 	if ( dante == (MX_DANTE *) NULL ) {
 		fprintf( stderr,
@@ -173,12 +210,10 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 		exit(1);
 	}
 
-	mxi_dante_callback_id = call_id;
-
-#if MXI_DANTE_DEBUG_CALLBACKS
-	fprintf( stderr,
-		"((( Waiting for callback %lu ...\n", (unsigned long) call_id);
-#endif
+	if ( dante->trace_callbacks ) {
+		fprintf( stderr, "((( Waiting for callback %lu ...\n",
+				(unsigned long) call_id);
+	}
 
 	if ( dante->max_io_delay <= 0.0 ) {
 		max_io_delay_ms = 1;
@@ -186,13 +221,21 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 		max_io_delay_ms = mx_round_up( 1000.0 * dante->max_io_delay );
 	}
 
-	for ( i = 0; i < dante->max_io_attempts; i++ ) {
-		if ( mxi_dante_callback_id != call_id ) {
+	/* Wait for mxi_dante_callback_id to be different from call_id.
+	 * Normally, the new value of mxi_dante_callback_id should be 0.
+	 */
 
-#if MXI_DANTE_DEBUG_CALLBACKS
-			fprintf( stderr, "Callback %lu seen. )))\n",
-				(unsigned long) call_id );
-#endif
+	for ( i = 0; i < dante->max_io_attempts; i++ ) {
+
+		shared_callback_id =
+			mx_atomic_read32( (int32_t *) &mxi_dante_callback_id );
+
+		if ( shared_callback_id != call_id ) {
+
+			if ( dante->trace_callbacks ) {
+				fprintf( stderr, "Callback %lu seen. )))\n",
+					(unsigned long) call_id );
+			}
 
 			return TRUE;
 		}
@@ -358,9 +401,9 @@ mxi_dante_filter_thread_fn( MX_THREAD *filter_thread, void *args )
 /*-------------------------------------------------------------------------*/
 
 #if defined(OS_WIN32)
-#  define MXP_DANTE_LIBRARY_NAME	"XGL_DPP.DLL"
+#  define MXP_DANTE_DLL_NAME	"XGL_DPP.DLL"
 #else
-#  define MXP_DANTE_LIBRARY_NAME	"libXGL_DPP.so"
+#  define MXP_DANTE_DLL_NAME	"libXGL_DPP.so"
 #endif
 
 MX_EXPORT mx_status_type
@@ -388,18 +431,12 @@ mxi_dante_open( MX_RECORD *record )
 	uint16_t error_code = DLL_NO_ERROR;
 	uint16_t num_boards;
 
-	char dante_library_filename[MXU_FILENAME_LENGTH+1];
-
 	MX_HRT_TIMING global_reset_measurement;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
 	}
-
-#if MXI_DANTE_TRACE_CALLS
-	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
-#endif
 
 	dante = (MX_DANTE *) record->record_type_struct;
 
@@ -409,46 +446,92 @@ mxi_dante_open( MX_RECORD *record )
 			record->name );
 	}
 
-	/* If we get here, the vendor's XGL_DPP library has already been
-	 * loaded.  If requested, we display the filename of the particular
-	 * copy of XGL_DPP that was loaded so that we can see if the
-	 * correct version of the library was loaded.
-	 */
+	/* Set some debugging flags. */
 
-	if ( dante->dante_flags & MXF_DANTE_SHOW_DANTE_LIBRARY_FILENAME ) {
+	if ( dante->dante_flags & MXF_DANTE_TRACE_CALLS ) {
+		dante->trace_calls = TRUE;
+	} else {
+		dante->trace_calls = FALSE;
+	}
 
-		mx_status = mx_dynamic_library_open( MXP_DANTE_LIBRARY_NAME,
-						&dante_library, 0 );
+	if ( dante->dante_flags & MXF_DANTE_TRACE_CALLBACKS ) {
+		dante->trace_callbacks = TRUE;
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		/* Warning: mxi_dante_trace_callbacks is a _GLOBAL_ variable.
+		 * I wish that was not the case.
+		 */
+		mxi_dante_trace_callbacks = TRUE;
+	} else {
+		dante->trace_callbacks = FALSE;
 
-		mx_status = mx_dynamic_library_get_filename( dante_library,
-						dante_library_filename,
-						sizeof(dante_library_filename));
+		/* Warning: mxi_dante_trace_callbacks is a _GLOBAL_ variable.
+		 * I wish that was not the case.
+		 */
+		mxi_dante_trace_callbacks = FALSE;
+	}
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( dante->dante_flags & MXF_DANTE_TRACE_MCA_CALLS ) {
+		dante->trace_mca_calls = TRUE;
+	} else {
+		dante->trace_mca_calls = FALSE;
+	}
 
 #if MXI_DANTE_TRACE_CALLS
-		MX_DEBUG(-2,("%s: The vendor\'s '%s' library was "
-				"loaded from the file '%s'.",
-				fname, dante_library->filename,
-				dante_library_filename ));
+	dante->trace_calls = TRUE;
 #endif
+
+#if MXI_DANTE_TRACE_CALLBACKS
+	dante->trace_callbacks = TRUE;
+#endif
+
+#if MXI_DANTE_TRACE_MCA_CALLS
+	dante->trace_mca_calls = TRUE;
+#endif
+
+	if ( dante->trace_calls ) {
+		MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
+	}
+
+	/* If we get here, the vendor's XGL_DPP library has already been
+	 * loaded.  It is important to know which version of XGL_DPP.DLL
+	 * was loaded because a given DLL is only compatible with a subset
+	 * of the available firmware.
+	 *
+	 * So we load the filename into an MX-controlled string variable.
+	 */
+
+	mx_status = mx_dynamic_library_open( MXP_DANTE_DLL_NAME,
+						&dante_library, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_dynamic_library_get_filename( dante_library,
+					dante->dante_dll_filename,
+					sizeof(dante->dante_dll_filename));
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( dante->dante_flags & MXF_DANTE_SHOW_DANTE_DLL_FILENAME ) {
+
+			MX_DEBUG(-2,("%s: Bruker\'s '%s' library was "
+					"loaded from the file '%s'.",
+					fname, dante_library->filename,
+					dante->dante_dll_filename ));
 	}
 
 	/* Clear out any pre-existing errors from previous runs. */
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "%s: resetLastError()",fname );
-#endif
+	if ( dante->trace_calls ) {
+		fprintf( stderr, "%s: resetLastError()",fname );
+	}
 
 	(void) resetLastError();
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr,"\n" );
-#endif
+	if ( dante->trace_calls ) {
+		fprintf( stderr,"\n" );
+	}
 
 	/*---*/
 
@@ -461,10 +544,10 @@ mxi_dante_open( MX_RECORD *record )
 	 * callback _before_ returning from InitLibrary().
 	 */
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr,
+	if ( dante->trace_calls ) {
+		fprintf( stderr,
 		"%s: register_callback( mxi_dante_callback_fn ) = ", fname );
-#endif
+	}
 
 	dante_status = register_callback( mxi_dante_callback_fn );
 
@@ -477,15 +560,15 @@ mxi_dante_open( MX_RECORD *record )
 		"error code %lu.", (unsigned long) error_code );
 	}
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "true\n" );
-#endif
+	if ( dante->trace_calls ) {
+		fprintf( stderr, "true\n" );
+	}
 
 	/* Initialize the DANTE library. */
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "%s: InitLibrary() = ", fname );
-#endif
+	if ( dante->trace_calls ) {
+		fprintf( stderr, "%s: InitLibrary() = ", fname );
+	}
 
 	dante_status = InitLibrary();
 
@@ -497,18 +580,19 @@ mxi_dante_open( MX_RECORD *record )
 			(unsigned long) error_code );
 	}
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "true\n" );
-#endif
+	if ( dante->trace_calls ) {
+		fprintf( stderr, "true\n" );
+	}
 
 	/* Get the DANTE API version number. */
 
 	version_length = MXU_DANTE_MAX_VERSION_LENGTH;
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "%s: libVersion( dante_version_string, %lu ) = ",
+	if ( dante->trace_calls ) {
+		fprintf( stderr,
+		"%s: libVersion( dante_version_string, %lu ) = ",
 						fname, version_length );
-#endif
+	}
 
 	dante_status = libVersion( dante->dante_version_string,
 						version_length );
@@ -521,11 +605,11 @@ mxi_dante_open( MX_RECORD *record )
 			(unsigned long) error_code );
 	}
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "true\n" );
-	fprintf( stderr, "%s: dante_version_string = '%s'\n",
-		fname, dante->dante_version_string );
-#endif
+	if ( dante->trace_calls ) {
+		fprintf( stderr, "true\n" );
+		fprintf( stderr, "%s: dante_version_string = '%s'\n",
+			fname, dante->dante_version_string );
+	}
 
 	num_items = sscanf( dante->dante_version_string, "%lu.%lu.%lu.%lu",
 					&major, &minor, &update, &extra );
@@ -549,36 +633,6 @@ mxi_dante_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: DANTE version = '%s' (%lu)",
 		fname, dante->dante_version_string, dante->dante_version ));
 
-	if ( dante->dante_version < MX_DANTE_MIN_VERSION ) {
-		unsigned long min_ver = MX_DANTE_MIN_VERSION;
-
-		unsigned long min_major = ( min_ver / 1000000L );
-		unsigned long min_minor = ( ( min_ver % 1000000L ) / 10000L );
-		unsigned long min_update = ( ( min_ver % 10000L ) / 100L );
-		unsigned long min_extra = ( min_ver % 100L );
-
-		mx_warning( "The MX 'xglab_dante' module has not been "
-		"tested with versions of DANTE API older than "
-		"%lu.%lu.%lu.%lu.  Things may not work correctly "
-		"for this version.\n",
-			min_major, min_minor, min_update, min_extra);
-	}
-
-	if ( dante->dante_version > MX_DANTE_MAX_VERSION ) {
-		unsigned long max_ver = MX_DANTE_MAX_VERSION;
-
-		unsigned long max_major = ( max_ver / 1000000L );
-		unsigned long max_minor = ( ( max_ver % 1000000L ) / 10000L );
-		unsigned long max_update = ( ( max_ver % 10000L ) / 100L );
-		unsigned long max_extra = ( max_ver % 100L );
-
-		mx_warning( "The MX 'xglab_dante' module has not been "
-		"tested with versions of DANTE API newer than "
-		"%lu.%lu.%lu.%lu.  Things may not work correctly "
-		"for this version.\n",
-			max_major, max_minor, max_update, max_extra);
-	}
-
 	/* Find identifiers for all of the devices controlled by
 	 * the current program.
 	 */
@@ -600,19 +654,19 @@ mxi_dante_open( MX_RECORD *record )
 		fname, dante->max_init_delay));
 #endif
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "%s: Sleeping for %lu milliseconds\n",
-					fname, max_init_delay_ms );
-#endif
+	if ( dante->trace_calls ) {
+		fprintf( stderr, "%s: Sleeping for %lu milliseconds\n",
+						fname, max_init_delay_ms );
+	}
 
 	mx_msleep( max_init_delay_ms );
 
 	/* How many masters are there? */
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr,
+	if ( dante->trace_calls ) {
+		fprintf( stderr,
 		"%s: get_dev_number( number_of_master_devices ) = ", fname );
-#endif
+	}
 
 	dante_status = get_dev_number( number_of_master_devices );
 
@@ -621,11 +675,11 @@ mxi_dante_open( MX_RECORD *record )
 		"DANTE get_dev_number() failed." );
 	}
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "true\n" );
-	fprintf( stderr, "%s: number_of_master_devices = %lu\n",
+	if ( dante->trace_calls ) {
+		fprintf( stderr, "true\n" );
+		fprintf( stderr, "%s: number_of_master_devices = %lu\n",
 				fname, number_of_master_devices );
-#endif
+	}
 
 	dante->num_master_devices = number_of_master_devices;
 
@@ -673,10 +727,11 @@ mxi_dante_open( MX_RECORD *record )
 
 		board_number = 0;
 
-#if MXI_DANTE_TRACE_CALLS
-		fprintf( stderr, "%s: get_ids( chain_id, %lu, %lu ) = ",
+		if ( dante->trace_calls ) {
+			fprintf( stderr,
+				"%s: get_ids( chain_id, %lu, %lu ) = ",
 				fname, board_number, max_identifier_length );
-#endif
+		}
 
 		dante_status = get_ids( dante->master[i].chain_id,
 					board_number, max_identifier_length );
@@ -696,11 +751,11 @@ mxi_dante_open( MX_RECORD *record )
 			}
 		}
 
-#if MXI_DANTE_TRACE_CALLS
-		fprintf( stderr, "true\n" );
-		fprintf( stderr, "%s: chain_id # %lu = '%s'\n",
-			fname, i, dante->master[i].chain_id );
-#endif
+		if ( dante->trace_calls ) {
+			fprintf( stderr, "true\n" );
+			fprintf( stderr, "%s: chain_id # %lu = '%s'\n",
+				fname, i, dante->master[i].chain_id );
+		}
 
 #if 0
 		MX_DEBUG(-2,("%s: dante->master[%lu].chain_id = '%s'",
@@ -743,37 +798,39 @@ mxi_dante_open( MX_RECORD *record )
 
 		for ( attempt = 0; attempt < max_io_attempts; attempt++ ) {
 
-#if MXI_DANTE_TRACE_CALLS
-			fflush( stderr );
-			fprintf( stderr,
-			"%s: get_boards_in_chain( '%s', num_boards ) = ",
-				fname, dante->master[i].chain_id );
-#endif
+			if ( dante->trace_calls ) {
+				fflush( stderr );
+				fprintf( stderr,
+			    "%s: get_boards_in_chain( '%s', num_boards ) = ",
+					fname, dante->master[i].chain_id );
+			}
 
 			dante_status = get_boards_in_chain(
 				dante->master[i].chain_id, num_boards );
 
 			if ( dante_status != false ) {
-#if MXI_DANTE_TRACE_CALLS
-				fprintf( stderr, "true\n" );
-				fflush( stderr );
-#endif
-				break;	/* Exit the for(attempt) loop. */
+
+				if ( dante->trace_calls ) {
+					fprintf( stderr, "true\n" );
+					fflush( stderr );
+				}
+
+				break; /* Exit the for(attempt) loop. */
 			}
 
-#if MXI_DANTE_TRACE_CALLS
-			fprintf( stderr, "false\n" );
-			fflush( stderr );
-#endif
+			if ( dante->trace_calls ) {
+				fprintf( stderr, "false\n" );
+				fflush( stderr );
+			}
 
 			(void) getLastError( error_code );
 
-#if MXI_DANTE_TRACE_CALLS
-			fprintf( stderr,
+			if ( dante->trace_calls ) {
+				fprintf( stderr,
 			    "%s: get_lastErrorCode( error_code )\n", fname );
-			fprintf( stderr, "%s: error_code = %lu\n",
-				fname, error_code );
-#endif
+				fprintf( stderr, "%s: error_code = %lu\n",
+					fname, error_code );
+			}
 
 			switch( error_code ) {
 			case DLL_NO_ERROR:
@@ -789,10 +846,10 @@ mxi_dante_open( MX_RECORD *record )
 			mx_msleep( max_io_delay_ms );
 		}
 
-#if MXI_DANTE_TRACE_CALLS
-		fprintf( stderr,"%s: num_boards = %lu\n",
-			fname, (unsigned long) num_boards );
-#endif
+		if ( dante->trace_calls ) {
+			fprintf( stderr,"%s: num_boards = %lu\n",
+				fname, (unsigned long) num_boards );
+		}
 
 		if ( num_boards > dante->max_boards_per_chain ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -957,9 +1014,9 @@ mxi_dante_open( MX_RECORD *record )
 	}
 #endif
 
-#if MXI_DANTE_TRACE_CALLS
-	fprintf( stderr, "%s complete.\n", fname );
-#endif
+	if ( dante->trace_calls ) {
+		fprintf( stderr, "%s complete.\n", fname );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1027,6 +1084,7 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_finish_delayed_initialization()";
 
+	MX_DANTE *dante;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1034,9 +1092,17 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if MXI_DANTE_TRACE_CALLS
-	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
-#endif
+	dante = (MX_DANTE *) record->record_type_struct;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
+			record->name );
+	}
+
+	if ( dante->trace_calls ) {
+		MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
+	}
 
 	mx_status = mxi_dante_load_config_file( record );
 
@@ -1045,9 +1111,9 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 
 	mx_status = mxi_dante_configure( record );
 
-#if MXI_DANTE_TRACE_CALLS
-	MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name ));
-#endif
+	if ( dante->trace_calls ) {
+		MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name ));
+	}
 
 	return mx_status;
 }
@@ -1167,16 +1233,16 @@ mxi_dante_configure( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if MXI_DANTE_TRACE_CALLS
-	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
-#endif
-
 	dante = (MX_DANTE *) record->record_type_struct;
 
 	if ( dante == (MX_DANTE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
 			record->name );
+	}
+
+	if ( dante->trace_calls ) {
+		MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
 	}
 
 	for ( i = 0; i < dante->num_mcas; i++ ) {
@@ -1201,9 +1267,9 @@ mxi_dante_configure( MX_RECORD *record )
 			return mx_status;
 	}
 
-#if MXI_DANTE_TRACE_CALLS
-	MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name));
-#endif
+	if ( dante->trace_calls ) {
+		MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2029,16 +2095,16 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if MXI_DANTE_TRACE_CALLS
-	MX_DEBUG(-2,("%s invoked for '%s'.", fname, dante_record->name));
-#endif
-
 	dante = (MX_DANTE *) dante_record->record_type_struct;
 
 	if ( dante == (MX_DANTE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
 			dante_record->name );
+	}
+
+	if ( dante->trace_calls ) {
+	      MX_DEBUG(-2,("%s invoked for '%s'.", fname, dante_record->name));
 	}
 
 	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
@@ -2554,9 +2620,9 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 
 	mx_fclose( config_file );
 
-#if MXI_DANTE_TRACE_CALLS
-	MX_DEBUG(-2,("%s complete for '%s'.", fname, dante_record->name));
-#endif
+	if ( dante->trace_calls ) {
+	      MX_DEBUG(-2,("%s complete for '%s'.", fname, dante_record->name));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

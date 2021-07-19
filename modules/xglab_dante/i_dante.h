@@ -33,18 +33,18 @@ extern "C" {
 #define MX_DANTE_VERSION( major, minor, update, extra ) \
 	( 1000000 * (major) + 10000 * (minor) + 100 * (update) + (extra) )
 
-#define MX_DANTE_MIN_VERSION			MX_DANTE_VERSION(3,4,0,3)
-
-#define MX_DANTE_MAX_VERSION			MX_DANTE_VERSION(3,7,13,0)
-
 /* The following flags are used by the 'dante_flags' field. */
 
 #define MXF_DANTE_SHOW_DEVICES			0x1
-#define MXF_DANTE_SHOW_DANTE_LIBRARY_FILENAME	0x2
+#define MXF_DANTE_SHOW_DANTE_DLL_FILENAME	0x2
 
 #define MXF_DANTE_SET_BOARDS_TO_0xFF		0x1000
 
 /* The following are for debugging purposes only. */
+
+#define MXF_DANTE_TRACE_CALLS			0x10000
+#define MXF_DANTE_TRACE_CALLBACKS		0x20000
+#define MXF_DANTE_TRACE_MCA_CALLS		0x40000
 
 #define MXF_DANTE_INTERCEPT_STDOUT		0x100000
 #define MXF_DANTE_INTERCEPT_STDERR		0x200000
@@ -145,6 +145,12 @@ typedef struct dante_struct {
 
 	MX_RECORD **mca_record_array;
 
+	mx_bool_type trace_calls;
+	mx_bool_type trace_callbacks;
+	mx_bool_type trace_mca_calls;
+
+	char dante_dll_filename[MXU_FILENAME_LENGTH+1];
+
 	/* The following are for debugging purposes only. */
 
 #if defined(OS_WIN32)
@@ -194,6 +200,9 @@ extern int mxi_dante_wait_for_answer( uint32_t callback_id, MX_DANTE *dante );
 #define MXLV_DANTE_LOAD_CONFIG_FILE	22001
 #define MXLV_DANTE_SAVE_CONFIG_FILE	22002
 #define MXLV_DANTE_CONFIGURE		22003
+#define MXLV_DANTE_TRACE_CALLS		22004
+#define MXLV_DANTE_TRACE_CALLBACKS	22005
+#define MXLV_DANTE_TRACE_MCA_CALLS	22006
 
 #define MXI_DANTE_STANDARD_FIELDS \
   {-1, -1, "dante_flags", MXFT_HEX, NULL, 0, {0}, \
@@ -253,6 +262,22 @@ extern int mxi_dante_wait_for_answer( uint32_t callback_id, MX_DANTE *dante );
   \
   {-1, -1, "num_master_devices", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, num_master_devices), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_DANTE_TRACE_CALLS, -1, "trace_calls", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, trace_calls), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_DANTE_TRACE_CALLBACKS, -1, "trace_callbacks", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, trace_callbacks), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "dante_dll_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, dante_dll_filename), \
+	{sizeof(char)}, NULL, 0 }, \
+  \
+  {MXLV_DANTE_TRACE_MCA_CALLS, -1, "trace_mca_calls", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, trace_mca_calls), \
 	{0}, NULL, 0 }, \
 
 MX_API mx_status_type mxi_dante_initialize_driver( MX_DRIVER *driver );

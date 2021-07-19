@@ -24,8 +24,9 @@ ifeq ($(MX_ARCH),win32)
 #	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.4.0.3\\Library\\micros~1\\3.4.0.3-Callback-x64"
 #	XGLAB_DANTE_DIR = "c:\\users\\mrcat\\Desktop\\dantes~1.202\\Library\\micros~1\\3.5.1.0-Callback-x64"
 #	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.7.8.0\\Library\\Windows\\3.7.8.0-Callback-x64"
+#	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.7.13.0-IIT\\Library\\Windows\\3.7.13.0-Callback-x64"
 
-	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.7.13.0-IIT\\Library\\Windows\\3.7.13.0-Callback-x64"
+	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.7.15.0\\Library\\Windows\\3.7.15.0-Callback-x64"
 endif
 
 #--------------------------------------------------------------------------

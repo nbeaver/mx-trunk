@@ -33,6 +33,8 @@ extern "C" {
 
 #define MXF_DANTE_MCA_VALIDATE_CONFIGURATION	0x10
 
+#define MXF_DANTE_MCA_TRACE_CALLS		0x10000
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -82,12 +84,15 @@ typedef struct {
 
 	uint64_t *spectrum_data;
 
+	mx_bool_type trace_calls;
+
 #ifdef __cplusplus
 	MX_DANTE_CONFIGURATION *mx_dante_configuration;
 #endif
 } MX_DANTE_MCA;
 
 #define MXLV_DANTE_MCA_CONFIGURE	23001
+#define MXLV_DANTE_MCA_TRACE_CALLS	23002
 
 #define MXD_DANTE_MCA_STANDARD_FIELDS \
   {-1, -1, "dante_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -214,7 +219,11 @@ typedef struct {
   \
   {-1, -1, "attempt_delay_ms", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, attempt_delay_ms ), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {MXLV_DANTE_MCA_TRACE_CALLS, -1, "trace_calls", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, trace_calls ), \
+	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_dante_mca_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_dante_mca_create_record_structures(

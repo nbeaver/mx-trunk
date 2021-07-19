@@ -42,7 +42,7 @@
  *
  */
 
-#define MXD_DANTE_MCA_TRACE_CALLS				TRUE
+#define MXD_DANTE_MCA_TRACE_CALLS				FALSE
 
 #define MXD_DANTE_MCA_DEBUG					FALSE
 
@@ -343,6 +343,22 @@ mxd_dante_mca_open( MX_RECORD *record )
 	mca->input_count_rate = 0.0;
 	mca->output_count_rate = 0.0;
 
+	if ( dante_mca->dante_mca_flags & MXF_DANTE_MCA_TRACE_CALLS ) {
+		dante_mca->trace_calls = TRUE;
+	} else {
+		dante_mca->trace_calls = FALSE;
+	}
+
+	if ( dante->trace_mca_calls ) {
+		dante_mca->trace_calls = TRUE;
+	} else {
+		dante_mca->trace_calls = FALSE;
+	}
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	dante_mca->trace_calls = TRUE;
+#endif
+
 	/* Detect the firmware used by this board. */
 
 #if MXD_DANTE_MCA_TRACE_CALLS
@@ -382,8 +398,9 @@ mxd_dante_mca_open( MX_RECORD *record )
 #endif
 
 	dante_mca->firmware_version = 1000000 * mxi_dante_callback_data[0]
-				       + 1000 * mxi_dante_callback_data[1]
-				              + mxi_dante_callback_data[2];
+				      + 10000 * mxi_dante_callback_data[1]
+				      +   100 * mxi_dante_callback_data[2]
+				      +         mxi_dante_callback_data[3];
 
 	dante_mca->firmware_type = mxi_dante_callback_data[3];
 
