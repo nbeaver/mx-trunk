@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2014-2015 Illinois Institute of Technology
+ * Copyright 2006-2007, 2014-2015, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -132,7 +132,9 @@
 #define SCNx64	"lx"
 
 /*=======================================================================*/
-#elif defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
+#elif defined(OS_WIN32) \
+	&& ( defined(__BORLANDC__) \
+	   || (defined(_MSC_VER) && (_MSC_VER < 1900)) )
 
 #define PRId8	"hd"
 #define PRIu8	"hu"
