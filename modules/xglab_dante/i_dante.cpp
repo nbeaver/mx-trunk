@@ -169,7 +169,7 @@ mxi_dante_callback_fn( uint16_t type,
 					(unsigned long) length );
 	}
 
-	memcpy( mxi_dante_callback_data, data, length );
+	memcpy( mxi_dante_callback_data, data, length * sizeof(uint32_t) );
 
 	if ( dante->trace_callbacks ) {
 
