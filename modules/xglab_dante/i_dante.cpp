@@ -112,10 +112,9 @@ extern const char *mxi_dante_strerror( int xia_status );
  * the handling of callbacks.  If we find ourself needing to deserialize the
  * handling of callbacks, then we will need to redesign this stuff.
  *
- * FIXME, FIXME, FIXME, FIXME!!!: The variables mxi_dante_callback_id,
- * mxi_dante_callback_data, and mxi_dante_trace_callbacks are _GLOBAL_
- * variables.  This means that their usage is _NOT_ thread safe.
- * Please, please, please find a way to fix this someday!
+ * FIXME: The variables mxi_dante_callback_id, mxi_dante_callback_data, and
+ * mxi_dante are _GLOBAL_ variables.  This means that their usage is not
+ * thread safe, as is.  Please, please, please find a way to fix this someday!
  *
  * FIXME:  Please find a way to persuade Bruker to add an extra function
  * argument like this 'void *user_pointer' to the function signature of
@@ -136,7 +135,7 @@ uint32_t mxi_dante_callback_id;
 
 uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
 
-static mx_bool_type mxi_dante_trace_callbacks = FALSE;
+static MX_DANTE *mxi_dante_pointer = NULL;
 
 static void
 mxi_dante_callback_fn( uint16_t type,
@@ -146,13 +145,21 @@ mxi_dante_callback_fn( uint16_t type,
 {
 	static const char fname[] = "mxi_dante_callback_fn()";
 
+	MX_DANTE *dante;
 	uint32_t i;
 
-	if ( mxi_dante_trace_callbacks ) {
+	dante = mxi_dante_pointer;	/* Pretend we are being thread safe. */
+
+	if ( dante->trace_callbacks ) {
 		fprintf( stderr,
 		">>> %s: type = %lu, call_id = %lu, length = %lu, data = ",
 			fname, (unsigned long) type,
 			(unsigned long) call_id, (unsigned long) length);
+	}
+
+	if ( dante->dante_flags & MXF_DANTE_TRACE_THREADS ) {
+		fprintf( stderr, "%s: thread id = %#lx\n",
+			fname, mx_get_thread_id( NULL ) );
 	}
 
 	if ( length > MXU_DANTE_MAX_CALLBACK_DATA_LENGTH ) {
@@ -164,7 +171,7 @@ mxi_dante_callback_fn( uint16_t type,
 
 	memcpy( mxi_dante_callback_data, data, length );
 
-	if ( mxi_dante_trace_callbacks ) {
+	if ( dante->trace_callbacks ) {
 
 		for ( i = 0; i < length; i++ ) {
 			fprintf( stderr, "%lu ",
@@ -213,6 +220,11 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 	if ( dante->trace_callbacks ) {
 		fprintf( stderr, "((( Waiting for callback %lu ...\n",
 				(unsigned long) call_id);
+	}
+
+	if ( dante->dante_flags & MXF_DANTE_TRACE_THREADS ) {
+		fprintf( stderr, "%s: thread id = %#lx\n",
+			fname, mx_get_thread_id( NULL ) );
 	}
 
 	if ( dante->max_io_delay <= 0.0 ) {
@@ -456,18 +468,8 @@ mxi_dante_open( MX_RECORD *record )
 
 	if ( dante->dante_flags & MXF_DANTE_TRACE_CALLBACKS ) {
 		dante->trace_callbacks = TRUE;
-
-		/* Warning: mxi_dante_trace_callbacks is a _GLOBAL_ variable.
-		 * I wish that was not the case.
-		 */
-		mxi_dante_trace_callbacks = TRUE;
 	} else {
 		dante->trace_callbacks = FALSE;
-
-		/* Warning: mxi_dante_trace_callbacks is a _GLOBAL_ variable.
-		 * I wish that was not the case.
-		 */
-		mxi_dante_trace_callbacks = FALSE;
 	}
 
 	if ( dante->dante_flags & MXF_DANTE_TRACE_MCA_CALLS ) {
@@ -490,6 +492,11 @@ mxi_dante_open( MX_RECORD *record )
 
 	if ( dante->trace_calls ) {
 		MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
+	}
+
+	if ( dante->dante_flags & MXF_DANTE_TRACE_THREADS ) {
+		fprintf( stderr, "%s: thread id = %#lx\n",
+			fname, mx_get_thread_id( NULL ) );
 	}
 
 	/* If we get here, the vendor's XGL_DPP library has already been
@@ -515,7 +522,7 @@ mxi_dante_open( MX_RECORD *record )
 
 	if ( dante->dante_flags & MXF_DANTE_SHOW_DANTE_DLL_FILENAME ) {
 
-			MX_DEBUG(-2,("%s: Bruker\'s '%s' library was "
+			MX_DEBUG(-2,("%s: The Bruker '%s' library was "
 					"loaded from the file '%s'.",
 					fname, dante_library->filename,
 					dante->dante_dll_filename ));
@@ -548,6 +555,17 @@ mxi_dante_open( MX_RECORD *record )
 		fprintf( stderr,
 		"%s: register_callback( mxi_dante_callback_fn ) = ", fname );
 	}
+
+	/* FIXME, FIXME, FIXME: Regrettably mxi_dante is a _GLOBAL_ variable.
+	 * Bruker's Dante API does not provide me a way to pass an MX_DANTE
+	 * pointer to the mxi_dante_callback_fn().  So we have to resort to
+	 * the ugly trick of passing it in a global variable.  Please find
+	 * a way to not do this.
+	 */
+
+	mxi_dante_pointer = dante;
+
+	/* Register the Dante API's callback function. */
 
 	dante_status = register_callback( mxi_dante_callback_fn );
 

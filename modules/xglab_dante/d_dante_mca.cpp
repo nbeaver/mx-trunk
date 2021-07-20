@@ -402,13 +402,9 @@ mxd_dante_mca_open( MX_RECORD *record )
 				      +   100 * mxi_dante_callback_data[2]
 				      +         mxi_dante_callback_data[3];
 
-	dante_mca->firmware_type = mxi_dante_callback_data[3];
-
 #if 1
-	MX_DEBUG(-2,("%s: '%s', firmware_version = %lu, firmware_type = %lu",
-	    fname, dante_mca->record->name,
-	    dante_mca->firmware_version,
-	    dante_mca->firmware_type ));
+	MX_DEBUG(-2,("%s: '%s', firmware_version = %lu",
+	    fname, dante_mca->record->name, dante_mca->firmware_version));
 #endif
 
 	/*---*/

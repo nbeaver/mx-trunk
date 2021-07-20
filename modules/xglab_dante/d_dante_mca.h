@@ -45,7 +45,6 @@ typedef struct {
 	unsigned long dante_mca_flags;
 
 	unsigned long firmware_version;
-	unsigned long firmware_type;
 
 	unsigned long total_num_measurements;
 
@@ -119,10 +118,6 @@ typedef struct {
   \
   {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, firmware_version ), \
-	{0}, NULL, 0 }, \
-  \
-  {-1, -1, "firmware_type", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, firmware_type ), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "total_num_measurements", MXFT_ULONG, NULL, 0, {0}, \
