@@ -1003,12 +1003,16 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	}
 }
 
+/*-----------------------------------------------------------------------*/
+
 #elif defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD) \
 	|| defined(OS_SOLARIS) || defined(OS_MINIX)
 
 #define _GNU_SOURCE
 #include <link.h>
 #include <dlfcn.h>
+
+#  if defined( RTLD_DI_LINKMAP )
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
@@ -1039,6 +1043,25 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------*/
+
+#  else
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
+				char *filename_of_library,
+				size_t max_filename_length )
+{
+	static const char fname[] = "mx_dynamic_library_get_filename()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+			"Not supported for this platform." );
+}
+
+#  endif
+
+/*-----------------------------------------------------------------------*/
+
 #elif defined(OS_MACOSX) || defined(OS_QNX) || defined(OS_UNIXWARE)
 
 #include <dlfcn.h>
@@ -1066,6 +1089,8 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-----------------------------------------------------------------------*/
+
 #elif defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
@@ -1078,6 +1103,8 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 	return mx_error( MXE_UNSUPPORTED, fname,
 			"Not supported for this platform." );
 }
+
+/*-----------------------------------------------------------------------*/
 
 #else
 #error mx_dynamic_library_get_filename() not yet implemented for this target.
