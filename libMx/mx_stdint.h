@@ -125,7 +125,7 @@ typedef uint64_t		uintmax_t;
 /*=======================================================================*/
 #elif defined(OS_LINUX)
 
-#  if ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L) )
+#  if ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2000000L) )
 
       /* For very old Linux distributions, we must code this by hand. */
 
@@ -160,6 +160,22 @@ typedef uint64_t		uintmax_t;
       typedef uint32_t             uintmax_t;
 
 #     endif
+
+#  elif ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L) )
+#    include <sys/types.h>
+
+     typedef unsigned char uint8_t;
+     typedef unsigned short uint16_t;
+     typedef unsigned int uint32_t;
+     typedef unsigned long long uint64_t;
+
+#    if ( MX_WORDSIZE == 64 )
+#      define INT64_C(c)	c ## L
+#      define UINT64_C(c)	c ## UL
+#    else
+#      define INT64_C(c)	c ## LL
+#      define UINT64_C(c)	c ## ULL
+#    endif
 
 #  else
 #    include <stdint.h>

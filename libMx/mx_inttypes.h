@@ -169,6 +169,42 @@
 #define SCNx64	"I64x"
 
 /*=======================================================================*/
+
+#elif ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L) )
+
+#define PRId8	"hd"
+#define PRIu8	"hu"
+#define PRIx8	"hx"
+
+#define SCNd8	"!unsupported"
+#define SCNu8	"!unsupported"
+#define SCNx8	"!unsupported"
+
+#define PRId16	"hd"
+#define PRIu16	"hu"
+#define PRIx16	"hx"
+
+#define SCNd16	"hd"
+#define SCNu16	"hu"
+#define SCNx16	"hx"
+
+#define PRId32	"d"
+#define PRIu32	"u"
+#define PRIx32	"x"
+
+#define SCNd32	"d"
+#define SCNu32	"u"
+#define SCNx32	"x"
+
+#define PRId64	"Ld"
+#define PRIu64  "Lu"
+#define PRIx64  "Lx"
+
+#define SCNd64	"Ld"
+#define SCNu64	"Lu"
+#define SCNx64	"Lx"
+
+/*=======================================================================*/
 #else
    /* Most build targets should be able to use a vendor provided <inttypes.h>.*/
 

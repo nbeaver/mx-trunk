@@ -326,9 +326,27 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
-#ifndef TRUE
-#define TRUE	1
-#define FALSE	0
+/* We need to make sure that FALSE and TRUE are defined to be 0 and something
+ * else that is not 0.
+ *
+ * Some very old versions of Glibc define TRUE and FALSE in <rpc/types.h>,
+ * but do not test for the prior existence of the TRUE and FALSE macros.
+ *
+ * For those versions, the cleanest solution is to include <rpc/types.h>
+ * here before our own definition of TRUE and FALSE.
+ */
+
+#if ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L) )
+#  include <rpc/types.h>
+
+#else
+#  if !defined(TRUE)
+#     define TRUE	1
+#  endif
+
+#  if !defined(FALSE)
+#     define FALSE	0
+#  endif
 #endif
 
 /*------------------------------------------------------------------------*/

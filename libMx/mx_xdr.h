@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2011, 2014-2018 Illinois Institute of Technology
+ * Copyright 2005-2007, 2011, 2014-2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,6 +74,11 @@
 #   if defined(OS_QNX)
 #      include "../tools/xdr/src/xdr_hyper.h"
 #   endif
+
+#   if defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L)
+#      include "../tools/xdr/src/xdr_hyper.h"
+#   endif
+
 #endif
 
 #endif /* __MX_XDR_H__ */
