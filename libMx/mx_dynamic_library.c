@@ -1112,8 +1112,8 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 
 /*----- mx_dynamic_library_show_list() -----*/
 
-#if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD) \
-	|| defined(OS_MINIX)
+#if defined(OS_BSD) || defined(OS_HURD) || defined(OS_MINIX) \
+	|| ( defined(OS_LINUX) && (MX_GLIBC_VERSION > 2001003L ) )
 
 #define _GNU_SOURCE
 #include <link.h>
@@ -1159,7 +1159,7 @@ mx_dynamic_library_show_list( FILE *file )
 /*--------*/
 
 #elif defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_QNX) \
-	|| defined(OS_UNIXWARE)
+	|| defined(OS_UNIXWARE) || defined(OS_LINUX)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_show_list( FILE *file )
