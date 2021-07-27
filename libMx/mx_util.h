@@ -703,7 +703,8 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 
 #if defined(OS_WIN32) || defined(OS_QNX) || defined(OS_HURD) \
 	|| defined(OS_SOLARIS) || defined(OS_UNIXWARE) \
-	|| ( defined(OS_CYGWIN) && (CYGWIN_VERSION_DLL_COMBINED < 2000000) )
+	|| ( defined(OS_CYGWIN) && (CYGWIN_VERSION_DLL_COMBINED < 2000000) ) \
+	|| ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000) )
 
 /* This prototype provides a definition of strcasestr() for systems that
  * do not come with it.  For such systems, the OpenBSD source code for

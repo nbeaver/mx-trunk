@@ -343,7 +343,9 @@ endif
 #---------------------------------------------------
 #
 
-LN_SF		= $(CURDIR)/../scripts/ln_sf
+_curdir := $(shell pwd)
+
+LN_SF		= $(_curdir)/../scripts/ln_sf
 ##LN_SF		= ln -sf
 
 MAKE		= make
