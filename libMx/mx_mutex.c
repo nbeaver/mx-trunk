@@ -877,7 +877,9 @@ mx_mutex_create( MX_MUTEX **mutex )
 				status, strerror( status ) );
 	}
 	
-#if defined( OS_ECOS ) || defined( OS_MINIX )
+#if defined( OS_ECOS ) || defined( OS_MINIX ) \
+    || ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L) )
+
 	/* FIXME: Need to include our own implementation of recursive
 	 * mutexes for platforms that do not support them.
 	 */

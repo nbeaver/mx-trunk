@@ -707,7 +707,9 @@ mx_get_disk_space( char *filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
+#elif ( defined(OS_LINUX) \
+	    && defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION >= 2001000l) ) \
+	|| defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_ANDROID) \
 	|| defined(OS_CYGWIN) || defined(OS_HURD) || defined(OS_MINIX) \
 	|| defined(OS_UNIXWARE)
@@ -757,11 +759,15 @@ mx_get_disk_space( char *filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_VXWORKS)
+#elif defined(OS_LINUX) || defined(OS_VXWORKS)
 
 /* statfs() version */
 
-#include <sys/stat.h>
+#if defined(OS_LINUX)
+#    include <sys/vfs.h>
+#else
+#    include <sys/stat.h>
+#endif
 
 MX_EXPORT mx_status_type
 mx_get_disk_space( char *filename,

@@ -154,8 +154,30 @@ sigaction( int signum,
 
 /*-------------------------------------------------------------------------*/
 
+#if ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L) )
+#  define HAVE_OLD_SIGACTION	TRUE
+#else
+#  define HAVE_OLD_SIGACTION	FALSE
+#endif
+
+/*-------------------------------------------------------------------------*/
+
+#if HAVE_OLD_SIGACTION			/* Use older version of sigaction(). */
+
 static void
-mxp_standard_signal_error_handler( int signal_number,
+mxp_standard_old_signal_error_handler( int signal_number )
+{
+	mx_warning( "*** Signal %d received. ***", signal_number );
+
+	return;
+}
+
+/************/
+
+#else	/* not HAVE_OLD_SIGACTION */	/* Use newer version of sigaction(). */
+
+static void
+mxp_standard_new_signal_error_handler( int signal_number,
 					siginfo_t *info,
 					void *ucontext )
 {
@@ -302,6 +324,8 @@ mxp_standard_signal_error_handler( int signal_number,
 	}
 }
 
+#endif /* not HAVE_OLD_SIGACTION */
+
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT void
@@ -318,7 +342,11 @@ mx_setup_default_signal_handler( int signum )
 	act.sa_flags = SA_SIGINFO;
 #endif
 
-	act.sa_sigaction = mxp_standard_signal_error_handler;
+#if HAVE_OLD_SIGACTION
+	act.sa_handler = mxp_standard_old_signal_error_handler;
+#else
+	act.sa_sigaction = mxp_standard_new_signal_error_handler;
+#endif
 
 	signal_status = sigaction( signum, &act, NULL );
 

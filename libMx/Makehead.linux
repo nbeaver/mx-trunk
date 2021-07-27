@@ -19,10 +19,7 @@
 INCLUDES	= $(MX_INCLUDES)
 
 LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR)
-#LIBRARIES	= -lpthread -lrt -ldl -lm
+LIBRARIES	= $(USER_LIBRARIES) -lpthread -ldl -lm
 
 #--------------------------------------------------------------------------
 #
@@ -189,6 +186,11 @@ endif
 
 #--------------------------------------------------------------------------
 #
+# Modify LIBRARIES depending on the version of Glibc or Musl.
+#
+
+#--------------------------------------------------------------------------
+#
 # For doing architecture-specific stuff
 #
 
@@ -196,7 +198,7 @@ _machine_name := $(shell uname -m)
 
 #--------------------------------------------------------------------------
 #
-# Intel x86/m68k/sparc with GCC under Linux.
+# GCC under Linux.
 #
 CC      = gcc
 
@@ -233,6 +235,25 @@ else
     CFLAGS += -I/usr/include/tirpc
     LIBRARIES += -ltirpc
   endif
+endif
+
+#--------------------------------------------------------------------------
+#
+# Most versions of Linux need librt (real-time support), but very old ones
+# do not provide it.
+#
+#
+
+_have_librt := $(shell ../scripts/file_exists /usr/lib/`uname -m`-linux-gnu/librt.so)
+
+ifeq ($(_have_librt),false)
+  _have_librt := $(shell ../scripts/file_exists /usr/lib/librt.so)
+endif
+
+$(info _have_librt is [${_have_librt}])
+
+ifeq ($(_have_librt),true)
+  LIBRARIES += -lrt
 endif
 
 #--------------------------------------------------------------------------
@@ -294,13 +315,25 @@ MXGPIB_OBJS       = $(MXGPIB_SRCS:.c=.$(OBJ))
 #----
 
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
-#MX_LIB_OBJS += ../tools/strcasestr.o
 
 MX_LIB_OBJS += ../tools/cJSON.o
 
 ifeq ($(_libc_version),musl)
   MX_LIB_OBJS += ../tools/xdr_hyper.o
 endif
+
+#----
+
+ifeq ($(_libc_version),glibc)
+  _glibc_version := $(shell ../tools/mx_config glibc)
+
+  ifeq ($(shell test $(_glibc_version) -lt 2001000; echo $$?),0)
+     MX_LIB_OBJS += ../tools/strcasestr.o
+     MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
+  endif
+endif
+
+#----
 
 ifeq ($(_machine_name),riscv64)
   MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
@@ -310,7 +343,7 @@ endif
 #---------------------------------------------------
 #
 
-LN_SF		= $(PWD)/../scripts/ln_sf
+LN_SF		= $(CURDIR)/../scripts/ln_sf
 ##LN_SF		= ln -sf
 
 MAKE		= make

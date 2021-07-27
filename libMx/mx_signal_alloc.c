@@ -497,7 +497,7 @@ mx_get_signal_allocation( int max_signals,
 
 #elif defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_VXWORKS ) \
 	|| defined( OS_DJGPP ) || defined( OS_UNIXWARE ) || defined(OS_HURD) \
-	|| defined( OS_ANDROID ) || defined( OS_MINIX )
+	|| defined( OS_ANDROID ) || defined( OS_MINIX ) || defined(OS_LINUX)
 
 /* For this platform, the only signal available is SIGALRM and we can use
  * sigaction() to see if SIGALRM is already in use.

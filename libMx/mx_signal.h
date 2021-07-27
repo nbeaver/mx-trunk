@@ -74,7 +74,28 @@ MX_API int sigaction( int signum,
 		const struct sigaction *sa,
 		struct sigaction *old_sa );
 
-#endif /* OS_WIN32 */
+/*--------*/
+
+#elif ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L) )
+
+union sigval {
+	int sival_int;
+	void * sival_ptr;
+};
+
+typedef struct {
+	int si_signo;
+	int si_errno;
+	int si_code;
+	pid_t si_pid;
+	uid_t si_uid;
+	void *si_addr;
+	int si_status;
+	long si_band;
+	union sigval si_value;
+} siginfo_t;
+
+#endif
 
 /*--------*/
 

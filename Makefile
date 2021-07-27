@@ -126,12 +126,17 @@ ifndef MX_INSTALL_DIR
   endif
 endif
 
+ifndef MXSRC
+  MXSRC = $(PWD)
+endif
+
 $(info MX_ARCH is [${MX_ARCH}])
 $(info MX_INSTALL_DIR is [${MX_INSTALL_DIR}])
+$(info MXSRC is [${MXSRC}])
 
 #------------------------------------------------------------------------------
 
-MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
+MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR) MXSRC=$(MXSRC)
 
 all: build
 

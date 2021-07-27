@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,6 +34,14 @@
  *
  *    https://lists.debian.org/debian-ctte/2013/12/msg00230.html
  */
+
+/* The following definition of MSG_NOSIGNAL is a kludge, since Linux versions
+ * that do not define MSG_NOSIGNAL do not actually use systemd.
+ */
+
+#if !defined(MSG_NOSIGNAL)
+#  define MSG_NOSIGNAL	0x4000
+#endif
 
 MX_EXPORT mx_status_type
 mx_scm_notify( int notification_type,

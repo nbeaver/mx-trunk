@@ -169,6 +169,9 @@ typedef uint64_t		uintmax_t;
      typedef unsigned int uint32_t;
      typedef unsigned long long uint64_t;
 
+     typedef unsigned int intptr_t;
+     typedef unsigned int uintptr_t;
+
 #    if ( MX_WORDSIZE == 64 )
 #      define INT64_C(c)	c ## L
 #      define UINT64_C(c)	c ## UL

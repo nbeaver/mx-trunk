@@ -1941,6 +1941,7 @@ mx_sysv_semaphore_destroy( MX_SEMAPHORE *semaphore )
 
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	int status, saved_errno, destroy_semaphore;
+	union semun this_arg_is_ignored;
 
 #if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -1974,8 +1975,11 @@ mx_sysv_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	MX_DEBUG(-2,("%s: destroy_semaphore = %d", fname, destroy_semaphore));
 #endif
 
+	memset( &this_arg_is_ignored, 0, sizeof(this_arg_is_ignored) );
+
 	if ( destroy_semaphore ) {
-		status = semctl( system_v_private->semaphore_id, 0, IPC_RMID );
+		status = semctl( system_v_private->semaphore_id,
+					0, IPC_RMID, this_arg_is_ignored );
 
 		if ( status != 0 ) {
 			saved_errno = errno;
@@ -2211,6 +2215,7 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	int saved_errno, semaphore_value;
+	union semun returned_semun;
 
 #if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -2224,7 +2229,10 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			"passed was NULL.");
 	}
 
-	semaphore_value = semctl( system_v_private->semaphore_id, 0, GETVAL );
+	memset( &returned_semun, 0, sizeof(returned_semun) );
+
+	semaphore_value = semctl( system_v_private->semaphore_id,
+					0, GETVAL, returned_semun );
 
 	if ( semaphore_value < 0 ) {
 		saved_errno = errno;

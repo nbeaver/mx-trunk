@@ -1084,6 +1084,10 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
      * 64 bit programs and will choke on the UINTMAX_MAX comparison below,
      * so we do not attempt to make that test.
      */
+
+#elif ( defined( MX_GNUC_VERSION ) && ( MX_GNUC_VERSION < 2095000L ) )
+    /* We skip really old versions of GCC as well. */
+
 #else
 #   if ( UINTMAX_MAX > 0xFFFFFFFFFFFFFFFF )
 #     error The maximum integer size is greater than 64 bits.  This will require enlarging the old_value field of MX_WATCHPOINT in libMx/mx_util.h
@@ -2141,7 +2145,8 @@ mx_show_watchpoints( void )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_LINUX)
+#elif ( defined(OS_LINUX) \
+	&& defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION >= 2001000L ) )
 
 #  if ( defined(__i386__) || defined(__x86_64__) )
 
@@ -2198,13 +2203,15 @@ typedef struct {
 } MX_LINUX_WATCHPOINT_PRIVATE;
 
 static void
-mxp_default_watchpoint_handler( int signum, siginfo_t *info, void *ucontext )
+mxp_default_watchpoint_handler( int signal_number,
+				siginfo_t *info,
+				void *ucontext )
 {
 	static const char fname[] = "mxp_default_watchpoint_handler()";
 
-	if ( signum != SIGTRAP ) {
+	if ( signal_number != SIGTRAP ) {
 		fprintf( stderr, "ERROR: %s called for signal %d\n",
-			fname, signum );
+			fname, signal_number );
 		return;
 	}
 
@@ -2773,7 +2780,7 @@ mx_show_watchpoints( void )
 	|| defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_BSD) \
 	|| defined(OS_MINIX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
 	|| defined(OS_HURD) || defined(OS_QNX) || defined(__MINGW32__) \
-	|| defined(OS_UNIXWARE)
+	|| defined(OS_UNIXWARE) || defined(OS_LINUX)
 
 /* FIXME: Implement real watchpoints for these build targets. */
 
