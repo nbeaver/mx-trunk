@@ -3398,6 +3398,51 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 
 #elif defined( OS_WIN32 )
 
+/* FIXME: If SIO_TCP_INFO is defined, then this might be a better method.
+ * SIO_TCP_INFO was introduced in "Creators Update" of Windows 10, which
+ * was introduced on April 11, 2017.
+ *
+ * When was <mstcpip.h> introduced?
+ */
+
+#if 0
+#include <mstcpip.h>
+#endif
+
+#if 0 && defined(SIO_TCP_INFO)
+
+MX_EXPORT mx_status_type
+mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
+					long *num_output_bytes_in_transit )
+{
+	static const char fname[] = "mx_socket_num_output_bytes_in_transit()";
+
+	TCP_INFO_v0 tcp_info;
+	DWORD bytes_returned;
+	DWORD info_version = 0;
+	int ioctl_status;
+
+	ioctl_status = WSAIoctl( mx_socket->socket_fd,
+				SIO_TCP_INFO,
+				&info_version,
+				sizeof(info_version),
+				&tcp_info,
+				sizeof(tcp_info),
+				&bytes_returned,
+				NULL, NULL );
+
+	if ( ioctl_status == 0 ) {
+		*num_output_bytes_in_transit = tcp_info.BytesInFlight;
+
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+				"Some error message goes here." );
+	}
+}
+
+#else /* not SIO_TCP_INFO */
+
 #include <iphlpapi.h>
 
 static MX_DYNAMIC_LIBRARY *iphlpapi_library = NULL;
@@ -3574,9 +3619,11 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 		mx_socket, mx_socket->socket_fd );
 }
 
+#endif /* not SIO_TCP_INFO */
+
 /*------*/
 
-#elif defined( OS_CYGWIN )
+#elif defined( OS_CYGWIN ) || defined( OS_VXWORKS )
 
 /* Cygwin and other targets do not appear to implement the functionality
  * needed for mx_socket_num_output_bytes_in_transit().
