@@ -2210,6 +2210,44 @@ mx_string_split( char *original_string,
 
 /*------------------------------------------------------------------------*/
 
+/* The following version of mx_utf8_strlen() is derived from a C++
+ * implementation that was found here in August 2021.
+ *
+ *   http://www.zedwood.com/article/cpp-utf8-strlen-function
+ *
+ */
+
+MX_EXPORT size_t
+mx_utf8_strlen( const char *utf8_string )
+{
+	int c;
+	size_t i, bytes_length, utf8_length;
+
+	bytes_length = strlen( utf8_string );
+
+	for ( i = 0, utf8_length = 0; i < bytes_length; i++, utf8_length++ ) {
+
+		c = (unsigned char) utf8_string[i];
+
+		if      ( c >= 0 && c <= 127 ) i += 0;
+		else if ( (c & 0xE0) == 0xC0 ) i += 1;
+		else if ( (c & 0xF0) == 0xE0 ) i += 2;
+		else if ( (c & 0xF8) == 0xF0 ) i += 3;
+#if 0
+		/* If UTF-8 supported up to 6 byte characters, then you
+		 * probably would have the following.  But it doesn't.
+		 */
+		else if ( (c & 0xFC) == 0xF8 ) i += 4;
+		else if ( (c & 0xFE) == 0xFC ) i += 5;
+#endif
+		else return 0;	/* Illegal UTF-8 */
+	}
+
+	return utf8_length;
+}
+
+/*------------------------------------------------------------------------*/
+
 #if ( defined(OS_WIN32) && (MX_WINVER >= 0x0501) && (!defined(MX_IS_REACTOS)) )
 
 /* For Windows XP and after.  Internally, it depends on RtlGenRandom(). */

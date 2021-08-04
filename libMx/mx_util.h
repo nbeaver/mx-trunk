@@ -1164,6 +1164,14 @@ MX_API int mx_string_split( char *original_string, const char *delim,
 
 /*------------------------------------------------------------------------*/
 
+/* mx_utf8_strlen() returns the number of UTF-8 characters in the
+ * supplied C string buffer.
+ */
+
+MX_API size_t mx_utf8_strlen( const char *utf8_string );
+
+/*------------------------------------------------------------------------*/
+
 MX_API unsigned long mx_random( void );
 
 MX_API void mx_seed_random( unsigned long seed );
