@@ -223,7 +223,7 @@ _libc_version := $(shell ../tools/mx_config library)
 
 _have_tirpc := $(shell ../scripts/directory_exists /usr/include/tirpc)
 
-###$(info _libc_version is [${_libc_version}])
+### $(info _libc_version is [${_libc_version}])
 
 $(info _have_tirpc is [${_have_tirpc}])
 
@@ -242,9 +242,22 @@ endif
 # Most versions of Linux need librt (real-time support), but very old ones
 # do not provide it.
 #
+# FIXME: There must be a better way to determine the value of _library_name.
 #
 
-_have_librt := $(shell ../scripts/file_exists /usr/lib/`uname -m`-linux-gnu/librt.so)
+_hardware_name := $(shell uname -m)
+
+### $(info _hardware_name is [${_hardware_name}])
+
+ifeq ($(_hardware_name),i686)
+  _library_name := i386
+else
+  _library_name := ${_hardware_name}
+endif
+
+### $(info _library_name is [${_library_name}])
+
+_have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
 
 ifeq ($(_have_librt),false)
   _have_librt := $(shell ../scripts/file_exists /usr/lib/librt.so)
