@@ -260,6 +260,10 @@ endif
 _have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
 
 ifeq ($(_have_librt),false)
+  _have_librt := $(shell ../scripts/file_exists /usr/lib64/librt.so)
+endif
+
+ifeq ($(_have_librt),false)
   _have_librt := $(shell ../scripts/file_exists /usr/lib/librt.so)
 endif
 

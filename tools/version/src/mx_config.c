@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2011, 2014-2018 Illinois Institute of Technology
+ * Copyright 2011, 2014-2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 
 #include "mx_osdef.h"
@@ -47,7 +48,11 @@ print_usage( void )
 	"  gcc\n"
 	"  glibc\n"
 	"  gnuc\n"
+	"  id\n"
+	"  id_class\n"
+	"  id_like\n"
 	"  library\n"
+	"  library_found\n"
 	"  musl\n"
 	"  mx_arch\n"
 	"  mx_install_dir\n"
@@ -63,6 +68,26 @@ print_usage( void )
 	);
 
 	return;
+}
+
+size_t
+strlcpy( char *dest, const char *src, size_t dest_size )
+{
+	size_t bytes_in_source, bytes_to_copy;
+
+	memset( dest, 0, dest_size );
+
+	bytes_in_source = strlen( src );
+
+	if ( bytes_in_source < dest_size ) {
+		bytes_to_copy = bytes_in_source;
+	} else {
+		bytes_to_copy = dest_size - 1;
+	}
+
+	memmove( dest, src, bytes_to_copy );
+
+	return bytes_in_source;
 }
 
 #if defined(OS_LINUX)
@@ -85,6 +110,102 @@ mxp_match( const char *pattern, const char *string )
 	default:	return *pattern == *string &&
 					mxp_match( pattern+1, string+1 );
 	}
+}
+
+#endif
+
+#if defined(OS_LINUX)
+
+static int linux_parameters_saved = FALSE;
+
+static char linux_name[100] = "Linux";
+static char linux_id[100] = "linux";
+static char linux_id_like[200] = "";
+
+void
+get_linux_parameters( void )
+{
+	FILE *osfile = NULL;
+	char parameter_buffer[200];
+	char *parameter_name = NULL;
+	char *parameter_value = NULL;
+	size_t parameter_length;
+
+	if ( linux_parameters_saved ) {
+		return;
+	}
+
+	linux_parameters_saved = TRUE;
+
+	osfile = fopen( "/etc/os-release", "r" );
+
+	if ( osfile == (FILE *) NULL ) {
+		return;
+	}
+
+	while (1) {
+		fgets( parameter_buffer, sizeof(parameter_buffer), osfile );
+
+		if ( feof(osfile) || ferror(osfile) ) {
+			fclose( osfile );
+			return;
+		}
+
+		/* Split buffer line into parameter name and value. */
+
+		parameter_value = strchr( parameter_buffer, '=' );
+
+		if ( parameter_value == NULL ) {
+
+			/* No parameter found here. Go to the next line. */
+			continue;
+		}
+
+		parameter_name = parameter_buffer;
+
+		*parameter_value = '\0';
+
+		parameter_value++;
+
+		if ( *parameter_value == '"' ) {
+			parameter_value++;
+		}
+
+		parameter_length = strlen( parameter_value );
+
+		if ( parameter_value[ parameter_length - 1 ] == '\n' ) {
+			parameter_value[ parameter_length - 1 ] = '\0';
+
+			parameter_length = strlen( parameter_value );
+		}
+
+
+		if ( parameter_value[ parameter_length - 1 ] == '"' ) {
+			parameter_value[ parameter_length - 1 ] = '\0';
+
+			parameter_length = strlen( parameter_value );
+		}
+
+#if 0
+		printf( "parameter '%s' = '%s'\n",
+			parameter_name, parameter_value );
+#endif
+
+		if ( strcmp( parameter_name, "NAME" ) == 0 ) {
+		    strlcpy( linux_name, parameter_value, sizeof(linux_name) );
+		} else
+		if ( strcmp( parameter_name, "ID" ) == 0 ) {
+		    strlcpy( linux_id, parameter_value, sizeof(linux_id) );
+		} else
+		if ( strcmp( parameter_name, "ID_LIKE" ) == 0 ) {
+		    strlcpy( linux_id_like, parameter_value,
+				    sizeof(linux_id_like) );
+		}
+	}
+
+	fclose( osfile );
+
+	return;
 }
 
 #endif
@@ -281,6 +402,63 @@ main( int argc, char **argv )
 #endif
 		exit(0);
 	}
+
+/*------------------------------------------------------------------------*/
+
+#if defined(OS_LINUX)
+
+	/* This is for reading values from /etc/os-release on Linux*/
+
+	if ( strcmp( argv[1], "name" ) == 0 ) {
+		get_linux_parameters();
+
+		printf( "%s\n", linux_name );
+		exit(0);
+	}
+
+	if ( strcmp( argv[1], "id" ) == 0 ) {
+		get_linux_parameters();
+
+		printf( "%s\n", linux_id );
+		exit(0);
+	}
+
+	if ( strcmp( argv[1], "id_like" ) == 0 ) {
+		get_linux_parameters();
+
+		printf( "%s\n", linux_id_like );
+		exit(0);
+	}
+
+	if ( strcmp( argv[1], "id_class" ) == 0 ) {
+		int i, c;
+
+		get_linux_parameters();
+
+		/* Display only the first word in the id_like parameter. */
+
+		for ( i = 0; ; i++ ) {
+			c = linux_id_like[i];
+
+			if ( ( c == '\0' ) || ( c == ' ' ) ) {
+				break;	/* Exit the for() loop. */
+			}
+			putchar( c );
+		}
+
+		putchar( '\n' );
+		exit(0);
+	}
+
+#endif
+
+/*------------------------------------------------------------------------*/
+
+#if defined(OS_LINUX)
+
+	/* library_found */
+
+#endif
 
 /*------------------------------------------------------------------------*/
 
