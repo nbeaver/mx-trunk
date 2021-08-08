@@ -3302,7 +3302,12 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 #if defined( OS_LINUX )
 
-#include <linux/sockios.h>
+#if defined MX_MUSL_VERSION
+#  include <bits/ioctl.h>
+#  define    SIOCOUTQ	TIOCOUTQ
+#else
+#  include <linux/sockios.h>
+#endif
 
 MX_EXPORT mx_status_type
 mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
