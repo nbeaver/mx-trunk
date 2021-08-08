@@ -1186,6 +1186,10 @@ mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 	return owner_pthread_id;
 }
 
+#  elif defined(__MX_MAKEDEPEND__)
+
+   /* Suppress undesirable error message when doing 'make depend'. */
+
 #  else /* Not Glibc or Musl */
 
 #    error mx_mutex_get_owner_thread_id() not yet implemented for Linux using something other than Glibc or Musl.
