@@ -70,6 +70,13 @@ print_usage( void )
 	return;
 }
 
+/* mx_config cannot use the version of strlcpy() bundled with libMx,
+ * so we define a simple version of it here for build targets that
+ * need it.
+ */
+
+#if !defined(OS_MACOSX)
+
 size_t
 strlcpy( char *dest, const char *src, size_t dest_size )
 {
@@ -89,6 +96,8 @@ strlcpy( char *dest, const char *src, size_t dest_size )
 
 	return bytes_in_source;
 }
+
+#endif
 
 #if defined(OS_LINUX)
 
