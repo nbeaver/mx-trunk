@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010, 2020 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010, 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -299,6 +299,17 @@ mxd_soft_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		fname, ptz->record->name, ptz->parameter_type));
 
 	switch( ptz->parameter_type ) {
+#if 1
+	case MXF_PTZ_PAN_POSITION:
+	case MXF_PTZ_TILT_POSITION:
+	case MXF_PTZ_ZOOM_POSITION:
+	case MXF_PTZ_FOCUS_POSITION:
+	case MXF_PTZ_PAN_SPEED:
+	case MXF_PTZ_TILT_SPEED:
+	case MXF_PTZ_ZOOM_SPEED:
+	case MXF_PTZ_FOCUS_SPEED:
+		break;
+#else
 	case MXF_PTZ_PAN_POSITION:
 		mx_info("PTZ '%s': pan is at %ld",
 			ptz->record->name, ptz->pan_position);
@@ -331,6 +342,7 @@ mxd_soft_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		mx_info("PTZ '%s': focus speed is %lu",
 			ptz->record->name, ptz->focus_speed);
 		break;
+#endif
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Parameter type %d received for soft PTZ '%s' "

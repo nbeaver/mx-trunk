@@ -814,6 +814,18 @@ mx_stack_traceback( void )
 
 /*--------------------------------------------------------------------------*/
 
+#elif defined( OS_CYGWIN )
+
+#include <sys/cygwin.h>
+
+MX_EXPORT void
+mx_stack_traceback( void )
+{
+	cygwin_stackdump();
+}
+
+/*--------------------------------------------------------------------------*/
+
 #elif ( ( defined(MX_DARWIN_VERSION) && (MX_DARWIN_VERSION >= 9000000L) ) \
      || (MX_GLIBC_VERSION >= 2001000L) )
 
@@ -846,17 +858,17 @@ mx_stack_traceback( void )
 
 	names = backtrace_symbols( addresses, num_addresses );
 
-	mx_info( "\nStack traceback:\n" );
+	mx_info( "Stack traceback:\n" );
 
 	for ( i = 0; i < num_addresses; i++ ) {
 		mx_info( "%d: %s", i, names[i] );
 	}
 
 	if ( num_addresses < MAXDEPTH ) {
-		mx_info( "\nStack traceback complete." );
+		mx_info( "Stack traceback complete." );
 	} else {
 		mx_info(
-		"\nStack traceback exceeded the maximum level of %d.",
+		"Stack traceback exceeded the maximum level of %d.",
 			MAXDEPTH );
 	}
 
