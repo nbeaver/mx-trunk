@@ -242,7 +242,9 @@ endif
 # Most versions of Linux need librt (real-time support), but very old ones
 # do not provide it.
 #
-# FIXME: There must be a better way to determine the value of _library_name.
+# FIXME: There _must_ be a better way to determine the value of _library_name.
+#
+# FIXME: The following is ugly.
 #
 
 _hardware_name := $(shell uname -m)
@@ -258,6 +260,10 @@ endif
 ### $(info _library_name is [${_library_name}])
 
 _have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
+
+ifeq ($(_have_librt),false)
+  _have_librt := $(shell ../scripts/file_exists /usr/lib/arm-linux-gnueabihf/librt.so)
+endif
 
 ifeq ($(_have_librt),false)
   _have_librt := $(shell ../scripts/file_exists /usr/lib64/librt.so)
