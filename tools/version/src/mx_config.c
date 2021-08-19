@@ -75,7 +75,7 @@ print_usage( void )
  * need it.
  */
 
-#if !defined(OS_MACOSX)
+#if !defined(OS_MACOSX) && !defined(OS_WIN32)
 
 size_t
 strlcpy( char *dest, const char *src, size_t dest_size )
