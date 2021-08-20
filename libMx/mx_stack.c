@@ -814,18 +814,6 @@ mx_stack_traceback( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif defined( OS_CYGWIN )
-
-#include <sys/cygwin.h>
-
-MX_EXPORT void
-mx_stack_traceback( void )
-{
-	cygwin_stackdump();
-}
-
-/*--------------------------------------------------------------------------*/
-
 #elif ( ( defined(MX_DARWIN_VERSION) && (MX_DARWIN_VERSION >= 9000000L) ) \
      || (MX_GLIBC_VERSION >= 2001000L) )
 
