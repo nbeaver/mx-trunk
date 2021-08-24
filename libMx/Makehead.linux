@@ -219,21 +219,23 @@ LINKFLAGS += -rdynamic
 # Recent versions of 'glibc' also require libtirpc.
 #
 
-_libc_version := $(shell ../tools/mx_config library)
+ifeq ($(_have_mx_config),true)
+  _libc_version := $(shell ../tools/mx_config library)
 
-_have_tirpc := $(shell ../scripts/directory_exists /usr/include/tirpc)
+  _have_tirpc := $(shell ../scripts/directory_exists /usr/include/tirpc)
 
-### $(info _libc_version is [${_libc_version}])
+  ### $(info _libc_version is [${_libc_version}])
 
-$(info _have_tirpc is [${_have_tirpc}])
+  $(info _have_tirpc is [${_have_tirpc}])
 
-ifeq ($(_libc_version),musl)
-  MUSL_INCLUDES = -I/usr/include/tirpc
-  LIBRARIES += -ltirpc
-else
-  ifeq ($(_have_tirpc),true)
-    CFLAGS += -I/usr/include/tirpc
+  ifeq ($(_libc_version),musl)
+    MUSL_INCLUDES = -I/usr/include/tirpc
     LIBRARIES += -ltirpc
+  else
+    ifeq ($(_have_tirpc),true)
+      CFLAGS += -I/usr/include/tirpc
+      LIBRARIES += -ltirpc
+    endif
   endif
 endif
 
@@ -245,13 +247,13 @@ endif
 #
 
 ifeq ($(_have_mx_config),true)
-  _os_id := $(shell ../tools/mx_config id)
+  _id_class := $(shell ../tools/mx_config id_class)
   
-  ###$(info _os_id is [${_os_id}])
+  ###$(info _id_class is [${_id_class}])
 
   # We only test for old versions of Debian.
   
-  ifeq ($(_os_id),debian)
+  ifeq ($(_id_class),debian)
     _hardware_name := $(shell uname -m)
   
     ifeq ($(_hardware_name),i686)
@@ -269,7 +271,7 @@ ifeq ($(_have_mx_config),true)
     endif
   
   else
-    _have_librt := $(echo true)
+    _have_librt := $(shell echo true)
   endif
   
   $(info _have_librt is [${_have_librt}])
