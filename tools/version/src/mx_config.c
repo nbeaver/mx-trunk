@@ -156,8 +156,7 @@ get_linux_parameters( void )
 		fgets( parameter_buffer, sizeof(parameter_buffer), osfile );
 
 		if ( feof(osfile) || ferror(osfile) ) {
-			fclose( osfile );
-			return;
+			break;
 		}
 
 		/* Split buffer line into parameter name and value. */
@@ -213,6 +212,10 @@ get_linux_parameters( void )
 	}
 
 	fclose( osfile );
+
+	if ( linux_id_like[0] == '\0' ) {
+		strlcpy( linux_id_like, linux_id, sizeof(linux_id_like) );
+	}
 
 	return;
 }

@@ -239,38 +239,30 @@ endif
 
 #--------------------------------------------------------------------------
 #
-# Most versions of Linux need librt (real-time support), but very old ones
-# do not provide it.
-#
-# FIXME: There _must_ be a better way to determine the value of _library_name.
-#
-# FIXME: The following is ugly.
+# Most versions of Linux provide librt (real-time support), but very old ones
+# do not provide it.  The only Linux versions that we test with that show
+# this issue are very old versions of Debian.
 #
 
-_hardware_name := $(shell uname -m)
+_os_id := $(shell ../tools/mx_config id)
 
-### $(info _hardware_name is [${_hardware_name}])
+#$(info _os_id is [${_os_id}])
 
-ifeq ($(_hardware_name),i686)
-  _library_name := i386
+ifeq ($(_os_id),debian)
+  _hardware_name := $(shell uname -m)
+
+  ifeq ($(_hardware_name),i686)
+    _library_name := i386
+  else
+    _library_name := ${_hardware_name}
+  endif
+
+  #$(info _hardware_name is [${_hardware_name}])
+
+  _have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
+
 else
-  _library_name := ${_hardware_name}
-endif
-
-### $(info _library_name is [${_library_name}])
-
-_have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
-
-ifeq ($(_have_librt),false)
-  _have_librt := $(shell ../scripts/file_exists /usr/lib/arm-linux-gnueabihf/librt.so)
-endif
-
-ifeq ($(_have_librt),false)
-  _have_librt := $(shell ../scripts/file_exists /usr/lib64/librt.so)
-endif
-
-ifeq ($(_have_librt),false)
-  _have_librt := $(shell ../scripts/file_exists /usr/lib/librt.so)
+  _have_librt := $(echo true)
 endif
 
 $(info _have_librt is [${_have_librt}])
