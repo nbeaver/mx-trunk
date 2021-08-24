@@ -1073,7 +1073,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 		requested_string_ptr = requested_parameter_value;
 
-		for ( i = 0; i < flowbus_string_length; i++ ) {
+		for ( i = 0; i < allowed_string_length; i++ ) {
 			byte_string[0] = value_string_ptr[2*i];
 			byte_string[1] = value_string_ptr[2*i + 1];
 			byte_string[2] = '\0';
