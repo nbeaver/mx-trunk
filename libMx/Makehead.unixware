@@ -72,8 +72,13 @@ MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.o)
 MOTOR_OBJS        = $(MOTOR_SRCS:.c=.o)
 SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
-AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.o)
+AUTOSAVE_OBJS     = $(AUTOSAVE_SRCS:.c=.o)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.o)
+MXGET_OBJS        = $(MXGET_SRCS:.c=.o)
+MXPUT_OBJS        = $(MXPUT_SRCS:.c=.o)
+MXSERIAL_OBJS     = $(MXSERIAL_SRCS:.c=.o)
+MXGPIB_OBJS       = $(MXGPIB_SRCS:.c=.o)
 
 MX_LIB_OBJS	+= ../tools/strcasestr.o
 MX_LIB_OBJS	+= ../tools/xdr_hyper.o
@@ -163,7 +168,6 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 motor_install:
 	/usr/ucb/install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
 	/usr/ucb/install -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 ../scripts/motor_xterm $(MX_INSTALL_DIR)/bin 
 
 #
 #---------------------------------------------------
@@ -206,6 +210,32 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx -Kthread $(LIBRARIES)
 
+#----
+
+MXMONITOR_NAME       = mxmonitor
+
+$(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXMONITOR_NAME) \
+		$(MXMONITOR_OBJS) $(LIB_DIRS) -lMx -Kthread $(LIBRARIES)
+
+#----
+
+MXGET_NAME           = mxget
+
+$(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXGET_NAME) \
+		$(MXGET_OBJS) $(LIB_DIRS) -lMx -Kthread $(LIBRARIES)
+
+#----
+
+MXPUT_NAME           = mxput
+
+$(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXPUT_NAME) \
+		$(MXPUT_OBJS) $(LIB_DIRS) -lMx -Kthread $(LIBRARIES)
+
+#----
+
 MXSERIAL_NAME        = mxserial
 
 $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
@@ -215,7 +245,21 @@ $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
 mxserial.o: mxserial_fork.c
 	$(CC) $(CFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
 
+#----
+
+MXGPIB_NAME          = mxgpib
+
+$(MXGPIB_NAME): $(MXGPIB_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXGPIB_NAME) \
+		$(MXGPIB_OBJS) $(LIB_DIRS) -lMx -Kthread $(LIBRARIES)
+
+#----
+
 util_install:
 	/usr/ucb/install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/ucb/install -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/ucb/install -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/ucb/install -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/ucb/install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/ucb/install -m 755 $(MXGPIB_NAME) $(MX_INSTALL_DIR)/bin
 
