@@ -148,11 +148,8 @@ get_linux_parameters( void )
 
 	osfile = fopen( "/etc/os-release", "r" );
 
-	if ( osfile == (FILE *) NULL ) {
-		return;
-	}
-
-	while (1) {
+	if ( osfile != (FILE *) NULL ) {
+	    while (1) {
 		fgets( parameter_buffer, sizeof(parameter_buffer), osfile );
 
 		if ( feof(osfile) || ferror(osfile) ) {
@@ -209,9 +206,26 @@ get_linux_parameters( void )
 		    strlcpy( linux_id_like, parameter_value,
 				    sizeof(linux_id_like) );
 		}
-	}
+	    }
 
-	fclose( osfile );
+	    fclose( osfile );
+
+	} else {
+	    /* If "/etc/os-release" does not exist, then we look for 
+	     * old distribution-specific files.
+	     */
+
+	    if ( access( "/etc/debian_version", F_OK ) == 0 ) {
+	    	strlcpy( linux_id, "debian", sizeof(linux_id) );
+	    	strlcpy( linux_id_like, "debian", sizeof(linux_id_like) );
+		return;
+	    }
+
+	    /* Add tests for other old Linux versions here. */
+
+	    fprintf( stderr, "Warning: The distribution type for this version "
+	        "of Linux has not been detected.\n" );
+	}
 
 	if ( linux_id_like[0] == '\0' ) {
 		strlcpy( linux_id_like, linux_id, sizeof(linux_id_like) );

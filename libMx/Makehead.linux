@@ -244,31 +244,39 @@ endif
 # this issue are very old versions of Debian.
 #
 
-_os_id := $(shell ../tools/mx_config id)
+ifeq ($(_have_mx_config),true)
+  _os_id := $(shell ../tools/mx_config id)
+  
+  ###$(info _os_id is [${_os_id}])
 
-#$(info _os_id is [${_os_id}])
+  # We only test for old versions of Debian.
+  
+  ifeq ($(_os_id),debian)
+    _hardware_name := $(shell uname -m)
+  
+    ifeq ($(_hardware_name),i686)
+      _library_name := i386
+    else
+      _library_name := ${_hardware_name}
+    endif
+  
+    ###$(info _hardware_name is [${_hardware_name}])
+  
+    _have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
 
-ifeq ($(_os_id),debian)
-  _hardware_name := $(shell uname -m)
-
-  ifeq ($(_hardware_name),i686)
-    _library_name := i386
+    ifeq ($(_have_librt),false)
+      _have_librt := $(shell ../scripts/file_exists /usr/lib/librt.so)
+    endif
+  
   else
-    _library_name := ${_hardware_name}
+    _have_librt := $(echo true)
   endif
-
-  #$(info _hardware_name is [${_hardware_name}])
-
-  _have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
-
-else
-  _have_librt := $(echo true)
-endif
-
-$(info _have_librt is [${_have_librt}])
-
-ifeq ($(_have_librt),true)
-  LIBRARIES += -lrt
+  
+  $(info _have_librt is [${_have_librt}])
+  
+  ifeq ($(_have_librt),true)
+    LIBRARIES += -lrt
+  endif
 endif
 
 #--------------------------------------------------------------------------
