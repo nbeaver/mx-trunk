@@ -61,6 +61,7 @@ print_usage( void )
 	"  mx_update\n"
 	"  mx_branch_label\n"
 	"  mx_version\n"
+	"  os_name\n"
 	"  os_version\n"
 	"  python\n"
 	"  wordsize\n"
@@ -368,6 +369,54 @@ main( int argc, char **argv )
 		printf( "msvcrt\n" );
 #else
 		printf( "unknown\n" );
+#endif
+		exit(0);
+	}
+
+/*------------------------------------------------------------------------*/
+
+	if ( strcmp( argv[1], "os_name" ) == 0 ) {
+
+#if defined( OS_AIX )
+		printf( "aix\n" );
+#elif defined( OS_ANDROID )
+		printf( "android\n" );
+#elif defined( OS_BSD )
+		printf( "bsd\n" );
+#elif defined( OS_CYGWIN )
+		printf( "cygwin\n" );
+#elif defined( OS_DJGPP )
+		printf( "djgpp\n" );
+#elif defined( OS_HPUX )
+		printf( "hpux\n" );
+#elif defined( OS_HURD )
+		printf( "hurd\n" );
+#elif defined( OS_IRIX )
+		printf( "irix\n" );
+#elif defined( OS_LINUX )
+		printf( "linux\n" );
+#elif defined( OS_MACOSX )
+		printf( "macosx\n" );
+#elif defined( OS_MINIX )
+		printf( "minix\n" );
+#elif defined( OS_QNX )
+		printf( "qnx\n" );
+#elif defined( OS_RTEMS )
+		printf( "rtems\n" );
+#elif defined( OS_SOLARIS )
+		printf( "solaris\n" );
+#elif defined( OS_TRU64 )
+		printf( "tru64\n" );
+#elif defined( OS_UNIXWARE )
+		printf( "unixware\n" );
+#elif defined( OS_VMS )
+		printf( "vms\n" );
+#elif defined( OS_VXWORKS )
+		printf( "vxworks\n" );
+#elif defined( OS_WIN32 )
+		printf( "win32\n" );
+#else
+#  error No os_name specified for this build target for mx_config.
 #endif
 		exit(0);
 	}
