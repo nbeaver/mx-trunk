@@ -259,7 +259,7 @@ mxd_umx_rc_servo_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "$%lu", &(motor->raw_position.stepper) );
+	num_items = sscanf( response, "$%ld", &(motor->raw_position.stepper) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
