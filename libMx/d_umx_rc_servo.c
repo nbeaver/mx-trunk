@@ -182,7 +182,7 @@ mxd_umx_rc_servo_open( MX_RECORD *record )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"PUT rc%lu.set_pin %lu",
+		"PUT rc%lu.servo_pin %lu",
 		umx_rc_servo->servo_number,
 		umx_rc_servo->servo_pin );
 
