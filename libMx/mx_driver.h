@@ -535,6 +535,7 @@ extern "C" {
 
 #define MXT_MTR_SIM960			50057
 #define MXT_MTR_NEWPORT_XPS		50058
+#define MXT_MTR_UMX_RC_SERVO		50059
 
    /* Pseudomotors. */
 

@@ -327,6 +327,7 @@
 #include "d_linkam_t9x_motor.h"
 #include "d_linkam_t9x_temp.h"
 #include "d_sim960.h"
+#include "d_umx_rc_servo.h"
 
 #include "d_energy.h"
 #include "d_wavelength.h"
@@ -2398,6 +2399,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_sim960_motor_function_list,
 				&mxd_sim960_num_record_fields,
 				&mxd_sim960_rfield_def_ptr},
+
+{"umx_rc_servo",   MXT_MTR_UMX_RC_SERVO, MXC_MOTOR,        MXR_DEVICE,
+				&mxd_umx_rc_servo_record_function_list,
+				NULL,
+				&mxd_umx_rc_servo_motor_function_list,
+				&mxd_umx_rc_servo_num_record_fields,
+				&mxd_umx_rc_servo_rfield_def_ptr},
 
 /* Pseudo motors. */
 

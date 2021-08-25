@@ -39,7 +39,7 @@ MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_umx_doutput_digital_output_function_list =
 	mxd_umx_doutput_write
 };
 
-/* Numato GPIO digital output data structures. */
+/* UMX digital output data structures. */
 
 MX_RECORD_FIELD_DEFAULTS mxd_umx_doutput_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
