@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_UMX_RC_SERVO_DEBUG	FALSE
+#define MXD_UMX_RC_SERVO_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -182,7 +182,7 @@ mxd_umx_rc_servo_open( MX_RECORD *record )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"PUT rc%lu.servo_pin %lu",
+		"PUT RC%lu.servo_pin %lu",
 		umx_rc_servo->servo_number,
 		umx_rc_servo->servo_pin );
 
@@ -219,7 +219,7 @@ mxd_umx_rc_servo_move_absolute( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"PUT rc%lu.destination %lu",
+		"PUT RC%lu.destination %lu",
 		umx_rc_servo->servo_number,
 		motor->raw_destination.stepper );
 
@@ -250,7 +250,7 @@ mxd_umx_rc_servo_get_position( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"GET rc%lu.position",
+		"GET RC%lu.position",
 		umx_rc_servo->servo_number );
 
 	mx_status = mx_umx_command( umx_record, command,

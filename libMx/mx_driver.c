@@ -289,6 +289,7 @@
 #include "d_numato_gpio_dinput.h"
 #include "d_numato_gpio_doutput.h"
 #include "d_umx_ainput.h"
+#include "d_umx_aoutput.h"
 #include "d_umx_dinput.h"
 #include "d_umx_doutput.h"
 
@@ -1593,7 +1594,7 @@ MX_DRIVER mx_type_table[] = {
 
 {"bkprecision_912x_ain", MXT_AIN_BKPRECISION_912X, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_bkprecision_912x_ain_record_function_list,
-				NULL,
+			NULL,
 			&mxd_bkprecision_912x_ain_analog_input_function_list,
 				&mxd_bkprecision_912x_ain_num_record_fields,
 				&mxd_bkprecision_912x_ain_rfield_def_ptr},
@@ -1632,6 +1633,14 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_umx_ainput_analog_input_function_list,
 				&mxd_umx_ainput_num_record_fields,
 				&mxd_umx_ainput_rfield_def_ptr},
+
+
+{"umx_aoutput",        MXT_AOU_UMX, MXC_ANALOG_OUTPUT, MXR_DEVICE,
+				&mxd_umx_aoutput_record_function_list,
+				NULL,
+			&mxd_umx_aoutput_analog_output_function_list,
+				&mxd_umx_aoutput_num_record_fields,
+				&mxd_umx_aoutput_rfield_def_ptr},
 
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,

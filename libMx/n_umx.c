@@ -130,13 +130,25 @@ mxn_umx_server_open( MX_RECORD *record )
 
 		/* If we have just uploaded new firmware to the Arduino,
 		 * then our first read from it may be an empty string.
-		 * So we must take that into account, and check for
-		 * empty strings.
+		 * In that case, we should close the RS-232 port and
+		 * then open it again.
 		 */
 
 		if ( num_bytes_read > 0 ) {
 			break;    /* We have received a startup message. */
 		}
+
+#if 1
+		mx_status = mx_close_hardware( rs232_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_open_hardware( rs232_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+#endif
 
 		mx_msleep(1000);
 	    }
