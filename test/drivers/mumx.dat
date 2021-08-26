@@ -11,6 +11,6 @@ pgn1      device pulse_generator umx_pulser "" "" 1 0.1 10 0 1 0x1 umx PGN1 0x0
 adc5      device analog_input umx_ainput "" "" 0 1 0 steps 0x0 0 "" umx ADC5
 din7      device digital_input umx_dinput "" "" 0 umx DIN7
 dout8     device digital_output umx_doutput "" "" 0 umx DOUT8
-###rc1       device motor umx_rc_servo "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 deg umx 1 9 0x0
-dac9      device analog_output umx_aoutput "" "" 0 1 0 steps 0x0 umx DAC9
+dac9      device analog_output umx_aoutput "" "" 0 1 0 steps 0x0 umx DAC9 500
 rc1       device motor dac_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 deg dac9
+#rc1       device motor umx_rc_servo "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 deg umx 1 9 0x0

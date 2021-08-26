@@ -20,13 +20,22 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_process.h"
 #include "mx_analog_output.h"
 #include "mx_umx.h"
 #include "d_umx_aoutput.h"
 
 MX_RECORD_FUNCTION_LIST mxd_umx_aoutput_record_function_list = {
 	NULL,
-	mxd_umx_aoutput_create_record_structures
+	mxd_umx_aoutput_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_umx_aoutput_special_processing_setup
 };
 
 MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_umx_aoutput_analog_output_function_list = {
@@ -49,6 +58,9 @@ MX_RECORD_FIELD_DEFAULTS *mxd_umx_aoutput_rfield_def_ptr
 			= &mxd_umx_aoutput_record_field_defaults[0];
 
 /*----*/
+
+static mx_status_type
+mxd_umx_aoutput_process_function( void *, void *, void *, int );
 
 /* A private function for the use of the driver. */
 
@@ -171,6 +183,126 @@ mxd_umx_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	mx_status = mx_umx_command( umx_record, command,
 				response, sizeof(response),
 				FALSE );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_umx_aoutput_special_processing_setup( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_umx_aoutput_special_processing_setup()";
+
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_RECORD_FIELD *record_field_array = NULL;
+	long i;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value )  {
+		case MXLV_UMX_AOUTPUT_FREQUENCY:
+			record_field->process_function
+				= mxd_umx_aoutput_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_umx_aoutput_process_function( void *record_ptr,
+					void *record_field_ptr,
+					void *socket_handler_ptr,
+					int operation )
+{
+	static const char fname[] =
+		"mxd_umx_aoutput_special_processing_setup()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_UMX_AOUTPUT *umx_aoutput = NULL;
+	MX_RECORD *umx_record = NULL;
+	char command[80];
+	char response[200];
+	int num_items;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+
+	mx_status = mxd_umx_aoutput_get_pointers( record->record_class_struct,
+					&umx_aoutput, &umx_record, fname );
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_UMX_AOUTPUT_FREQUENCY:
+			snprintf( command, sizeof(command),
+				"GET %s.frequency",
+				umx_aoutput->aoutput_name );
+
+			mx_status = mx_umx_command( umx_record, command,
+						response, sizeof(response),
+						FALSE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response,
+				"$%lf", &(umx_aoutput->frequency) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find a frequency value in the "
+				"response '%s' to command '%s' sent "
+				"to UMX analog output '%s'.",
+					response, command,
+					record->name );
+			}
+			break;
+		default:
+			MX_DEBUG( 1,
+			("%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value ));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_UMX_AOUTPUT_FREQUENCY:
+			snprintf( command, sizeof(command),
+				"PUT %s.frequency %f",
+					umx_aoutput->aoutput_name,
+					umx_aoutput->frequency );
+
+			mx_status = mx_umx_command( umx_record, command,
+						response, sizeof(response),
+						FALSE );
+			break;
+		default:
+			MX_DEBUG( 1,
+			("%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value ));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+		break;
+	}
 
 	return mx_status;
 }
