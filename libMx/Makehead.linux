@@ -246,40 +246,57 @@ endif
 # this issue are very old versions of Debian.
 #
 
-ifeq ($(_have_mx_config),true)
-  _id_class := $(shell ../tools/mx_config id_class)
-  
-  ###$(info _id_class is [${_id_class}])
+_num_librt_instances := $(shell ldconfig -p | grep librt.so | wc -l)
 
-  # We only test for old versions of Debian.
-  
-  ifeq ($(_id_class),debian)
-    _hardware_name := $(shell uname -m)
-  
-    ifeq ($(_hardware_name),i686)
-      _library_name := i386
-    else
-      _library_name := ${_hardware_name}
-    endif
-  
-    ###$(info _hardware_name is [${_hardware_name}])
-  
-    _have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
+###$(info _num_librt_instances is [${_num_librt_instances}])
 
-    ifeq ($(_have_librt),false)
-      _have_librt := $(shell ../scripts/file_exists /usr/lib/librt.so)
-    endif
-  
-  else
-    _have_librt := $(shell echo true)
-  endif
-  
-  $(info _have_librt is [${_have_librt}])
-  
-  ifeq ($(_have_librt),true)
-    LIBRARIES += -lrt
-  endif
+ifneq ($(_num_librt_instances),0)
+  _have_librt := $(shell echo true)
+else
+  _have_librt := $(shell echo false)
 endif
+
+ifeq ($(_have_librt),true)
+  LIBRARIES += -lrt
+endif
+
+$(info _have_librt is [${_have_librt}])
+
+#ifeq ($(_have_mx_config),true)
+#  _id_class := $(shell ../tools/mx_config id_class)
+#  
+#  ###$(info _id_class is [${_id_class}])
+#
+#  # We only test for old versions of Debian.
+#  
+#  ifeq ($(_id_class),debian)
+#    _hardware_name := $(shell uname -m)
+#  
+#    ifeq ($(_hardware_name),i686)
+#      _library_name := i386
+#    else
+#      _library_name := ${_hardware_name}
+#    endif
+#  
+#    $(info _hardware_name is [${_hardware_name}])
+#    $(info _library_name is [${_library_name}])
+#  
+#    _have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
+#
+#    ifeq ($(_have_librt),false)
+#      _have_librt := $(shell ../scripts/file_exists /usr/lib/librt.so)
+#    endif
+#  
+#  else
+#    _have_librt := $(shell echo true)
+#  endif
+#  
+#  $(info _have_librt is [${_have_librt}])
+#  
+#  ifeq ($(_have_librt),true)
+#    LIBRARIES += -lrt
+#  endif
+#endif
 
 #--------------------------------------------------------------------------
 
