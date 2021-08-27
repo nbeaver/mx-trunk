@@ -122,8 +122,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_mclennan.c d_mclennan_aio.c d_mclennan_dio.c \
 	d_mcs_mce.c d_mcs_time_mce.c d_mcs_scaler.c d_mcs_timer.c \
 	d_mcu2.c d_mdrive.c d_mdrive_aio.c d_mdrive_dio.c \
-	d_merlin_medipix.c d_mlfsom.c d_mmc32.c \
-	d_modbus_aio.c d_modbus_dio.c d_monochromator.c d_monte_carlo_mca.c \
+	d_merlin_medipix.c d_mlfsom.c d_mmc32.c d_modbus_aio.c d_modbus_dio.c \
+	d_monochromator.c d_monte_carlo_mca.c d_motor_relay.c \
 	d_net_amplifier.c d_net_sample_changer.c \
 	d_network_ainput.c d_network_aoutput.c d_network_area_detector.c \
 	d_network_dinput.c d_network_doutput.c d_network_mca.c \

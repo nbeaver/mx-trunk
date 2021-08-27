@@ -654,6 +654,7 @@ extern "C" {
 #define MXT_RLY_BLUICE_DHS_SHUTTER	100010
 #define MXT_RLY_SYNACCESS_NETBOOTER	100011
 #define MXT_RLY_WTI_NPS			100012
+#define MXT_RLY_MOTOR			100013
 
 /* --- Multichannel analyzer types --- */
 

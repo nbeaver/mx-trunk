@@ -395,6 +395,7 @@
 #include "d_bluice_shutter.h"
 #include "d_synaccess_netbooter_relay.h"
 #include "d_wti_nps_relay.h"
+#include "d_motor_relay.h"
 
 #include "d_soft_amplifier.h"
 #include "d_net_amplifier.h"
@@ -3265,6 +3266,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_wti_nps_relay_relay_function_list,
 				&mxd_wti_nps_relay_num_record_fields,
 				&mxd_wti_nps_relay_rfield_def_ptr},
+
+{"motor_relay",      MXT_RLY_MOTOR, MXC_RELAY, MXR_DEVICE,
+				&mxd_motor_relay_record_function_list,
+				NULL,
+				&mxd_motor_relay_relay_function_list,
+				&mxd_motor_relay_num_record_fields,
+				&mxd_motor_relay_rfield_def_ptr},
 
 {"adc_table",      MXT_TAB_ADC,       MXC_TABLE,          MXR_DEVICE,
 				&mxd_adc_table_record_function_list,
