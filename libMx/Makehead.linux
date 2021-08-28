@@ -246,7 +246,7 @@ endif
 # this issue are very old versions of Debian.
 #
 
-_num_librt_instances := $(shell ldconfig -p | grep librt.so | wc -l)
+_num_librt_instances := $(shell /sbin/ldconfig -p | grep librt.so | wc -l)
 
 ###$(info _num_librt_instances is [${_num_librt_instances}])
 
