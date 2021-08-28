@@ -33,11 +33,11 @@ typedef struct {
   \
   {-1, -1, "closed_position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MOTOR_RELAY, closed_position), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "open_position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MOTOR_RELAY, open_position), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "position_deadband", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MOTOR_RELAY, position_deadband), \
