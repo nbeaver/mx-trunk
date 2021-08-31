@@ -1320,7 +1320,7 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 	static const char fname[] = "mxi_tty_discard_unread_input()";
 
 	int debug_level;
-	unsigned long i, timeout;
+	unsigned long i, timeout_count, sleep_ms;
 	char c;
 	mx_bool_type debug_flag;
 	mx_status_type mx_status;
@@ -1332,7 +1332,13 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
-	timeout = 10000L;
+	/* The timeout_count of 6000 together with the sleep_ms value
+	 * of 5 milliseconds amounts to a time of of >= 30 seconds.
+	 */
+
+	timeout_count = 6000;
+
+	sleep_ms = 5;
 
 	/* If input is available, read until there is no more input.
 	 * If we do this to a device that is constantly generating
@@ -1344,9 +1350,9 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 
 	debug_flag = mx_rs232_show_debugging( rs232, rs232->transfer_flags );
 
-	for ( i=0; i < timeout; i++ ) {
+	for ( i=0; i < timeout_count; i++ ) {
 
-		mx_msleep(5);
+		mx_msleep( sleep_ms );
 
 		mx_status = mxi_tty_num_input_bytes_available( rs232 );
 
@@ -1382,7 +1388,7 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 
 			if ( i > 0 ) {
 				fprintf(stderr,
-				"%s: First %lu characters discarded were:\n\n",
+			"%s: The first %lu characters discarded were:\n\n",
 					fname,k);
 
 				for ( j = 0; j < k; j++ ) {
@@ -1400,10 +1406,13 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 		}
 	}
 
-	if ( i >= timeout ) {
+	if ( i >= timeout_count ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-"As many as %lu characters were read while trying to empty the input buffer.  "
-"Perhaps this device continuously generates output?", timeout );
+	"After waiting more than %.1lf seconds and discarding %lu characters, "
+	"the tty device '%s' is still returning characters.  "
+	"Perhaps this device continuously generates output?",
+		0.001 * timeout_count * sleep_ms,
+		timeout_count, rs232->record->name );
 
 	} else if ( debug_flag && (i > 0) ) {
 

@@ -987,8 +987,8 @@ mx_wait_for_debugger( void )
 		
 	fprintf( stderr, "Waiting...\n\n" );
 
-	/* Synchronize with the debugger by waiting for the debugger
-	 * to reset the value of 'loop' to 0.
+	/* Synchronize with the debugger by waiting for
+	 * the debugger to reset the value of 'loop' to 0.
 	 */
 
 	loop = 1;
