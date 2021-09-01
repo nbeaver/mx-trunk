@@ -73,7 +73,9 @@
 
 /* Values for the 'pmac_flags' field. */
 
-#define MXF_PMAC_DEBUG_SERIAL	0x1
+#define MXF_PMAC_DEBUG_SERIAL		0x1
+
+#define MXF_PMAC_EMPTY_LINES_AT_START	0x1000
 
 /*---*/
 

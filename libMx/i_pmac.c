@@ -432,6 +432,33 @@ mxi_pmac_open( MX_RECORD *record )
 		}
 		break;
 #endif
+	case MX_PMAC_PORT_TYPE_RS232:
+		if ( pmac->pmac_flags & MXF_PMAC_EMPTY_LINES_AT_START ) {
+
+			unsigned long i, max_attempts, msleep_time;
+			char test_buffer[] = "  \r";
+
+			max_attempts = 3;
+			msleep_time = 1000;
+
+			MX_DEBUG(-2,("%s: RS-232 initialization start.  "
+			"There will be a %.1lf second delay.",
+				fname, 0.001 * max_attempts * msleep_time ));
+
+			for ( i = 0; i < max_attempts; i++ ) {
+				mx_status = mx_rs232_write( pmac->port_record,
+						test_buffer,
+						sizeof(test_buffer),
+						NULL, MXI_PMAC_DEBUG );
+				mx_msleep( msleep_time );
+			}
+
+			mx_status = mx_rs232_discard_unread_input(
+					pmac->port_record, MXI_PMAC_DEBUG );
+
+			MX_DEBUG(-2,("%s: RS-232 initialization end.", fname))
+		}
+		break;
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
