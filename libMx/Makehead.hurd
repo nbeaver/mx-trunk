@@ -12,7 +12,7 @@
 INCLUDES	= $(MX_INCLUDES)
 
 LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm -ltirpc
 
 #--------------------------------------------------------------------------
 #
@@ -50,6 +50,8 @@ GCCFLAGS_C = \
 -Wstrict-prototypes \
 -Wmissing-prototypes \
 -Wnested-externs
+
+CFLAGS += -I/usr/include/tirpc
 
 #--------------------------------------------------------------------------
 #
