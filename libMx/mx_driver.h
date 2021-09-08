@@ -655,6 +655,7 @@ extern "C" {
 #define MXT_RLY_SYNACCESS_NETBOOTER	100011
 #define MXT_RLY_WTI_NPS			100012
 #define MXT_RLY_MOTOR			100013
+#define MXT_RLY_FIELD			100014
 
 /* --- Multichannel analyzer types --- */
 
