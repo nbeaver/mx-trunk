@@ -397,6 +397,7 @@
 #include "d_wti_nps_relay.h"
 #include "d_motor_relay.h"
 #include "d_field_relay.h"
+#include "d_flowbus_valve.h"
 
 #include "d_soft_amplifier.h"
 #include "d_net_amplifier.h"
@@ -3281,6 +3282,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_field_relay_relay_function_list,
 				&mxd_field_relay_num_record_fields,
 				&mxd_field_relay_rfield_def_ptr},
+
+{"flowbus_valve",  MXT_RLY_FLOWBUS_VALVE,  MXC_RELAY,    MXR_DEVICE,
+				&mxd_flowbus_valve_record_function_list,
+				NULL,
+				&mxd_flowbus_valve_relay_function_list,
+				&mxd_flowbus_valve_num_record_fields,
+				&mxd_flowbus_valve_rfield_def_ptr},
 
 {"adc_table",      MXT_TAB_ADC,       MXC_TABLE,          MXR_DEVICE,
 				&mxd_adc_table_record_function_list,
