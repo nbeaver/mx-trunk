@@ -28,6 +28,8 @@
 #define MXF_FRELAY_SUPPRESS_ILLEGAL_STATUS_MESSAGE	0x1000
 
 typedef struct {
+	MX_RECORD *record;
+
 	unsigned long frelay_flags;
 
 	unsigned long settling_time;	/* in milliseconds */

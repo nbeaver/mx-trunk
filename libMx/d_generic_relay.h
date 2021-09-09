@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,8 @@
 #define MXF_GRELAY_SUPPRESS_ILLEGAL_STATUS_MESSAGE	0x1000
 
 typedef struct {
+	MX_RECORD *record;
+
 	unsigned long grelay_flags;
 
 	unsigned long settling_time;	/* in milliseconds */

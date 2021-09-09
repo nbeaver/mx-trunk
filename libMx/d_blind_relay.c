@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,7 +56,8 @@ MX_RECORD_FIELD_DEFAULTS *mxd_blind_relay_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_blind_relay_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_blind_relay_create_record_structures()";
+        static const char fname[] =
+		"mxd_blind_relay_create_record_structures()";
 
         MX_RELAY *relay;
         MX_BLIND_RELAY *blind_relay;
@@ -67,7 +68,7 @@ mxd_blind_relay_create_record_structures( MX_RECORD *record )
 
         if ( relay == (MX_RELAY *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-                "Can't allocate memory for MX_RELAY structure." );
+                "Cannot allocate memory for MX_RELAY structure." );
         }
 
         blind_relay = (MX_BLIND_RELAY *)
@@ -75,7 +76,7 @@ mxd_blind_relay_create_record_structures( MX_RECORD *record )
 
         if ( blind_relay == (MX_BLIND_RELAY *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-                "Can't allocate memory for MX_BLIND_RELAY structure." );
+                "Cannot allocate memory for MX_BLIND_RELAY structure." );
         }
 
         /* Now set up the necessary pointers. */
@@ -86,6 +87,7 @@ mxd_blind_relay_create_record_structures( MX_RECORD *record )
 			= &mxd_blind_relay_relay_function_list;
 
         relay->record = record;
+	blind_relay->record = record;
 
 	relay->relay_command = MXF_RELAY_ILLEGAL_STATUS;
 	relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;

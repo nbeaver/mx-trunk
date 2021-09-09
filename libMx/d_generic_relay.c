@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004-2006, 2011 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004-2006, 2011, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,7 +68,7 @@ mxd_generic_relay_create_record_structures( MX_RECORD *record )
 
         if ( relay == (MX_RELAY *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-                "Can't allocate memory for MX_RELAY structure." );
+                "Cannot allocate memory for MX_RELAY structure." );
         }
 
         generic_relay = (MX_GENERIC_RELAY *)
@@ -76,7 +76,7 @@ mxd_generic_relay_create_record_structures( MX_RECORD *record )
 
         if ( generic_relay == (MX_GENERIC_RELAY *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-                "Can't allocate memory for MX_GENERIC_RELAY structure." );
+                "Cannot allocate memory for MX_GENERIC_RELAY structure." );
         }
 
         /* Now set up the necessary pointers. */
@@ -87,6 +87,7 @@ mxd_generic_relay_create_record_structures( MX_RECORD *record )
 			= &mxd_generic_relay_relay_function_list;
 
         relay->record = record;
+	generic_relay->record = record;
 
 	relay->relay_command = MXF_RELAY_ILLEGAL_STATUS;
 	relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;

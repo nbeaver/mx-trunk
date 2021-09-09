@@ -67,7 +67,7 @@ mxd_field_relay_create_record_structures( MX_RECORD *record )
 
         if ( relay == (MX_RELAY *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-                "Can't allocate memory for MX_RELAY structure." );
+                "Cannot allocate memory for MX_RELAY structure." );
         }
 
         field_relay = (MX_FIELD_RELAY *)
@@ -75,7 +75,7 @@ mxd_field_relay_create_record_structures( MX_RECORD *record )
 
         if ( field_relay == (MX_FIELD_RELAY *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-                "Can't allocate memory for MX_FIELD_RELAY structure." );
+                "Cannot allocate memory for MX_FIELD_RELAY structure." );
         }
 
         /* Now set up the necessary pointers. */
@@ -86,6 +86,7 @@ mxd_field_relay_create_record_structures( MX_RECORD *record )
 			= &mxd_field_relay_relay_function_list;
 
         relay->record = record;
+	field_relay->record = record;
 
 	relay->relay_command = MXF_RELAY_ILLEGAL_STATUS;
 	relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
@@ -137,7 +138,8 @@ mxd_field_relay_relay_command( MX_RELAY *relay )
 {
 	static const char fname[] = "mxd_field_relay_relay_command()";
 
-	MX_FIELD_RELAY *field_relay;
+	MX_FIELD_RELAY *field_relay = NULL;
+	void *field_value_ptr = NULL;
 	unsigned long requested_value,old_value, new_value;
 	unsigned long shifted_value, mask;
 	int i;
@@ -199,42 +201,81 @@ mxd_field_relay_relay_command( MX_RELAY *relay )
 
 	new_value = new_value | shifted_value;
 
+	/* Get a pointer to where the new value goes. */
+
+	field_value_ptr =
+		mx_get_field_value_pointer( field_relay->output_field );
+
+	if ( field_value_ptr == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The field value pointer for output field '%s' of "
+		"relay '%s' is NULL.",
+			field_relay->output_name,
+			relay->record->name );
+	}
+
 	/* Copy the new value to the output field. */
 
 	MX_DEBUG(-1,("%s: '%s' is sending %lx to '%s'", fname,
 				relay->record->name, new_value,
 				field_relay->output_name));
 
-	/* FIXME: Do the data copy now. */
+	/* Do the data copy now. */
 
 	switch( field_relay->output_field->datatype ) {
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
 	case MXFT_INT8:
 	case MXFT_UINT8:
+		*( (uint8_t *) field_value_ptr ) = (uint8_t) new_value;
+		break;
 
 	case MXFT_SHORT:
 	case MXFT_USHORT:
+		*( (unsigned short *) field_value_ptr )
+						= (unsigned short) new_value;
+		break;
 
 	case MXFT_BOOL:
+		*( (uint32_t *) field_value_ptr ) = (uint32_t) new_value;
+		break;
 
 	case MXFT_LONG:
 	case MXFT_ULONG:
 	case MXFT_HEX:
+		*( (unsigned long *) field_value_ptr )
+						= (unsigned long) new_value;
+		break;
 
 	case MXFT_INT64:
 	case MXFT_UINT64:
+		*( (uint64_t *) field_value_ptr ) = (uint64_t) new_value;
+		break;
 	
 	case MXFT_FLOAT:
 	case MXFT_DOUBLE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Floating point output fields are not supported for "
+		"output field '%s' used by relay '%s'.",
+			field_relay->output_name, relay->record->name );
+		break;
 
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Pointer fields are not supported for output field '%s' "
+		"used by relay '%s'.",
+			field_relay->output_name, relay->record->name );
 		break;
 
 	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX fields of datatype %lu are not supported for "
+		"output field '%s' used by relay '%s'.",
+			field_relay->output_field->datatype,
+			field_relay->output_name, relay->record->name );
 		break;
 	}
 
@@ -270,7 +311,8 @@ mxd_field_relay_get_relay_status( MX_RELAY *relay )
 {
 	static const char fname[] = "mxd_field_relay_get_relay_status()";
 
-	MX_FIELD_RELAY *field_relay;
+	MX_FIELD_RELAY *field_relay = NULL;
+	void *field_value_ptr = NULL;
 	unsigned long current_value, mask;
 	unsigned long closed_value, open_value;
 	int i;
@@ -301,9 +343,75 @@ mxd_field_relay_get_relay_status( MX_RELAY *relay )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: Copy in the input value from the specified input field. */
+	/* Get a pointer to where the new status comes from. */
 
-	current_value = 0;
+	field_value_ptr =
+		mx_get_field_value_pointer( field_relay->input_field );
+
+	if ( field_value_ptr == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The field value pointer for input field '%s' of "
+		"relay '%s' is NULL.",
+			field_relay->input_name,
+			field_relay->record->name );
+	}
+
+	/* Do the data copy now. */
+
+	switch( field_relay->input_field->datatype ) {
+	case MXFT_CHAR:
+	case MXFT_UCHAR:
+	case MXFT_INT8:
+	case MXFT_UINT8:
+		current_value = *( (uint8_t *) field_value_ptr );
+		break;
+
+	case MXFT_SHORT:
+	case MXFT_USHORT:
+		current_value = *( (unsigned short *) field_value_ptr );
+		break;
+
+	case MXFT_BOOL:
+		current_value = *( (uint32_t *) field_value_ptr );
+		break;
+
+	case MXFT_LONG:
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		current_value = *( (unsigned long *) field_value_ptr );
+		break;
+
+	case MXFT_INT64:
+	case MXFT_UINT64:
+		current_value = *( (uint64_t *) field_value_ptr );
+		break;
+	
+	case MXFT_FLOAT:
+	case MXFT_DOUBLE:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Floating point input fields are not supported for "
+		"input field '%s' used by relay '%s'.",
+			field_relay->input_name, relay->record->name );
+		break;
+
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Pointer fields are not supported for input field '%s' "
+		"used by relay '%s'.",
+			field_relay->input_name, relay->record->name );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX fields of datatype %lu are not supported for "
+		"input field '%s' used by relay '%s'.",
+			field_relay->input_field->datatype,
+			field_relay->input_name, relay->record->name );
+		break;
+	}
 
 	if ( field_relay->frelay_flags & MXF_FRELAY_INVERT_INPUT ) {
 		current_value = ~current_value;

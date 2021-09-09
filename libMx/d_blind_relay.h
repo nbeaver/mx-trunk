@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2006, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,8 @@
 #define __D_BLIND_RELAY_H__
 
 typedef struct {
+	MX_RECORD *record;
+
 	unsigned long settling_time;	/* in milliseconds */
 
 	MX_RECORD *output_record;
