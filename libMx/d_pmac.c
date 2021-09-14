@@ -701,6 +701,9 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 		motor->raw_base_speed = 0.0;
 
 		break;
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		mx_status = mxd_pmac_get_motor_variable( pmac_motor, pmac, 19,
 						MXFT_DOUBLE, &double_value,
