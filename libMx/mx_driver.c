@@ -347,7 +347,7 @@
 #include "d_tangent_arm.h"
 #include "d_aframe_detector_motor.h"
 #include "d_adsc_two_theta.h"
-#include "d_record_field_motor.h"
+#include "d_field_motor.h"
 #include "d_gated_backlash.h"
 #include "d_polynomial_motor.h"
 #include "d_cubic_spline_motor.h"
@@ -2532,12 +2532,19 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_adsc_two_theta_num_record_fields,
 				&mxd_adsc_two_theta_rfield_def_ptr},
 
-{"record_field_motor", MXT_MTR_RECORD_FIELD, MXC_MOTOR,     MXR_DEVICE,
-				&mxd_record_field_motor_record_function_list,
+{"field_motor",    MXT_MTR_FIELD,          MXC_MOTOR,     MXR_DEVICE,
+				&mxd_field_motor_record_function_list,
 				NULL,
-				&mxd_record_field_motor_motor_function_list,
-				&mxd_record_field_motor_num_record_fields,
-				&mxd_record_field_motor_rfield_def_ptr},
+				&mxd_field_motor_motor_function_list,
+				&mxd_field_motor_num_record_fields,
+				&mxd_field_motor_rfield_def_ptr},
+
+{"record_field_motor", MXT_MTR_FIELD,      MXC_MOTOR,     MXR_DEVICE,
+				&mxd_field_motor_record_function_list,
+				NULL,
+				&mxd_field_motor_motor_function_list,
+				&mxd_field_motor_num_record_fields,
+				&mxd_field_motor_rfield_def_ptr},
 
 {"gated_backlash",    MXT_MTR_GATED_BACKLASH, MXC_MOTOR,     MXR_DEVICE,
 				&mxd_gated_backlash_record_function_list,

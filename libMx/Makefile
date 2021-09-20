@@ -95,7 +95,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_digital_fanin.c d_digital_fanout.c \
 	d_disabled_motor.c d_doutput_pulser.c d_e500.c \
 	d_e662.c d_eiger.c d_elapsed_time.c d_energy.c d_fg_scaler.c \
-	d_field_relay.c d_file_dinput.c d_file_vinput.c \
+	d_field_motor.c d_field_relay.c d_file_dinput.c d_file_vinput.c \
 	d_flowbus_valve.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
 	d_gittelsohn_pulser.c d_gm10_scaler.c d_gm10_timer.c \
@@ -144,7 +144,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_polynomial_motor.c d_portio_dio.c \
 	d_ptz_motor.c d_pulsed_relay.c \
 	d_qbpm_mcai.c d_qmotor.c d_qs450.c \
-	d_record_field_motor.c d_relay_as_doutput.c d_relay_pulser.c \
+	d_relay_as_doutput.c d_relay_pulser.c \
 	d_roentec_rcl_mca.c d_rtc018.c \
 	d_scaler_function.c d_scaler_function_mcs.c \
 	d_scipe_aio.c d_scipe_amplifier.c d_scipe_dio.c d_scipe_motor.c \

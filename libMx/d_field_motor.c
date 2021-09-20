@@ -1,5 +1,5 @@
 /*
- * Name:    d_record_field_motor.c
+ * Name:    d_field_motor.c
  *
  * Purpose: MX driver for a pseudomotor that implements its functionality
  *          by reading from and writing to MX record fields belonging to
@@ -9,14 +9,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010, 2012, 2019 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010, 2012, 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_RECORD_FIELD_MOTOR_DEBUG	FALSE
+#define MXD_FIELD_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,28 +29,28 @@
 #include "mx_process.h"
 #include "mx_hrt_debug.h"
 #include "mx_motor.h"
-#include "d_record_field_motor.h"
+#include "d_field_motor.h"
 
 /* ============ Motor channels ============ */
 
-MX_RECORD_FUNCTION_LIST mxd_record_field_motor_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxd_field_motor_record_function_list = {
 	NULL,
-	mxd_record_field_motor_create_record_structures,
-	mxd_record_field_motor_finish_record_initialization,
+	mxd_field_motor_create_record_structures,
+	mxd_field_motor_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_record_field_motor_open
+	mxd_field_motor_open
 };
 
-MX_MOTOR_FUNCTION_LIST mxd_record_field_motor_motor_function_list = {
-	mxd_record_field_motor_busy,
-	mxd_record_field_motor_move_absolute,
-	mxd_record_field_motor_get_position,
-	mxd_record_field_motor_set_position,
-	mxd_record_field_motor_soft_abort,
-	mxd_record_field_motor_immediate_abort,
-	mxd_record_field_motor_positive_limit_hit,
-	mxd_record_field_motor_negative_limit_hit,
+MX_MOTOR_FUNCTION_LIST mxd_field_motor_motor_function_list = {
+	mxd_field_motor_busy,
+	mxd_field_motor_move_absolute,
+	mxd_field_motor_get_position,
+	mxd_field_motor_set_position,
+	mxd_field_motor_soft_abort,
+	mxd_field_motor_immediate_abort,
+	mxd_field_motor_positive_limit_hit,
+	mxd_field_motor_negative_limit_hit,
 	NULL,
 	NULL,
 	mx_motor_default_get_parameter_handler,
@@ -59,48 +59,47 @@ MX_MOTOR_FUNCTION_LIST mxd_record_field_motor_motor_function_list = {
 
 /* Picomotor motor data structures. */
 
-MX_RECORD_FIELD_DEFAULTS mxd_record_field_motor_rf_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_field_motor_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_ANALOG_MOTOR_STANDARD_FIELDS,
 	MX_MOTOR_STANDARD_FIELDS,
-	MXD_RECORD_FIELD_MOTOR_STANDARD_FIELDS
+	MXD_FIELD_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_record_field_motor_num_record_fields
-		= sizeof( mxd_record_field_motor_rf_defaults )
-		/ sizeof( mxd_record_field_motor_rf_defaults[0] );
+long mxd_field_motor_num_record_fields
+		= sizeof( mxd_field_motor_rf_defaults )
+		/ sizeof( mxd_field_motor_rf_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_record_field_motor_rfield_def_ptr
-			= &mxd_record_field_motor_rf_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_field_motor_rfield_def_ptr
+			= &mxd_field_motor_rf_defaults[0];
 
 /* A private function for the use of the driver. */
 
 static mx_status_type
-mxd_record_field_motor_get_pointers( MX_MOTOR *motor,
-			MX_RECORD_FIELD_MOTOR **record_field_motor,
+mxd_field_motor_get_pointers( MX_MOTOR *motor,
+			MX_FIELD_MOTOR **field_motor,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_record_field_motor_get_pointers()";
+	static const char fname[] = "mxd_field_motor_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_MOTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR **) NULL ) {
+	if ( field_motor == (MX_FIELD_MOTOR **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD_FIELD_MOTOR pointer passed by '%s' was NULL.",
+		"The MX_FIELD_MOTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 
-	*record_field_motor = (MX_RECORD_FIELD_MOTOR *)
-				motor->record->record_type_struct;
+	*field_motor = (MX_FIELD_MOTOR *) motor->record->record_type_struct;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
-mxd_record_field_motor_get_long( MX_RECORD_FIELD *field, long *long_value )
+mxd_field_motor_get_long( MX_RECORD_FIELD *field, long *long_value )
 {
 	void *field_value_ptr;
 	mx_status_type mx_status;
@@ -118,7 +117,7 @@ mxd_record_field_motor_get_long( MX_RECORD_FIELD *field, long *long_value )
 }
 
 static mx_status_type
-mxd_record_field_motor_set_long( MX_RECORD_FIELD *field, long long_value )
+mxd_field_motor_set_long( MX_RECORD_FIELD *field, long long_value )
 {
 	void *field_value_ptr;
 	mx_status_type mx_status;
@@ -136,7 +135,7 @@ mxd_record_field_motor_set_long( MX_RECORD_FIELD *field, long long_value )
 }
 
 static mx_status_type
-mxd_record_field_motor_get_double( MX_RECORD_FIELD *field, double *double_value)
+mxd_field_motor_get_double( MX_RECORD_FIELD *field, double *double_value)
 {
 	void *field_value_ptr;
 	mx_status_type mx_status;
@@ -154,7 +153,7 @@ mxd_record_field_motor_get_double( MX_RECORD_FIELD *field, double *double_value)
 }
 
 static mx_status_type
-mxd_record_field_motor_set_double( MX_RECORD_FIELD *field, double double_value )
+mxd_field_motor_set_double( MX_RECORD_FIELD *field, double double_value )
 {
 	void *field_value_ptr;
 	mx_status_type mx_status;
@@ -172,26 +171,24 @@ mxd_record_field_motor_set_double( MX_RECORD_FIELD *field, double double_value )
 }
 
 static mx_status_type
-mxd_record_field_motor_get_disable_flag(
-				MX_RECORD_FIELD_MOTOR *record_field_motor,
+mxd_field_motor_get_disable_flag( MX_FIELD_MOTOR *field_motor,
 				long *disable_flag )
 {
-	static const char fname[] =
-		"mxd_record_field_motor_get_disable_flag()";
+	static const char fname[] = "mxd_field_motor_get_disable_flag()";
 
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
-	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR *) NULL ) {
+	if ( field_motor == (MX_FIELD_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD_FIELD_MOTOR pointer passed was NULL." );
+		"The MX_FIELD_MOTOR pointer passed was NULL." );
 	}
 	if ( disable_flag == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'disable_flag' pointer passed was NULL." );
 	}
 
-	handler = record_field_motor->disable_handler;
+	handler = field_motor->disable_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
 		*disable_flag = FALSE;
@@ -205,34 +202,32 @@ mxd_record_field_motor_get_disable_flag(
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_long( handler->record_field,
+	mx_status = mxd_field_motor_get_long( handler->record_field,
 						disable_flag );
 	return mx_status;
 }
 
 #if 0
 static mx_status_type
-mxd_record_field_motor_set_disable_flag(
-				MX_RECORD_FIELD_MOTOR *record_field_motor,
+mxd_field_motor_set_disable_flag( MX_FIELD_MOTOR *field_motor,
 				long disable_flag )
 {
-	static const char fname[] =
-		"mxd_record_field_motor_set_disable_flag()";
+	static const char fname[] = "mxd_field_motor_set_disable_flag()";
 
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
-	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR *) NULL ) {
+	if ( field_motor == (MX_FIELD_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD_FIELD_MOTOR pointer passed was NULL." );
+		"The MX_FIELD_MOTOR pointer passed was NULL." );
 	}
 
-	handler = record_field_motor->disable_handler;
+	handler = field_motor->disable_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL )
 		return MX_SUCCESSFUL_RESULT;
 
-	mx_status = mxd_record_field_motor_set_long( handler->record_field,
+	mx_status = mxd_field_motor_set_long( handler->record_field,
 						disable_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -246,28 +241,28 @@ mxd_record_field_motor_set_disable_flag(
 #endif
 
 static mx_status_type
-mxd_record_field_motor_get_command_in_progress_flag(
-				MX_RECORD_FIELD_MOTOR *record_field_motor,
+mxd_field_motor_get_command_in_progress_flag(
+				MX_FIELD_MOTOR *field_motor,
 				long *command_in_progress_flag )
 {
 	static const char fname[] =
-		"mxd_record_field_motor_get_command_in_progress_flag()";
+		"mxd_field_motor_get_command_in_progress_flag()";
 
 	MX_RECORD_FIELD_HANDLER *handler;
-	unsigned long record_field_motor_flags;
+	unsigned long field_motor_flags;
 	long disable_flag;
 	mx_status_type mx_status;
 
-	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR *) NULL ) {
+	if ( field_motor == (MX_FIELD_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD_FIELD_MOTOR pointer passed was NULL." );
+		"The MX_FIELD_MOTOR pointer passed was NULL." );
 	}
 	if ( command_in_progress_flag == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'command_in_progress_flag' pointer passed was NULL." );
 	}
 
-	handler = record_field_motor->command_in_progress_handler;
+	handler = field_motor->command_in_progress_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
 		*command_in_progress_flag = FALSE;
@@ -277,8 +272,8 @@ mxd_record_field_motor_get_command_in_progress_flag(
 
 	/* If the disable_flag is set, then command_in_progress is always 0. */
 
-	mx_status = mxd_record_field_motor_get_disable_flag( record_field_motor,
-								&disable_flag );
+	mx_status = mxd_field_motor_get_disable_flag( field_motor,
+							&disable_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -294,7 +289,7 @@ mxd_record_field_motor_get_command_in_progress_flag(
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_record_field_motor_get_long(
+		mx_status = mxd_field_motor_get_long(
 						handler->record_field,
 						command_in_progress_flag );
 
@@ -307,51 +302,51 @@ mxd_record_field_motor_get_command_in_progress_flag(
 	 */
 
 	if ( ( *command_in_progress_flag == FALSE )
-	  && ( record_field_motor->command_in_progress != FALSE ) )
+	  && ( field_motor->command_in_progress != FALSE ) )
 	{
-		MX_HRT_END( record_field_motor->in_progress_interval );
+		MX_HRT_END( field_motor->in_progress_interval );
 
-		record_field_motor_flags =
-			record_field_motor->record_field_motor_flags;
+		field_motor_flags =
+			field_motor->field_motor_flags;
 
-		if ( record_field_motor_flags & MXF_RFM_SHOW_IN_PROGRESS_DELAY )
+		if ( field_motor_flags & MXF_RFM_SHOW_IN_PROGRESS_DELAY )
 		{
-			MX_HRT_RESULTS(record_field_motor->in_progress_interval,
+			MX_HRT_RESULTS(field_motor->in_progress_interval,
 			    fname, "command_in_progress delay for motor '%s'",
-				record_field_motor->record->name);
+				field_motor->record->name);
 		}
 	}
 
-	record_field_motor->command_in_progress = *command_in_progress_flag;
+	field_motor->command_in_progress = *command_in_progress_flag;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
-mxd_record_field_motor_set_command_in_progress_flag(
-				MX_RECORD_FIELD_MOTOR *record_field_motor,
+mxd_field_motor_set_command_in_progress_flag(
+				MX_FIELD_MOTOR *field_motor,
 				long command_in_progress_flag )
 {
 	static const char fname[] =
-		"mxd_record_field_motor_set_command_in_progress_flag()";
+		"mxd_field_motor_set_command_in_progress_flag()";
 
 	MX_RECORD_FIELD_HANDLER *handler;
 	long disable_flag;
 	mx_status_type mx_status;
 
-	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR *) NULL ) {
+	if ( field_motor == (MX_FIELD_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD_FIELD_MOTOR pointer passed was NULL." );
+		"The MX_FIELD_MOTOR pointer passed was NULL." );
 	}
 
-	handler = record_field_motor->command_in_progress_handler;
+	handler = field_motor->command_in_progress_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL )
 		return MX_SUCCESSFUL_RESULT;
 
 	/* If the disable_flag is set, then set command_in_progress to 0. */
 
-	mx_status = mxd_record_field_motor_get_disable_flag( record_field_motor,
+	mx_status = mxd_field_motor_get_disable_flag( field_motor,
 								&disable_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -363,17 +358,17 @@ mxd_record_field_motor_set_command_in_progress_flag(
 
 	/* Store a local copy of the command_in_progress flag. */
 
-	record_field_motor->command_in_progress = command_in_progress_flag;
+	field_motor->command_in_progress = command_in_progress_flag;
 
 	/* Record the start time of the command_in_progress interval. */
 
 	if ( command_in_progress_flag != FALSE ) {
-		MX_HRT_START(record_field_motor->in_progress_interval);
+		MX_HRT_START(field_motor->in_progress_interval);
 	}
 
 	/* Send the command_in_progress flag. */
 
-	mx_status = mxd_record_field_motor_set_long( handler->record_field,
+	mx_status = mxd_field_motor_set_long( handler->record_field,
 						command_in_progress_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -386,11 +381,11 @@ mxd_record_field_motor_set_command_in_progress_flag(
 }
 
 static mx_status_type
-mxd_record_field_motor_set_handler( MX_RECORD_FIELD_MOTOR *record_field_motor,
-					MX_RECORD_FIELD_HANDLER **handler_ptr,
-					char *handler_name_ptr )
+mxd_field_motor_set_handler( MX_FIELD_MOTOR *field_motor,
+				MX_RECORD_FIELD_HANDLER **handler_ptr,
+				char *handler_name_ptr )
 {
-	static const char fname[] = "mxd_record_field_motor_set_handler()";
+	static const char fname[] = "mxd_field_motor_set_handler()";
 
 	MX_RECORD *record_list, *record;
 	MX_RECORD_FIELD *field;
@@ -398,25 +393,25 @@ mxd_record_field_motor_set_handler( MX_RECORD_FIELD_MOTOR *record_field_motor,
 	char handler_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	mx_status_type mx_status;
 
-	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR *) NULL ) {
+	if ( field_motor == (MX_FIELD_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD_FIELD_MOTOR pointer passed was NULL." );
+		"The MX_FIELD_MOTOR pointer passed was NULL." );
 	}
 	if ( handler_ptr == (MX_RECORD_FIELD_HANDLER **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD_FIELD_HANDLER pointer passed was NULL." );
 	}
-	if ( record_field_motor->record == (MX_RECORD *) NULL ) {
+	if ( field_motor->record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The 'record' pointer for the MX_RECORD_FIELD_POINTER passed is NULL.");
 	}
 
-	record_list = record_field_motor->record->list_head;
+	record_list = field_motor->record->list_head;
 
 	if ( record_list == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The 'list_head' pointer for record '%s' is NULL.",
-			record_field_motor->record->name );
+			field_motor->record->name );
 	}
 
 	*handler_ptr = NULL;
@@ -506,13 +501,13 @@ mxd_record_field_motor_set_handler( MX_RECORD_FIELD_MOTOR *record_field_motor,
 /*---*/
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_create_record_structures( MX_RECORD *record )
+mxd_field_motor_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxd_record_field_motor_create_record_structures()";
+		"mxd_field_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -523,23 +518,22 @@ mxd_record_field_motor_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for MX_MOTOR structure." );
 	}
 
-	record_field_motor = (MX_RECORD_FIELD_MOTOR *)
-				malloc( sizeof(MX_RECORD_FIELD_MOTOR) );
+	field_motor = (MX_FIELD_MOTOR *) malloc( sizeof(MX_FIELD_MOTOR) );
 
-	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR *) NULL ) {
+	if ( field_motor == (MX_FIELD_MOTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate memory for MX_RECORD_FIELD_MOTOR structure." );
+		"Cannot allocate memory for MX_FIELD_MOTOR structure." );
 	}
 
 	/* Now set up the necessary pointers. */
 
 	record->record_class_struct = motor;
-	record->record_type_struct = record_field_motor;
+	record->record_type_struct = field_motor;
 	record->class_specific_function_list
-				= &mxd_record_field_motor_motor_function_list;
+				= &mxd_field_motor_motor_function_list;
 
 	motor->record = record;
-	record_field_motor->record = record;
+	field_motor->record = record;
 
 	/* A record field motor is treated as an analog motor. */
 
@@ -551,19 +545,19 @@ mxd_record_field_motor_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_finish_record_initialization( MX_RECORD *record )
+mxd_field_motor_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxd_record_field_motor_finish_record_initialization()";
+		"mxd_field_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -577,15 +571,15 @@ mxd_record_field_motor_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_open( MX_RECORD *record )
+mxd_field_motor_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_record_field_motor_open()";
+	static const char fname[] = "mxd_field_motor_open()";
 
 	MX_MOTOR *motor;
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -594,78 +588,78 @@ mxd_record_field_motor_open( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->disable_handler),
-			record_field_motor->disable_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->disable_handler),
+			field_motor->disable_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->command_in_progress_handler),
-			record_field_motor->command_in_progress_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->command_in_progress_handler),
+			field_motor->command_in_progress_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->busy_handler),
-			record_field_motor->busy_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->busy_handler),
+			field_motor->busy_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->move_absolute_handler),
-			record_field_motor->move_absolute_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->move_absolute_handler),
+			field_motor->move_absolute_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->get_position_handler),
-			record_field_motor->get_position_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->get_position_handler),
+			field_motor->get_position_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->set_position_handler),
-			record_field_motor->set_position_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->set_position_handler),
+			field_motor->set_position_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->soft_abort_handler),
-			record_field_motor->soft_abort_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->soft_abort_handler),
+			field_motor->soft_abort_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->immediate_abort_handler),
-			record_field_motor->immediate_abort_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->immediate_abort_handler),
+			field_motor->immediate_abort_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->positive_limit_hit_handler),
-			record_field_motor->positive_limit_hit_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->positive_limit_hit_handler),
+			field_motor->positive_limit_hit_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_handler( record_field_motor,
-			&(record_field_motor->negative_limit_hit_handler),
-			record_field_motor->negative_limit_hit_name );
+	mx_status = mxd_field_motor_set_handler( field_motor,
+			&(field_motor->negative_limit_hit_handler),
+			field_motor->negative_limit_hit_name );
 
 	return mx_status;
 }
@@ -673,19 +667,19 @@ mxd_record_field_motor_open( MX_RECORD *record )
 /* ============ Motor specific functions ============ */
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_busy( MX_MOTOR *motor )
+mxd_field_motor_busy( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_record_field_motor_busy()";
+	static const char fname[] = "mxd_field_motor_busy()";
 
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	long command_in_progress, busy_field_value;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -698,8 +692,8 @@ mxd_record_field_motor_busy( MX_MOTOR *motor )
 	 * to be 'busy'.
 	 */
 
-	mx_status = mxd_record_field_motor_get_command_in_progress_flag(
-				record_field_motor, &command_in_progress );
+	mx_status = mxd_field_motor_get_command_in_progress_flag(
+				field_motor, &command_in_progress );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -712,7 +706,7 @@ mxd_record_field_motor_busy( MX_MOTOR *motor )
 
 	/* If there is no busy handler, we declare the motor to _not_ be busy */
 
-	handler = record_field_motor->busy_handler;
+	handler = field_motor->busy_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
 		motor->busy = FALSE;
@@ -730,7 +724,7 @@ mxd_record_field_motor_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_long( handler->record_field,
+	mx_status = mxd_field_motor_get_long( handler->record_field,
 							&busy_field_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -746,18 +740,18 @@ mxd_record_field_motor_busy( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_move_absolute( MX_MOTOR *motor )
+mxd_field_motor_move_absolute( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_record_field_motor_move_absolute()";
+	static const char fname[] = "mxd_field_motor_move_absolute()";
 
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -765,7 +759,7 @@ mxd_record_field_motor_move_absolute( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s invoked for motor '%s'", 
 		fname, motor->record->name));
 
-	handler = record_field_motor->move_absolute_handler;
+	handler = field_motor->move_absolute_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
 		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
@@ -774,7 +768,7 @@ mxd_record_field_motor_move_absolute( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	mx_status = mxd_record_field_motor_set_double( handler->record_field,
+	mx_status = mxd_field_motor_set_double( handler->record_field,
 						motor->raw_destination.analog );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -786,25 +780,25 @@ mxd_record_field_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_set_command_in_progress_flag(
-						record_field_motor, 1 );
+	mx_status = mxd_field_motor_set_command_in_progress_flag(
+						field_motor, 1 );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_get_position( MX_MOTOR *motor )
+mxd_field_motor_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_record_field_motor_get_position()";
+	static const char fname[] = "mxd_field_motor_get_position()";
 
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -815,7 +809,7 @@ mxd_record_field_motor_get_position( MX_MOTOR *motor )
 	 * destination to the position variable.
 	 */
 
-	handler = record_field_motor->get_position_handler;
+	handler = field_motor->get_position_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
 		motor->raw_position.analog = motor->raw_destination.analog;
@@ -833,25 +827,25 @@ mxd_record_field_motor_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_double( handler->record_field,
+	mx_status = mxd_field_motor_get_double( handler->record_field,
 						&(motor->raw_position.analog) );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_set_position( MX_MOTOR *motor )
+mxd_field_motor_set_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_record_field_motor_set_position()";
+	static const char fname[] = "mxd_field_motor_set_position()";
 
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -862,7 +856,7 @@ mxd_record_field_motor_set_position( MX_MOTOR *motor )
 	 * position to the position variable.
 	 */
 
-	handler = record_field_motor->set_position_handler;
+	handler = field_motor->set_position_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
 		motor->raw_position.analog = motor->raw_set_position.analog;
@@ -874,7 +868,7 @@ mxd_record_field_motor_set_position( MX_MOTOR *motor )
 	 * record field to set the position.
 	 */
 
-	mx_status = mxd_record_field_motor_set_double( handler->record_field,
+	mx_status = mxd_field_motor_set_double( handler->record_field,
 					motor->raw_set_position.analog );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -887,18 +881,18 @@ mxd_record_field_motor_set_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_soft_abort( MX_MOTOR *motor )
+mxd_field_motor_soft_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_record_field_motor_soft_abort()";
+	static const char fname[] = "mxd_field_motor_soft_abort()";
 
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -907,7 +901,7 @@ mxd_record_field_motor_soft_abort( MX_MOTOR *motor )
 
 	/* If there is no soft_abort handler, do nothing. */
 
-	handler = record_field_motor->soft_abort_handler;
+	handler = field_motor->soft_abort_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL )
 		return MX_SUCCESSFUL_RESULT;
@@ -916,7 +910,7 @@ mxd_record_field_motor_soft_abort( MX_MOTOR *motor )
 	 * record field to send the abort command.
 	 */
 
-	mx_status = mxd_record_field_motor_set_long( handler->record_field,
+	mx_status = mxd_field_motor_set_long( handler->record_field,
 						motor->soft_abort );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -929,18 +923,18 @@ mxd_record_field_motor_soft_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_immediate_abort( MX_MOTOR *motor )
+mxd_field_motor_immediate_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_record_field_motor_immediate_abort()";
+	static const char fname[] = "mxd_field_motor_immediate_abort()";
 
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -951,10 +945,10 @@ mxd_record_field_motor_immediate_abort( MX_MOTOR *motor )
 	 * soft_abort handler.
 	 */
 
-	handler = record_field_motor->immediate_abort_handler;
+	handler = field_motor->immediate_abort_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
-		mx_status = mxd_record_field_motor_soft_abort( motor );
+		mx_status = mxd_field_motor_soft_abort( motor );
 
 		return mx_status;
 	}
@@ -963,7 +957,7 @@ mxd_record_field_motor_immediate_abort( MX_MOTOR *motor )
 	 * record field to send the abort command.
 	 */
 
-	mx_status = mxd_record_field_motor_set_long( handler->record_field,
+	mx_status = mxd_field_motor_set_long( handler->record_field,
 						motor->immediate_abort );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -976,20 +970,20 @@ mxd_record_field_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_positive_limit_hit( MX_MOTOR *motor )
+mxd_field_motor_positive_limit_hit( MX_MOTOR *motor )
 {
 	static const char fname[] =
-			"mxd_record_field_motor_positive_limit_hit()";
+			"mxd_field_motor_positive_limit_hit()";
 
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	long limit_hit;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1000,7 +994,7 @@ mxd_record_field_motor_positive_limit_hit( MX_MOTOR *motor )
 	 * the limit is not tripped.
 	 */
 
-	handler = record_field_motor->positive_limit_hit_handler;
+	handler = field_motor->positive_limit_hit_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
 		motor->positive_limit_hit = FALSE;
@@ -1018,7 +1012,7 @@ mxd_record_field_motor_positive_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_long( handler->record_field,
+	mx_status = mxd_field_motor_get_long( handler->record_field,
 								&limit_hit );
 
 	if ( limit_hit ) {
@@ -1031,20 +1025,20 @@ mxd_record_field_motor_positive_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_record_field_motor_negative_limit_hit( MX_MOTOR *motor )
+mxd_field_motor_negative_limit_hit( MX_MOTOR *motor )
 {
 	static const char fname[] =
-			"mxd_record_field_motor_negative_limit_hit()";
+			"mxd_field_motor_negative_limit_hit()";
 
-	MX_RECORD_FIELD_MOTOR *record_field_motor;
+	MX_FIELD_MOTOR *field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	long limit_hit;
 	mx_status_type mx_status;
 
-	record_field_motor = NULL;
+	field_motor = NULL;
 
-	mx_status = mxd_record_field_motor_get_pointers( motor,
-						&record_field_motor, fname );
+	mx_status = mxd_field_motor_get_pointers( motor,
+						&field_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1055,7 +1049,7 @@ mxd_record_field_motor_negative_limit_hit( MX_MOTOR *motor )
 	 * the limit is not tripped.
 	 */
 
-	handler = record_field_motor->negative_limit_hit_handler;
+	handler = field_motor->negative_limit_hit_handler;
 
 	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
 		motor->negative_limit_hit = FALSE;
@@ -1073,7 +1067,7 @@ mxd_record_field_motor_negative_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_long( handler->record_field,
+	mx_status = mxd_field_motor_get_long( handler->record_field,
 								&limit_hit );
 
 	if ( limit_hit ) {
