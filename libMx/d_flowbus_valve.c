@@ -181,9 +181,11 @@ mxd_flowbus_valve_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Configuration values for the "Control Mode" parameter. */
+
 	flowbus_valve->process_number = 1;
 	flowbus_valve->parameter_number = 4;
-	flowbus_valve->parameter_type = MXDT_FLOWBUS_USHORT;
+	flowbus_valve->parameter_type = MXDT_FLOWBUS_UINT8;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -203,8 +205,6 @@ mxd_flowbus_valve_relay_command( MX_RELAY *relay )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* relay->relay_command */
 
 	switch( relay->relay_command ) {
 	case MXF_OPEN_RELAY:
@@ -246,8 +246,6 @@ mxd_flowbus_valve_get_relay_status( MX_RELAY *relay )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* relay->relay_status */
 
 	mx_status = mxi_flowbus_request_parameter( flowbus,
 					flowbus_valve->node_address,
