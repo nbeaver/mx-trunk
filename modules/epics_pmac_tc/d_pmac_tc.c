@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006, 2008-2011, 2014
+ * Copyright 1999-2001, 2003-2004, 2006, 2008-2011, 2014, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -199,7 +199,7 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	motor->acceleration_type = MXF_MTR_ACCEL_TIME;
+	motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 
 	pmac_tc_motor->motion_state = MXF_PTC_NO_MOVE_IN_PROGRESS;
 
@@ -631,6 +631,9 @@ mxd_pmac_tc_motor_get_parameter( MX_MOTOR *motor )
 	/* Send the parameter request command to the StrCmd EPICS variable. */
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_NONE;
+		break;
 	case MXLV_MTR_SPEED:
 		snprintf( command, sizeof(command),
 			"I%ld16", pmac_tc_motor->motor_number );

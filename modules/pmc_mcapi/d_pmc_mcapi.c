@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2008, 2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 2004, 2008, 2010, 2012-2013, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1007,6 +1007,9 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 		motor->parameter_type));
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
 	case MXLV_MTR_SPEED:
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:

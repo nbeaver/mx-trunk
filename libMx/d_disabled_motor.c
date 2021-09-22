@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2010-2011, 2013 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2010-2011, 2013, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -147,7 +147,7 @@ mxd_disabled_motor_finish_record_initialization( MX_RECORD *record )
 	motor->raw_maximum_speed = mx_divide_safely( motor->maximum_speed,
 							motor->scale );
 
-	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+	motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 
 	motor->raw_acceleration_parameters[0] = 0.5;	/* units/sec**2 */
 

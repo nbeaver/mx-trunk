@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2013 Illinois Institute of Technology
+ * Copyright 2005-2007, 2013, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -140,9 +140,7 @@ mxd_ptz_motor_create_record_structures( MX_RECORD *record )
 
 	motor->subclass = MXC_MTR_STEPPER;
 
-	/* The PTZ reports acceleration in steps/sec**2. */
-
-	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+	motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -423,6 +421,9 @@ mxd_ptz_motor_get_parameter( MX_MOTOR *motor )
 		motor->parameter_type));
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_NONE;
+		break;
 	case MXLV_MTR_SPEED:
 		switch( ptz_motor->ptz_motor_type ) {
 		case MXT_PTZ_MOTOR_PAN:

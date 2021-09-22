@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -979,6 +980,10 @@ mxd_stp100_motor_get_parameter( MX_MOTOR *motor )
 
 		motor->raw_maximum_speed = mx_divide_safely( 1000000.0,
 						microseconds_per_step );
+		break;
+
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_TIME;
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:

@@ -724,6 +724,10 @@ mxd_galil_gclib_motor_get_parameter( MX_MOTOR *motor )
 		}
 		break;
 
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
+
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		/* Acceleration parameter 0 = acceleration (units/sec**2) */
 

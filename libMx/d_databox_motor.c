@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006, 2010, 2015
+ * Copyright 2000-2001, 2003, 2005-2006, 2010, 2015, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -754,13 +754,10 @@ mxd_databox_motor_get_parameter( MX_MOTOR *motor )
 		motor->raw_speed = 1.0;
 		break;
 
-	case MXLV_MTR_ACCELERATION_TIME:
-		motor->acceleration_time = 0.0;
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 		break;
 
-	case MXLV_MTR_ACCELERATION_DISTANCE:
-		motor->acceleration_distance = 0.0;
-		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
 	}

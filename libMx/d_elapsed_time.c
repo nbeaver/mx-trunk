@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2007-2008, 2010-2011, 2013, 2015
+ * Copyright 1999-2003, 2007-2008, 2010-2011, 2013, 2015, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -148,7 +148,7 @@ mxd_elapsed_time_finish_record_initialization( MX_RECORD *record )
 	motor->base_speed = motor->raw_base_speed * motor->scale;
 	motor->maximum_speed = motor->raw_maximum_speed * motor->scale;
 
-	motor->acceleration_type = MXF_MTR_ACCEL_TIME;
+	motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 
 	motor->raw_acceleration_parameters[0] = 0.0;
 	motor->raw_acceleration_parameters[1] = 0.0;

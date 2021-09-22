@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014-2015, 2017, 2019 Illinois Institute of Technology
+ * Copyright 2014-2015, 2017, 2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1907,6 +1907,9 @@ mxd_newport_xps_get_parameter( MX_MOTOR *motor )
 #endif
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
 	case MXLV_MTR_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		/* Acceleration parameter 0 = acceleration (units/sec**2)

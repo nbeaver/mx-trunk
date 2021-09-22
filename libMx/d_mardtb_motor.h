@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2004, 2006, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,6 +41,7 @@ MX_API mx_status_type mxd_mardtb_motor_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_mardtb_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mardtb_motor_soft_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_mardtb_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_mardtb_motor_record_function_list;

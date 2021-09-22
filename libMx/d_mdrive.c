@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006-2007, 2010, 2013, 2015, 2017
+ * Copyright 2003, 2006-2007, 2010, 2013, 2015, 2017, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -757,6 +757,9 @@ mxd_mdrive_get_parameter( MX_MOTOR *motor )
 			"for motor '%s'.  Response = '%s'",
 				motor->record->name, response );
 		}
+		break;
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		mx_status = mxd_mdrive_command( mdrive, "PR A",

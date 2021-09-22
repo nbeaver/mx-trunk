@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006, 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2002-2006, 2008, 2010, 2015, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,7 +56,7 @@ MX_MOTOR_FUNCTION_LIST mxd_mardtb_motor_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mx_motor_default_get_parameter_handler,
+	mxd_mardtb_motor_get_parameter,
 	mx_motor_default_set_parameter_handler,
 	NULL,
 	NULL,
@@ -375,6 +375,36 @@ mxd_mardtb_motor_soft_abort( MX_MOTOR *motor )
 		"pay attention to new commands while a move is in progress.  "
 		"Sorry.", motor->record->name );
 #endif
+}
+
+MX_EXPORT mx_status_type
+mxd_mardtb_motor_get_parameter( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_mardtb_motor_get_parameter()";
+
+	MX_MARDTB_MOTOR *mardtb_motor = NULL;
+	MX_MARDTB *mardtb = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mardtb_motor_get_pointers( motor, &mardtb_motor,
+							&mardtb, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_SPEED:
+	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
+		break;
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
+	default:
+		return mx_motor_default_get_parameter_handler( motor );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

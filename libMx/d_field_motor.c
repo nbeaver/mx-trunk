@@ -539,7 +539,7 @@ mxd_field_motor_create_record_structures( MX_RECORD *record )
 
 	motor->subclass = MXC_MTR_ANALOG;
 
-	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+	motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

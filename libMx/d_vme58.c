@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2006, 2010, 2013, 2015
+ * Copyright 1999, 2001-2003, 2006, 2010, 2013, 2015, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -883,93 +883,34 @@ mxd_vme58_get_parameter( MX_MOTOR *motor )
 	 * originally set the values of these parameters in the motor
 	 * controller, then the returned values will be correct.
 	 */
-#if 0
-	static const char fname[] = "mxd_vme58_get_parameter()"; MX_VME58_MOTOR *vme58_motor;
+	static const char fname[] = "mxd_vme58_get_parameter()";
+	
+	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
-	char command[80];
-	char response[80];
-	int num_items;
 	mx_status_type mx_status;
 
-	mx_status = mxd_vme58_get_pointers( motor, &vme58_motor, &vme58, fname );
+	mx_status = mxd_vme58_get_pointers( motor,
+					&vme58_motor, &vme58, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->parameter_type == MXLV_MTR_SPEED ) {
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
 
-		snprintf( command, sizeof(command), "A%c ??",
-				VME58_AXIS_NUMBER( vme58_motor ) );
+	case MXLV_MTR_SPEED:
+	case MXLV_MTR_BASE_SPEED:
+	case MXLV_MTR_MAXIMUM_SPEED:
+	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
+		break;
 
-		mx_status = mxi_vme58_command( vme58, command,
-				response, sizeof(response), VME58_MOTOR_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		num_items = sscanf( response, "%lg", &(motor->raw_speed) );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Unable to parse returned speed for motor '%s'.  Response = '%s'",
-				motor->record->name, response );
-		}
-
-	} else if ( motor->parameter_type == MXLV_MTR_BASE_SPEED ) {
-
-		snprintf( command, sizeof(command), "A%c ??",
-				VME58_AXIS_NUMBER( vme58_motor ) );
-
-		mx_status = mxi_vme58_command( vme58, command,
-				response, sizeof(response), VME58_MOTOR_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		num_items = sscanf( response, "%lg", &(motor->raw_base_speed) );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Unable to parse returned base speed for motor '%s'.  Response = '%s'",
-				motor->record->name, response );
-		}
-
-	} else if ( motor->parameter_type == MXLV_MTR_MAXIMUM_SPEED ) {
-
-		motor->raw_maximum_speed = MX_VME58_MOTOR_MAXIMUM_SPEED;
-
-	} else if ( motor->parameter_type ==
-			MXLV_MTR_RAW_ACCELERATION_PARAMETERS )
-	{
-
-		snprintf( command, sizeof(command), "A%c ??",
-				VME58_AXIS_NUMBER( vme58_motor ) );
-
-		mx_status = mxi_vme58_command( vme58, command,
-				response, sizeof(response), VME58_MOTOR_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		num_items = sscanf( response, "%lg",
-				&(motor->raw_acceleration_parameters[0]) );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Unable to parse returned speed for motor '%s'.  Response = '%s'",
-				motor->record->name, response );
-		}
-
-		motor->raw_acceleration_parameters[1] = 0.0;
-		motor->raw_acceleration_parameters[2] = 0.0;
-		motor->raw_acceleration_parameters[3] = 0.0;
-
-	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
-			motor->parameter_type );
+	default:
+		return mx_motor_default_get_parameter_handler( motor );
+		break;
 	}
-#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

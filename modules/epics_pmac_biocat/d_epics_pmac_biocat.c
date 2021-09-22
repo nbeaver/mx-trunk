@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2015 Illinois Institute of Technology
+ * Copyright 2011-2015, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -811,6 +811,9 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 
 		motor->raw_base_speed = 0.0;
 
+		break;
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_TIME;
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		mx_status = mxp_epics_pmac_biocat_update_motor_readbacks(

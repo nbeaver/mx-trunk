@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2013, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1023,6 +1023,9 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 		}
 
 		motor->raw_base_speed = (double) ulong_value;
+		break;
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 

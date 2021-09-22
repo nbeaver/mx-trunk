@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -709,6 +709,9 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_TIME;
+		break;
 	case MXLV_MTR_SPEED:
 	case MXLV_MTR_ACCELERATION_TIME:
 		mx_status_code = mx_mutex_lock(

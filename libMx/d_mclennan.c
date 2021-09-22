@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2010, 2013, 2015, 2017
+ * Copyright 2002-2004, 2006-2007, 2010, 2013, 2015, 2017, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -885,6 +885,9 @@ mxd_mclennan_get_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
 	case MXLV_MTR_SPEED:
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:

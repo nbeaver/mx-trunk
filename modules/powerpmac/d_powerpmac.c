@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2012-2014, 2018-2019 Illinois Institute of Technology
+ * Copyright 2010, 2012-2014, 2018-2019, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -663,6 +663,7 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 		motor->raw_base_speed = 0.0;
 
 		break;
+	case MXLV_MTR_ACCELERATION_TYPE:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
 						powerpmac, "JogTa",

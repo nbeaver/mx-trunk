@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2008-2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 2004-2005, 2008-2010, 2012-2013, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -735,6 +736,9 @@ mxd_u500_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_DERIVATIVE_GAIN:
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
+		break;
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );

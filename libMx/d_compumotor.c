@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2007, 2010, 2013-2015, 2020
+ * Copyright 1999-2003, 2005-2007, 2010, 2013-2015, 2020-2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1416,6 +1416,10 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		motor->raw_maximum_speed = 1600000;  /* steps per second */
 		break;
 
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
+
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		snprintf( command, sizeof(command), "%ld_!%ldA",
 					compumotor->controller_number,
@@ -1423,7 +1427,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+				response, sizeof(response),
+				MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -166,9 +166,7 @@ mxd_zwo_efw_motor_create_record_structures( MX_RECORD *record )
 
 	motor->subclass = MXC_MTR_STEPPER;
 
-	/* Set the (unused) acceleration type to the rate in counts/sec**2 */
-
-	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+	motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

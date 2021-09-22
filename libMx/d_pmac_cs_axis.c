@@ -20,7 +20,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2007, 2010-2011, 2014 Illinois Institute of Technology
+ * Copyright 2003, 2005-2007, 2010-2011, 2014, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -692,6 +693,9 @@ mxd_pmac_cs_axis_get_parameter( MX_MOTOR *motor )
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		mx_status = mxd_pmac_cs_axis_get_velocity( motor, axis, pmac );
+		break;
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_TIME;
 		break;
 	case MXLV_MTR_ACCELERATION_TIME:
 		mx_status = mxd_pmac_cs_axis_get_acceleration_times( motor,

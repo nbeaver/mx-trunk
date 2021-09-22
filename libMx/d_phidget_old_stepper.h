@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +45,7 @@ MX_API mx_status_type mxd_phidget_old_stepper_resynchronize(
 
 MX_API mx_status_type mxd_phidget_old_stepper_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_phidget_old_stepper_soft_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_phidget_old_stepper_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_phidget_old_stepper_get_extended_status(
 							MX_MOTOR *motor );
 

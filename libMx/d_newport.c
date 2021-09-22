@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2006, 2010, 2013, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1254,6 +1254,10 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 		} else {				/* MM4000 */
 			motor->raw_base_speed = 0.0;
 		}
+		break;
+
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:

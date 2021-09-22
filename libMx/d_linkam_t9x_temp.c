@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -169,9 +169,7 @@ mxd_linkam_t9x_temp_create_record_structures( MX_RECORD *record )
 
 	motor->subclass = MXC_MTR_ANALOG;
 
-	/* We express accelerations in degrees C/sec**2. */
-
-	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+	motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

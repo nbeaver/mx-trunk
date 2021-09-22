@@ -640,6 +640,10 @@ mxd_epics_motor_get_parameter( MX_MOTOR *motor )
 		motor->raw_base_speed = float_value;
 		break;
 
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_TIME;
+		break;
+
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		mx_status = mx_caget( &(epics_motor->accl_pv),
 					MX_CA_FLOAT, 1, &float_value );

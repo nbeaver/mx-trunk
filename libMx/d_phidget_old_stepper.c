@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008, 2010, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,7 +56,7 @@ MX_MOTOR_FUNCTION_LIST mxd_phidget_old_stepper_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mx_motor_default_get_parameter_handler,
+	mxd_phidget_old_stepper_get_parameter,
 	mx_motor_default_set_parameter_handler,
 	NULL,
 	NULL,
@@ -430,6 +430,35 @@ mxd_phidget_old_stepper_soft_abort( MX_MOTOR *motor )
 	mx_status = mxd_phidget_old_stepper_move_absolute( motor );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_phidget_old_stepper_get_parameter( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_phidget_old_stepper_get_parameter()";
+
+	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper;
+	mx_status_type mx_status;
+
+	phidget_old_stepper = NULL;
+
+	mx_status = mxd_phidget_old_stepper_get_pointers( motor,
+					&phidget_old_stepper, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_TIME;
+		break;
+
+	default:
+		return mx_motor_default_get_parameter_handler( motor );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

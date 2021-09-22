@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007, 2010, 2013, 2015, 2017
+ * Copyright 2003-2004, 2006-2007, 2010, 2013, 2015, 2017, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -599,6 +599,10 @@ mxd_smartmotor_get_parameter( MX_MOTOR *motor )
 		motor->raw_speed =
 		    fabs( velocity_factor ) / smartmotor->velocity_scale_factor;
 
+		break;
+
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:

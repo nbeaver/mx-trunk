@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2020 Illinois Institute of Technology
+ * Copyright 1999-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3154,7 +3154,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_ACCELERATION_TYPE:
-		motor->acceleration_type = MXF_MTR_ACCEL_TIME;
+		motor->acceleration_type = MXF_MTR_ACCEL_NONE;
 		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:
@@ -3205,6 +3205,11 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 				= fabs( motor->raw_acceleration_parameters[0] );
 
 			break;
+
+		case MXF_MTR_ACCEL_NONE:
+			motor->acceleration_time = 0;
+			break;
+
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot compute the acceleration time for motor '%s' since it has "
@@ -3299,6 +3304,11 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 				fname, motor->record->name,
 				motor->acceleration_distance));
 
+			break;
+
+		case MXF_MTR_ACCEL_NONE:
+			motor->raw_acceleration_distance = 0;
+			motor->acceleration_distance = 0;
 			break;
 
 		default:
