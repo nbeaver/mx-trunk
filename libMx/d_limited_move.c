@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2010, 2013, 2020 Illinois Institute of Technology
+ * Copyright 2010, 2013, 2020-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -154,7 +154,7 @@ mxd_limited_move_create_record_structures( MX_RECORD *record )
 	motor->record = record;
 	limited_move->record = record;
 
-	motor->motor_flags |= MXF_MTR_IS_PSEUDOMOTOR;
+	motor->motor_flags = MXF_MTR_IS_PSEUDOMOTOR;
 
 	/* A limited move motor is treated as an analog motor. */
 

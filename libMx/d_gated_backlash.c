@@ -8,7 +8,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009, 2010, 2013, 2020 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009, 2010, 2013, 2020-2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -164,7 +165,7 @@ mxd_gated_backlash_create_record_structures( MX_RECORD *record )
 	motor->record = record;
 	gated_backlash->record = record;
 
-	motor->motor_flags |= MXF_MTR_IS_PSEUDOMOTOR;
+	motor->motor_flags = MXF_MTR_IS_PSEUDOMOTOR;
 
 	/* A gated backlash motor is treated as an analog motor. */
 

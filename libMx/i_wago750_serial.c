@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2008, 2011, 2016 Illinois Institute of Technology
+ * Copyright 2003-2008, 2011, 2016, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1217,7 +1217,9 @@ mxi_wago750_serial_putline( MX_RS232 *rs232,
 		char *buffer,
 		size_t *bytes_written )
 {
-	size_t buffer_length, buffer_bytes_written, terminator_bytes_written;
+	size_t buffer_length = 0;
+	size_t buffer_bytes_written = 0;
+	size_t terminator_bytes_written = 0;
 	mx_status_type mx_status;
 
 	/* First, write the contents of the buffer. */

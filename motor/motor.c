@@ -197,7 +197,7 @@ motor_main( int argc, char *argv[] )
 
 #endif /* HAVE_MAIN_ROUTINE */
 {
-	COMMAND *command;	/* Used by mx_initialize_stack_calc() below. */
+	COMMAND *command = NULL; /* Used by mx_initialize_stack_calc() below. */
 	int cmd_argc;
 	char **cmd_argv = NULL;
 	char *command_line = NULL;

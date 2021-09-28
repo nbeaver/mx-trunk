@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005, 2010, 2015, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -150,7 +150,6 @@ mxd_mcs_time_mce_create_record_structures( MX_RECORD *record )
 
 	mce->record = record;
 	mce->encoder_type = MXT_MCE_ABSOLUTE_ENCODER;
-	mce->current_num_values = mce->maximum_num_values;
 
 	return MX_SUCCESSFUL_RESULT;
 }
