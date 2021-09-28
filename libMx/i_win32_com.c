@@ -189,6 +189,8 @@ mxi_win32com_open( MX_RECORD *record )
 	MX_WIN32COM *win32com;
 	HANDLE com_port_handle;
 	DWORD share_mode;
+	char device_name[MXU_FILENAME_LENGTH+1];
+	int num_items, com_port_number;
 	mx_status_type status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
@@ -207,10 +209,46 @@ mxi_win32com_open( MX_RECORD *record )
 
 	/* Check the serial port name for validity. */
 
-	if ( strnicmp( win32com->filename, "com", 3 ) != 0 ) {
+	if ( strnicmp( win32com->filename, "\\\\.\\com", 7 ) == 0 ) {
+		strlcpy( device_name, win32com->filename, sizeof(device_name) );
+	} else
+	if ( strnicmp( win32com->filename, "//./com", 7 ) == 0 ) {
+		strlcpy( device_name, win32com->filename, sizeof(device_name) );
+	} else
+	if ( strnicmp( win32com->filename, "com", 3 ) == 0 ) {
+		/* Note: com1 through com9 are valid COM port names as is.
+		 * However, for com10 and above, we must convert the name
+		 * to an NT device name like //./com10
+		 *
+		 * See the following link for the glorious details.
+		 *
+		 * https://support.microsoft.com/en-us/topic/howto-specify-serial-ports-larger-than-com9-db9078a5-b7b6-bf00-240f-f749ebfd913e
+		 */
+
+		num_items = sscanf( win32com->filename,
+				"com%d", &com_port_number );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"For serial device name '%s', the string 'com' is not "
+			"followed by a number.", win32com->filename );
+		}
+
+		if ( com_port_number <= 9 ) {
+			strlcpy( device_name, win32com->filename,
+					sizeof(device_name) );
+		} else {
+			snprintf( device_name, sizeof(device_name),
+			"//./%s", win32com->filename );
+		}
+	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The serial device name '%s' is illegal.", win32com->filename );
 	}
+
+#if 0
+	MX_DEBUG(-2,("%s: device_name = '%s'", fname, device_name ));
+#endif
 
 	/* Do we want exclusive access to the COM port or shared access? */
 
@@ -222,7 +260,7 @@ mxi_win32com_open( MX_RECORD *record )
 
 	/* Connect to the COM port. */
 
-	com_port_handle = CreateFile( win32com->filename,
+	com_port_handle = CreateFile( device_name,
 		GENERIC_READ | GENERIC_WRITE, share_mode,
 		0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0 );
 
