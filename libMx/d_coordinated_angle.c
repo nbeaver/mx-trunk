@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2015, 2019-2020 Illinois Institute of Technology
+ * Copyright 2013-2015, 2019-2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -233,7 +233,7 @@ mxd_coordinated_angle_create_record_structures( MX_RECORD *record )
 	motor->record = record;
 	coordinated_angle->record = record;
 
-	motor->motor_flags |= MXF_MTR_IS_PSEUDOMOTOR;
+	motor->motor_flags = MXF_MTR_IS_PSEUDOMOTOR;
 
 	/* A BioCAT mirror positioner is treated as an analog motor. */
 
