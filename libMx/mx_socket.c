@@ -3300,11 +3300,20 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 /*----------------------------------------------------------------------*/
 
-#if defined( OS_LINUX )
+#if defined( OS_LINUX ) || defined( OS_BSD ) || defined( OS_QNX )
 
-#if defined MX_MUSL_VERSION
+#if defined ( OS_BSD )
+#  include <sys/ioctl.h>
+#  define    SIOCOUTQ   FIONWRITE
+
+#elif defined ( OS_QNX )
+#  include <sys/sockio.h>
+#  define    SIOCOUTQ   FIONWRITE
+
+#elif defined MX_MUSL_VERSION
 #  include <bits/ioctl.h>
 #  define    SIOCOUTQ	TIOCOUTQ
+
 #else
 #  include <linux/sockios.h>
 #endif

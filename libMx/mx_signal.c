@@ -459,9 +459,10 @@ mx_force_immediate_exit( void )
 
 	cygwin_internal( CW_EXIT_PROCESS, GetCurrentProcess(), 0 );
 
-#elif defined( OS_LINUX ) || defined( OS_MACOSX ) || defined( OS_HURD ) \
+#elif defined( OS_LINUX ) || defined( OS_MACOSX ) || defined( OS_BSD ) \
 		|| defined( OS_SOLARIS ) || defined( OS_QNX ) \
-		|| defined( OS_MINIX ) || defined( OS_UNIXWARE )
+		|| defined( OS_MINIX ) || defined( OS_UNIXWARE ) \
+		|| defined( OS_HURD )
 
 	kill( getpid(), SIGKILL );
 
