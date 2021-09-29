@@ -34,6 +34,8 @@
 
 /* Flowbus parameter types */
 
+#define MXDT_FLOWBUS_ILLEGAL		((unsigned long)(-1))
+
 #define MXDT_FLOWBUS_UINT8		0x0
 #define MXDT_FLOWBUS_USHORT		0x2
 #define MXDT_FLOWBUS_ULONG_FLOAT	0x4

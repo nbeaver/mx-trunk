@@ -1140,9 +1140,9 @@ mxi_flowbus_process_function( void *record_ptr,
 	MX_FLOWBUS *flowbus;
 	mx_status_type mx_status;
 
-	unsigned long flowbus_parameter_type;
-	void *flowbus_parameter_ptr;
-	size_t flowbus_max_length;
+	unsigned long flowbus_parameter_type = MXDT_FLOWBUS_ILLEGAL;
+	void *flowbus_parameter_ptr = NULL;
+	size_t flowbus_max_length = 0;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
