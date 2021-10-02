@@ -3300,7 +3300,8 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 /*----------------------------------------------------------------------*/
 
-#if defined( OS_LINUX ) || defined( OS_BSD ) || defined( OS_QNX )
+#if defined( OS_LINUX ) || ( defined( OS_BSD ) && !defined( __OpenBSD__ ) ) \
+	|| defined( OS_QNX ) 
 
 #if defined ( OS_BSD )
 #  include <sys/ioctl.h>
@@ -3638,7 +3639,8 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 /*------*/
 
 #elif defined( OS_CYGWIN ) || defined( OS_SOLARIS ) || defined( OS_UNIXWARE ) \
-	|| defined( OS_VXWORKS ) || defined( OS_MINIX ) || defined( OS_HURD )
+	|| defined( OS_VXWORKS ) || defined( OS_MINIX ) || defined( OS_HURD ) \
+	|| defined( OS_BSD )
 
 /* Cygwin and other targets do not appear to implement the functionality
  * needed for mx_socket_num_output_bytes_in_transit().
