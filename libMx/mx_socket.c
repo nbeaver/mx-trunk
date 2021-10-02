@@ -3456,7 +3456,9 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 	}
 }
 
-#else /* not SIO_TCP_INFO */
+#elif ( _MSC_VER >= 1300 )
+
+/* _MSC_VER == 1300 is Visual Studio.NET 2002 */
 
 #include <iphlpapi.h>
 
@@ -3632,6 +3634,30 @@ mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
 	return mx_error( MXE_NOT_FOUND, fname,
 	"MX socket %p (fd %d) was not found in the Win32 TCP socket table.",
 		mx_socket, mx_socket->socket_fd );
+}
+
+#else
+
+/* Visual C++ 6 or before */
+
+MX_EXPORT mx_status_type
+mx_socket_num_output_bytes_in_transit( MX_SOCKET *mx_socket,
+					long *num_output_bytes_in_transit )
+{
+	static const char fname[] = "mx_socket_num_output_bytes_in_transit()";
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( num_output_bytes_in_transit == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_output_bytes_in_transit pointer passed was NULL." );
+	}
+
+	*num_output_bytes_in_transit = 0;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #endif /* not SIO_TCP_INFO */
