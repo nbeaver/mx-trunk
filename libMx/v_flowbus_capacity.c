@@ -255,7 +255,7 @@ mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
 					1, 31, MXDT_FLOWBUS_STRING,
-					flowbus_capacity->capacity_unit,
+					flowbus_capacity->units,
 					flowbus_status_response,
 					sizeof(flowbus_status_response), 0 );
 
@@ -379,7 +379,7 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
 					1, 31, MXDT_FLOWBUS_STRING,
-					flowbus_capacity->capacity_unit,
+					flowbus_capacity->units,
 					flowbus_status_response,
 					sizeof(flowbus_status_response), 0 );
 

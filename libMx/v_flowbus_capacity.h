@@ -27,7 +27,7 @@ typedef struct {
 
 	MX_RECORD *flowbus_record;
 	unsigned long node_address;
-	char capacity_unit[ MXU_FLOWBUS_CAPACITY_LENGTH+1 ];
+	char units[ MXU_FLOWBUS_CAPACITY_LENGTH+1 ];
 	unsigned long access_mode;
 } MX_FLOWBUS_CAPACITY;
 
@@ -40,9 +40,8 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS_CAPACITY, node_address), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "capacity_unit", MXFT_STRING, NULL, \
-					1, {MXU_FLOWBUS_CAPACITY_LENGTH}, \
-        MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS_CAPACITY, capacity_unit), \
+  {-1, -1, "units", MXFT_STRING, NULL, 1, {MXU_FLOWBUS_CAPACITY_LENGTH}, \
+        MXF_REC_TYPE_STRUCT, offsetof(MX_FLOWBUS_CAPACITY, units), \
         {sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "access_mode", MXFT_HEX, NULL, 0, {0}, \
