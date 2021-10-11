@@ -287,6 +287,7 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 	long *dimension_array;
 	void *value_ptr;
 	char flowbus_status_response[80];
+	char parameter_name[80];
 	mx_status_type mx_status;
 
 	mx_status = mxv_flowbus_get_pointers( variable,
@@ -332,10 +333,16 @@ mxv_flowbus_send_variable( MX_VARIABLE *variable )
 			num_dimensions );
 	}
 
+	snprintf( parameter_name, sizeof(parameter_name),
+		"Process %lu, Parameter %lu",
+		flowbus_parameter->process_number,
+		flowbus_parameter->parameter_number );
+
 	/* Send the new variable value. */
 
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_parameter->node_address,
+					parameter_name,
 					flowbus_parameter->process_number,
 					flowbus_parameter->parameter_number,
 					flowbus_parameter->parameter_type,
@@ -359,6 +366,7 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 	void *value_ptr;
 	long max_value_length_in_bytes;
 	size_t *sizeof_array;
+	char parameter_name[80];
 	mx_status_type mx_status;
 
 	mx_status = mxv_flowbus_get_pointers( variable,
@@ -417,10 +425,16 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 		fname, variable->record->name, max_value_length_in_bytes));
 #endif
 
+	snprintf( parameter_name, sizeof(parameter_name),
+		"Process %lu, Parameter %lu",
+		flowbus_parameter->process_number,
+		flowbus_parameter->parameter_number );
+
 	/* Update the variable value. */
 
 	mx_status = mxi_flowbus_request_parameter( flowbus,
 					flowbus_parameter->node_address,
+					parameter_name,
 					flowbus_parameter->process_number,
 					flowbus_parameter->parameter_number,
 					flowbus_parameter->parameter_type,

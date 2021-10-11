@@ -198,6 +198,7 @@ mxd_flowbus_valve_relay_command( MX_RELAY *relay )
 	MX_FLOWBUS_VALVE *flowbus_valve = NULL;
         MX_FLOWBUS *flowbus = NULL;
 	unsigned short flowbus_control_mode;
+	char parameter_name[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_flowbus_valve_get_pointers( relay,
@@ -220,8 +221,14 @@ mxd_flowbus_valve_relay_command( MX_RELAY *relay )
 		break;
 	}
 
+	snprintf( parameter_name, sizeof(parameter_name),
+		"Process %lu, Parameter %lu",
+		flowbus_valve->process_number,
+		flowbus_valve->parameter_number );
+
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_valve->node_address,
+					parameter_name,
 					flowbus_valve->process_number,
 					flowbus_valve->parameter_number,
 					flowbus_valve->parameter_type,
@@ -239,6 +246,7 @@ mxd_flowbus_valve_get_relay_status( MX_RELAY *relay )
 	MX_FLOWBUS_VALVE *flowbus_valve = NULL;
         MX_FLOWBUS *flowbus = NULL;
 	unsigned short flowbus_control_mode;
+	char parameter_name[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_flowbus_valve_get_pointers( relay,
@@ -247,8 +255,14 @@ mxd_flowbus_valve_get_relay_status( MX_RELAY *relay )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	snprintf( parameter_name, sizeof(parameter_name),
+		"Process %lu, Parameter %lu",
+		flowbus_valve->process_number,
+		flowbus_valve->parameter_number );
+
 	mx_status = mxi_flowbus_request_parameter( flowbus,
 					flowbus_valve->node_address,
+					parameter_name,
 					flowbus_valve->process_number,
 					flowbus_valve->parameter_number,
 					flowbus_valve->parameter_type,

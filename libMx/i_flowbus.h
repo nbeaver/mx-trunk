@@ -25,7 +25,7 @@
 /* Values for flowbus_flags */
 
 #define MXF_FLOWBUS_DEBUG		0x1
-#define	MXF_FLOWBUS_CACHE_VALUES	0x2
+#define	MXF_FLOWBUS_SHOW_PARAMETER_NAME	0x2
 
 /* Values for flowbus_command_flags */
 
@@ -185,6 +185,7 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus, char *command,
 MX_API mx_status_type
 mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
+				const char *parameter_name,
 				unsigned long process_number,
 				unsigned long parameter_number,
 				unsigned long flowbus_parameter_type,
@@ -196,6 +197,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 MX_API mx_status_type
 mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
+				const char *parameter_name,
 				unsigned long process_number,
 				unsigned long parameter_number,
 				unsigned long flowbus_parameter_type,

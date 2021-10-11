@@ -191,7 +191,7 @@ mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 	void *value_ptr;
 	uint8_t init_reset;
 	char flowbus_status_response[80];
-	mx_status_type mx_status;
+	mx_status_type mx_status, mx_status_select, mx_status_send;
 
 	mx_status = mxv_flowbus_capacity_get_pointers( variable,
 				&flowbus_capacity, &flowbus, fname );
@@ -236,12 +236,15 @@ mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 			num_dimensions );
 	}
 
+	mx_status_send = MX_SUCCESSFUL_RESULT;
+
 	/* Unlock the secured parameters. */
 
 	init_reset = 64;
 
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
+					"Init Reset",
 					0, 10, MXDT_FLOWBUS_UINT8,
 					&init_reset,
 					flowbus_status_response,
@@ -252,38 +255,48 @@ mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 
 	/* Select the capacity unit. */
 
-	mx_status = mxi_flowbus_send_parameter( flowbus,
+	mx_status_select = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
+					"Capacity Unit",
 					1, 31, MXDT_FLOWBUS_STRING,
 					flowbus_capacity->units,
 					flowbus_status_response,
 					sizeof(flowbus_status_response), 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( mx_status_select.code == MXE_SUCCESS ) {
 
-	/* Send the new capacity value. */
+		/* If the select worked, send the new capacity value. */
 
-	mx_status = mxi_flowbus_send_parameter( flowbus,
+		mx_status_send = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
+					"Capacity",
 					1, 13, MXDT_FLOWBUS_ULONG_FLOAT,
 					value_ptr,
 					flowbus_status_response,
 					sizeof(flowbus_status_response), 0 );
+	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Relock the secured parameters. */
+	/* Unconditionally relock the secured parameters. */
 
 	init_reset = 82;
 
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
+					"Init Reset",
 					0, 10, MXDT_FLOWBUS_UINT8,
 					&init_reset,
 					flowbus_status_response,
 					sizeof(flowbus_status_response), 0 );
+
+	/* If one of the intermediate steps failed, then return the
+	 * status code from that step.
+	 */
+
+	if ( mx_status_select.code != MXE_SUCCESS )
+		return mx_status_select;
+
+	if ( mx_status_send.code != MXE_SUCCESS )
+		return mx_status_send;
 
 	return mx_status;
 }
@@ -303,7 +316,7 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 	size_t *sizeof_array;
 	uint8_t init_reset;
 	char flowbus_status_response[80];
-	mx_status_type mx_status;
+	mx_status_type mx_status, mx_status_select;
 
 	mx_status = mxv_flowbus_capacity_get_pointers( variable,
 				&flowbus_capacity, &flowbus, fname );
@@ -318,7 +331,9 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 	if ( ( flowbus_capacity->access_mode
 			& MXF_FLOWBUS_CAPACITY_READ ) == 0 )
 	{
-		return MX_SUCCESSFUL_RESULT;
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Flowbus variable '%s' is not readable.",
+			variable->record->name );
 	}
 
 	/* Get the variable parameters */
@@ -366,6 +381,7 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
+					"Init Reset",
 					0, 10, MXDT_FLOWBUS_UINT8,
 					&init_reset,
 					flowbus_status_response,
@@ -376,22 +392,21 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 
 	/* Select the capacity unit. */
 
-	mx_status = mxi_flowbus_send_parameter( flowbus,
+	mx_status_select = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
+					"Capacity Unit",
 					1, 31, MXDT_FLOWBUS_STRING,
 					flowbus_capacity->units,
 					flowbus_status_response,
 					sizeof(flowbus_status_response), 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Relock the secured parameters. */
+	/* Unconditionally relock the secured parameters. */
 
 	init_reset = 82;
 
 	mx_status = mxi_flowbus_send_parameter( flowbus,
 					flowbus_capacity->node_address,
+					"Init Reset",
 					0, 10, MXDT_FLOWBUS_UINT8,
 					&init_reset,
 					flowbus_status_response,
@@ -400,10 +415,14 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( mx_status_select.code != MXE_SUCCESS )
+		return mx_status_select;
+
 	/* Get the capacity value. */
 
 	mx_status = mxi_flowbus_request_parameter( flowbus,
 					flowbus_capacity->node_address,
+					"Capacity",
 					1, 13, MXDT_FLOWBUS_ULONG_FLOAT,
 					value_ptr,
 					max_value_length_in_bytes, 0 );

@@ -510,6 +510,7 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 MX_EXPORT mx_status_type
 mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
+				const char *parameter_name,
 				unsigned long process_number,
 				unsigned long parameter_number,
 				unsigned long flowbus_parameter_type,
@@ -543,6 +544,16 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 	mx_bool_type need_status_response = FALSE;
 
 	mx_status_type mx_status;
+
+	/*----*/
+
+	if ( flowbus->flowbus_flags & MXF_FLOWBUS_SHOW_PARAMETER_NAME ) {
+		if ( parameter_name == NULL ) {
+			MX_DEBUG(-2,("%s: (void)", fname ));
+		} else {
+			MX_DEBUG(-2,("%s: '%s'", fname, parameter_name ));
+		}
+	}
 
 	/**** Will we need to ask for a status response to be sent back? ****/
 
@@ -805,6 +816,7 @@ mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 MX_EXPORT mx_status_type
 mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
+				const char *parameter_name,
 				unsigned long process_number,
 				unsigned long parameter_number,
 				unsigned long flowbus_parameter_type,
@@ -840,6 +852,16 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	char *requested_string_ptr = NULL;
 
 	mx_status_type mx_status;
+
+	/*----*/
+
+	if ( flowbus->flowbus_flags & MXF_FLOWBUS_SHOW_PARAMETER_NAME ) {
+		if ( parameter_name == NULL ) {
+			MX_DEBUG(-2,("%s: (void)", fname ));
+		} else {
+			MX_DEBUG(-2,("%s: '%s'", fname, parameter_name ));
+		}
+	}
 
 	/******* Begin constructing the command to send to the device *******/
 
@@ -1138,6 +1160,7 @@ mxi_flowbus_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_FLOWBUS *flowbus;
+	char parameter_name[80];
 	mx_status_type mx_status;
 
 	unsigned long flowbus_parameter_type = MXDT_FLOWBUS_ILLEGAL;
@@ -1185,6 +1208,11 @@ mxi_flowbus_process_function( void *record_ptr,
 		break;
 	}
 
+	snprintf( parameter_name, sizeof(parameter_name),
+		"Process %lu, Parameter %lu",
+		flowbus->process_number,
+		flowbus->parameter_number );
+
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
@@ -1197,6 +1225,7 @@ mxi_flowbus_process_function( void *record_ptr,
 		case MXLV_FB_STRING_VALUE:
 			mx_status = mxi_flowbus_request_parameter( flowbus,
 						flowbus->node_address,
+						parameter_name,
 						flowbus->process_number,
 						flowbus->parameter_number,
 						flowbus_parameter_type,
@@ -1217,6 +1246,7 @@ mxi_flowbus_process_function( void *record_ptr,
 		case MXLV_FB_STRING_VALUE:
 			mx_status = mxi_flowbus_send_parameter( flowbus,
 						flowbus->node_address,
+						parameter_name,
 						flowbus->process_number,
 						flowbus->parameter_number,
 						flowbus_parameter_type,
@@ -1261,6 +1291,7 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 		/* Begin by getting the device type string. */
 
 		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						"Device Type",
 						113, 1,
 						MXDT_FLOWBUS_STRING,
 						device_type,
@@ -1283,6 +1314,7 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 		/* Next we get the identification number. */
 
 		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						"Identification Number",
 						113, 12,
 						MXDT_FLOWBUS_UINT8,
 						&identification_number,
@@ -1300,6 +1332,7 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 		/* Get the firmware version. */
 
 		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						"Firmware Version",
 						113, 5,
 						MXDT_FLOWBUS_STRING,
 						firmware_version,
@@ -1316,6 +1349,7 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 		/* Get the model number. */
 
 		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						"Model Number",
 						113, 2,
 						MXDT_FLOWBUS_STRING,
 						model_number,
@@ -1332,6 +1366,7 @@ mxi_flowbus_show_nodes( MX_FLOWBUS *flowbus )
 		/* Get the serial number. */
 
 		mx_status = mxi_flowbus_request_parameter( flowbus, node,
+						"Serial Number",
 						113, 3,
 						MXDT_FLOWBUS_STRING,
 						serial_number,
