@@ -34,7 +34,7 @@ MX_RECORD_FUNCTION_LIST mxi_flowbus_record_function_list = {
 	mxi_flowbus_open,
 	NULL,
 	NULL,
-	NULL,
+	mxi_flowbus_resynchronize,
 	mxi_flowbus_special_processing_setup
 };
 
@@ -1110,6 +1110,37 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 		requested_string_ptr[ flowbus_string_length ] = '\0';
 		break;
 	}
+
+	return mx_status;
+}
+
+/*==================================================================*/
+
+MX_EXPORT mx_status_type
+mxi_flowbus_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_flowbus_resynchronize()";
+
+	MX_FLOWBUS *flowbus = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_flowbus_get_pointers( record, &flowbus, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for Flowbus interface '%s'.",
+		fname, record->name ));
+
+	mx_status = mx_rs232_discard_unwritten_output(
+				flowbus->rs232_record, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_msleep(1000);
+
+	mx_status = mx_rs232_discard_unread_input( flowbus->rs232_record, 1 );
 
 	return mx_status;
 }

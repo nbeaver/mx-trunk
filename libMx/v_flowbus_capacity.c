@@ -108,6 +108,60 @@ mxv_flowbus_capacity_get_pointers( MX_VARIABLE *variable,
 
 /********************************************************************/
 
+static mx_status_type
+mxv_flowbus_capacity_timeout_recovery( MX_VARIABLE *variable,
+				MX_FLOWBUS_CAPACITY *flowbus_capacity,
+				MX_FLOWBUS *flowbus )
+{
+	static const char fname[] = "mxv_flowbus_capacity_timeout_recovery()";
+
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("*****>>>>> %s invoked for variable '%s' <<<<<*****",
+		fname, variable->record->name ));
+
+	/* First try reading the Flowbus capacity value.  If this results
+	 * in an MXE_PROTCOL_ERROR status code, then we should be able
+	 * to recover just by discarding unread input.
+	 */
+
+	mx_status = mxv_flowbus_capacity_receive_variable( variable );
+
+	MX_DEBUG(-2,("%s: mxv_flowbus_capacity_receive_variable() returned %lu",
+		fname, mx_status.code ));
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		/* The timeout seems to have fixed itself without our help
+		 * somehow, so we just return now.
+		 */
+		break;
+
+	case MXE_PROTOCOL_ERROR:
+		/* This means that commands with MX are out of synchronization
+		 * with the responses from the Bronkhorst.  This can probably
+		 * be fixed by discarding unread RS232 input.
+		 */
+
+		mx_status = mxi_flowbus_resynchronize( flowbus->record );
+		break;
+
+	default:
+		/* Not sure what happened here, so we return with an error. */
+
+		mx_status = mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"The attempt to automatically recover from a Flowbus "
+			"capacity timeout error failed for controller '%s'.  "
+			"Manual recovery is probably required.",
+				variable->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+/********************************************************************/
+
 MX_EXPORT mx_status_type
 mxv_flowbus_capacity_create_record_structures( MX_RECORD *record )
 {
@@ -295,8 +349,14 @@ mxv_flowbus_capacity_send_variable( MX_VARIABLE *variable )
 	if ( mx_status_select.code != MXE_SUCCESS )
 		return mx_status_select;
 
-	if ( mx_status_send.code != MXE_SUCCESS )
+	switch( mx_status_send.code ) {
+	case MXE_TIMED_OUT:
+		mx_status = mxv_flowbus_capacity_timeout_recovery( variable,
+						flowbus_capacity, flowbus );
+		break;
+	default:
 		return mx_status_send;
+	}
 
 	return mx_status;
 }

@@ -167,6 +167,8 @@ MX_API mx_status_type mxi_flowbus_create_record_structures( MX_RECORD *record );
 
 MX_API mx_status_type mxi_flowbus_open( MX_RECORD *record );
 
+MX_API mx_status_type mxi_flowbus_resynchronize( MX_RECORD *record );
+
 MX_API mx_status_type mxi_flowbus_special_processing_setup( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_flowbus_record_function_list;
