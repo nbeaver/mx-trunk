@@ -508,6 +508,66 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 /* ---- */
 
 MX_EXPORT mx_status_type
+mxi_flowbus_timeout_recovery( MX_FLOWBUS *flowbus )
+{
+	static const char fname[] = "mxi_flowbus_timeout_recovery()";
+
+	uint8_t flowbus_control_mode;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,
+	("*****>>>>> %s invoked for Flowbus interface '%s' <<<<<*****",
+		fname, flowbus->record->name ));
+
+	/* First try reading the Flowbus control mode.  If this results
+	 * in an MXE_PROTCOL_ERROR status code, then we should be able
+	 * to recover just by discarding unread input.
+	 */
+
+	mx_status = mxi_flowbus_request_parameter( flowbus,
+						flowbus->master_address,
+						"Control Mode",
+						1, 4, MXDT_FLOWBUS_UINT8,
+						&flowbus_control_mode,
+						sizeof( uint8_t ), 0 );
+
+	MX_DEBUG(-2,
+	("%s: The attempt to read the Flowbus control mode returned %lu",
+		fname, mx_status.code ));
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		/* The timeout seems to have fixed itself without our help
+		 * somehow, so we just return now.
+		 */
+		break;
+
+	case MXE_PROTOCOL_ERROR:
+		/* This means that commands with MX are out of synchronization
+		 * with the responses from the Bronkhorst.  This can probably
+		 * be fixed by discarding unread RS232 input.
+		 */
+
+		mx_status = mxi_flowbus_resynchronize( flowbus->record );
+		break;
+
+	default:
+		/* Not sure what happened here, so we return with an error. */
+
+		mx_status = mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"The attempt to automatically recover from a Flowbus "
+			"timeout error failed for controller '%s'.  "
+			"Manual recovery is probably required.",
+				flowbus->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+/* ---- */
+
+MX_EXPORT mx_status_type
 mxi_flowbus_send_parameter( MX_FLOWBUS *flowbus,
 				unsigned long node_address,
 				const char *parameter_name,

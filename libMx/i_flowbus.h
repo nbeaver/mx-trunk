@@ -182,6 +182,9 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus, char *command,
 			char *response, size_t max_response_length,
 			unsigned long flowbus_command_flags );
 
+MX_API mx_status_type
+mxi_flowbus_timeout_recovery( MX_FLOWBUS *flowbus );
+
 /*---*/
 
 MX_API mx_status_type
