@@ -239,7 +239,7 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 	if ( strcmp( response, ":0104" ) == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Flowbus interface '%s' said that it received "
-		"an illegal command.  Command = '%s'",
+		"an illegal command or CRC error.  Command = '%s'",
 			flowbus->record->name, command );
 	} else
 	if ( strcmp( response, ":0105" ) == 0 ) {
@@ -931,71 +931,75 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 		}
 	}
 
-	/******* Begin constructing the command to send to the device *******/
+	max_attempts = 5;
 
-	memset( ascii_command_buffer, 0, sizeof(ascii_command_buffer) );
-	memset( ascii_response_buffer, 0, sizeof(ascii_response_buffer) );
+	for ( attempt = 0; attempt < max_attempts; attempt++ ) {
 
-	ascii_command_buffer[0] = ':';
+	    /****** Begin constructing the command to send to the device ******/
 
-	ascii_command_buffer[1] = 'X';
-	ascii_command_buffer[2] = 'X';
+	    memset( ascii_command_buffer, 0, sizeof(ascii_command_buffer) );
+	    memset( ascii_response_buffer, 0, sizeof(ascii_response_buffer) );
 
-	/* The final 'message_length' is the total length of the
-	 * message, except for the first two bytes, and the two
-	 * byte CR-LF terminator at the end.
-	 */
+	    ascii_command_buffer[0] = ':';
 
-	message_length = 0;
+	    ascii_command_buffer[1] = 'X';
+	    ascii_command_buffer[2] = 'X';
 
-	/*---*/
+	    /* The final 'message_length' is the total length of the
+	     * message, except for the first two bytes, and the two
+	     * byte CR-LF terminator at the end.
+	     */
 
-	/* Node address (field 2). */
+	    message_length = 0;
 
-	uint8_value = ( node_address & 0xff );
+	    /*---*/
 
-	mxi_flowbus_format_string( ascii_command_buffer,
+	    /* Node address (field 2). */
+
+	    uint8_value = ( node_address & 0xff );
+
+	    mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
 				2, MXFT_UINT8, &uint8_value );
 
-	message_length++;
+	    message_length++;
 
-	/*---*/
+	    /*---*/
 
-	uint8_value = 4;	/* 4 = Request Parameter (field 3) */
+	    uint8_value = 4;	/* 4 = Request Parameter (field 3) */
 
-	mxi_flowbus_format_string( ascii_command_buffer,
+	    mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
 				3, MXFT_UINT8, &uint8_value );
 
-	message_length++;
+	    message_length++;
 
-	/*---*/
+	    /*---*/
 
-	/* Process number (field 4). */
+	    /* Process number (field 4). */
 
-	uint8_value = ( process_number & 0x7F );
+	    uint8_value = ( process_number & 0x7F );
 
-	mxi_flowbus_format_string( ascii_command_buffer,
+	    mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
 				4, MXFT_UINT8, &uint8_value );
 
-	message_length++;
+	    message_length++;
 
-	/*---*/
+	    /*---*/
 
-	/* Parameter type and sequence number (field 5). */
+	    /* Parameter type and sequence number (field 5). */
 
-	sequence_number = flowbus->sequence_number;
+	    sequence_number = flowbus->sequence_number;
 
-	/*---*/
+	    /*---*/
 
-	uint8_value = ( flowbus_parameter_type & 0x7F ) << 4;
+	    uint8_value = ( flowbus_parameter_type & 0x7F ) << 4;
 
-	uint8_value |= ( sequence_number & 0x1F );
+	    uint8_value |= ( sequence_number & 0x1F );
 
 #if 0
-	MX_DEBUG(-2,
+	    MX_DEBUG(-2,
 		("%s: flowbus_parameter_type = %lu, sequence_number = %lu, "
 			"parameter_byte = %#lx",
 			fname, flowbus_parameter_type,
@@ -1003,45 +1007,45 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 			(unsigned long) uint8_value ));
 #endif
 
-	mxi_flowbus_format_string( ascii_command_buffer,
+	    mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
 				5, MXFT_UINT8, &uint8_value );
 
-	message_length++;
+	    message_length++;
 
-	/*---*/
+	    /*---*/
 
-	/* Process number (field 6). */
+	    /* Process number (field 6). */
 
-	uint8_value = ( process_number & 0x7F );
+	    uint8_value = ( process_number & 0x7F );
 
-	mxi_flowbus_format_string( ascii_command_buffer,
+	    mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
 				6, MXFT_UINT8, &uint8_value );
 
-	message_length++;
+	    message_length++;
 
-	/*---*/
+	    /*---*/
 
-	/* Parameter type and parameter number (field 7). */
+	    /* Parameter type and parameter number (field 7). */
 
-	uint8_value = ( flowbus_parameter_type & 0x7F ) << 4;
+	    uint8_value = ( flowbus_parameter_type & 0x7F ) << 4;
 
-	uint8_value |= ( parameter_number & 0x1F );
+	    uint8_value |= ( parameter_number & 0x1F );
 
-	mxi_flowbus_format_string( ascii_command_buffer,
+	    mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
 				7, MXFT_UINT8, &uint8_value );
 
-	message_length++;
+	    message_length++;
 
-	/*---*/
+	    /*---*/
 
-	/* If this is a string field, then we must append 
-	 * the expected string length (field 8).
-	 */
+	    /* If this is a string field, then we must append 
+	     * the expected string length (field 8).
+	     */
 
-	if ( flowbus_parameter_type == MXDT_FLOWBUS_STRING ) {
+	    if ( flowbus_parameter_type == MXDT_FLOWBUS_STRING ) {
 		expected_string_length = max_parameter_length;
 
 		mxi_flowbus_format_string( ascii_command_buffer,
@@ -1049,21 +1053,17 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				8, MXFT_UINT8, &expected_string_length );
 
 		message_length++;
-	}
+	    }
 
-	/*---*/
+	    /*---*/
 
-	/* Message length (field 1). */
+	    /* Message length (field 1). */
 
-	uint8_value = message_length;
+	    uint8_value = message_length;
 
-	mxi_flowbus_format_string( ascii_command_buffer,
+	    mxi_flowbus_format_string( ascii_command_buffer,
 				sizeof(ascii_command_buffer),
 				1, MXFT_UINT8, &uint8_value );
-
-	max_attempts = 5;
-
-	for ( attempt = 0; attempt < max_attempts; attempt++ ) {
 
 	    /******* Send the command and receive the response *******/
 
@@ -1143,14 +1143,6 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				flowbus->record->name,
 				returned_sequence_number,
 				ascii_response_buffer );
-		} else {
-		    if ( strncmp( ascii_response_buffer, ":0105", 5 ) == 0 ) {
-		        mx_breakpoint();
-			mx_status = mx_error( MXE_PROTOCOL_ERROR, fname,
-			    "Response '%s' seen when not expected for "
-			    "Flowbus interface '%s'.",
-				ascii_response_buffer, flowbus->record->name );
-		    }
 		}
 	    }
 
@@ -1163,9 +1155,16 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	    /**** Attempt to recover from the protocol error. ****/
 
-	    memset( ascii_response_buffer, 0, sizeof(ascii_response_buffer) );
-
 	    mx_status = mxi_flowbus_resynchronize( flowbus->record );
+
+	    /* We increment the Flowbus sequence number, since the Flowbus
+	     * controller will interpret the sending of the same sequence
+	     * number twice as an error.
+	     */
+
+	    flowbus->sequence_number++;
+
+	    flowbus->sequence_number &= 0x1F;
 
 	    /* END of the for( attempt ) loop. */
 	}
