@@ -196,6 +196,8 @@ mxi_flowbus_command( MX_FLOWBUS *flowbus,
 		"The response pointer passed was NULL." );
 	}
 
+	memset( response, 0, max_response_length );
+
 	/*---*/
 
 	if ( flowbus->flowbus_flags & MXF_FLOWBUS_DEBUG ) {
@@ -512,27 +514,27 @@ mxi_flowbus_timeout_recovery( MX_FLOWBUS *flowbus )
 {
 	static const char fname[] = "mxi_flowbus_timeout_recovery()";
 
-	uint8_t flowbus_control_mode;
+	unsigned short measurement;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,
-	("*****>>>>> %s invoked for Flowbus interface '%s' <<<<<*****",
+	("*****vvvvv %s invoked for Flowbus interface '%s' vvvvv*****",
 		fname, flowbus->record->name ));
 
-	/* First try reading the Flowbus control mode.  If this results
+	/* First try reading a Flowbus measurement.  If this results
 	 * in an MXE_PROTCOL_ERROR status code, then we should be able
 	 * to recover just by discarding unread input.
 	 */
 
 	mx_status = mxi_flowbus_request_parameter( flowbus,
 						flowbus->master_address,
-						"Control Mode",
-						1, 4, MXDT_FLOWBUS_UINT8,
-						&flowbus_control_mode,
-						sizeof( uint8_t ), 0 );
+						"Measure",
+						1, 0, MXDT_FLOWBUS_USHORT,
+						&measurement,
+						sizeof( unsigned short ), 0 );
 
 	MX_DEBUG(-2,
-	("%s: The attempt to read the Flowbus control mode returned %lu",
+("%s: The attempt to read a Flowbus measurement returned MX status code %lu",
 		fname, mx_status.code ));
 
 	switch( mx_status.code ) {
@@ -561,6 +563,10 @@ mxi_flowbus_timeout_recovery( MX_FLOWBUS *flowbus )
 				flowbus->record->name );
 		break;
 	}
+
+	MX_DEBUG(-2,
+("*****^^^^^ %s complete for Flowbus interface '%s', mx_status.code = %lu ^^^^^*****",
+		fname, flowbus->record->name, mx_status.code ));
 
 	return mx_status;
 }
@@ -896,7 +902,7 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	size_t allowed_string_length;
 
-	uint8_t sequence_number;
+	uint8_t sequence_number, returned_sequence_number, returned_byte_5;
 
 	char ascii_command_buffer[500];
 	char ascii_response_buffer[500];
@@ -910,6 +916,8 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	unsigned long i, ulong_value;
 	char byte_string[3];
 	char *requested_string_ptr = NULL;
+
+	int attempt, max_attempts;
 
 	mx_status_type mx_status;
 
@@ -987,7 +995,8 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	uint8_value |= ( sequence_number & 0x1F );
 
 #if 0
-	MX_DEBUG(-2,("%s: flowbus_parameter_type = %lu, sequence_number = %lu, "
+	MX_DEBUG(-2,
+		("%s: flowbus_parameter_type = %lu, sequence_number = %lu, "
 			"parameter_byte = %#lx",
 			fname, flowbus_parameter_type,
 			(unsigned long) sequence_number,
@@ -1052,46 +1061,113 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				sizeof(ascii_command_buffer),
 				1, MXFT_UINT8, &uint8_value );
 
-	/******* Send the command and receive the response *******/
+	max_attempts = 5;
 
-	mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
+	for ( attempt = 0; attempt < max_attempts; attempt++ ) {
+
+	    /******* Send the command and receive the response *******/
+
+	    mx_status = mxi_flowbus_command( flowbus, ascii_command_buffer,
 					ascii_response_buffer,
 					sizeof(ascii_response_buffer),
 					flowbus_command_flags );
 
-	flowbus->sequence_number++;
+	    flowbus->sequence_number++;
 
-	flowbus->sequence_number &= 0x1F;
+	    flowbus->sequence_number &= 0x1F;
 
-	if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/******* Parse the response from the device *******/
+	    /******* Parse the response from the device *******/
 
 #if 0
-	MX_DEBUG(-2,("%s: response = '%s'", fname, ascii_response_buffer));
+	    MX_DEBUG(-2,("%s: response = '%s'", fname, ascii_response_buffer));
 #endif
 
-	/* FIXME? - For now we do not parse most of the message header. */
+	    /* FIXME? - For now we do not parse most of the message header. */
 
-	/* The command code for a response here should be 2.  Is it? */
+	    /* The command code for a response here should be 2.  Is it? */
 
-	nibble1 = 0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[5]);
-	nibble0 = 0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[6]);
+	    nibble1 =
+		0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[5]);
 
-	command_code = (nibble1 << 4) | nibble0;
+	    nibble0 =
+		0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[6]);
+
+	    command_code = (nibble1 << 4) | nibble0;
 
 #if 0
-	MX_DEBUG(-2,("response command code = %#lx",
+	    MX_DEBUG(-2,("response command code = %#lx",
 		(unsigned long) command_code ));
 #endif
 
-	if ( command_code != 0x2 ) {
-		return mx_error( MXE_PROTOCOL_ERROR, fname,
-		"The command code in the response should be 0x2.  "
-		"However, it was %#lx.  response = '%s'.",
-			(unsigned long) command_code,
-			ascii_response_buffer );
+	    /* The returned parameter number is in returned byte 5. */
+
+	    nibble1 =
+		0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[9] );
+
+	    nibble0 =
+		0xF & mx_hex_char_to_unsigned_long( ascii_response_buffer[10] );
+
+	    returned_byte_5 = (nibble1 << 4) | nibble0;
+
+	    returned_sequence_number = returned_byte_5 & 0x1F;
+
+#if 0
+	    MX_DEBUG(-2,
+	    ("mfrp: sequence_number = %u, returned_sequence_number = %u",
+		sequence_number, returned_sequence_number));
+#endif
+	    mx_status = MX_SUCCESSFUL_RESULT;
+
+	    if ( command_code != 0x2 ) {
+		mx_breakpoint();
+		mx_status = mx_error( MXE_PROTOCOL_ERROR, fname,
+			"The command code in the response from Flowbus "
+			"interface '%s' should be 0x2.  However, it was %#lx.  "
+			"response = '%s'.",
+				flowbus->record->name,
+				(unsigned long) command_code,
+				ascii_response_buffer );
+	    } else {
+		if ( returned_sequence_number != sequence_number ) {
+
+		    mx_breakpoint();
+		    mx_status = mx_error( MXE_PROTOCOL_ERROR, fname,
+			"The sequence number %d in the command '%s' sent to "
+			"Flowbus interface '%s' does not match the sequence "
+			"number %d in the response '%s'.",
+				sequence_number,
+				ascii_command_buffer,
+				flowbus->record->name,
+				returned_sequence_number,
+				ascii_response_buffer );
+		} else {
+		    if ( strncmp( ascii_response_buffer, ":0105", 5 ) == 0 ) {
+		        mx_breakpoint();
+			mx_status = mx_error( MXE_PROTOCOL_ERROR, fname,
+			    "Response '%s' seen when not expected for "
+			    "Flowbus interface '%s'.",
+				ascii_response_buffer, flowbus->record->name );
+		    }
+		}
+	    }
+
+	    if ( mx_status.code == MXE_SUCCESS ) {
+		break;			/* Exit the for( attempt ) loop. */
+	    }
+
+	    if ( mx_status.code != MXE_PROTOCOL_ERROR )
+		return mx_status;
+
+	    /**** Attempt to recover from the protocol error. ****/
+
+	    memset( ascii_response_buffer, 0, sizeof(ascii_response_buffer) );
+
+	    mx_status = mxi_flowbus_resynchronize( flowbus->record );
+
+	    /* END of the for( attempt ) loop. */
 	}
 
 	/* Now we parse the returned parameter value. */

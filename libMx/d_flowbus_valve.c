@@ -247,6 +247,7 @@ mxd_flowbus_valve_get_relay_status( MX_RELAY *relay )
         MX_FLOWBUS *flowbus = NULL;
 	unsigned short flowbus_control_mode;
 	char parameter_name[80];
+	int i, max_attempts;
 	mx_status_type mx_status;
 
 	mx_status = mxd_flowbus_valve_get_pointers( relay,
@@ -260,7 +261,11 @@ mxd_flowbus_valve_get_relay_status( MX_RELAY *relay )
 		flowbus_valve->process_number,
 		flowbus_valve->parameter_number );
 
-	mx_status = mxi_flowbus_request_parameter( flowbus,
+	max_attempts = 10;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+
+		mx_status = mxi_flowbus_request_parameter( flowbus,
 					flowbus_valve->node_address,
 					parameter_name,
 					flowbus_valve->process_number,
@@ -269,8 +274,25 @@ mxd_flowbus_valve_get_relay_status( MX_RELAY *relay )
 					&flowbus_control_mode,
 					sizeof( unsigned short ), 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code == MXE_SUCCESS )
+			break;			/* Exit the for() loop. */
+
+		if ( mx_status.code != MXE_TIMED_OUT )
+			return mx_status;
+
+		mx_status = mxi_flowbus_timeout_recovery( flowbus );
+
+		if ( mx_status.code == MXE_SUCCESS )
+			break;			/* Exit the for() loop. */
+
+		mx_msleep(100);
+	}
+
+	if ( i >= max_attempts ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Failed to read the value of relay '%s' after %d attempts.",
+			relay->record->name, max_attempts );
+	}
 
 	switch( flowbus_control_mode ) {
 	case 0:
