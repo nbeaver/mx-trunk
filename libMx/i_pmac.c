@@ -442,7 +442,7 @@ mxi_pmac_open( MX_RECORD *record )
 			msleep_time = 1000;
 
 			MX_DEBUG(-2,("%s: RS-232 initialization start.  "
-			"There will be a %.1lf second delay.",
+			"There will be a %.1f second delay.",
 				fname, 0.001 * max_attempts * msleep_time ));
 
 			for ( i = 0; i < max_attempts; i++ ) {

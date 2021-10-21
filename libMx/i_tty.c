@@ -1408,7 +1408,7 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 
 	if ( i >= timeout_count ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-	"After waiting more than %.1lf seconds and discarding %lu characters, "
+	"After waiting more than %.1f seconds and discarding %lu characters, "
 	"the tty device '%s' is still returning characters.  "
 	"Perhaps this device continuously generates output?",
 		0.001 * timeout_count * sleep_ms,
