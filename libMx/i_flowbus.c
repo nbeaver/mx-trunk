@@ -992,11 +992,13 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 
 	    sequence_number = flowbus->sequence_number;
 
+	    sequence_number &= 0x1F;
+
 	    /*---*/
 
 	    uint8_value = ( flowbus_parameter_type & 0x7F ) << 4;
 
-	    uint8_value |= ( sequence_number & 0x1F );
+	    uint8_value |= sequence_number;
 
 #if 0
 	    MX_DEBUG(-2,
@@ -1122,7 +1124,6 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 	    mx_status = MX_SUCCESSFUL_RESULT;
 
 	    if ( command_code != 0x2 ) {
-		mx_breakpoint();
 		mx_status = mx_error( MXE_PROTOCOL_ERROR, fname,
 			"The command code in the response from Flowbus "
 			"interface '%s' should be 0x2.  However, it was %#lx.  "
@@ -1130,10 +1131,12 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				flowbus->record->name,
 				(unsigned long) command_code,
 				ascii_response_buffer );
+#if 0
+		mx_breakpoint();
+#endif
 	    } else {
 		if ( returned_sequence_number != sequence_number ) {
 
-		    mx_breakpoint();
 		    mx_status = mx_error( MXE_PROTOCOL_ERROR, fname,
 			"The sequence number %d in the command '%s' sent to "
 			"Flowbus interface '%s' does not match the sequence "
@@ -1143,6 +1146,9 @@ mxi_flowbus_request_parameter( MX_FLOWBUS *flowbus,
 				flowbus->record->name,
 				returned_sequence_number,
 				ascii_response_buffer );
+#if 0
+		    mx_breakpoint();
+#endif
 		}
 	    }
 
