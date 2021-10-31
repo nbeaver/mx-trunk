@@ -8,7 +8,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009-2011, 2015-2016 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009-2011, 2015-2016, 2021
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -188,7 +189,6 @@ mx_get_process_meminfo( unsigned long process_id,
 {
 	static const char fname[] = "mx_get_process_meminfo()";
 
-	struct mallinfo mallinfo_struct;
 	char buffer[80];
 	char field_name[80];
 	unsigned long field_value;
@@ -304,13 +304,16 @@ mx_get_process_meminfo( unsigned long process_id,
 	/* Get heap statistics from mallinfo() */
 
 	if ( current_process ) {
-		mallinfo_struct = mallinfo();
 
+#if ( MX_GLIBC_VERSION >= 2033000L )
+		struct mallinfo2 mallinfo_struct = mallinfo2();
+#else
+		struct mallinfo mallinfo_struct = mallinfo();
+#endif
 		meminfo->heap_bytes = mallinfo_struct.arena;
 		meminfo->allocated_bytes = mallinfo_struct.uordblks;
 		meminfo->memory_mapped_bytes = mallinfo_struct.hblkhd;
 	}
-
 #if 0
 	mx_display_process_meminfo( meminfo );
 #endif
