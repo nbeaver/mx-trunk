@@ -1,13 +1,13 @@
 /*
  * Name:    d_gittelsohn_pulser.h
  *
- * Purpose: Header file for Mark Gittelsohn's Arduino-based pulse generator.
+ * Purpose: Header file for Mike Gittelsohn's Arduino-based pulse generator.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2018 Illinois Institute of Technology
+ * Copyright 2015-2018, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

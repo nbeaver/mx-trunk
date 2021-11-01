@@ -1,7 +1,7 @@
 /*
  * Name:    d_gittelsohn_pulser.c
  *
- * Purpose: MX pulse generator driver for Mark Gittelsohn's Arduino-based
+ * Purpose: MX pulse generator driver for Mike Gittelsohn's Arduino-based
  *          pulse generator.
  *
  * Author:  William Lavender
