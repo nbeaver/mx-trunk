@@ -625,9 +625,10 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_get_parameter()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
-	double theta, energy, acceleration_time;
+	MX_RECORD *theta_motor_record;
+	double theta, energy;
 	double d_spacing, theta_in_radians;
+       	double theta_acceleration_time, theta_acceleration_distance;
 	double theta_speed, theta_speed_in_radians_per_second;
 	double theta_start, theta_end;
 	double real_theta_start, real_theta_end;
@@ -638,7 +639,7 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 	energy = real_energy_start = real_energy_end = 0.0;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+						&theta_motor_record, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -647,7 +648,6 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-	case MXLV_MTR_ACCELERATION_DISTANCE:
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Energy pseudomotor '%s' cannot report the value of parameter '%s' (%ld).",
 			motor->record->name,
@@ -661,8 +661,7 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_SPEED:
-		mx_status = mx_motor_get_position(
-				dependent_motor_record, &theta );
+		mx_status = mx_motor_get_position( theta_motor_record, &theta );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -675,8 +674,8 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_motor_get_speed(
-				dependent_motor_record, &theta_speed );
+		mx_status = mx_motor_get_speed( theta_motor_record,
+						&theta_speed );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -692,10 +691,52 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_ACCELERATION_TIME:
 		mx_status = mx_motor_get_acceleration_time(
-					dependent_motor_record,
-					&acceleration_time );
+					theta_motor_record,
+					&theta_acceleration_time );
 
-		motor->acceleration_time = acceleration_time;
+		motor->acceleration_time = theta_acceleration_time;
+		break;
+
+	case MXLV_MTR_ACCELERATION_DISTANCE:
+		/* The acceleration distance actually depends directly
+		 * on the theta motor.  Since there is a trigonometric
+		 * dependence of the energy motor position, that means
+		 * that the energy motor acceleration distance is a
+		 * function of the current energy.
+		 *
+		 * So what we do is to get the theta motor acceleration
+		 * distance and use that to compute the energy motor
+		 * acceleration distance at the current energy.
+		 */
+
+		mx_status = mxd_energy_motor_get_d_spacing( motor,
+						energy_motor, &d_spacing );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_position( theta_motor_record, &theta );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_acceleration_distance(
+					theta_motor_record,
+					&theta_acceleration_distance );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Note that math runtime libraries do not, in general,
+		 * directly include implementations of cosecant or cotangent.
+		 */
+
+		motor->acceleration_distance = fabs(
+			mx_divide_safely(
+				MX_HC * cos( theta ),
+				2.0 * d_spacing * pow( sin( theta ), 2.0 ) )
+
+			* theta_acceleration_distance ); 
 		break;
 
 	case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:
@@ -719,7 +760,7 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_motor_compute_extended_scan_range(
-					dependent_motor_record,
+					theta_motor_record,
 					theta_start, theta_end,
 					&real_theta_start, &real_theta_end );
 
@@ -768,14 +809,14 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
 		mx_status = mx_motor_get_estimated_move_durations(
-				dependent_motor_record,
+				theta_motor_record,
 				motor->num_estimated_move_positions,
 				motor->estimated_move_durations );
 		break;
 
 	case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
 		mx_status = mx_motor_get_total_estimated_move_duration(
-				dependent_motor_record,
+				theta_motor_record,
 				&(motor->total_estimated_move_duration) );
 		break;
 
