@@ -78,7 +78,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_wavelength_motor_rfield_def_ptr
 static mx_status_type
 mxd_wavelength_motor_get_pointers( MX_MOTOR *motor,
 			MX_WAVELENGTH_MOTOR **wavelength_motor,
-			MX_RECORD **dependent_motor_record,
+			MX_RECORD **theta_motor_record,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_wavelength_motor_get_pointers()";
@@ -104,15 +104,15 @@ mxd_wavelength_motor_get_pointers( MX_MOTOR *motor,
 			motor->record->name );
 	}
 
-	if ( dependent_motor_record == (MX_RECORD **) NULL ) {
+	if ( theta_motor_record == (MX_RECORD **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The dependent_motor_record pointer passed by '%s' was NULL.",
+		"The theta_motor_record pointer passed by '%s' was NULL.",
 			motor->record->name );
 	}
 
-	*dependent_motor_record = (*wavelength_motor)->dependent_motor_record;
+	*theta_motor_record = (*wavelength_motor)->theta_motor_record;
 
-	if ( *dependent_motor_record == (MX_RECORD *) NULL ) {
+	if ( *theta_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"Dependent motor record pointer for record '%s' is NULL.",
 			motor->record->name );
@@ -199,7 +199,7 @@ mxd_wavelength_motor_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	motor->real_motor_record = wavelength_motor->dependent_motor_record;
+	motor->real_motor_record = wavelength_motor->theta_motor_record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -210,8 +210,8 @@ mxd_wavelength_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_wavelength_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
-	MX_RECORD *dependent_motor_record;
-	MX_MOTOR *dependent_motor;
+	MX_RECORD *theta_motor_record;
+	MX_MOTOR *theta_motor;
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
 	double position, move_deadband;
 	mx_status_type mx_status;
@@ -224,18 +224,18 @@ mxd_wavelength_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-        dependent_motor = (MX_MOTOR *)
-                                (dependent_motor_record->record_class_struct);
+        theta_motor = (MX_MOTOR *)
+                                (theta_motor_record->record_class_struct);
 
-        if ( dependent_motor == (MX_MOTOR *) NULL ) {
+        if ( theta_motor == (MX_MOTOR *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                         "MX_MOTOR pointer for record '%s' is NULL.",
-                        dependent_motor_record->name );
+                        theta_motor_record->name );
         }
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
@@ -243,13 +243,13 @@ mxd_wavelength_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name                   = %s\n", record->name);
 	fprintf(file, "  dependent motor record = %s\n",
-					dependent_motor_record->name);
+					theta_motor_record->name);
 	fprintf(file, "  d spacing              = %s\n",
 				wavelength_motor->d_spacing_record->name);
 	fprintf(file, "  angle scale            = %.*g radians per %s.\n",
 					record->precision,
 					wavelength_motor->angle_scale,
-					dependent_motor->units);
+					theta_motor->units);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -305,7 +305,7 @@ mxd_wavelength_motor_open( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double d_spacing;
 	mx_status_type mx_status;
 
@@ -317,7 +317,7 @@ mxd_wavelength_motor_open( MX_RECORD *record )
 	motor = (MX_MOTOR *) record->record_class_struct;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record, fname );
+					&theta_motor_record, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -437,12 +437,12 @@ mxd_wavelength_motor_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_move_absolute()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double wavelength, theta;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -459,7 +459,7 @@ mxd_wavelength_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_move_absolute( dependent_motor_record, theta, 0 );
+	mx_status = mx_motor_move_absolute( theta_motor_record, theta, 0 );
 
 	return mx_status;
 }
@@ -470,19 +470,19 @@ mxd_wavelength_motor_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_get_position()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double wavelength, theta;
 	mx_status_type mx_status;
 
 	wavelength = 0.0;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_position( dependent_motor_record, &theta );
+	mx_status = mx_motor_get_position( theta_motor_record, &theta );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -505,12 +505,12 @@ mxd_wavelength_motor_set_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_set_position()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double wavelength, theta;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -525,7 +525,7 @@ mxd_wavelength_motor_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_set_position( dependent_motor_record, theta );
+	mx_status = mx_motor_set_position( theta_motor_record, theta );
 
 	return mx_status;
 }
@@ -536,16 +536,16 @@ mxd_wavelength_motor_soft_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_soft_abort()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_soft_abort( dependent_motor_record );
+	mx_status = mx_motor_soft_abort( theta_motor_record );
 
 	return mx_status;
 }
@@ -556,16 +556,16 @@ mxd_wavelength_motor_immediate_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_immediate_abort()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_immediate_abort( dependent_motor_record );
+	mx_status = mx_motor_immediate_abort( theta_motor_record );
 
 	return mx_status;
 }
@@ -576,19 +576,19 @@ mxd_wavelength_motor_raw_home_command( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_raw_home_command()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	direction = - ( motor->raw_home_command );
 
-	mx_status = mx_motor_raw_home_command( dependent_motor_record,
+	mx_status = mx_motor_raw_home_command( theta_motor_record,
 						direction );
 
 	return mx_status;
@@ -600,19 +600,19 @@ mxd_wavelength_motor_constant_velocity_move( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_constant_velocity_move()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	direction = - ( motor->constant_velocity_move );
 
-	mx_status = mx_motor_constant_velocity_move( dependent_motor_record,
+	mx_status = mx_motor_constant_velocity_move( theta_motor_record,
 							direction );
 
 	return mx_status;
@@ -624,9 +624,10 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_get_parameter()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
-	double theta, wavelength, acceleration_time;
+	MX_RECORD *theta_motor_record;
+	double theta, wavelength;
 	double d_spacing, theta_in_radians;
+	double theta_acceleration_time, theta_acceleration_distance;
 	double theta_speed, theta_speed_in_radians_per_second;
 	double theta_start, theta_end;
 	double real_theta_start, real_theta_end;
@@ -637,7 +638,7 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 	wavelength = real_wavelength_start = real_wavelength_end = 0.0;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+						&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -646,7 +647,6 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-	case MXLV_MTR_ACCELERATION_DISTANCE:
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Wavelength pseudomotor '%s' cannot report the value of parameter '%s' (%ld).",
 			motor->record->name,
@@ -661,7 +661,7 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_SPEED:
 		mx_status = mx_motor_get_position(
-				dependent_motor_record, &theta );
+				theta_motor_record, &theta );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -675,7 +675,7 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_motor_get_speed(
-				dependent_motor_record, &theta_speed );
+				theta_motor_record, &theta_speed );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -688,10 +688,72 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_ACCELERATION_TIME:
 		mx_status = mx_motor_get_acceleration_time(
-					dependent_motor_record,
-					&acceleration_time );
+					theta_motor_record,
+					&theta_acceleration_time );
 
-		motor->acceleration_time = acceleration_time;
+		motor->acceleration_time = theta_acceleration_time;
+		break;
+
+	case MXLV_MTR_ACCELERATION_DISTANCE:
+		/* The acceleration distance actually depends directly
+		 * on the theta motor.  Since there is a trigonometric
+		 * dependence of the wavelength motor position, that means
+		 * that the wavelength motor acceleration distance is a
+		 * function of the current wavelength.
+		 *
+		 * So what we do is to get the theta motor acceleration
+		 * distance and use that to compute the wavelength motor
+		 * acceleration distance at the current wavelength.
+		 */
+
+		mx_status = mxd_wavelength_motor_get_d_spacing( motor,
+						wavelength_motor, &d_spacing );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_position( theta_motor_record, &theta );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_acceleration_distance(
+					theta_motor_record,
+					&theta_acceleration_distance );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/*===*/
+
+		theta_start = theta - 0.5 * theta_acceleration_distance;
+
+		theta_end = theta + 0.5 * theta_acceleration_distance;
+
+		mx_status = mxd_wavelength_motor_convert_theta_to_wavelength(
+				motor, wavelength_motor,
+				theta_start, &wavelength_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_wavelength_motor_convert_theta_to_wavelength(
+				motor, wavelength_motor,
+				theta_end, &wavelength_end );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->acceleration_distance =
+				fabs( wavelength_end - wavelength_start );
+
+#if 0
+		MX_DEBUG(-2,("%s: theta_start = %g, theta_end = %g",
+				fname, theta_start, theta_end ));
+
+		MX_DEBUG(-2,("%s: wavelength_start = %g, wavelength_end = %g",
+				fname, wavelength_start, wavelength_end ));
+#endif
 		break;
 
 	case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:
@@ -715,7 +777,7 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_motor_compute_extended_scan_range(
-					dependent_motor_record,
+					theta_motor_record,
 					theta_start, theta_end,
 					&real_theta_start, &real_theta_end );
 
@@ -780,12 +842,12 @@ mxd_wavelength_motor_set_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_set_parameter()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double real_position1, real_position2, time_for_move;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -822,17 +884,17 @@ mxd_wavelength_motor_set_parameter( MX_MOTOR *motor )
 		time_for_move = motor->raw_speed_choice_parameters[2];
 
 		mx_status = mx_motor_set_speed_between_positions(
-					dependent_motor_record,
+					theta_motor_record,
 					real_position1, real_position2,
 					time_for_move );
 		break;
 
 	case MXLV_MTR_SAVE_SPEED:
-		mx_status = mx_motor_save_speed( dependent_motor_record );
+		mx_status = mx_motor_save_speed( theta_motor_record );
 		break;
 
 	case MXLV_MTR_RESTORE_SPEED:
-		mx_status = mx_motor_restore_speed( dependent_motor_record );
+		mx_status = mx_motor_restore_speed( theta_motor_record );
 		break;
 
 	default:
@@ -849,17 +911,17 @@ mxd_wavelength_motor_get_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavelength_motor_get_status()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	unsigned long motor_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_status( dependent_motor_record, &motor_status);
+	mx_status = mx_motor_get_status( theta_motor_record, &motor_status);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -892,18 +954,18 @@ mxd_wavelength_motor_get_extended_status( MX_MOTOR *motor )
 		"mxd_wavelength_motor_get_extended_status()";
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_extended_status( dependent_motor_record,
+	mx_status = mx_motor_get_extended_status( theta_motor_record,
 						&theta, &motor_status );
 
 	if ( mx_status.code != MXE_SUCCESS )

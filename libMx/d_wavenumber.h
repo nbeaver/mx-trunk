@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2013 Illinois Institute of Technology
+ * Copyright 2003-2004, 2013, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,7 @@
  */
 
 typedef struct {
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	MX_RECORD *d_spacing_record;
 	double angle_scale;
 
@@ -71,9 +71,9 @@ extern long mxd_wavenumber_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_wavenumber_motor_rfield_def_ptr;
 
 #define MXD_WAVENUMBER_MOTOR_STANDARD_FIELDS \
-  {-1, -1, "dependent_motor_record", MXFT_RECORD, NULL, 0, {0}, \
+  {-1, -1, "theta_motor_record", MXFT_RECORD, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, \
-                offsetof(MX_WAVENUMBER_MOTOR, dependent_motor_record ), \
+                offsetof(MX_WAVENUMBER_MOTOR, theta_motor_record ), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "d_spacing_record", MXFT_RECORD, NULL, 0, {0}, \

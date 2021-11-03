@@ -78,7 +78,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_wavenumber_motor_rfield_def_ptr
 static mx_status_type
 mxd_wavenumber_motor_get_pointers( MX_MOTOR *motor,
 			MX_WAVENUMBER_MOTOR **wavenumber_motor,
-			MX_RECORD **dependent_motor_record,
+			MX_RECORD **theta_motor_record,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_wavenumber_motor_get_pointers()";
@@ -104,15 +104,15 @@ mxd_wavenumber_motor_get_pointers( MX_MOTOR *motor,
 			motor->record->name );
 	}
 
-	if ( dependent_motor_record == (MX_RECORD **) NULL ) {
+	if ( theta_motor_record == (MX_RECORD **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The dependent_motor_record pointer passed by '%s' was NULL.",
+		"The theta_motor_record pointer passed by '%s' was NULL.",
 			motor->record->name );
 	}
 
-	*dependent_motor_record = (*wavenumber_motor)->dependent_motor_record;
+	*theta_motor_record = (*wavenumber_motor)->theta_motor_record;
 
-	if ( *dependent_motor_record == (MX_RECORD *) NULL ) {
+	if ( *theta_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"Dependent motor record pointer for record '%s' is NULL.",
 			motor->record->name );
@@ -174,12 +174,12 @@ mxd_wavenumber_motor_finish_record_initialization( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -199,7 +199,7 @@ mxd_wavenumber_motor_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	motor->real_motor_record = wavenumber_motor->dependent_motor_record;
+	motor->real_motor_record = wavenumber_motor->theta_motor_record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -210,11 +210,11 @@ mxd_wavenumber_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_wavenumber_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
-	MX_RECORD *dependent_motor_record;
-	MX_MOTOR *dependent_motor;
+	MX_RECORD *theta_motor_record;
+	MX_MOTOR *theta_motor;
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -223,19 +223,19 @@ mxd_wavenumber_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-        dependent_motor = (MX_MOTOR *)
-                                (dependent_motor_record->record_class_struct);
+        theta_motor = (MX_MOTOR *)
+                                (theta_motor_record->record_class_struct);
 
-        if ( dependent_motor == (MX_MOTOR *) NULL ) {
+        if ( theta_motor == (MX_MOTOR *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                         "MX_MOTOR pointer for record '%s' is NULL.",
-                        dependent_motor_record->name );
+                        theta_motor_record->name );
         }
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
@@ -243,17 +243,17 @@ mxd_wavenumber_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name                   = %s\n", record->name);
 	fprintf(file, "  dependent motor record = %s\n",
-					dependent_motor_record->name);
+					theta_motor_record->name);
 	fprintf(file, "  d spacing              = %s\n",
 				wavenumber_motor->d_spacing_record->name);
 	fprintf(file, "  angle scale            = %.*g radians per %s.\n",
 					record->precision,
 					wavenumber_motor->angle_scale,
-					dependent_motor->units);
+					theta_motor->units);
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -305,9 +305,9 @@ mxd_wavenumber_motor_open( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double d_spacing;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -316,19 +316,19 @@ mxd_wavenumber_motor_open( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record, fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Initialize the value of saved_d_spacing. */
 
-	status = mx_get_double_variable( wavenumber_motor->d_spacing_record,
+	mx_status = mx_get_double_variable( wavenumber_motor->d_spacing_record,
 						&d_spacing );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	wavenumber_motor->saved_d_spacing = d_spacing;
 
@@ -341,12 +341,12 @@ mxd_wavenumber_motor_get_d_spacing( MX_MOTOR *motor,
 				double *d_spacing )
 {
 	mx_bool_type fast_mode;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_get_fast_mode( motor->record, &fast_mode );
+	mx_status = mx_get_fast_mode( motor->record, &fast_mode );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( fast_mode ) {
 		*d_spacing = wavenumber_motor->saved_d_spacing;
@@ -354,11 +354,11 @@ mxd_wavenumber_motor_get_d_spacing( MX_MOTOR *motor,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_get_double_variable( wavenumber_motor->d_spacing_record,
+	mx_status = mx_get_double_variable( wavenumber_motor->d_spacing_record,
 						d_spacing );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	wavenumber_motor->saved_d_spacing = *d_spacing;
 
@@ -372,13 +372,13 @@ mxd_wavenumber_motor_convert_theta_to_wavenumber( MX_MOTOR *motor,
 					double *wavenumber )
 {
 	double d_spacing, theta_in_radians, sin_theta;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_d_spacing( motor,
+	mx_status = mxd_wavenumber_motor_get_d_spacing( motor,
 					wavenumber_motor, &d_spacing );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	theta_in_radians = theta * wavenumber_motor->angle_scale;
 
@@ -401,13 +401,13 @@ mxd_wavenumber_motor_convert_wavenumber_to_theta( MX_MOTOR *motor,
 
 	double d_spacing, minimum_wavenumber;
 	double theta_in_radians, sin_theta;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_d_spacing( motor,
+	mx_status = mxd_wavenumber_motor_get_d_spacing( motor,
 					wavenumber_motor, &d_spacing );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	minimum_wavenumber = mx_divide_safely( MX_PI, d_spacing );
 
@@ -438,31 +438,31 @@ mxd_wavenumber_motor_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_move_absolute()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double wavenumber, theta;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* The unscaled wavenumber is in inverse angstroms. */
 
 	wavenumber = motor->raw_destination.analog;
 
-	status = mxd_wavenumber_motor_convert_wavenumber_to_theta( motor,
+	mx_status = mxd_wavenumber_motor_convert_wavenumber_to_theta( motor,
 							wavenumber_motor,
 							"move to",
 							wavenumber, &theta );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_move_absolute( dependent_motor_record, theta, 0 );
+	mx_status = mx_motor_move_absolute( theta_motor_record, theta, 0 );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -471,29 +471,29 @@ mxd_wavenumber_motor_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_get_position()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double wavenumber, theta;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	wavenumber = 0.0;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_get_position( dependent_motor_record, &theta );
+	mx_status = mx_motor_get_position( theta_motor_record, &theta );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_wavenumber_motor_convert_theta_to_wavenumber( motor,
+	mx_status = mxd_wavenumber_motor_convert_theta_to_wavenumber( motor,
 							wavenumber_motor,
 							theta, &wavenumber );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor->raw_position.analog = wavenumber;
 
@@ -506,29 +506,29 @@ mxd_wavenumber_motor_set_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_set_position()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double wavenumber, theta;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	wavenumber = motor->raw_set_position.analog;
 
-	status = mxd_wavenumber_motor_convert_wavenumber_to_theta( motor,
+	mx_status = mxd_wavenumber_motor_convert_wavenumber_to_theta( motor,
 							wavenumber_motor,
 							"set",
 							wavenumber, &theta );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_set_position( dependent_motor_record, theta );
+	mx_status = mx_motor_set_position( theta_motor_record, theta );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -537,18 +537,18 @@ mxd_wavenumber_motor_soft_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_soft_abort()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
-	mx_status_type status;
+	MX_RECORD *theta_motor_record;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_soft_abort( dependent_motor_record );
+	mx_status = mx_motor_soft_abort( theta_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -557,18 +557,18 @@ mxd_wavenumber_motor_immediate_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_immediate_abort()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
-	mx_status_type status;
+	MX_RECORD *theta_motor_record;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_immediate_abort( dependent_motor_record );
+	mx_status = mx_motor_immediate_abort( theta_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -577,22 +577,22 @@ mxd_wavenumber_motor_raw_home_command( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_raw_home_command()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	long direction;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	direction = - ( motor->raw_home_command );
 
-	status = mx_motor_raw_home_command( dependent_motor_record,
+	mx_status = mx_motor_raw_home_command( theta_motor_record,
 						direction );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -601,22 +601,22 @@ mxd_wavenumber_motor_constant_velocity_move( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_constant_velocity_move()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	long direction;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	direction = - ( motor->constant_velocity_move );
 
-	status = mx_motor_constant_velocity_move( dependent_motor_record,
+	mx_status = mx_motor_constant_velocity_move( theta_motor_record,
 							direction );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -625,28 +625,28 @@ mxd_wavenumber_motor_get_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_get_parameter()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
-	double theta, wavenumber, acceleration_time;
+	MX_RECORD *theta_motor_record;
+	double theta, wavenumber, d_spacing;
 	double theta_start, theta_end;
+	double theta_acceleration_time, theta_acceleration_distance;
 	double real_theta_start, real_theta_end;
 	double wavenumber_start, wavenumber_end;
 	double real_wavenumber_start, real_wavenumber_end;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	wavenumber = real_wavenumber_start = real_wavenumber_end = 0.0;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-	case MXLV_MTR_ACCELERATION_DISTANCE:
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Wavenumber pseudomotor '%s' cannot report the value of parameter '%s' (%ld).",
 			motor->record->name,
@@ -660,55 +660,117 @@ mxd_wavenumber_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:
-		status = mx_motor_get_acceleration_time(
-					dependent_motor_record,
-					&acceleration_time );
+		mx_status = mx_motor_get_acceleration_time(
+					theta_motor_record,
+					&theta_acceleration_time );
 
-		motor->acceleration_time = acceleration_time;
+		motor->acceleration_time = theta_acceleration_time;
+		break;
+
+	case MXLV_MTR_ACCELERATION_DISTANCE:
+		/* The acceleration distance actually depends directly
+		 * on the theta motor.  Since there is a trigonometric
+		 * dependence of the wavenumber motor position, that means
+		 * that the wavenumber motor acceleration distance is a
+		 * function of the current wavenumber.
+		 *
+		 * So what we do is to get the theta motor acceleration
+		 * distance and use that to compute the wavenumber motor
+		 * acceleration distance at the current wavenumber.
+		 */
+
+		mx_status = mxd_wavenumber_motor_get_d_spacing( motor,
+						wavenumber_motor, &d_spacing );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_position( theta_motor_record, &theta );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_acceleration_distance(
+					theta_motor_record,
+					&theta_acceleration_distance );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/*===*/
+
+		theta_start = theta - 0.5 * theta_acceleration_distance;
+
+		theta_end = theta + 0.5 * theta_acceleration_distance;
+
+		mx_status = mxd_wavenumber_motor_convert_theta_to_wavenumber(
+				motor, wavenumber_motor,
+				theta_start, &wavenumber_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_wavenumber_motor_convert_theta_to_wavenumber(
+				motor, wavenumber_motor,
+				theta_end, &wavenumber_end );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->acceleration_distance =
+				fabs( wavenumber_end - wavenumber_start );
+
+#if 0
+		MX_DEBUG(-2,("%s: theta_start = %g, theta_end = %g",
+				fname, theta_start, theta_end ));
+
+		MX_DEBUG(-2,("%s: wavenumber_start = %g, wavenumber_end = %g",
+				fname, wavenumber_start, wavenumber_end ));
+#endif
 		break;
 
 	case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:
 		wavenumber_start = motor->raw_compute_extended_scan_range[0];
 		wavenumber_end = motor->raw_compute_extended_scan_range[1];
 
-		status = mxd_wavenumber_motor_convert_wavenumber_to_theta(
+		mx_status = mxd_wavenumber_motor_convert_wavenumber_to_theta(
 					motor, wavenumber_motor,
 					"compute theta for",
 					wavenumber_start, &theta_start );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mxd_wavenumber_motor_convert_wavenumber_to_theta(
+		mx_status = mxd_wavenumber_motor_convert_wavenumber_to_theta(
 					motor, wavenumber_motor,
 					"compute theta for",
 					wavenumber_end, &theta_end );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_compute_extended_scan_range(
-					dependent_motor_record,
+		mx_status = mx_motor_compute_extended_scan_range(
+					theta_motor_record,
 					theta_start, theta_end,
 					&real_theta_start, &real_theta_end );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mxd_wavenumber_motor_convert_theta_to_wavenumber(
+		mx_status = mxd_wavenumber_motor_convert_theta_to_wavenumber(
 					motor, wavenumber_motor,
 					real_theta_start,
 					&real_wavenumber_start);
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mxd_wavenumber_motor_convert_theta_to_wavenumber(
+		mx_status = mxd_wavenumber_motor_convert_theta_to_wavenumber(
 					motor, wavenumber_motor,
 					real_theta_end, &real_wavenumber_end );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->raw_compute_extended_scan_range[2]
 						= real_wavenumber_start;
@@ -720,7 +782,7 @@ mxd_wavenumber_motor_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION:
 		theta = motor->compute_pseudomotor_position[0];
 
-		status = mxd_wavenumber_motor_convert_theta_to_wavenumber(
+		mx_status = mxd_wavenumber_motor_convert_theta_to_wavenumber(
 				motor, wavenumber_motor, theta, &wavenumber );
 
 		motor->compute_pseudomotor_position[1] = wavenumber;
@@ -730,7 +792,7 @@ mxd_wavenumber_motor_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_COMPUTE_REAL_POSITION:
 		wavenumber = motor->compute_real_position[0];
 
-		status = mxd_wavenumber_motor_convert_wavenumber_to_theta(
+		mx_status = mxd_wavenumber_motor_convert_wavenumber_to_theta(
 					motor, wavenumber_motor,
 					"compute theta for",
 					wavenumber, &theta );
@@ -740,11 +802,11 @@ mxd_wavenumber_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	default:
-		status = mx_motor_default_get_parameter_handler( motor );
+		mx_status = mx_motor_default_get_parameter_handler( motor );
 		break;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -753,15 +815,15 @@ mxd_wavenumber_motor_set_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_set_parameter()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double real_position1, real_position2, time_for_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
+					&theta_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -776,44 +838,44 @@ mxd_wavenumber_motor_set_parameter( MX_MOTOR *motor )
 			motor->parameter_type );
 
 	case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
-		status =
+		mx_status =
 		    mx_motor_compute_real_position_from_pseudomotor_position(
 			motor->record, motor->raw_speed_choice_parameters[0],
 			&real_position1, FALSE );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status =
+		mx_status =
 		    mx_motor_compute_real_position_from_pseudomotor_position(
 			motor->record, motor->raw_speed_choice_parameters[1],
 			&real_position2, FALSE );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		time_for_move = motor->raw_speed_choice_parameters[2];
 
-		status = mx_motor_set_speed_between_positions(
-					dependent_motor_record,
+		mx_status = mx_motor_set_speed_between_positions(
+					theta_motor_record,
 					real_position1, real_position2,
 					time_for_move );
 		break;
 
 	case MXLV_MTR_SAVE_SPEED:
-		status = mx_motor_save_speed( dependent_motor_record );
+		mx_status = mx_motor_save_speed( theta_motor_record );
 		break;
 
 	case MXLV_MTR_RESTORE_SPEED:
-		status = mx_motor_restore_speed( dependent_motor_record );
+		mx_status = mx_motor_restore_speed( theta_motor_record );
 		break;
 
 	default:
-		status = mx_motor_default_set_parameter_handler( motor );
+		mx_status = mx_motor_default_set_parameter_handler( motor );
 		break;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -822,17 +884,17 @@ mxd_wavenumber_motor_get_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_wavenumber_motor_get_status()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	unsigned long motor_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_status( dependent_motor_record, &motor_status);
+	mx_status = mx_motor_get_status( theta_motor_record, &motor_status);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -866,18 +928,18 @@ mxd_wavenumber_motor_get_extended_status( MX_MOTOR *motor )
 		"mxd_wavenumber_motor_get_extended_status()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_extended_status( dependent_motor_record,
+	mx_status = mx_motor_get_extended_status( theta_motor_record,
 						&theta, &motor_status );
 
 	if ( mx_status.code != MXE_SUCCESS )

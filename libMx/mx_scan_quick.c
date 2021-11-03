@@ -247,7 +247,7 @@ mx_quick_scan_set_new_motor_speed( MX_QUICK_SCAN *quick_scan, long motor_index )
 		energy_motor = (MX_ENERGY_MOTOR *)
 				independent_variable_record->record_type_struct;
 
-		motor_record_to_set = energy_motor->dependent_motor_record;
+		motor_record_to_set = energy_motor->theta_motor_record;
 
 		/* Get d spacing for the monochromator. */
 
@@ -352,7 +352,7 @@ mx_quick_scan_restore_old_motor_speed( MX_QUICK_SCAN *quick_scan,
 		energy_motor = (MX_ENERGY_MOTOR *)
 				independent_variable_record->record_type_struct;
 
-		motor_record_to_restore = energy_motor->dependent_motor_record;
+		motor_record_to_restore = energy_motor->theta_motor_record;
 		break;
 	default:
 		motor_record_to_restore = independent_variable_record;

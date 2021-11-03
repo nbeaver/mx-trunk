@@ -80,7 +80,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_energy_motor_rfield_def_ptr
 static mx_status_type
 mxd_energy_motor_get_pointers( MX_MOTOR *motor,
 			MX_ENERGY_MOTOR **energy_motor,
-			MX_RECORD **dependent_motor_record,
+			MX_RECORD **theta_motor_record,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_energy_motor_get_pointers()";
@@ -105,15 +105,15 @@ mxd_energy_motor_get_pointers( MX_MOTOR *motor,
 			motor->record->name );
 	}
 
-	if ( dependent_motor_record == (MX_RECORD **) NULL ) {
+	if ( theta_motor_record == (MX_RECORD **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The dependent_motor_record pointer passed by '%s' was NULL.",
+		"The theta_motor_record pointer passed by '%s' was NULL.",
 			motor->record->name );
 	}
 
-	*dependent_motor_record = (*energy_motor)->dependent_motor_record;
+	*theta_motor_record = (*energy_motor)->theta_motor_record;
 
-	if ( *dependent_motor_record == (MX_RECORD *) NULL ) {
+	if ( *theta_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"Dependent motor record pointer for record '%s' is NULL.",
 			motor->record->name );
@@ -200,7 +200,7 @@ mxd_energy_motor_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	motor->real_motor_record = energy_motor->dependent_motor_record;
+	motor->real_motor_record = energy_motor->theta_motor_record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -211,8 +211,8 @@ mxd_energy_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_energy_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
-	MX_RECORD *dependent_motor_record;
-	MX_MOTOR *dependent_motor;
+	MX_RECORD *theta_motor_record;
+	MX_MOTOR *theta_motor;
 	MX_ENERGY_MOTOR *energy_motor;
 	double position, move_deadband;
 	mx_status_type mx_status;
@@ -225,32 +225,32 @@ mxd_energy_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-        dependent_motor = (MX_MOTOR *)
-                                (dependent_motor_record->record_class_struct);
+        theta_motor = (MX_MOTOR *)
+                                (theta_motor_record->record_class_struct);
 
-        if ( dependent_motor == (MX_MOTOR *) NULL ) {
+        if ( theta_motor == (MX_MOTOR *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                         "MX_MOTOR pointer for record '%s' is NULL.",
-                        dependent_motor_record->name );
+                        theta_motor_record->name );
         }
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
 	fprintf(file, "  Motor type             = ENERGY_MOTOR.\n\n");
 
 	fprintf(file, "  name                   = %s\n", record->name);
-	fprintf(file, "  dependent motor record = %s\n",
-					dependent_motor_record->name);
+	fprintf(file, "  theta motor record     = %s\n",
+					theta_motor_record->name);
 	fprintf(file, "  d spacing              = %s\n",
 					energy_motor->d_spacing_record->name);
 	fprintf(file, "  angle scale            = %.*g radians per %s.\n",
 					record->precision,
 					energy_motor->angle_scale,
-					dependent_motor->units);
+					theta_motor->units);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -306,7 +306,7 @@ mxd_energy_motor_open( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double d_spacing;
 	mx_status_type mx_status;
 
@@ -318,7 +318,7 @@ mxd_energy_motor_open( MX_RECORD *record )
 	motor = (MX_MOTOR *) record->record_class_struct;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record, fname );
+					&theta_motor_record, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -438,12 +438,12 @@ mxd_energy_motor_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_move_absolute()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double energy, theta;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -460,7 +460,7 @@ mxd_energy_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_move_absolute( dependent_motor_record, theta, 0 );
+	mx_status = mx_motor_move_absolute( theta_motor_record, theta, 0 );
 
 	return mx_status;
 }
@@ -471,19 +471,19 @@ mxd_energy_motor_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_get_position()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double energy, theta;
 	mx_status_type mx_status;
 
 	energy = 0.0;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_position( dependent_motor_record, &theta );
+	mx_status = mx_motor_get_position( theta_motor_record, &theta );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -506,12 +506,12 @@ mxd_energy_motor_set_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_set_position()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double energy, theta;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -526,7 +526,7 @@ mxd_energy_motor_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_set_position( dependent_motor_record, theta );
+	mx_status = mx_motor_set_position( theta_motor_record, theta );
 
 	return mx_status;
 }
@@ -537,16 +537,16 @@ mxd_energy_motor_soft_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_soft_abort()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_soft_abort( dependent_motor_record );
+	mx_status = mx_motor_soft_abort( theta_motor_record );
 
 	return mx_status;
 }
@@ -557,16 +557,16 @@ mxd_energy_motor_immediate_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_immediate_abort()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_immediate_abort( dependent_motor_record );
+	mx_status = mx_motor_immediate_abort( theta_motor_record );
 
 	return mx_status;
 }
@@ -577,19 +577,19 @@ mxd_energy_motor_raw_home_command( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_raw_home_command()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	direction = - ( motor->raw_home_command );
 
-	mx_status = mx_motor_raw_home_command( dependent_motor_record,
+	mx_status = mx_motor_raw_home_command( theta_motor_record,
 							direction );
 
 	return mx_status;
@@ -601,19 +601,19 @@ mxd_energy_motor_constant_velocity_move( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_constant_velocity_move()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	direction = - ( motor->constant_velocity_move );
 
-	mx_status = mx_motor_constant_velocity_move( dependent_motor_record,
+	mx_status = mx_motor_constant_velocity_move( theta_motor_record,
 							direction );
 
 	return mx_status;
@@ -854,14 +854,14 @@ mxd_energy_motor_set_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_set_parameter()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	double real_position1, real_position2, time_for_move;
 	double *theta_positions;
 	long i;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -898,17 +898,17 @@ mxd_energy_motor_set_parameter( MX_MOTOR *motor )
 		time_for_move = motor->raw_speed_choice_parameters[2];
 
 		mx_status = mx_motor_set_speed_between_positions(
-					dependent_motor_record,
+					theta_motor_record,
 					real_position1, real_position2,
 					time_for_move );
 		break;
 
 	case MXLV_MTR_SAVE_SPEED:
-		mx_status = mx_motor_save_speed( dependent_motor_record );
+		mx_status = mx_motor_save_speed( theta_motor_record );
 		break;
 
 	case MXLV_MTR_RESTORE_SPEED:
-		mx_status = mx_motor_restore_speed( dependent_motor_record );
+		mx_status = mx_motor_restore_speed( theta_motor_record );
 		break;
 
 	case MXLV_MTR_ESTIMATED_MOVE_POSITIONS:
@@ -946,7 +946,7 @@ mxd_energy_motor_set_parameter( MX_MOTOR *motor )
 		}
 
 		mx_status = mx_motor_set_estimated_move_positions(
-					dependent_motor_record,
+					theta_motor_record,
 					motor->num_estimated_move_positions,
 					theta_positions );
 
@@ -967,17 +967,17 @@ mxd_energy_motor_get_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_get_status()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	unsigned long motor_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_status( dependent_motor_record, &motor_status);
+	mx_status = mx_motor_get_status( theta_motor_record, &motor_status);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1010,18 +1010,18 @@ mxd_energy_motor_get_extended_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_energy_motor_get_extended_status()";
 
 	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_RECORD *theta_motor_record;
 	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
-					&dependent_motor_record,fname );
+					&theta_motor_record,fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_extended_status( dependent_motor_record,
+	mx_status = mx_motor_get_extended_status( theta_motor_record,
 						&theta, &motor_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
