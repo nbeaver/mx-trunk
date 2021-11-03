@@ -727,16 +727,36 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Note that math runtime libraries do not, in general,
-		 * directly include implementations of cosecant or cotangent.
-		 */
+		/*===*/
 
-		motor->acceleration_distance = fabs(
-			mx_divide_safely(
-				MX_HC * cos( theta ),
-				2.0 * d_spacing * pow( sin( theta ), 2.0 ) )
+		theta_start = theta - 0.5 * theta_acceleration_distance;
 
-			* theta_acceleration_distance ); 
+		theta_end = theta + 0.5 * theta_acceleration_distance;
+
+		mx_status = mxd_energy_motor_convert_theta_to_energy(
+				motor, energy_motor,
+				theta_start, &energy_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_energy_motor_convert_theta_to_energy(
+				motor, energy_motor,
+				theta_end, &energy_end );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->acceleration_distance =
+				fabs( energy_end - energy_start );
+
+#if 0
+		MX_DEBUG(-2,("%s: theta_start = %g, theta_end = %g",
+				fname, theta_start, theta_end ));
+
+		MX_DEBUG(-2,("%s: energy_start = %g, energy_end = %g",
+				fname, energy_start, energy_end ));
+#endif
 		break;
 
 	case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:
