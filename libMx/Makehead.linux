@@ -248,6 +248,8 @@ endif
 
 _num_librt_instances := $(shell /sbin/ldconfig -p | grep librt.so | wc -l)
 
+_num_librt_instances := $(strip $(_num_librt_instances))
+
 ###$(info _num_librt_instances is [${_num_librt_instances}])
 
 ifneq ($(_num_librt_instances),0)
