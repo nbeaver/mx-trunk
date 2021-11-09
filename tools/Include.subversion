@@ -11,6 +11,7 @@ _mx_subversion_revision := $(shell svnversion .. 2>/dev/null | tr -d ' ')
 
 ifndef _mx_subversion_revision
   _mx_subversion_label := unknown
+  _mx_subversion_revnumber := 0
 else
   ifeq ($(_mx_subversion_revision),Unversioneddirectory)
     _mx_subversion_label := none
