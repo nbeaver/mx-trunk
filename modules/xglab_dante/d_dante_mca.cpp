@@ -63,10 +63,6 @@
 #include <stdint.h>
 #include <string.h>
 
-/* Vendor include file. */
-
-#include "DLL_DPP_Callback.h"
-
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -76,6 +72,8 @@
 #include "mx_mca.h"
 
 #include "mx_hrt_debug.h"
+
+#include "mx_dll_dpp_callback.h"
 
 #include "i_dante.h"
 #include "d_dante_mcs.h"

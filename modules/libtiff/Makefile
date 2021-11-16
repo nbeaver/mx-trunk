@@ -1,5 +1,10 @@
+# Module name: libtiff.mxo
+#
+# Purpose:     MX libtiff extension
 #
 # Supported values of MX_ARCH:   cygwin, linux, linux-clang, macosx-clang, win32
+#
+# Warning: MX only supports LibTIFF 4.0 and above.
 #
 
 ifndef MX_ARCH

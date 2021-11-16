@@ -39,9 +39,7 @@
 #include "mx_mcs.h"
 #include "mx_mca.h"
 
-/* Vendor include file. */
-
-#include "DLL_DPP_Callback.h"
+#include "mx_dll_dpp_callback.h"
 
 #include "i_dante.h"
 #include "d_dante_mcs.h"

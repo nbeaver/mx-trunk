@@ -39,19 +39,6 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#if defined(OS_WIN32)
-#include <windows.h>
-#include <io.h>
-#endif
-
-/* Vendor include file. */
-
-#include "DLL_DPP_Callback.h"
-
-#ifdef POLLINGLIB
-#error Only the Callback mode library is supported.
-#endif
-
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -65,6 +52,8 @@
 #include "mx_mca.h"
 
 #include "mx_hrt_debug.h"
+
+#include "mx_dll_dpp_callback.h"
 
 #include "i_dante.h"
 #include "d_dante_mcs.h"
