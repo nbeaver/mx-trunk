@@ -19,9 +19,7 @@ ifeq ($(MX_ARCH),linux-clang)
 endif
 
 ifeq ($(MX_ARCH),win32)
-#	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.7.13.0-IIT\\Library\\Windows\\3.7.13.0-Callback-x64"
-#	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.7.15.0\\Library\\Windows\\3.7.15.0-Callback-x64"
-	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.7.16.0\\Library\\Windows\\3.7.16.0-Callback-x64"
+	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.7.19.0\\Library\\Windows\\3.7.19.0-Callback-x64"
 endif
 
 #--------------------------------------------------------------------------

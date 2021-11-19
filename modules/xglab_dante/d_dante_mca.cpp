@@ -401,8 +401,30 @@ mxd_dante_mca_open( MX_RECORD *record )
 				      +         mxi_dante_callback_data[3];
 
 #if 1
-	MX_DEBUG(-2,("%s: '%s', firmware_version = %lu",
-	    fname, dante_mca->record->name, dante_mca->firmware_version));
+	{
+	    char firmware_type[40];
+
+	    switch( mxi_dante_callback_data[3] ) {
+	    case 1:
+		    strlcpy( firmware_type, "LE", sizeof(firmware_type) );
+		    break;
+	    case 2:
+		    strlcpy( firmware_type, "HR", sizeof(firmware_type) );
+		    break;
+	    default:
+		    snprintf( firmware_type, sizeof(firmware_type),
+			"'Unknown type %lu'",
+			(unsigned long) mxi_dante_callback_data[3] );
+		    break;
+	    }
+
+	    MX_DEBUG(-2,("%s: '%s', firmware_version = (%lu.%lu.%lu %s)",
+		fname, dante_mca->record->name,
+		(unsigned long) mxi_dante_callback_data[0],
+		(unsigned long) mxi_dante_callback_data[1],
+		(unsigned long) mxi_dante_callback_data[2],
+		firmware_type ));
+	}
 #endif
 
 	/*---*/
