@@ -598,7 +598,7 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 		pthread_cv, pthread_status, strerror(pthread_status) );
 	}
 
-	(*cv)->cv_private = pthread_cv;
+	(*cv)->cv_private = (void *) pthread_cv;
 
 	return MX_SUCCESSFUL_RESULT;
 }

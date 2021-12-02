@@ -639,10 +639,10 @@ MX_API void mx_free_pointer( void *pointer );
  */
 
 #define mx_free( ptr ) \
-			do {				\
-				if ( (ptr) != NULL ) {	\
-					free(ptr);	\
-					(ptr) = NULL;	\
+			do {					\
+				if ( (ptr) != NULL ) {		\
+					free((void *) ptr);	\
+					(ptr) = NULL;		\
 				} \
 			} while (0)
 
