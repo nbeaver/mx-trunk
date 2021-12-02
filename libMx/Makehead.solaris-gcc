@@ -255,8 +255,28 @@ $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
 mxserial.o: mxserial_fork.c
 	$(CC) $(CFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
 
+#---
+
+MXGET_NAME            = mxget
+
+$(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXGET_NAME) \
+		$(MXGET_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
+MXPUT_NAME            = mxput
+
+$(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXPUT_NAME) \
+		$(MXPUT_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
 util_install:
 	$(INSTALL) -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	$(INSTALL) -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 	$(INSTALL) -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+	$(INSTALL) -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
+	$(INSTALL) -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
 
