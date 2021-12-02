@@ -104,6 +104,8 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.o)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.o)
+MXGET_OBJS        = $(MXGET_SRCS:.c=.o)
+MXPUT_OBJS        = $(MXPUT_SRCS:.c=.o)
 
 MX_LIB_OBJS += ../tools/xdr.o
 MX_LIB_OBJS += ../tools/xdr_hyper.o
@@ -251,8 +253,28 @@ $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
 mxserial.o: mxserial_fork.c
 	$(CC) $(LINKFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
 
+#---
+
+MXGET_NAME            = mxget
+
+$(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXGET_NAME) \
+		$(MXGET_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
+MXPUT_NAME            = mxput
+
+$(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXPUT_NAME) \
+		$(MXPUT_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
 util_install:
 	/usr/bin/install -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -c -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -c -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/bin/install -c -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/bin/install -c -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
 
