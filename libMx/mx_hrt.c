@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2017
+ * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2017, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -49,39 +49,9 @@
 #include "mx_clock.h"
 #include "mx_hrt.h"
 
-/* The time returned by mx_high_resolution_time_using_clock_ticks() is
- * generally "high resolution" in name only.  But this function serves
- * as a fallback if there is no better method.
- */
+/*--------------------------------------------------------------------------*/
 
-#if defined(OS_SOLARIS)
-#  define MX_NEED_HRT_FALLBACK		FALSE
-
-#elif defined(OS_IRIX)
-#  define MX_NEED_HRT_FALLBACK		FALSE
-
-#elif defined(OS_MACOSX)
-#  if defined(__i386__)
-#    define MX_NEED_HRT_FALLBACK	TRUE
-#  elif defined(__amd64__)
-#    define MX_NEED_HRT_FALLBACK	FALSE
-#  elif defined(__ppc__)
-#    define MX_NEED_HRT_FALLBACK	FALSE
-#  elif defined(__arm64__)
-#    define MX_NEED_HRT_FALLBACK	TRUE
-#  else
-#    error Unrecognized CPU architecture for MacOS X!
-#  endif
-
-#elif ( defined(__GNUC__) && defined(OS_WIN32) )
-#  define MX_NEED_HRT_FALLBACK		TRUE
-
-#elif ( defined(__GNUC__) && defined(__x86_64__) )
-#  define MX_NEED_HRT_FALLBACK		FALSE
-
-#else
-#  define MX_NEED_HRT_FALLBACK		TRUE
-#endif
+static mx_bool_type mx_high_resolution_time_init_invoked = FALSE;
 
 /*--------------------------------------------------------------------------*/
 
@@ -94,32 +64,6 @@ mx_get_hrt_counter_ticks_per_second( void )
 }
 
 /*--------------------------------------------------------------------------*/
-
-#if MX_NEED_HRT_FALLBACK
-
-static struct timespec
-mx_high_resolution_time_using_clock_ticks( void )
-{
-	MX_CLOCK_TICK clock_tick;
-	struct timespec value;
-	double time_in_seconds;
-
-	clock_tick = mx_current_clock_tick();
-
-	time_in_seconds = mx_convert_clock_ticks_to_seconds( clock_tick );
-
-	value.tv_sec = (long) time_in_seconds;
-
-	time_in_seconds -= (double) value.tv_sec;
-
-	value.tv_nsec = (long) ( 1000000000.0 * time_in_seconds );
-
-	return value;
-}
-
-#endif /* MX_NEED_HRT_FALLBACK */
-
-/*---*/
 
 MX_EXPORT struct timespec
 mx_add_high_resolution_times( struct timespec time1,
@@ -234,6 +178,95 @@ mx_high_resolution_time_as_double( void )
 	result = mx_convert_high_resolution_time_to_seconds( hrt );
 
 	return result;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static int mx_cpu_has_hardware_clock = TRUE;
+
+MX_EXPORT int
+mx_high_resolution_time_has_hardware_clock( void )
+{
+	return mx_cpu_has_hardware_clock;
+}
+
+/*--------------------------------------------------------------------------*/
+
+/* The time returned by mx_high_resolution_time_using_clock_ticks() is
+ * generally "high resolution" in name only.  But this function serves
+ * as a fallback if there is no better method.
+ */
+
+MX_EXPORT struct timespec
+mx_high_resolution_time_using_clock_ticks( void )
+{
+	MX_CLOCK_TICK clock_tick;
+	struct timespec value;
+	double time_in_seconds;
+
+	clock_tick = mx_current_clock_tick();
+
+	time_in_seconds = mx_convert_clock_ticks_to_seconds( clock_tick );
+
+	value.tv_sec = (long) time_in_seconds;
+
+	time_in_seconds -= (double) value.tv_sec;
+
+	value.tv_nsec = (long) ( 1000000000.0 * time_in_seconds );
+
+	return value;
+}
+
+/*--------------------------------------------------------------------------*/
+
+/* This is intended for plaforms that do not provide a way to figure out
+ * the rate at which the CPU clock ticks.
+ */
+
+MX_EXPORT double
+mx_high_resolution_time_init_from_file( void )
+{
+	char calib_filename[MXU_FILENAME_LENGTH+1];
+	FILE *calib_file;
+	char buffer[80];
+	int num_items;
+	double hrt_counter_ticks_per_microsecond;
+	mx_status_type mx_status;
+
+	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+						"mx_timer_calib.dat",
+						calib_filename,
+						sizeof(calib_filename) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return -1;
+
+	calib_file = fopen( calib_filename, "r" );
+
+	if ( calib_file == NULL )
+		return -1;
+
+	mx_fgets( buffer, sizeof(buffer), calib_file );
+
+	fclose( calib_file );
+
+	num_items = sscanf( buffer, "%lg", &hrt_counter_ticks_per_microsecond );
+
+	if ( num_items != 1 ) {
+		mx_warning(
+		"The first line of timer calibration file '%s' did not contain "
+		"an HRT 'counter ticks per microsecond' calibration value.  "
+		"Instead, it contained '%s'.", calib_filename, buffer );
+
+		return -1;
+	}
+
+	mx_info(
+	"Setting high resolution timer to %g ticks per microsecond "
+	"from calibration file '%s'.",
+		hrt_counter_ticks_per_microsecond, calib_filename );
+
+	return hrt_counter_ticks_per_microsecond;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -588,217 +621,11 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
-/*--------------------------------------------------------------------------*/
+/*==========================================================================*/
 
-#elif defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
+#elif defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_MINIX)
 
-/* The x86 and x86_64 methods for GCC share much of the same code. */
-
-#if defined(__x86_64__)
-
-/******* GCC on x86_64 *******/
-
-static int mx_high_resolution_time_init_invoked = FALSE;
-
-static __inline__ unsigned long
-mx_rdtsc( void )
-{
-	unsigned long x;
-
-	/* The following generates inline an RDTSC instruction
-	 * and puts the results in the variable "x".
-	 *
-	 * As it happens, the version of this code used on 32-bit
-         * machines will not put the value in the right place on
-	 * a 64-bit machine, so we must use this 64-bit specific
-	 * method instead.
-	 *
-	 * References:
-	 *    http://www.technovelty.org/code/c/reading-rdtsc.html
-	 *    http://lists.freedesktop.org/archives/cairo/2008-September/015029.html
-	 */
-
-	unsigned int a_register, d_register;
-
-	__asm__ volatile( "rdtsc" : "=a" (a_register), "=d" (d_register) );
-
-	x = ((unsigned long) a_register) | (((unsigned long) d_register) << 32);
-
-	return x;
-}
-
-MX_EXPORT void
-mx_udelay( unsigned long microseconds )
-{
-	unsigned long tsc_start_value, tsc_end_value;
-	unsigned long tsc_delay_ticks;
-
-	if ( mx_high_resolution_time_init_invoked == FALSE )
-		mx_high_resolution_time_init();
-
-	tsc_delay_ticks = (unsigned long)
-	    ( mx_hrt_counter_ticks_per_microsecond * (double) microseconds );
-
-	tsc_start_value = mx_rdtsc();
-
-	tsc_end_value = tsc_start_value + tsc_delay_ticks;
-
-	/* Sit in a loop until we reach the end of the delay time. */
-
-	while ( mx_rdtsc() < tsc_end_value )
-		;				/* Do nothing. */
-
-	return;
-}
-
-MX_EXPORT struct timespec
-mx_high_resolution_time( void )
-{
-	struct timespec value;
-	unsigned long tsc_value;
-	double time_in_microseconds;
-
-	if ( mx_high_resolution_time_init_invoked == FALSE )
-		mx_high_resolution_time_init();
-
-	tsc_value = mx_rdtsc();
-
-	time_in_microseconds = mx_divide_safely( (double) tsc_value,
-				mx_hrt_counter_ticks_per_microsecond );
-
-	value.tv_sec = (unsigned long) ( 0.000001 * time_in_microseconds );
-
-	time_in_microseconds -= 1000000.0 * (double) value.tv_sec;
-
-	value.tv_nsec = (unsigned long) ( 1000.0 * time_in_microseconds );
-
-	return value;
-}
-
-#elif defined(__i386__)
-
-/******* GCC on x86 *******/
-
-/* The following was inspired by the Linux I/O port programming mini-HOWTO. */
-
-#define MX_CPU_UNKNOWN		0
-#define MX_CPU_USE_XCHG		1
-#define MX_CPU_USE_RDTSC	2
-
-static int mx_cpu_delay_type = MX_CPU_UNKNOWN;
-
-static int mx_high_resolution_time_init_invoked = FALSE;
-
-static __inline__ unsigned long long int
-mx_rdtsc( void )
-{
-	unsigned long long int x;
-
-	/* The following generates inline an RDTSC instruction
-	 * and puts the results in the variable "x".
-	 */
-
-	__asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-
-	return x;
-}
-
-static __inline__ void
-mx_xchg_delay( void )
-{
-	/* The following takes three clock cycles on i386 and i486 machines.
-	 * We will be using RDTSC on other x86 CPU types.
-	 */
-
-	__asm__ volatile ("xchg %bx,%bx");
-
-	return;
-}
-
-MX_EXPORT void
-mx_udelay( unsigned long microseconds )
-{
-	if ( mx_high_resolution_time_init_invoked == FALSE )
-		mx_high_resolution_time_init();
-
-	if ( mx_cpu_delay_type == MX_CPU_USE_RDTSC ) {
-
-		/* Warning: The following logic has the fundamental flaw
-		 * that the TSC counter will overflow in around 584 years
-		 * on a 1 GHz x86 machine, but I expect to be retired long
-		 * before that.  (WML)
-		 */
-
-		unsigned long long int tsc_start_value, tsc_end_value;
-		unsigned long long int tsc_delay_ticks;
-
-		tsc_delay_ticks = (unsigned long long int)
-	( mx_hrt_counter_ticks_per_microsecond * (double) microseconds );
-
-		tsc_start_value = mx_rdtsc();
-
-		tsc_end_value = tsc_start_value + tsc_delay_ticks;
-
-		/* Sit in a loop until we reach the end of the delay time. */
-
-		while ( mx_rdtsc() < tsc_end_value )
-			;				/* Do nothing */
-
-	} else {
-		/* This code does not work as well as the RDTSC code since
-		 * it does not take into account delays due to the process
-		 * being preempted by the kernel.
-		 */
-
-		unsigned long long int i, num_times_to_loop;
-
-		num_times_to_loop = (unsigned long long int)
-	( mx_hrt_counter_ticks_per_microsecond * (double) microseconds );
-
-		for ( i = 0; i < num_times_to_loop; i++ ) {
-			mx_xchg_delay();
-		}
-	}
-	return;
-}
-
-MX_EXPORT struct timespec
-mx_high_resolution_time( void )
-{
-	if ( mx_high_resolution_time_init_invoked == FALSE )
-		mx_high_resolution_time_init();
-
-	if ( mx_cpu_delay_type != MX_CPU_USE_RDTSC ) {
-		return mx_high_resolution_time_using_clock_ticks();
-	} else {
-		struct timespec value;
-		unsigned long long tsc_value;
-		double time_in_microseconds;
-
-		tsc_value = mx_rdtsc();
-
-		time_in_microseconds = mx_divide_safely( (double) tsc_value,
-					mx_hrt_counter_ticks_per_microsecond );
-
-		value.tv_sec = (unsigned long)
-				( 0.000001 * time_in_microseconds );
-
-		time_in_microseconds -= 1000000.0 * (double) value.tv_sec;
-
-		value.tv_nsec = (unsigned long)
-				( 1000.0 * time_in_microseconds );
-
-		return value;
-	}
-}
-
-#else
-#error Unrecognized x86 variant for GCC.
-#endif
-
-/*--------------------------------------------------------------------------*/
-
-#if defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_MINIX)
+#define MX_HRT_USE_GENERIC	TRUE
 
 /******* GCC on Linux or Cygwin using /proc/cpuinfo *******/
 
@@ -909,14 +736,6 @@ mx_high_resolution_time_init( void )
 	}
 
 	fclose( cpuinfo );
-
-#if defined(__i386__)
-	if ( have_tsc ) {
-		mx_cpu_delay_type = MX_CPU_USE_RDTSC;
-	} else {
-		mx_cpu_delay_type = MX_CPU_USE_XCHG;
-	}
-#endif
 
 	if ( (cpu_family == 3) || (cpu_family == 4) ) {
 		mx_hrt_counter_ticks_per_microsecond = cpu_mhz / 3.0;
@@ -1127,9 +946,7 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
-#else	/* not OS_LINUX */
-
-#  define MX_NEED_HRT_INIT_FROM_FILE	TRUE
+#elif TRUE
 
 double mx_high_resolution_time_init_from_file( void );
 
@@ -1178,167 +995,9 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
-#endif  /* OS_LINUX */
-
-#elif defined(__GNUC__) && defined(__ppc__)
-
-/******* GCC on PowerPC *******/
-
-static int mx_high_resolution_time_init_invoked = FALSE;
-
-static __inline__ unsigned long long
-mx_read_timebase( void )
-{
-	unsigned long long timebase;
-	unsigned long timebase_lower, timebase_upper, timebase_upper_2;
-
-	do {
-		__asm__ volatile("mftbu %0" : "=r" (timebase_upper));
-		__asm__ volatile("mftb %0" : "=r" (timebase_lower));
-		__asm__ volatile("mftbu %0" : "=r" (timebase_upper_2));
-	} while ( timebase_upper != timebase_upper_2 );
-
-	timebase =
-	    (((unsigned long long) timebase_upper) << 32) | timebase_lower;
-
-	return timebase;
-}
-
-MX_EXPORT void
-mx_udelay( unsigned long microseconds )
-{
-	unsigned long long start_time, end_time, delay_ticks;
-
-	if ( mx_high_resolution_time_init_invoked == FALSE )
-		mx_high_resolution_time_init();
-
-	delay_ticks = (unsigned long long) 
-	    ( mx_hrt_counter_ticks_per_microsecond * (double) microseconds );
-
-	start_time = mx_read_timebase();
-
-	end_time = start_time + delay_ticks;
-
-	while ( mx_read_timebase() < end_time )
-		;				/* Do nothing. */
-
-	return;
-}
-
-MX_EXPORT struct timespec
-mx_high_resolution_time( void )
-{
-	struct timespec value;
-	double time_in_microseconds;
-	unsigned long long timebase_value;
-
-	if ( mx_high_resolution_time_init_invoked == FALSE )
-		mx_high_resolution_time_init();
-
-	timebase_value = mx_read_timebase();
-
-	time_in_microseconds = mx_divide_safely( (double) timebase_value,
-					mx_hrt_counter_ticks_per_microsecond );
-
-	value.tv_sec = (unsigned long)
-			( 0.000001 * time_in_microseconds );
-
-	time_in_microseconds -= 1000000.0 * (double) value.tv_sec;
-
-	value.tv_nsec = (unsigned long) ( 1000.0 * time_in_microseconds );
-
-	return value;
-}
-
-#if defined(OS_MACOSX)
-
-#include <sys/sysctl.h>
-#include <errno.h>
-
-MX_EXPORT void
-mx_high_resolution_time_init( void )
-{
-	static const char fname[] = "mx_high_resolution_time_init()";
-
-	int mib[2], tbfrequency;
-	int status, saved_errno;
-	size_t tbsize;
-
-	mx_high_resolution_time_init_invoked = TRUE;
-
-	mib[0] = CTL_HW;
-	mib[1] = HW_TB_FREQ;
-
-	tbsize = sizeof(tbfrequency);
-
-	status = sysctl(mib, 2, &tbfrequency, &tbsize, NULL, 0);
-
-	if ( status != 0 ) {
-		saved_errno = errno;
-
-		(void) mx_error( MXE_FUNCTION_FAILED, fname,
-		"Attempt to get the PowerPC timebase frequency failed.  "
-		"Errno = %d, error message = '%s'.",
-				saved_errno, strerror( saved_errno ) );
-		return;
-	}
-
-	mx_hrt_counter_ticks_per_microsecond = 1.0e-6 * (double) tbfrequency;
-
-	return;
-}
-
-#else	/* not OS_MACOSX */
-
-#  define MX_NEED_HRT_INIT_FROM_FILE	TRUE
-
-double mx_high_resolution_time_init_from_file( void );
-
-MX_EXPORT void
-mx_high_resolution_time_init( void )
-{
-	unsigned long long timebase_before, timebase_after;
-
-	mx_high_resolution_time_init_invoked = TRUE;
-
-	/* Initially, we attempt to to read the calibration from the
-	 * file $MXDIR/etc/mx_timer_calib.dat
-	 */
-
-	mx_hrt_counter_ticks_per_microsecond =
-		mx_high_resolution_time_init_from_file();
-
-	if ( mx_hrt_counter_ticks_per_microsecond > 0.0 ) {
-		return;
-	}
-
-	/* If reading the calibration from a file did not succeed,
-	 * then we try to compute the calibration right now.
-	 */
-
-	mx_info(
-"Calibrating high resolution timer.  This will take around 10 seconds." );
-
-	timebase_before = mx_read_timebase();
-
-	sleep(10);
-
-	timebase_after = mx_read_timebase();
-
-	mx_hrt_counter_ticks_per_microsecond =
-		1.0e-7 * (double) ( timebase_after - timebase_before );
-
-	mx_info( "High resolution timer ticks per microsecond = %g",
-		mx_hrt_counter_ticks_per_microsecond );
-
-	return;
-}
-	
-#endif
-
-/****** End of GCC ******/
-
 #else
+
+#error No HRT defined.
 
 /******* None of the above ********/
 
@@ -1373,53 +1032,140 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
-#if defined( MX_NEED_HRT_INIT_FROM_FILE )
+/* The following section defines primitives for reading the hardware
+ * clock on various CPU architectures.
+ */
 
-double
-mx_high_resolution_time_init_from_file( void )
+#if ( defined(__GNUC__) && defined(__x86_64__) )
+
+/******* GCC on x86_64 *******/
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
 {
-	char calib_filename[MXU_FILENAME_LENGTH+1];
-	FILE *calib_file;
-	char buffer[80];
-	int num_items;
-	double hrt_counter_ticks_per_microsecond;
-	mx_status_type mx_status;
+	uint64_t x;
 
-	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
-						"mx_timer_calib.dat",
-						calib_filename,
-						sizeof(calib_filename) );
+	/* The following generates inline an RDTSC instruction
+	 * and puts the results in the variable "x".
+	 *
+	 * As it happens, the version of this code used on 32-bit
+         * machines will not put the value in the right place on
+	 * a 64-bit machine, so we must use this 64-bit specific
+	 * method instead.
+	 *
+	 * References:
+	 *    http://www.technovelty.org/code/c/reading-rdtsc.html
+	 *    http://lists.freedesktop.org/archives/cairo/2008-September/015029.html
+	 */
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return -1;
+	unsigned int a_register, d_register;
 
-	calib_file = fopen( calib_filename, "r" );
+	__asm__ volatile( "rdtsc" : "=a" (a_register), "=d" (d_register) );
 
-	if ( calib_file == NULL )
-		return -1;
+	x = ((unsigned long) a_register) | (((unsigned long) d_register) << 32);
 
-	mx_fgets( buffer, sizeof(buffer), calib_file );
-
-	fclose( calib_file );
-
-	num_items = sscanf( buffer, "%lg", &hrt_counter_ticks_per_microsecond );
-
-	if ( num_items != 1 ) {
-		mx_warning(
-		"The first line of timer calibration file '%s' did not contain "
-		"an HRT 'counter ticks per microsecond' calibration value.  "
-		"Instead, it contained '%s'.", calib_filename, buffer );
-
-		return -1;
-	}
-
-	mx_info(
-	"Setting high resolution timer to %g ticks per microsecond "
-	"from calibration file '%s'.",
-		hrt_counter_ticks_per_microsecond, calib_filename );
-
-	return hrt_counter_ticks_per_microsecond;
+	return x;
 }
 
-#endif /* MX_NEED_HRT_INIT_FROM_FILE */
+#elif ( defined(__GNUC__) && defined(__i386__) )
+
+/******* GCC on x86 *******/
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t x;
+
+	if ( mx_hrt_use_clock_ticks ) {
+		return mx_high_resolution_time_using_clock_ticks();
+	}
+
+	/* The following generates inline an RDTSC instruction
+	 * and puts the results in the variable "x".
+	 */
+
+	__asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+
+	return x;
+}
+
+#elif ( defined(__GNUC__) && defined(__ppc__) )
+
+/******* GCC on PowerPC *******/
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t timebase;
+	unsigned long timebase_lower, timebase_upper, timebase_upper_2;
+
+	do {
+		__asm__ volatile("mftbu %0" : "=r" (timebase_upper));
+		__asm__ volatile("mftb %0" : "=r" (timebase_lower));
+		__asm__ volatile("mftbu %0" : "=r" (timebase_upper_2));
+	} while ( timebase_upper != timebase_upper_2 );
+
+	timebase =
+	    (((unsigned long long) timebase_upper) << 32) | timebase_lower;
+
+	return timebase;
+}
+
+#else
+#error mx_get_hrt_counter_tick() not implemented for this platform.
+#endif
+
+/*--------------------------------------------------------------------------*/
+
+#if defined( MX_HRT_USE_GENERIC )
+
+MX_EXPORT void
+mx_udelay( unsigned long microseconds )
+{
+	uint64_t start_time, end_time, delay_ticks;
+
+	if ( mx_high_resolution_time_init_invoked == FALSE )
+		mx_high_resolution_time_init();
+
+	delay_ticks = (unsigned long long) 
+	    ( mx_hrt_counter_ticks_per_microsecond * (double) microseconds );
+
+	start_time = mx_get_hrt_counter_tick();
+
+	end_time = start_time + delay_ticks;
+
+	while ( mx_get_hrt_counter_tick() < end_time )
+		;				/* Do nothing. */
+
+	return;
+}
+
+MX_EXPORT struct timespec
+mx_high_resolution_time( void )
+{
+	struct timespec value;
+	double time_in_microseconds;
+	uint64_t hrt_value;
+
+	if ( mx_high_resolution_time_init_invoked == FALSE )
+		mx_high_resolution_time_init();
+
+	hrt_value = mx_get_hrt_counter_tick();
+
+	time_in_microseconds = mx_divide_safely( (double) hrt_value,
+					mx_hrt_counter_ticks_per_microsecond );
+
+	value.tv_sec = (unsigned long)
+			( 0.000001 * time_in_microseconds );
+
+	time_in_microseconds -= 1000000.0 * (double) value.tv_sec;
+
+	value.tv_nsec = (unsigned long) ( 1000.0 * time_in_microseconds );
+
+	return value;
+}
+
+#endif
+
+/*--------------------------------------------------------------------------*/
 

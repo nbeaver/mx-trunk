@@ -78,6 +78,18 @@ MX_API double mx_high_resolution_time_as_double( void );
 
 MX_API void mx_udelay( unsigned long microseconds );
 
+/*---*/
+
+/* The following functions are not meant to be invoked from MX 
+ * application programs.
+ */
+
+MX_API_PRIVATE int mx_high_resolution_time_has_hardware_clock( void );
+
+MX_API_PRIVATE struct timespec mx_high_resolution_time_using_clock_ticks(void);
+
+MX_API_PRIVATE double mx_high_resolution_time_init_from_file( void );
+
 #ifdef __cplusplus
 }
 #endif

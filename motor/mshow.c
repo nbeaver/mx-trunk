@@ -1066,6 +1066,7 @@ motor_show_version( void )
 	char architecture_subtype[80];
 	const char *revision_string;
 	unsigned long num_cores;
+	struct timespec hrt_time;
 	mx_status_type mx_status;
 
 	list_head = mx_get_record_list_head_struct( motor_record_list );
@@ -1282,6 +1283,12 @@ motor_show_version( void )
 
 	fprintf( output, "\nHigh resolution timer ticks per second = %g\n",
 				mx_get_hrt_counter_ticks_per_second() );
+
+	hrt_time = mx_high_resolution_time();
+
+	fprintf( output, "\nHigh resolution time = ( %ld sec, %ld ns )\n",
+				(long) hrt_time.tv_sec, hrt_time.tv_nsec );
+
 
 	fprintf( output, "\n" );
 
