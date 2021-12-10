@@ -67,6 +67,8 @@
 #    define MX_NEED_HRT_FALLBACK	FALSE
 #  elif defined(__ppc__)
 #    define MX_NEED_HRT_FALLBACK	FALSE
+#  elif defined(__arm64__)
+#    define MX_NEED_HRT_FALLBACK	TRUE
 #  else
 #    error Unrecognized CPU architecture for MacOS X!
 #  endif
