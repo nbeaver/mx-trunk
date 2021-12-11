@@ -840,6 +840,8 @@ mx_high_resolution_time_init( void )
 
 #elif defined(OS_MACOSX) || defined(__OpenBSD__)
 
+#define MX_HRT_USE_GENERIC	TRUE
+
 #include <errno.h>
 #include <sys/sysctl.h>
 
