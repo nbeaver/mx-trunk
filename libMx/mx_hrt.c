@@ -753,6 +753,8 @@ mx_high_resolution_time_init( void )
 
 #elif defined(__FreeBSD__)
 
+#define MX_HRT_USE_GENERIC	TRUE
+
 #include <errno.h>
 #include <sys/sysctl.h>
 
@@ -797,6 +799,8 @@ mx_high_resolution_time_init( void )
 /*--------------------------------------------------------------------------*/
 
 #elif defined(__NetBSD__)
+
+#define MX_HRT_USE_GENERIC	TRUE
 
 #include <errno.h>
 #include <sys/sysctl.h>
@@ -889,6 +893,8 @@ mx_high_resolution_time_init( void )
 
 #elif ( 0 && defined(OS_QNX) )
 
+#define MX_HRT_USE_GENERIC	TRUE
+
 #include <sys/sched_aps.h>
 #include <sys/neutrino.h>
 #include <errno.h>
@@ -949,6 +955,8 @@ mx_high_resolution_time_init( void )
 /*--------------------------------------------------------------------------*/
 
 #elif TRUE
+
+#define MX_HRT_USE_GENERIC	TRUE
 
 double mx_high_resolution_time_init_from_file( void );
 
@@ -1032,7 +1040,7 @@ mx_high_resolution_time_init( void )
 
 #endif
 
-/*--------------------------------------------------------------------------*/
+/*==========================================================================*/
 
 /* The following section defines primitives for reading the hardware
  * clock on various CPU architectures.

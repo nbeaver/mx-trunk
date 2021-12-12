@@ -1278,7 +1278,7 @@ motor_show_version( void )
 		list_head->mx_version_time );
 
 
-	fprintf( output, "\nCurrent Posix time: %lu seconds\n",
+	fprintf( output, "Current Posix time: %lu seconds\n",
 					(unsigned long) time( NULL ) );
 
 	fprintf( output, "\nHigh resolution timer ticks per second = %g\n",
@@ -1286,7 +1286,7 @@ motor_show_version( void )
 
 	hrt_time = mx_high_resolution_time();
 
-	fprintf( output, "\nHigh resolution time = ( %ld sec, %ld ns )\n",
+	fprintf( output, "High resolution time = ( %ld sec, %ld ns )\n",
 				(long) hrt_time.tv_sec, hrt_time.tv_nsec );
 
 
