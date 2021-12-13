@@ -751,7 +751,7 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__)
 
 #define MX_HRT_USE_GENERIC	TRUE
 
@@ -763,32 +763,36 @@ mx_high_resolution_time_init( void )
 {
 	static const char fname[] = "mx_high_resolution_time_init()";
 
-	uint64_t tsc_freq;
-	size_t length;
+#if ( defined(__x86_64__) || defined(__i386__) )
+	uint64_t cpu_freq = 0;
+	size_t cpu_freq_length = sizeof(cpu_freq);
+	const char cpu_freq_mib[] = "machdep.tsc_freq";
+#else
+#  error cpu_freq_mib[] not defined for this build target.
+#endif
 	int status, saved_errno;
 
 	mx_high_resolution_time_init_invoked = TRUE;
 
-	tsc_freq = 0;
-
-	length = sizeof(tsc_freq);
-
-	status = sysctlbyname("machdep.tsc_freq", &tsc_freq, &length, NULL, 0);
+	status = sysctlbyname( cpu_freq_mib,
+			&cpu_freq, &cpu_freq_length, NULL, 0);
 
 	if ( status < 0 ) {
 		saved_errno = errno;
 
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt to read the value of 'machdep.tsc_freq' "
+		"The attempt to read the value of '%s' "
 		"using sysctlbyname() failed.  Errno = %d, error = '%s'",
-			saved_errno, strerror(saved_errno) );
+			cpu_freq_mib, saved_errno, strerror(saved_errno) );
 		return;
 	}
 
-	MX_DEBUG( 2,("%s: tsc_freq = %llu",
-		fname, (long long unsigned int) tsc_freq));
+#if 0
+	MX_DEBUG(-2,("%s: cpu_freq = %llu",
+		fname, (long long unsigned int) cpu_freq));
+#endif
 
-	mx_hrt_counter_ticks_per_microsecond = tsc_freq / 1000000LU;
+	mx_hrt_counter_ticks_per_microsecond = cpu_freq / 1000000LU;
 
 	MX_DEBUG( 2,("%s: mx_hrt_counter_ticks_per_microsecond = %g",
 		fname, mx_hrt_counter_ticks_per_microsecond));
@@ -798,7 +802,7 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif defined(__NetBSD__)
+#elif 0 && defined(__NetBSD__)
 
 #define MX_HRT_USE_GENERIC	TRUE
 
