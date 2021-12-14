@@ -751,7 +751,7 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif defined(__FreeBSD__) || defined(__NetBSD__)
+#elif defined(OS_MACOSX) || defined(__FreeBSD__) || defined(__NetBSD__)
 
 #define MX_HRT_USE_GENERIC	TRUE
 
@@ -763,18 +763,31 @@ mx_high_resolution_time_init( void )
 {
 	static const char fname[] = "mx_high_resolution_time_init()";
 
-#if ( defined(__x86_64__) || defined(__i386__) )
+#if ( defined(OS_MACOSX) )
+	/* Note: hw.cpufrequency is just the nominal frequency,
+	 * _not_ the current frequency.
+	 */
+	const char cpu_freq_mib_name[] = "hw.cpufrequency";
+
+	/*==========================================================*/
+
+	/* The rest of these definitions are for FreeBSD and NetBSD
+	 * on various architectures.
+	 */
+#elif ( defined(__x86_64__) || defined(__i386__) )
+	const char cpu_freq_mib_name[] = "machdep.tsc_freq";
+
+#else
+#  error cpu_freq_mib_name[] not defined for this build target.
+#endif
+
 	uint64_t cpu_freq = 0;
 	size_t cpu_freq_length = sizeof(cpu_freq);
-	const char cpu_freq_mib[] = "machdep.tsc_freq";
-#else
-#  error cpu_freq_mib[] not defined for this build target.
-#endif
 	int status, saved_errno;
 
 	mx_high_resolution_time_init_invoked = TRUE;
 
-	status = sysctlbyname( cpu_freq_mib,
+	status = sysctlbyname( cpu_freq_mib_name,
 			&cpu_freq, &cpu_freq_length, NULL, 0);
 
 	if ( status < 0 ) {
@@ -783,7 +796,7 @@ mx_high_resolution_time_init( void )
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"The attempt to read the value of '%s' "
 		"using sysctlbyname() failed.  Errno = %d, error = '%s'",
-			cpu_freq_mib, saved_errno, strerror(saved_errno) );
+			cpu_freq_mib_name, saved_errno, strerror(saved_errno) );
 		return;
 	}
 
@@ -802,51 +815,14 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif 0 && defined(__NetBSD__)
+#elif defined(__OpenBSD__)
 
-#define MX_HRT_USE_GENERIC	TRUE
+/* OpenBSD does not have sysctlbyname() */
 
-#include <errno.h>
-#include <sys/sysctl.h>
-
-MX_EXPORT void
-mx_high_resolution_time_init( void )
-{
-	static const char fname[] = "mx_high_resolution_time_init()";
-
-	int mib[2];
-	int status, saved_errno;
-	struct clockinfo clockinfo_struct;
-	size_t clockinfo_size;
-
-	mx_high_resolution_time_init_invoked = TRUE;
-
-	mib[0] = CTL_KERN;
-	mib[1] = KERN_CLOCKRATE;
-
-	clockinfo_size = sizeof(clockinfo_struct);
-
-	status = sysctl(mib, 2, &clockinfo_struct, &clockinfo_size, NULL, 0);
-
-	if ( status != 0 ) {
-		saved_errno = errno;
-
-		(void) mx_error( MXE_FUNCTION_FAILED, fname,
-		"The attempt to get the x86 CPU speed failed.  "
-		"Errno = %d, error message = '%s'.",
-				saved_errno, strerror( saved_errno ) );
-		return;
-	}
-
-	mx_hrt_counter_ticks_per_microsecond =
-		1.0e-6 * (double) clockinfo_struct.hz;
-
-	return;
-}
-
-/*--------------------------------------------------------------------------*/
-
-#elif defined(OS_MACOSX) || defined(__OpenBSD__)
+/* FIXME: The value returned for HW_CPUSPEED does not seem to be
+ *        the right answer, but we have not found any other
+ *        CPU frequency mibs that give the "right" answer.
+ */
 
 #define MX_HRT_USE_GENERIC	TRUE
 
@@ -865,12 +841,7 @@ mx_high_resolution_time_init( void )
 	mx_high_resolution_time_init_invoked = TRUE;
 
 	mib[0] = CTL_HW;
-
-#if defined(OS_MACOSX)
-	mib[1] = HW_TB_FREQ;
-#else
 	mib[1] = HW_CPUSPEED;
-#endif
 
 	cpu_speed_size = sizeof(cpu_speed);
 
