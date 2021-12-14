@@ -789,13 +789,25 @@ mx_high_resolution_time_init( void )
 	uint64_t cpu_freq = 0;
 	size_t cpu_freq_length = sizeof(cpu_freq);
 	int status, saved_errno;
+	int i, max_attempts;
 
 	mx_high_resolution_time_init_invoked = TRUE;
 
-	status = sysctlbyname( cpu_freq_mib_name,
+	/* On Arm64 macOS, sometimes the first time you read the value of
+	 * hw.tbfrequency it returns 0, so you just try it again.
+	 */
+
+#if defined(OS_MACOSX)
+	max_attempts = 2;
+#else
+	max_attempts = 1;
+#endif
+
+	for ( i = 0; i < max_attempts; i++ ) {
+	    status = sysctlbyname( cpu_freq_mib_name,
 			&cpu_freq, &cpu_freq_length, NULL, 0);
 
-	if ( status < 0 ) {
+	    if ( status < 0 ) {
 		saved_errno = errno;
 
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
@@ -803,6 +815,11 @@ mx_high_resolution_time_init( void )
 		"using sysctlbyname() failed.  Errno = %d, error = '%s'",
 			cpu_freq_mib_name, saved_errno, strerror(saved_errno) );
 		return;
+	    }
+
+	    if ( cpu_freq > 0 ) {
+		break;		/* Exit the for() loop. */
+	    }
 	}
 
 #if 0
@@ -847,11 +864,7 @@ mx_high_resolution_time_init( void )
 
 	mib[0] = CTL_HW;
 
-#if defined(OS_MACOSX)
-	mib[1] = HW_TB_FREQ;
-#else
 	mib[1] = HW_CPUSPEED;
-#endif
 
 	cpu_speed_size = sizeof(cpu_speed);
 
