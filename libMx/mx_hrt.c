@@ -763,7 +763,12 @@ mx_high_resolution_time_init( void )
 {
 	static const char fname[] = "mx_high_resolution_time_init()";
 
-#if ( defined(OS_MACOSX) )
+#if ( defined(OS_MACOSX) && defined(__aarch64__) )
+	/* Note: hw.tbfrequency is apparently the bus frequency. */
+
+	const char cpu_freq_mib_name[] = "hw.tbfrequency";
+
+#elif ( defined(OS_MACOSX) )
 	/* Note: hw.cpufrequency is just the nominal frequency,
 	 * _not_ the current frequency.
 	 */
@@ -817,11 +822,11 @@ mx_high_resolution_time_init( void )
 
 #elif defined(__OpenBSD__)
 
-/* OpenBSD does not have sysctlbyname() */
+/* For BSD-like platforms that cannot use sysctlbyname() for whatever reason. */
 
-/* FIXME: The value returned for HW_CPUSPEED does not seem to be
- *        the right answer, but we have not found any other
- *        CPU frequency mibs that give the "right" answer.
+/* FIXME: The value returned for HW_CPUSPEED on OpenBSD does not seem to be
+ *        the right answer, but we have not found any other CPU frequency mibs
+ *        that give the "right" answer.
  */
 
 #define MX_HRT_USE_GENERIC	TRUE
@@ -841,7 +846,12 @@ mx_high_resolution_time_init( void )
 	mx_high_resolution_time_init_invoked = TRUE;
 
 	mib[0] = CTL_HW;
+
+#if defined(OS_MACOSX)
+	mib[1] = HW_TB_FREQ;
+#else
 	mib[1] = HW_CPUSPEED;
+#endif
 
 	cpu_speed_size = sizeof(cpu_speed);
 
@@ -1025,6 +1035,8 @@ mx_high_resolution_time_init( void )
 
 /******* GCC on x86_64 *******/
 
+/* Uses x86 RDTSC instruction */
+
 static __inline__ uint64_t
 mx_get_hrt_counter_tick( void )
 {
@@ -1056,6 +1068,8 @@ mx_get_hrt_counter_tick( void )
 
 /******* GCC on x86 *******/
 
+/* Uses x86 RDTSC instruction */
+
 static __inline__ uint64_t
 mx_get_hrt_counter_tick( void )
 {
@@ -1078,6 +1092,8 @@ mx_get_hrt_counter_tick( void )
 
 /******* GCC on PowerPC *******/
 
+/* Uses PowerPC TimeBase register */
+
 static __inline__ uint64_t
 mx_get_hrt_counter_tick( void )
 {
@@ -1094,6 +1110,29 @@ mx_get_hrt_counter_tick( void )
 	    (((unsigned long long) timebase_upper) << 32) | timebase_lower;
 
 	return timebase;
+}
+
+#elif ( defined(__GNUC__) && defined(__aarch64__) )
+
+/* Uses ARM64 CNTVCT_EL0 system counter register */
+
+/* Based on this web page:
+ *    https://stackoverflow.com/questions/40454157/is-there-an-equivalent-instruction-to-rdtsc-in-arm
+ */
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	/* For Arm version 8.0 to 8.5, the system counter is at least
+	 * 56 bits wide.  For Arm version 8.6 and onward, the counter
+	 * must be 64 bits wide.
+	 */
+
+	uint64_t system_counter;
+
+	asm volatile( "mrs %0, cntvct_el0" : "=r" (system_counter) );
+
+	return system_counter;
 }
 
 #else
