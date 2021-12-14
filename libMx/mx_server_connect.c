@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010, 2013, 2016-2017
+ * Copyright 2005-2006, 2008, 2010, 2013, 2016-2017, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -251,7 +251,7 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 				char *field_name,
 				MX_RECORD_FIELD *local_field )
 {
-	static const char fname[] = "mx_create_local_field()";
+	static const char fname[] = "mx_create_network_field()";
 
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	long datatype, num_dimensions;
