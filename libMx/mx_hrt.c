@@ -60,7 +60,14 @@ static double mx_hrt_counter_ticks_per_microsecond = 0.0;
 MX_EXPORT double
 mx_get_hrt_counter_ticks_per_second( void )
 {
-	return ( 1000000.0 * mx_hrt_counter_ticks_per_microsecond );
+	double result;
+
+	if ( mx_high_resolution_time_init_invoked == FALSE )
+		mx_high_resolution_time_init();
+
+	result = 1000000.0 * mx_hrt_counter_ticks_per_microsecond;
+
+	return result;
 }
 
 /*--------------------------------------------------------------------------*/
