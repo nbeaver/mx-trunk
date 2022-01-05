@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013-2017 Illinois Institute of Technology
+ * Copyright 2013-2017, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,6 +56,7 @@ main( int argc, char *argv[] )
 	unsigned long server_flags;
 
 	MX_RECORD *mx_record_list = NULL;
+	MX_LIST_HEAD *list_head_struct = NULL;
 	MX_NETWORK_FIELD *nf = NULL;
 	MX_RECORD_FIELD *local_field = NULL;
 	void *value_ptr;
@@ -68,9 +69,11 @@ main( int argc, char *argv[] )
 	mx_bool_type start_debugger, verbose;
 	mx_bool_type write_binary_to_stdout, longs_are_64bits;
 	unsigned long network_debug_flags;
+	unsigned long max_network_dump_bytes;
 	mx_status_type mx_status;
 
 	network_debug_flags = 0;
+	max_network_dump_bytes = 0;
 	start_debugger = FALSE;
 	verbose = FALSE;
 	write_binary_to_stdout = FALSE;
@@ -82,7 +85,7 @@ main( int argc, char *argv[] )
 
 	/* See if any command line arguments were specified. */
 
-	while ( (c = getopt(argc, argv, "aA:bDv")) != -1 )
+	while ( (c = getopt(argc, argv, "aA:bDq:v")) != -1 )
 	{
 		switch(c) {
 		case 'a':
@@ -97,6 +100,9 @@ main( int argc, char *argv[] )
 			break;
 		case 'D':
 			start_debugger = TRUE;
+			break;
+		case 'q':
+			max_network_dump_bytes = atol( optarg );
 			break;
 		case 'v':
 			verbose = TRUE;
@@ -135,6 +141,17 @@ main( int argc, char *argv[] )
 	if ( network_debug_flags ) {
 		mx_multi_set_debug_flags( mx_record_list, network_debug_flags );
 	}
+
+	list_head_struct = mx_get_record_list_head_struct( mx_record_list );
+
+	if ( list_head_struct == (MX_LIST_HEAD *) NULL ) {
+		mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, "mxget",
+		"The MX_LIST_HEAD pointer is NULL." );
+
+		return mx_status.code;
+	}
+
+	list_head_struct->max_network_dump_bytes = max_network_dump_bytes;
 
 	/* Parse argv[optind] to get the network field arguments. */
 

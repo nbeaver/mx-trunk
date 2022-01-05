@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2010, 2012-2014, 2016-2017, 2021
+ * Copyright 1999-2007, 2009-2010, 2012-2014, 2016-2017, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -28,7 +28,8 @@ motor_init( char *motor_savefile_name,
 		char scan_savefile_array[][MXU_FILENAME_LENGTH+1],
 		mx_bool_type init_hw_flags,
 		mx_bool_type verify_drivers,
-		unsigned long network_debug_flags )
+		unsigned long network_debug_flags,
+		unsigned long max_network_dump_bytes )
 {
 	static const char fname[] = "motor_init()";
 
@@ -122,6 +123,8 @@ motor_init( char *motor_savefile_name,
 
 	mx_multi_set_debug_flags( motor_record_list,
 				list_head_struct->network_debug_flags );
+
+	list_head_struct->max_network_dump_bytes = max_network_dump_bytes;
 
 	/* Read 'mxmotor.dat' and add the records therein to the record list. */
 

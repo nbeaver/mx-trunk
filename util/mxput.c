@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013-2017 Illinois Institute of Technology
+ * Copyright 2013-2017, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,6 +54,7 @@ main( int argc, char *argv[] )
 	unsigned long server_flags;
 
 	MX_RECORD *mx_record_list = NULL;
+	MX_LIST_HEAD *list_head_struct = NULL;
 	MX_NETWORK_FIELD *nf = NULL;
 	MX_RECORD_FIELD *local_field = NULL;
 	void *value_ptr;
@@ -65,6 +66,7 @@ main( int argc, char *argv[] )
 	int c;
 	mx_bool_type start_debugger, use_escape_sequences;
 	unsigned long network_debug_flags;
+	unsigned long max_network_dump_bytes;
 	mx_status_type mx_status;
 
 	/* For MX network fields that use signed integer types, it must
@@ -151,6 +153,7 @@ main( int argc, char *argv[] )
 	 */
 
 	network_debug_flags = 0;
+	max_network_dump_bytes = 0;
 	start_debugger = FALSE;
 	use_escape_sequences = FALSE;
 
@@ -161,7 +164,7 @@ main( int argc, char *argv[] )
 
 	/* See if any command line arguments were specified. */
 
-	while ( (c = getopt(fixed_argc, fixed_argv, "aA:De")) != -1 )
+	while ( (c = getopt(fixed_argc, fixed_argv, "aA:Deq:")) != -1 )
 	{
 		switch(c) {
 		case 'a':
@@ -176,6 +179,9 @@ main( int argc, char *argv[] )
 			break;
 		case 'e':
 			use_escape_sequences = TRUE;
+			break;
+		case 'q':
+			max_network_dump_bytes = atol( optarg );
 			break;
 		default:
 			print_usage();
@@ -211,6 +217,17 @@ main( int argc, char *argv[] )
 	if ( network_debug_flags ) {
 		mx_multi_set_debug_flags( mx_record_list, network_debug_flags );
 	}
+
+	list_head_struct = mx_get_record_list_head_struct( mx_record_list );
+
+	if ( list_head_struct == (MX_LIST_HEAD *) NULL ) {
+		mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, "mxget",
+		"The MX_LIST_HEAD pointer is NULL." );
+
+		return mx_status.code;
+	}
+
+	list_head_struct->max_network_dump_bytes = max_network_dump_bytes;
 
 	/* Parse fixed_argv[optind] to get the network field arguments. */
 

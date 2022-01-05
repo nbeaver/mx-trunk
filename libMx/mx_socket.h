@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -135,12 +135,21 @@ extern "C" {
 /* Note: The receive_buffer item in MX_SOCKET is actually an
  * MX_CIRCULAR_BUFFER structure, but we do not want to expose
  * that to callers or require them to include mx_circular_buffer.h
+ *
+ * Similarly, the socket_handler item in MX_SOCKET is actually
+ * an MX_SOCKET_HANDLER structure, but we do not want to require
+ * callers to include mx_process.h.  In many cases, the
+ * socket_handler pointer will be NULL, since MX sockets are not
+ * required to have socket handlers.
  */
 
 typedef struct {
 	MX_SOCKET_FD socket_fd;
 	unsigned long socket_flags;
 	mx_bool_type is_non_blocking;
+
+	/* MX_CIRCULAR_BUFFER *receive_buffer; */
+
 	void *receive_buffer;
 	long receive_buffer_size;
 
@@ -150,6 +159,10 @@ typedef struct {
 	unsigned long keepalive_time_ms;
 	unsigned long keepalive_interval_ms;
 	unsigned long keepalive_retry_count;
+
+	/* MX_SOCKET_HANDLER *socket_handler; */
+
+	void *socket_handler;
 } MX_SOCKET;
 
 /* MX socket types. */

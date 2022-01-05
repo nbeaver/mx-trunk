@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2014-2017 Illinois Institute of Technology
+ * Copyright 1999-2011, 2014-2017, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -157,7 +157,8 @@ extern int motor_init( char *motor_savefile_name, int num_savefiles,
 			char scan_savefile_array[][MXU_FILENAME_LENGTH+1],
 			mx_bool_type init_hw_flags,
 			mx_bool_type verify_drivers,
-			unsigned long network_debug_flags );
+			unsigned long network_debug_flags,
+			unsigned long max_network_dump_bytes );
 
 extern int motor_exit_save_dialog( void );
 

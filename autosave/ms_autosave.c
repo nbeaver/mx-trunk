@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2012, 2014-2017, 2019, 2021
+ * Copyright 1999-2007, 2009-2012, 2014-2017, 2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -205,6 +205,7 @@ main( int argc, char *argv[] )
 	mx_bool_type wait_at_exit;
 	mx_bool_type no_restore, restore_only, save_only;
 	unsigned long network_debug_flags;
+	unsigned long max_network_dump_bytes;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -244,6 +245,7 @@ main( int argc, char *argv[] )
 	msauto_install_signal_and_exit_handlers();
 #endif
 	network_debug_flags = 0;
+	max_network_dump_bytes = 0;
 
 	start_debugger = FALSE;
 	wait_for_debugger = FALSE;
@@ -268,13 +270,14 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "aAd:DJl:L:O:P:RrsT:u:wWxY")) != -1 ) {
+	while ((c = getopt(argc, argv, "aAd:DJl:L:O:P:q:RrsT:u:wWxY")) != -1 ) {
 		switch(c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
 			break;
 		case 'A':
-			network_debug_flags |= MXF_NETDBG_VERBOSE;
+			network_debug_flags =
+				mx_hex_string_to_unsigned_long( optarg );
 			break;
 		case 'd':
 			debug_level = atoi( optarg );
@@ -311,6 +314,9 @@ main( int argc, char *argv[] )
 			break;
 		case 'P':
 			default_display_precision = atoi( optarg );
+			break;
+		case 'q':
+			max_network_dump_bytes = atol( optarg );
 			break;
 		case 'R':
 			no_restore = TRUE;
@@ -515,6 +521,8 @@ main( int argc, char *argv[] )
 	}
 
 	list_head->network_debug_flags = network_debug_flags;
+
+	list_head->max_network_dump_bytes = max_network_dump_bytes;
 
 	/* Construct the autosave list data structure. */
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2016, 2018-2020
+ * Copyright 1999-2001, 2003-2004, 2006-2016, 2018-2020, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -191,6 +191,8 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->module_list = NULL;
 
 	list_head_struct->socket_multiplexer_type = 0;
+
+	list_head_struct->max_network_dump_bytes = 0;
 
 	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
 

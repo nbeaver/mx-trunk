@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -207,6 +207,7 @@ motor_main( int argc, char *argv[] )
 	mx_bool_type init_hw_flags, start_debugger;
 	mx_bool_type run_startup_scripts, ignore_scan_savefiles;
 	unsigned long network_debug_flags;
+	unsigned long max_network_dump_bytes;
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
@@ -282,14 +283,15 @@ motor_main( int argc, char *argv[] )
 	verify_drivers = FALSE;
 
 	network_debug_flags = 0;
+	max_network_dump_bytes = 0;
 
 #if HAVE_GETOPT
 	/* Process command line arguments, if any. */
 
 	error_flag = FALSE;
 
-	while (
-	  (c = getopt(argc,argv,"aA:d:DF:f:Hg:iJNnP:p:S:s:tT:uVwWY:xz")) != -1)
+	while ( ( c = getopt(argc, argv,
+		"aA:d:DF:f:Hg:iJNnP:p:q:S:s:tT:uVwWY:xz") ) != -1)
 	{
 		switch (c) {
 		case 'a':
@@ -338,6 +340,9 @@ motor_main( int argc, char *argv[] )
 			break;
 		case 'P':
 			motor_default_precision = atoi( optarg );
+			break;
+		case 'q':
+			max_network_dump_bytes = atoi( optarg );
 			break;
 		case 'S':
 			allow_scan_database_updates = FALSE;
@@ -526,7 +531,8 @@ motor_main( int argc, char *argv[] )
 	status = motor_init( motor_savefile,
 			num_scan_savefiles, scan_savefile_array,
 			init_hw_flags, verify_drivers,
-			network_debug_flags );
+			network_debug_flags,
+			max_network_dump_bytes );
 
 	if ( status == FAILURE ) {
 		fprintf(output,"motor: Initialization failed.  Exiting...\n");

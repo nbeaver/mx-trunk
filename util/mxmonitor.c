@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2014, 2017, 2019, 2021 Illinois Institute of Technology
+ * Copyright 2007-2014, 2017, 2019, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -605,11 +605,12 @@ main( int argc, char *argv[] )
 {
 	static const char fname[] = "main()";
 
-	MX_RECORD *record_list;
-	MX_RECORD *server_record;
+	MX_RECORD *list_head_record = NULL;
+	MX_LIST_HEAD *list_head_struct = NULL;
+	MX_RECORD *server_record = NULL;
 	int c;
 	mx_bool_type start_debugger, interactive, show_timestamp;
-	unsigned long i, network_debug_flags;
+	unsigned long i, network_debug_flags, max_network_dump_bytes;
 	double timeout;
 	mx_status_type mx_status;
 
@@ -618,14 +619,15 @@ main( int argc, char *argv[] )
 		exit(1);
 	}
 
-	record_list = NULL;
+	list_head_record = NULL;
 
 	network_debug_flags = 0;
+	max_network_dump_bytes = 0;
 	start_debugger = FALSE;
 	interactive = TRUE;
 	show_timestamp = FALSE;
 
-	while ( (c = getopt(argc, argv, "aA:b:BDitx")) != -1 ) {
+	while ( (c = getopt(argc, argv, "aA:b:BDiq:tx")) != -1 ) {
 		switch (c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
@@ -650,6 +652,9 @@ main( int argc, char *argv[] )
 			break;
 		case 'i':
 			interactive = FALSE;
+			break;
+		case 'q':
+			max_network_dump_bytes = atol( optarg );
 			break;
 		case 't':
 			show_timestamp = TRUE;
@@ -691,14 +696,26 @@ main( int argc, char *argv[] )
 		exit( mx_status.code );
 	}
 
-	record_list = server_record->list_head;
+	list_head_record = server_record->list_head;
+
+	list_head_struct = mx_get_record_list_head_struct( list_head_record );
+
+	if ( list_head_struct == (MX_LIST_HEAD *) NULL ) {
+		mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, "mxget",
+		"The MX_LIST_HEAD pointer is NULL." );
+
+		return mx_status.code;
+	}
+
+	list_head_struct->max_network_dump_bytes = max_network_dump_bytes;
 
 	/* Wait indefinitely for callbacks. */
 
 	timeout = 1.0;		/* in seconds */
 
 	for(;;) {
-		mx_status = mx_network_wait_for_messages(record_list, timeout);
+		mx_status = mx_network_wait_for_messages( list_head_record,
+								timeout );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
@@ -709,10 +726,10 @@ main( int argc, char *argv[] )
 		}
 
 		if ( interactive ) {
-			check_for_interactive_command( record_list );
+			check_for_interactive_command( list_head_record );
 		}
 
-		mx_usleep(1);
+		mx_usleep(1 );
 	}
 
 #if !defined(OS_SOLARIS)

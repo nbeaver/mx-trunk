@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2015, 2017 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2015, 2017, 2021 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -235,6 +235,7 @@ typedef struct {
 #define MXF_NETDBG_SUMMARY	0x1
 #define MXF_NETDBG_MSG_IDS	0x2
 #define MXF_NETDBG_VERBOSE	0x4
+#define MXF_NETDBG_DUMP		0x8
 
 /* Definition of network data formats. */
 
@@ -405,6 +406,13 @@ MX_API mx_status_type mx_network_mark_handles_as_invalid(
 						MX_RECORD *server_record );
 
 MX_API mx_status_type mx_network_restore_callbacks( MX_RECORD *server_record );
+
+/* mx_network_dump_message() displays the raw bytes and addresses in the
+ * specified network message.
+ */
+
+MX_API void mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *buffer,
+					unsigned long max_network_dump_bytes );
 
 /* mx_network_display_message() is used to display the contents of
  * a network message.
