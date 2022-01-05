@@ -346,20 +346,20 @@ mx_network_receive_message( MX_RECORD *server_record,
 	mx_status = ( *fptr ) ( server, message_buffer );
 
 #if NETWORK_DEBUG
-	if ( list_head->network_debug_flags & MXF_NETDBG_DUMP ) {
-		fprintf( stderr, "\nMX NET dump: SERVER (%s) -> CLIENT\n",
-				server_record->name );
-
-		mx_network_dump_message( message_buffer,
-				list_head->max_network_dump_bytes );
-	}
-
 	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
 				server_record->name );
 
 		mx_network_display_message( message_buffer, NULL,
 					server->use_64bit_network_longs );
+	}
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_DUMP ) {
+		fprintf( stderr, "\nMX NET dump: SERVER (%s) -> CLIENT\n",
+				server_record->name );
+
+		mx_network_dump_message( message_buffer,
+				list_head->max_network_dump_bytes );
 	}
 #endif
 
@@ -2270,6 +2270,13 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 {
 	static const char fname[] = "mx_network_dump_message()";
 
+	uint8_t *uint8_ptr = NULL;
+	uint32_t *uint32_ptr = NULL;
+	unsigned long i, item_length, native_byteorder;
+	uint32_t uint32_value;
+
+	/* mx_breakpoint(); */
+
 	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
@@ -2279,6 +2286,23 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 		mx_warning( "max_network_dump_bytes is 0" );
 		return;
+	}
+
+	native_byteorder = mx_native_byteorder();
+
+	item_length = sizeof(uint32_t);
+
+	uint8_ptr = (uint8_t *) message_buffer->u.char_buffer;
+	uint32_ptr = (uint32_t *) message_buffer->u.uint32_buffer;
+
+	for ( i = 0; i < max_network_dump_bytes; i++ ) {
+		uint32_value = *uint32_ptr;
+
+		fprintf( stderr, "%p, %#lx, %lx\n",
+			uint32_ptr, (unsigned long) uint32_value,
+			(unsigned long) mx_ntohl( uint32_value ) );
+
+		uint32_ptr ++;
 	}
 
 	return;
