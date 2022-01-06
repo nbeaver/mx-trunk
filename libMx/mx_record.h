@@ -226,7 +226,7 @@ typedef struct {
 #define MXFT_USHORT		5
 #define MXFT_BOOL		6
 
-/* Record field type 7 is reserved for MXFT_ENUM. */
+#define MXFT_ENUM		7	/* NOT YET IMPLEMENTED! */
 
 #define MXFT_LONG		8
 #define MXFT_ULONG		9

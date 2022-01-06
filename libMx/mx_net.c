@@ -2272,7 +2272,14 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	uint8_t *uint8_ptr = NULL;
 	uint32_t *uint32_ptr = NULL;
-	unsigned long i, item_length, native_byteorder;
+	long bytes_left_to_display;
+	unsigned long native_byteorder;
+	unsigned long i, num_header_dwords;
+	unsigned long header_item_length;
+	unsigned long native_header_bytes, native_message_bytes;
+	unsigned long native_message_type;
+	mx_bool_type is_response;
+	unsigned long mx_status_code, network_datatype, network_message_id;
 	uint32_t uint32_value;
 
 	/* mx_breakpoint(); */
@@ -2290,17 +2297,250 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	native_byteorder = mx_native_byteorder();
 
-	item_length = sizeof(uint32_t);
+	header_item_length = sizeof(uint32_t);
 
 	uint8_ptr = (uint8_t *) message_buffer->u.char_buffer;
 	uint32_ptr = (uint32_t *) message_buffer->u.uint32_buffer;
 
-	for ( i = 0; i < max_network_dump_bytes; i++ ) {
+	/********* Print out the header values *********/
+
+	bytes_left_to_display = max_network_dump_bytes;
+
+	/* We initialize num_header_dwords to 2, since the _actual_
+	 * number of header dwords (32-bit integers) is found in
+	 * the second header dword.
+	 */
+
+	num_header_dwords = 2;
+
+	for ( i = 0; i < num_header_dwords; i++ ) {
+
+		if ( bytes_left_to_display <= 0 ) {
+			fprintf( stderr, "Header truncated ...\n" );
+
+			break;		/* Exit the for(i) loop. */
+		} else
+		if ( (bytes_left_to_display / header_item_length) == 0 ) {
+			fprintf( stderr, "Header item truncated ...\n" );
+
+			break;		/* Exit the for(i) loop. */
+		}
+
+		/* Get the next header item value. */
+
 		uint32_value = *uint32_ptr;
 
-		fprintf( stderr, "%p, %#lx, %lx\n",
+		fprintf( stderr, "%p, %#010lx, %#010lx  ",
 			uint32_ptr, (unsigned long) uint32_value,
 			(unsigned long) mx_ntohl( uint32_value ) );
+
+		switch( i ) {
+		case MX_NETWORK_MAGIC:                   /* 0 */
+			fprintf( stderr, "MX protocol magic\n" );
+			break;
+
+		case MX_NETWORK_HEADER_LENGTH:           /* 1 */
+
+			native_header_bytes = mx_ntohl( uint32_value );
+
+			/* Note that the following is C integer division
+			 * which _truncates_ !
+			 *
+			 * Also note that we are changing the termination
+			 * value for the 'i' loop to match the actual
+			 * length of this header.
+			 */
+
+			num_header_dwords = native_header_bytes
+						/ header_item_length;
+
+			fprintf( stderr,
+			"Header length = %lu bytes (%lu dwords)\n",
+				native_header_bytes, num_header_dwords );
+
+			if ( (uint32_value % native_header_bytes) != 0 ) {
+				fprintf( stderr,
+				"Warning: The header length of %lu bytes "
+				"is not a multiple of the header item "
+				"length of %lu bytes.\n",
+					(unsigned long) native_header_bytes,
+					(unsigned long) header_item_length );
+		}
+			break;
+
+		case MX_NETWORK_MESSAGE_LENGTH:          /* 2 */
+
+			native_message_bytes = mx_ntohl( uint32_value );
+
+			fprintf( stderr, "Message length = %lu bytes.\n",
+						native_message_bytes );
+			break;
+
+		case MX_NETWORK_MESSAGE_TYPE:            /* 3 */
+
+			native_message_type = mx_ntohl( uint32_value );
+
+			if ( native_message_type &
+					MX_NETMSG_SERVER_RESPONSE_FLAG )
+			{
+				is_response = TRUE;
+			} else {
+				is_response = FALSE;
+			}
+
+			native_message_type &= ~MX_NETMSG_SERVER_RESPONSE_FLAG;
+
+			fprintf( stderr, "Message type = %#lx ",
+						native_message_type );
+
+			if ( is_response ) {
+				fprintf( stderr, "(RSP) " );
+			} else {
+				fprintf( stderr, "(CMD) " );
+			}
+
+			switch( native_message_type ) {
+			case MX_NETMSG_GET_ARRAY_BY_NAME:
+				fprintf( stderr, "Get array by name\n" );
+				break;
+			case MX_NETMSG_PUT_ARRAY_BY_NAME:
+				fprintf( stderr, "Put array by name\n" );
+				break;
+			case MX_NETMSG_GET_ARRAY_BY_HANDLE:
+				fprintf( stderr, "Get array by handle\n" );
+				break;
+			case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+				fprintf( stderr, "Put array by handle\n" );
+				break;
+			case MX_NETMSG_GET_NETWORK_HANDLE:
+				fprintf( stderr, "Get network handle\n" );
+				break;
+			case MX_NETMSG_GET_FIELD_TYPE:
+				fprintf( stderr, "Get field type\n" );
+				break;
+			case MX_NETMSG_SET_CLIENT_INFO:
+				fprintf( stderr, "Set client info\n" );
+				break;
+			case MX_NETMSG_GET_OPTION:
+				fprintf( stderr, "Get option\n" );
+				break;
+			case MX_NETMSG_SET_OPTION:
+				fprintf( stderr, "Set option\n" );
+				break;
+			case MX_NETMSG_ADD_CALLBACK:
+				fprintf( stderr, "Add callback\n" );
+				break;
+			case MX_NETMSG_DELETE_CALLBACK:
+				fprintf( stderr, "Delete callback\n" );
+				break;
+			case MX_NETMSG_CALLBACK:
+				fprintf( stderr, "Callback\n" );
+				break;
+			default:
+				fprintf( stderr,
+				"*** Unrecognized message type %lu ***\n",
+					native_message_type );
+				break;
+			}
+			break;
+
+		case MX_NETWORK_STATUS_CODE:            /* 4 */
+
+			mx_status_code = mx_ntohl( uint32_value );
+
+			fprintf( stderr, "MX status code = %lu\n",
+					mx_status_code );
+			break;
+
+		case MX_NETWORK_DATA_TYPE:              /* 5 */
+
+			network_datatype = mx_ntohl( uint32_value );
+
+			fprintf( stderr, "MX datatype = %lu ",
+					network_datatype );
+
+			switch( network_datatype ) {
+			case MXFT_STRING:               /* 1 */
+				fprintf( stderr, "(string)\n" );
+				break;
+			case MXFT_CHAR:                 /* 2 */
+				fprintf( stderr, "(char)\n" );
+				break;
+			case MXFT_UCHAR:                /* 3 */
+				fprintf( stderr, "(uchar)\n" );
+				break;
+			case MXFT_SHORT:                /* 4 */
+				fprintf( stderr, "(short)\n" );
+				break;
+			case MXFT_USHORT:               /* 5 */
+				fprintf( stderr, "(ushort)\n" );
+				break;
+			case MXFT_BOOL:                 /* 6 */
+				fprintf( stderr, "(bool)\n" );
+				break;
+			case MXFT_ENUM:                 /* 7 */
+				fprintf( stderr, "(enum)\n" );
+				break;
+			case MXFT_LONG:                 /* 8 */
+				fprintf( stderr, "(long)\n" );
+				break;
+			case MXFT_ULONG:                /* 9 */
+				fprintf( stderr, "(ulong)\n" );
+				break;
+			case MXFT_FLOAT:                /* 10 */
+				fprintf( stderr, "(float)\n" );
+				break;
+			case MXFT_DOUBLE:               /* 11 */
+				fprintf( stderr, "(double)\n" );
+				break;
+			case MXFT_HEX:                  /* 12 */
+				fprintf( stderr, "(hex)\n" );
+				break;
+			case MXFT_INT64:                /* 14 */
+				fprintf( stderr, "(short)\n" );
+				break;
+			case MXFT_UINT64:               /* 15 */
+				fprintf( stderr, "(ushort)\n" );
+				break;
+			case MXFT_INT8:                 /* 16 */
+				fprintf( stderr, "(int8)\n" );
+				break;
+			case MXFT_UINT8:                /* 17 */
+				fprintf( stderr, "(uint8)\n" );
+				break;
+
+			case MXFT_RECORD:               /* 31 */
+				fprintf( stderr, "(record)\n" );
+				break;
+			case MXFT_RECORDTYPE:           /* 32 */
+				fprintf( stderr, "(recordtype)\n" );
+				break;
+			case MXFT_INTERFACE:            /* 33 */
+				fprintf( stderr, "(record)\n" );
+				break;
+			case MXFT_RECORD_FIELD:         /* 34 */
+				fprintf( stderr, "(recordfield)\n" );
+				break;
+
+			default:
+				fprintf( stderr, "(***unrecognized***)\n" );
+				break;
+			}
+			break;
+
+		case MX_NETWORK_MESSAGE_ID:             /* 6 */
+
+			network_message_id = mx_ntohl( uint32_value );
+
+			fprintf( stderr, "Network message ID = %#lx\n",
+					network_message_id );
+			break;
+
+		default:
+			fprintf( stderr, 
+			"BUG! Header dword %lu should never be reached.\n", i );
+			break;
+		}
 
 		uint32_ptr ++;
 	}
