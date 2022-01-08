@@ -355,10 +355,11 @@ mx_network_receive_message( MX_RECORD *server_record,
 	}
 
 	if ( list_head->network_debug_flags & MXF_NETDBG_DUMP ) {
-		fprintf( stderr, "\nMX NET dump: SERVER (%s) -> CLIENT\n",
+		fprintf( stderr, "\n*** MX NET dump: SERVER (%s) -> CLIENT\n",
 				server_record->name );
 
 		mx_network_dump_message( message_buffer,
+				server->data_format,
 				list_head->max_network_dump_bytes );
 	}
 #endif
@@ -456,10 +457,11 @@ mx_network_send_message( MX_RECORD *server_record,
 	}
 
 	if ( list_head->network_debug_flags & MXF_NETDBG_DUMP ) {
-		fprintf( stderr, "\nMX NET dump: CLIENT -> SERVER (%s)\n",
+		fprintf( stderr, "\n*** MX NET dump: CLIENT -> SERVER (%s)\n",
 				server_record->name );
 
 		mx_network_dump_message( message_buffer,
+				server->data_format,
 				list_head->max_network_dump_bytes );
 	}
 #endif
@@ -2266,21 +2268,33 @@ mx_network_buffer_show_value( void *buffer,
 
 MX_EXPORT void
 mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
+			unsigned long network_data_format,
 			unsigned long max_network_dump_bytes )
 {
 	static const char fname[] = "mx_network_dump_message()";
 
-	uint8_t *uint8_ptr = NULL;
-	uint32_t *uint32_ptr = NULL;
-	long bytes_left_to_display;
-	unsigned long native_byteorder;
-	unsigned long i, num_header_dwords;
-	unsigned long header_item_length;
-	unsigned long native_header_bytes, native_message_bytes;
-	unsigned long native_message_type;
-	mx_bool_type is_response;
-	unsigned long mx_status_code, network_datatype, network_message_id;
-	uint32_t uint32_value;
+	uint32_t *uint32_header_ptr = NULL;
+	char *message_ptr = NULL;
+	long bytes_left_to_display = -1L;
+	unsigned long native_byteorder = 0L;
+	unsigned long i = ULONG_MAX;
+	unsigned long j = 0L;
+	unsigned long num_header_dwords = 0L;
+	unsigned long header_item_length = 0L;
+	unsigned long native_header_bytes = 0L;
+	unsigned long native_message_bytes = 0L;
+	unsigned long native_message_type = 0L;
+	mx_bool_type is_response = FALSE;
+	unsigned long mx_status_code = 0L;
+	unsigned long network_datatype = 0L;
+	unsigned long network_message_id = 0L;
+	unsigned long record_handle = 0L;
+	unsigned long field_handle = 0L;
+	uint32_t uint32_value = 0L;
+
+	uint32_t *uint32_value_ptr = NULL;
+
+	char record_field_name[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
 
 	/* mx_breakpoint(); */
 
@@ -2299,8 +2313,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	header_item_length = sizeof(uint32_t);
 
-	uint8_ptr = (uint8_t *) message_buffer->u.char_buffer;
-	uint32_ptr = (uint32_t *) message_buffer->u.uint32_buffer;
+	uint32_header_ptr = message_buffer->u.uint32_buffer;
 
 	/********* Print out the header values *********/
 
@@ -2313,25 +2326,27 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	num_header_dwords = 2;
 
+	fprintf( stderr, "*** MX message start ***\n" );
+
 	for ( i = 0; i < num_header_dwords; i++ ) {
 
 		if ( bytes_left_to_display <= 0 ) {
-			fprintf( stderr, "Header truncated ...\n" );
+			fprintf( stderr, "Header dump truncated ...\n" );
 
 			break;		/* Exit the for(i) loop. */
 		} else
 		if ( (bytes_left_to_display / header_item_length) == 0 ) {
-			fprintf( stderr, "Header item truncated ...\n" );
+			fprintf( stderr, "Header item dump truncated ...\n" );
 
 			break;		/* Exit the for(i) loop. */
 		}
 
 		/* Get the next header item value. */
 
-		uint32_value = *uint32_ptr;
+		uint32_value = *uint32_header_ptr;
 
 		fprintf( stderr, "%p, %#010lx, %#010lx  ",
-			uint32_ptr, (unsigned long) uint32_value,
+			uint32_header_ptr, (unsigned long) uint32_value,
 			(unsigned long) mx_ntohl( uint32_value ) );
 
 		switch( i ) {
@@ -2346,9 +2361,9 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			/* Note that the following is C integer division
 			 * which _truncates_ !
 			 *
-			 * Also note that we are changing the termination
-			 * value for the 'i' loop to match the actual
-			 * length of this header.
+			 * !!!!!! Also note that we are changing !!!!!
+			 * the termination value for the 'i' loop to
+			 * match the actual length of this header.
 			 */
 
 			num_header_dwords = native_header_bytes
@@ -2438,7 +2453,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				break;
 			default:
 				fprintf( stderr,
-				"*** Unrecognized message type %lu ***\n",
+				"*** Unrecognized MX message type %lu ***\n",
 					native_message_type );
 				break;
 			}
@@ -2542,10 +2557,192 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			break;
 		}
 
-		uint32_ptr ++;
+		uint32_header_ptr ++;
+
+		bytes_left_to_display -= header_item_length;
 	}
 
+	if ( bytes_left_to_display <= 0L ) {
+		return;
+	}
+
+	/******** Next dump the message identifiers (if any). ********/
+
+	message_ptr = message_buffer->u.char_buffer + native_header_bytes;
+
+	if ( is_response == FALSE ) {	/* is_command */
+
+		/* For most commands, the beginning of the message body
+		 * contains an identifier for which field, attribute,
+		 * option, etc. that this command is for.
+		 */
+
+		fprintf( stderr, "*** MX command identifier body ***\n" );
+
+		switch( native_message_type ) {
+		case MX_NETMSG_GET_ARRAY_BY_NAME:
+		case MX_NETMSG_PUT_ARRAY_BY_NAME:
+		case MX_NETMSG_GET_NETWORK_HANDLE:
+		case MX_NETMSG_GET_FIELD_TYPE:
+
+			fprintf( stderr, "%p: ", message_ptr );
+
+			for ( j = 0; j <= MXU_RECORD_FIELD_NAME_LENGTH; j++ ) {
+				uint32_value = 0xff & ( message_ptr[j] );
+
+				fprintf( stderr, "%#02lx ",
+					(unsigned long) uint32_value );
+
+			}
+
+			strlcpy( record_field_name, message_ptr,
+					sizeof( record_field_name ) );
+
+			fprintf( stderr, "\n*** MX record field name = '%s'\n",
+							record_field_name );
+
+			message_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
+
+			bytes_left_to_display -= MXU_RECORD_FIELD_NAME_LENGTH;
+			break;
+
+		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
+		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			record_handle = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr, "%p: %#lx, record handle = %lu\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				record_handle );
+
+			uint32_value_ptr++;
+
+			field_handle = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr, "%p: %#lx, field handle = %lu\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				field_handle );
+
+			fprintf( stderr,
+			"*** MX record field handle = (%lu, %lu)\n",
+				record_handle, field_handle );
+
+			message_ptr += ( 2L * sizeof(uint32_t) );
+			break;
+		default:
+			fprintf( stderr,
+			"*** MX unrecognized command message type %#lx\n",
+				native_message_type );
+			break;
+		}
+	}
+
+	/******** Finish by dumping the message value (if any). ********/
+
+	/* FIXME: The following only works for RAW network connections.
+	 * We need to provide XDR support as well.
+	 */
+
+	if ( is_response == FALSE ) {	/* is_command */
+
+		fprintf( stderr, "*** MX command value body ***\n" );
+
+		switch( native_message_type ) {
+		case MX_NETMSG_PUT_ARRAY_BY_NAME:
+		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+			mx_network_dump_value( message_ptr,
+					network_data_format,
+					native_message_type,
+					bytes_left_to_display );
+			break;
+		case MX_NETMSG_GET_ARRAY_BY_NAME:
+		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
+		case MX_NETMSG_GET_NETWORK_HANDLE:
+		case MX_NETMSG_GET_FIELD_TYPE:
+			break;
+		default:
+			fprintf( stderr,
+			"*** MX unrecognized command message type %#lx\n",
+				native_message_type );
+			break;
+		}
+	} else {
+		/* The message is a response. */
+
+		fprintf( stderr, "*** MX response value body ***\n" );
+
+		switch( native_message_type ) {
+		case MX_NETMSG_GET_ARRAY_BY_NAME:
+		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
+			mx_network_dump_value( message_ptr,
+					network_data_format,
+					native_message_type,
+					bytes_left_to_display );
+			break;
+		case MX_NETMSG_GET_NETWORK_HANDLE:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			record_handle = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr, "%p: %#lx, record handle = %lu\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				record_handle );
+
+			uint32_value_ptr++;
+
+			field_handle = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr, "%p: %#lx, field handle = %lu\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				field_handle );
+
+			fprintf( stderr,
+			"*** MX record field handle = (%lu, %lu)\n",
+				record_handle, field_handle );
+
+			message_ptr += ( 2L * sizeof(uint32_t) );
+			break;
+		default:
+			fprintf( stderr,
+			"*** MX unrecognized response message type %#lx\n",
+				native_message_type );
+			break;
+		}
+	}
+
+	MX_DEBUG(-2,("%s: bytes_left_to_display = %ld\n",
+		fname, bytes_left_to_display));
+
+	fprintf( stderr, "*** MX last byte at %p\n", message_ptr - 1L );
+
+	fprintf( stderr, "*** MX message end ***\n" );
+
 	return;
+}
+
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT void
+mx_network_dump_value( char *message_ptr,
+			unsigned long network_data_format,
+			long value_datatype,
+			long num_bytes_in_value )
+{
+	static const char fname[] = "mx_network_dump_value()";
+
+	MX_DEBUG(-2,("...crrrOOOOOAAAK..."));
+
+	if ( network_data_format != MX_NETWORK_DATAFMT_RAW ) {
+		mx_warning( "%s currently only supports RAW (2) network "
+		"data format, but you requested data format %lu.  "
+		"Aborting dump...", fname, network_data_format );
+		return;
+	}
 }
 
 /*------------------------------------------------------------------------*/
