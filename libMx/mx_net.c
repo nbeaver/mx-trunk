@@ -2269,13 +2269,14 @@ mx_network_buffer_show_value( void *buffer,
 MX_EXPORT void
 mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			unsigned long network_data_format,
-			unsigned long max_network_dump_bytes )
+			long max_network_dump_bytes )
 {
 	static const char fname[] = "mx_network_dump_message()";
 
 	uint32_t *uint32_header_ptr = NULL;
 	char *message_ptr = NULL;
 	long bytes_left_to_display = -1L;
+	mx_bool_type compute_bytes_left_from_header = FALSE;
 	unsigned long native_byteorder = 0L;
 	unsigned long i = ULONG_MAX;
 	unsigned long j = 0L;
@@ -2290,6 +2291,8 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	unsigned long network_message_id = 0L;
 	unsigned long record_handle = 0L;
 	unsigned long field_handle = 0L;
+	unsigned long option_number = 0L;
+	unsigned long option_value = 0L;
 	uint32_t uint32_value = 0L;
 
 	uint32_t *uint32_value_ptr = NULL;
@@ -2317,7 +2320,27 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	/********* Print out the header values *********/
 
-	bytes_left_to_display = max_network_dump_bytes;
+#if 0
+	MX_DEBUG(-2,("%s: #0 max_network_dump_bytes = %ld",
+		fname, max_network_dump_bytes ));
+#endif
+
+	if ( max_network_dump_bytes < 0 ) {
+		compute_bytes_left_from_header = TRUE;
+
+		bytes_left_to_display = 3L * header_item_length;
+	} else {
+		compute_bytes_left_from_header = FALSE;
+
+		bytes_left_to_display = max_network_dump_bytes;
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: #0 compute_bytes_left_from_header = %d",
+		fname, (int) compute_bytes_left_from_header));
+	MX_DEBUG(-2,("%s: #0 bytes_left_to_display = %ld",
+		fname, bytes_left_to_display));
+#endif
 
 	/* We initialize num_header_dwords to 2, since the _actual_
 	 * number of header dwords (32-bit integers) is found in
@@ -2389,6 +2412,23 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 			fprintf( stderr, "Message length = %lu bytes.\n",
 						native_message_bytes );
+
+			if ( compute_bytes_left_from_header ) {
+				bytes_left_to_display = native_header_bytes
+					+ native_message_bytes
+					- 2L * header_item_length;
+			}
+
+#if 0
+			MX_DEBUG(-2,("%s: #A native_header_bytes = %ld",
+				fname, (long) native_header_bytes));
+			MX_DEBUG(-2,("%s: #A native_message_bytes = %ld",
+				fname, (long) native_message_bytes));
+			MX_DEBUG(-2,("%s: #A 2L * header_item_length = %ld",
+				fname, 2L * (long) header_item_length));
+			MX_DEBUG(-2,("%s: #A bytes_left_to_display = %ld",
+				fname, (long) bytes_left_to_display));
+#endif
 			break;
 
 		case MX_NETWORK_MESSAGE_TYPE:            /* 3 */
@@ -2631,7 +2671,112 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				record_handle, field_handle );
 
 			message_ptr += ( 2L * sizeof(uint32_t) );
+
+			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
 			break;
+
+		case MX_NETMSG_SET_CLIENT_INFO:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			fprintf( stderr, "%p: %s\n",
+				uint32_value_ptr, message_ptr );
+			break;
+
+		case MX_NETMSG_GET_OPTION:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			option_number = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, option number = %lu *** ",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				option_number );
+
+			switch( option_number ) {
+			case MX_NETWORK_OPTION_DATAFMT:
+				fprintf( stderr, "Data format\n" );
+				break;
+			case MX_NETWORK_OPTION_NATIVE_DATAFMT:
+				fprintf( stderr, "Native data format\n" );
+				break;
+			case MX_NETWORK_OPTION_64BIT_LONG:
+				fprintf( stderr, "Request 64-bit longs\n" );
+				break;
+			case MX_NETWORK_OPTION_WORDSIZE:
+				fprintf( stderr, "CPU wordsize\n" );
+				break;
+			case MX_NETWORK_OPTION_CLIENT_VERSION:
+				fprintf( stderr, "Client version\n" );
+				break;
+			case MX_NETWORK_OPTION_CLIENT_VERSION_TIME:
+				fprintf( stderr, "Client version time\n" );
+				break;
+			default:
+				fprintf( stderr, "Unrecognized option %lu\n",
+						option_number );
+				break;
+			}
+
+			message_ptr += sizeof(uint32_t);
+
+			bytes_left_to_display -= sizeof(uint32_t);
+			break;
+
+		case MX_NETMSG_SET_OPTION:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			option_number = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, option number = %lu *** ",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				option_number );
+
+			switch( option_number ) {
+			case MX_NETWORK_OPTION_DATAFMT:
+				fprintf( stderr, "Data format\n" );
+				break;
+			case MX_NETWORK_OPTION_NATIVE_DATAFMT:
+				fprintf( stderr, "Native data format\n" );
+				break;
+			case MX_NETWORK_OPTION_64BIT_LONG:
+				fprintf( stderr, "Request 64-bit longs\n" );
+				break;
+			case MX_NETWORK_OPTION_WORDSIZE:
+				fprintf( stderr, "CPU wordsize\n" );
+				break;
+			case MX_NETWORK_OPTION_CLIENT_VERSION:
+				fprintf( stderr, "Client version\n" );
+				break;
+			case MX_NETWORK_OPTION_CLIENT_VERSION_TIME:
+				fprintf( stderr, "Client version time\n" );
+				break;
+			default:
+				fprintf( stderr, "Unrecognized option %lu\n",
+						option_number );
+				break;
+			}
+
+			uint32_value_ptr ++;
+
+			option_value = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, option value = %lu\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				option_value );
+
+			message_ptr += ( 2L * sizeof(uint32_t) );
+
+			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
+			break;
+
 		default:
 			fprintf( stderr,
 			"*** MX unrecognized command message type %#lx\n",
@@ -2662,6 +2807,9 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 		case MX_NETMSG_GET_NETWORK_HANDLE:
 		case MX_NETMSG_GET_FIELD_TYPE:
+		case MX_NETMSG_GET_OPTION:
+		case MX_NETMSG_SET_OPTION:
+		case MX_NETMSG_SET_CLIENT_INFO:
 			break;
 		default:
 			fprintf( stderr,
@@ -2675,6 +2823,32 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		fprintf( stderr, "*** MX response value body ***\n" );
 
 		switch( native_message_type ) {
+		case MX_NETMSG_GET_FIELD_TYPE:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, MX datatype = %ld\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				(unsigned long) mx_ntohl( *uint32_value_ptr ) );
+
+			uint32_value_ptr++;
+
+			field_handle = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, num dimensions = %ld\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				(unsigned long) mx_ntohl( *uint32_value_ptr ) );
+
+			message_ptr += ( 2L * sizeof(uint32_t) );
+
+			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
+			break;
+
 		case MX_NETMSG_GET_ARRAY_BY_NAME:
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 			mx_network_dump_value( message_ptr,
@@ -2682,23 +2856,28 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					native_message_type,
 					bytes_left_to_display );
 			break;
+
 		case MX_NETMSG_GET_NETWORK_HANDLE:
 			uint32_value_ptr = (uint32_t *) message_ptr;
 
 			record_handle = mx_ntohl( *uint32_value_ptr );
 
-			fprintf( stderr, "%p: %#lx, record handle = %lu\n",
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, record handle = %lu\n",
 				uint32_value_ptr,
 				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
 				record_handle );
 
 			uint32_value_ptr++;
 
 			field_handle = mx_ntohl( *uint32_value_ptr );
 
-			fprintf( stderr, "%p: %#lx, field handle = %lu\n",
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, field handle = %lu\n",
 				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
+			 	(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
 				field_handle );
 
 			fprintf( stderr,
@@ -2706,7 +2885,28 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				record_handle, field_handle );
 
 			message_ptr += ( 2L * sizeof(uint32_t) );
+
+			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
 			break;
+
+		case MX_NETMSG_GET_OPTION:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			option_value = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, option value = %lu\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				option_value );
+
+			break;
+
+		case MX_NETMSG_SET_OPTION:
+		case MX_NETMSG_SET_CLIENT_INFO:
+			break;
+
 		default:
 			fprintf( stderr,
 			"*** MX unrecognized response message type %#lx\n",

@@ -413,7 +413,7 @@ MX_API mx_status_type mx_network_restore_callbacks( MX_RECORD *server_record );
 
 MX_API void mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *buffer,
 					unsigned long network_data_format,
-					unsigned long max_network_dump_bytes );
+					long max_network_dump_bytes );
 
 MX_API void mx_network_dump_value( char *message_buffer,
 					unsigned long network_data_format,
