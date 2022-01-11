@@ -205,7 +205,7 @@ main( int argc, char *argv[] )
 	mx_bool_type wait_at_exit;
 	mx_bool_type no_restore, restore_only, save_only;
 	unsigned long network_debug_flags;
-	unsigned long max_network_dump_bytes;
+	long max_network_dump_bytes;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -245,7 +245,7 @@ main( int argc, char *argv[] )
 	msauto_install_signal_and_exit_handlers();
 #endif
 	network_debug_flags = 0;
-	max_network_dump_bytes = 0;
+	max_network_dump_bytes = -1L;
 
 	start_debugger = FALSE;
 	wait_for_debugger = FALSE;

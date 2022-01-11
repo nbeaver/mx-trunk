@@ -610,7 +610,8 @@ main( int argc, char *argv[] )
 	MX_RECORD *server_record = NULL;
 	int c;
 	mx_bool_type start_debugger, interactive, show_timestamp;
-	unsigned long i, network_debug_flags, max_network_dump_bytes;
+	unsigned long i, network_debug_flags;
+	long max_network_dump_bytes;
 	double timeout;
 	mx_status_type mx_status;
 
@@ -622,7 +623,7 @@ main( int argc, char *argv[] )
 	list_head_record = NULL;
 
 	network_debug_flags = 0;
-	max_network_dump_bytes = 0;
+	max_network_dump_bytes = -1L;
 	start_debugger = FALSE;
 	interactive = TRUE;
 	show_timestamp = FALSE;

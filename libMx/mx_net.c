@@ -2805,7 +2805,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
 			mx_network_dump_value( message_ptr,
 					network_data_format,
-					native_message_type,
+					network_datatype,
 					bytes_left_to_display );
 			break;
 
@@ -2933,7 +2933,14 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 			mx_network_dump_value( message_ptr,
 					network_data_format,
-					native_message_type,
+					network_datatype,
+					bytes_left_to_display );
+			break;
+
+		case MX_NETMSG_GET_ATTRIBUTE:
+			mx_network_dump_value( message_ptr,
+					network_data_format,
+					MXFT_DOUBLE,
 					bytes_left_to_display );
 			break;
 
@@ -2969,9 +2976,6 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
 			break;
 
-		case MX_NETMSG_GET_ATTRIBUTE:
-			break;
-
 		case MX_NETMSG_GET_OPTION:
 			uint32_value_ptr = (uint32_t *) message_ptr;
 
@@ -2987,6 +2991,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			break;
 
 		case MX_NETMSG_ADD_CALLBACK:
+		case MX_NETMSG_CALLBACK:
 			uint32_value_ptr = (uint32_t *) message_ptr;
 
 			callback_id = mx_ntohl( *uint32_value_ptr );
@@ -2998,6 +3003,19 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				(unsigned long) mx_ntohl( *uint32_value_ptr ),
 				callback_id );
 
+			uint32_value_ptr++;
+
+			bytes_left_to_display -= header_item_length;
+
+			if ( native_message_type == MX_NETMSG_CALLBACK ) {
+
+				message_ptr = (char *) uint32_value_ptr;
+
+				mx_network_dump_value( message_ptr,
+					network_data_format,
+					network_datatype,
+					bytes_left_to_display );
+			}
 			break;
 
 		case MX_NETMSG_SET_ATTRIBUTE:

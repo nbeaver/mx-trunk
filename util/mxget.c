@@ -69,11 +69,11 @@ main( int argc, char *argv[] )
 	mx_bool_type start_debugger, verbose;
 	mx_bool_type write_binary_to_stdout, longs_are_64bits;
 	unsigned long network_debug_flags;
-	unsigned long max_network_dump_bytes;
+	long max_network_dump_bytes;
 	mx_status_type mx_status;
 
 	network_debug_flags = 0;
-	max_network_dump_bytes = 0;
+	max_network_dump_bytes = -1L;
 	start_debugger = FALSE;
 	verbose = FALSE;
 	write_binary_to_stdout = FALSE;

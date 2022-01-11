@@ -538,7 +538,7 @@ mxserver_main( int argc, char *argv[] )
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
 	int bypass_signal_handlers, poll_all;
 	unsigned long network_debug_flags;
-	unsigned long max_network_dump_bytes;
+	long max_network_dump_bytes;
 	mx_bool_type enable_remote_breakpoint;
 	mx_bool_type wait_for_debugger, just_in_time_debugging;
 	mx_bool_type wait_at_exit;
@@ -639,7 +639,7 @@ mxserver_main( int argc, char *argv[] )
 	bypass_signal_handlers = FALSE;
 
 	network_debug_flags = 0;
-	max_network_dump_bytes = 0;
+	max_network_dump_bytes = -1L;
 
 	enable_remote_breakpoint = FALSE;
 

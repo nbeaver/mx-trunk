@@ -66,7 +66,7 @@ main( int argc, char *argv[] )
 	int c;
 	mx_bool_type start_debugger, use_escape_sequences;
 	unsigned long network_debug_flags;
-	unsigned long max_network_dump_bytes;
+	long max_network_dump_bytes;
 	mx_status_type mx_status;
 
 	/* For MX network fields that use signed integer types, it must
@@ -153,7 +153,7 @@ main( int argc, char *argv[] )
 	 */
 
 	network_debug_flags = 0;
-	max_network_dump_bytes = 0;
+	max_network_dump_bytes = -1L;
 	start_debugger = FALSE;
 	use_escape_sequences = FALSE;
 

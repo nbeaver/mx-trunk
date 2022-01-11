@@ -207,7 +207,7 @@ motor_main( int argc, char *argv[] )
 	mx_bool_type init_hw_flags, start_debugger;
 	mx_bool_type run_startup_scripts, ignore_scan_savefiles;
 	unsigned long network_debug_flags;
-	unsigned long max_network_dump_bytes;
+	long max_network_dump_bytes;
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
@@ -283,7 +283,7 @@ motor_main( int argc, char *argv[] )
 	verify_drivers = FALSE;
 
 	network_debug_flags = 0;
-	max_network_dump_bytes = 0;
+	max_network_dump_bytes = -1L;
 
 #if HAVE_GETOPT
 	/* Process command line arguments, if any. */
