@@ -2291,8 +2291,13 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	unsigned long network_message_id = 0L;
 	unsigned long record_handle = 0L;
 	unsigned long field_handle = 0L;
+	unsigned long attribute_number = 0L;
+	unsigned long attribute_value = 0L;
 	unsigned long option_number = 0L;
 	unsigned long option_value = 0L;
+	unsigned long supported_callback_types = 0L;
+	unsigned long callback_id = 0L;
+
 	uint32_t uint32_value = 0L;
 
 	uint32_t *uint32_value_ptr = NULL;
@@ -2473,6 +2478,12 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			case MX_NETMSG_GET_FIELD_TYPE:
 				fprintf( stderr, "Get field type\n" );
 				break;
+			case MX_NETMSG_GET_ATTRIBUTE:
+				fprintf( stderr, "Get attribute\n" );
+				break;
+			case MX_NETMSG_SET_ATTRIBUTE:
+				fprintf( stderr, "Set attribute\n" );
+				break;
 			case MX_NETMSG_SET_CLIENT_INFO:
 				fprintf( stderr, "Set client info\n" );
 				break;
@@ -2648,6 +2659,9 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+		case MX_NETMSG_GET_ATTRIBUTE:
+		case MX_NETMSG_SET_ATTRIBUTE:
+		case MX_NETMSG_ADD_CALLBACK:
 			uint32_value_ptr = (uint32_t *) message_ptr;
 
 			record_handle = mx_ntohl( *uint32_value_ptr );
@@ -2670,6 +2684,8 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			"*** MX record field handle = (%lu, %lu)\n",
 				record_handle, field_handle );
 
+			uint32_value_ptr++;
+
 			message_ptr += ( 2L * sizeof(uint32_t) );
 
 			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
@@ -2683,47 +2699,6 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			break;
 
 		case MX_NETMSG_GET_OPTION:
-			uint32_value_ptr = (uint32_t *) message_ptr;
-
-			option_number = mx_ntohl( *uint32_value_ptr );
-
-			fprintf( stderr,
-			"%p: %#010lx, %#010lx, option number = %lu *** ",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
-				option_number );
-
-			switch( option_number ) {
-			case MX_NETWORK_OPTION_DATAFMT:
-				fprintf( stderr, "Data format\n" );
-				break;
-			case MX_NETWORK_OPTION_NATIVE_DATAFMT:
-				fprintf( stderr, "Native data format\n" );
-				break;
-			case MX_NETWORK_OPTION_64BIT_LONG:
-				fprintf( stderr, "Request 64-bit longs\n" );
-				break;
-			case MX_NETWORK_OPTION_WORDSIZE:
-				fprintf( stderr, "CPU wordsize\n" );
-				break;
-			case MX_NETWORK_OPTION_CLIENT_VERSION:
-				fprintf( stderr, "Client version\n" );
-				break;
-			case MX_NETWORK_OPTION_CLIENT_VERSION_TIME:
-				fprintf( stderr, "Client version time\n" );
-				break;
-			default:
-				fprintf( stderr, "Unrecognized option %lu\n",
-						option_number );
-				break;
-			}
-
-			message_ptr += sizeof(uint32_t);
-
-			bytes_left_to_display -= sizeof(uint32_t);
-			break;
-
 		case MX_NETMSG_SET_OPTION:
 			uint32_value_ptr = (uint32_t *) message_ptr;
 
@@ -2761,20 +2736,41 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				break;
 			}
 
-			uint32_value_ptr ++;
+			uint32_value_ptr++;
 
-			option_value = mx_ntohl( *uint32_value_ptr );
+			message_ptr += sizeof(uint32_t);
+
+			bytes_left_to_display -= sizeof(uint32_t);
+
+			if ( native_message_type == MX_NETMSG_SET_OPTION ) {
+
+				option_value = mx_ntohl( *uint32_value_ptr );
+
+				fprintf( stderr,
+				"%p: %#010lx, %#010lx, option value = %lu\n",
+					uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+					option_value );
+
+				message_ptr += sizeof(uint32_t);
+
+				bytes_left_to_display -= sizeof(uint32_t);
+			}
+			break;
+
+		case MX_NETMSG_DELETE_CALLBACK:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			callback_id = mx_ntohl( *uint32_value_ptr );
 
 			fprintf( stderr,
-			"%p: %#010lx, %#010lx, option value = %lu\n",
+			"%p: %#010lx, %#010lx, callback id = %#010lx\n",
 				uint32_value_ptr,
 				(unsigned long) *uint32_value_ptr,
 				(unsigned long) mx_ntohl( *uint32_value_ptr ),
-				option_value );
+				callback_id );
 
-			message_ptr += ( 2L * sizeof(uint32_t) );
-
-			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
 			break;
 
 		default:
@@ -2796,13 +2792,6 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		fprintf( stderr, "*** MX command value body ***\n" );
 
 		switch( native_message_type ) {
-		case MX_NETMSG_PUT_ARRAY_BY_NAME:
-		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
-			mx_network_dump_value( message_ptr,
-					network_data_format,
-					native_message_type,
-					bytes_left_to_display );
-			break;
 		case MX_NETMSG_GET_ARRAY_BY_NAME:
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 		case MX_NETMSG_GET_NETWORK_HANDLE:
@@ -2811,6 +2800,97 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETMSG_SET_OPTION:
 		case MX_NETMSG_SET_CLIENT_INFO:
 			break;
+
+		case MX_NETMSG_PUT_ARRAY_BY_NAME:
+		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+			mx_network_dump_value( message_ptr,
+					network_data_format,
+					native_message_type,
+					bytes_left_to_display );
+			break;
+
+		case MX_NETMSG_GET_ATTRIBUTE:
+		case MX_NETMSG_SET_ATTRIBUTE:
+			attribute_number = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, attribute number = %lu *** ",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				attribute_number );
+
+			switch( attribute_number ) {
+			case MXNA_VALUE_CHANGE_THRESHOLD:
+				fprintf( stderr, "Value change threshold\n" );
+				break;
+			case MXNA_POLL:
+				fprintf( stderr, "Poll\n" );
+				break;
+			case MXNA_READ_ONLY:
+				fprintf( stderr, "Read only\n" );
+				break;
+			case MXNA_NO_ACCESS:
+				fprintf( stderr, "No access\n" );
+				break;
+			default:
+				fprintf( stderr,
+				"Unrecognized attribute number %lu\n",
+						attribute_number );
+				break;
+			}
+
+			uint32_value_ptr ++;
+
+			message_ptr += sizeof(uint32_t);
+
+			bytes_left_to_display -= sizeof(uint32_t);
+
+			/*===*/
+
+			if ( native_message_type == MX_NETMSG_SET_ATTRIBUTE ) {
+
+				attribute_value = mx_ntohl( *uint32_value_ptr );
+
+				fprintf( stderr,
+				"%p: %#010lx, %#010lx, attribute value = %lu\n",
+					uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+					attribute_value );
+
+				message_ptr += sizeof(uint32_t);
+
+				bytes_left_to_display -= sizeof(uint32_t);
+			}
+			break;
+
+		case MX_NETMSG_ADD_CALLBACK:
+			supported_callback_types = mx_ntohl( *uint32_value_ptr);
+
+			fprintf( stderr,
+		"%p: %#010lx, %#010lx, supported callback types = %#010lx ***",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				supported_callback_types );
+
+			if ( supported_callback_types & MXCBT_VALUE_CHANGED ) {
+				fprintf( stderr, " (value changed)" );
+			}
+			if ( supported_callback_types & MXCBT_POLL ) {
+				fprintf( stderr, " (poll)" );
+			}
+			if ( supported_callback_types & MXCBT_MOTOR_BACKLASH ) {
+				fprintf( stderr, " (motor backlash)" );
+			}
+			if ( supported_callback_types & MXCBT_FUNCTION ) {
+				fprintf( stderr, " (function)" );
+			}
+
+			fprintf( stderr, "\n" );
+			break;
+
 		default:
 			fprintf( stderr,
 			"*** MX unrecognized command message type %#lx\n",
@@ -2889,6 +2969,9 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
 			break;
 
+		case MX_NETMSG_GET_ATTRIBUTE:
+			break;
+
 		case MX_NETMSG_GET_OPTION:
 			uint32_value_ptr = (uint32_t *) message_ptr;
 
@@ -2903,8 +2986,24 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 			break;
 
+		case MX_NETMSG_ADD_CALLBACK:
+			uint32_value_ptr = (uint32_t *) message_ptr;
+
+			callback_id = mx_ntohl( *uint32_value_ptr );
+
+			fprintf( stderr,
+			"%p: %#010lx, %#010lx, callback_id = %#010lx\n",
+				uint32_value_ptr,
+				(unsigned long) *uint32_value_ptr,
+				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				callback_id );
+
+			break;
+
+		case MX_NETMSG_SET_ATTRIBUTE:
 		case MX_NETMSG_SET_OPTION:
 		case MX_NETMSG_SET_CLIENT_INFO:
+		case MX_NETMSG_DELETE_CALLBACK:
 			break;
 
 		default:
