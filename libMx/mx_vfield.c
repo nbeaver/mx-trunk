@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012, 2014-2015, 2019, 2021 Illinois Institute of Technology
+ * Copyright 2012, 2014-2015, 2019, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -156,6 +156,38 @@ MX_RECORD_FIELD_DEFAULTS *mxv_field_ushort_variable_dptr
 
 /* ==== */
 
+MX_RECORD_FIELD_DEFAULTS mxv_field_int16_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_FIELD_VARIABLE_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_INT16_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_field_int16_variable_num_record_fields
+			= sizeof( mxv_field_int16_variable_defaults )
+			/ sizeof( mxv_field_int16_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_field_int16_variable_dptr
+			= &mxv_field_int16_variable_defaults[0];
+
+/* ==== */
+
+MX_RECORD_FIELD_DEFAULTS mxv_field_uint16_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_FIELD_VARIABLE_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_UINT16_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_field_uint16_variable_num_record_fields
+			= sizeof( mxv_field_uint16_variable_defaults )
+			/ sizeof( mxv_field_uint16_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_field_uint16_variable_dptr
+			= &mxv_field_uint16_variable_defaults[0];
+
+/* ==== */
+
 MX_RECORD_FIELD_DEFAULTS mxv_field_bool_variable_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_FIELD_VARIABLE_STANDARD_FIELDS,
@@ -169,6 +201,38 @@ long mxv_field_bool_variable_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxv_field_bool_variable_dptr
 			= &mxv_field_bool_variable_defaults[0];
+
+/* ==== */
+
+MX_RECORD_FIELD_DEFAULTS mxv_field_int32_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_FIELD_VARIABLE_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_INT32_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_field_int32_variable_num_record_fields
+			= sizeof( mxv_field_int32_variable_defaults )
+			/ sizeof( mxv_field_int32_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_field_int32_variable_dptr
+			= &mxv_field_int32_variable_defaults[0];
+
+/* ==== */
+
+MX_RECORD_FIELD_DEFAULTS mxv_field_uint32_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_FIELD_VARIABLE_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_UINT32_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_field_uint32_variable_num_record_fields
+			= sizeof( mxv_field_uint32_variable_defaults )
+			/ sizeof( mxv_field_uint32_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_field_uint32_variable_dptr
+			= &mxv_field_uint32_variable_defaults[0];
 
 /* ==== */
 

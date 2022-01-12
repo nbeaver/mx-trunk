@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2005-2007, 2016, 2021 Illinois Institute of Technology
+ * Copyright 2001, 2005-2007, 2016, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -252,6 +252,10 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 	uint8_t uint8_value;
 	short short_value;
 	unsigned short ushort_value;
+	int16_t int16_value;
+	uint16_t uint16_value;
+	int32_t int32_value;
+	uint32_t uint32_value;
 	long long_value;
 	unsigned long ulong_value;
 	int64_t int64_value;
@@ -371,6 +375,26 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 				permit_handler->permit_status = TRUE;
 			}
 			break;
+		case MXFT_INT16:
+			mx_status = mx_get_int16_variable( permit_record,
+								&int16_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( int16_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_UINT16:
+			mx_status = mx_get_uint16_variable( permit_record,
+								&uint16_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uint16_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
 		case MXFT_BOOL:
 			mx_status = mx_get_bool_variable( permit_record,
 								&bool_value );
@@ -378,6 +402,26 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 				return mx_status;
 
 			if ( bool_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_INT32:
+			mx_status = mx_get_int32_variable( permit_record,
+								&int32_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( int32_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_UINT32:
+			mx_status = mx_get_uint32_variable( permit_record,
+								&uint32_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uint32_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;

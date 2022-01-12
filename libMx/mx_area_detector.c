@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2021 Illinois Institute of Technology
+ * Copyright 2006-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -5907,8 +5907,20 @@ mx_area_detector_default_get_register( MX_AREA_DETECTOR *ad )
 	case MXFT_USHORT:
 		ad->register_value = *((unsigned short *) value_ptr);
 		break;
+	case MXFT_INT16:
+		ad->register_value = *((int16_t *) value_ptr);
+		break;
+	case MXFT_UINT16:
+		ad->register_value = *((uint16_t *) value_ptr);
+		break;
 	case MXFT_BOOL:
 		ad->register_value = *((mx_bool_type *) value_ptr);
+		break;
+	case MXFT_INT32:
+		ad->register_value = *((int32_t *) value_ptr);
+		break;
+	case MXFT_UINT32:
+		ad->register_value = *((uint32_t *) value_ptr);
 		break;
 	case MXFT_LONG:
 		ad->register_value = *((long *) value_ptr);
@@ -6008,9 +6020,21 @@ mx_area_detector_default_set_register( MX_AREA_DETECTOR *ad )
 		*((unsigned short *) value_ptr)
 				= (unsigned short) ad->register_value;
 		break;
+	case MXFT_INT16:
+		*((int16_t *) value_ptr) = (int16_t) ad->register_value;
+		break;
+	case MXFT_UINT16:
+		*((uint16_t *) value_ptr) = (uint16_t) ad->register_value;
+		break;
 	case MXFT_BOOL:
 		*((mx_bool_type *) value_ptr)
 				= (mx_bool_type) ad->register_value;
+		break;
+	case MXFT_INT32:
+		*((int32_t *) value_ptr) = (int32_t) ad->register_value;
+		break;
+	case MXFT_UINT32:
+		*((uint32_t *) value_ptr) = (uint32_t) ad->register_value;
 		break;
 	case MXFT_LONG:
 		*((long *) value_ptr) = ad->register_value;

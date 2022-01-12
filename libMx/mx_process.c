@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2008, 2011-2017, 2019-2020
+ * Copyright 1999-2001, 2004-2008, 2011-2017, 2019-2020, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -576,7 +576,11 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	uint8_t *uint8_array;
 	short *short_array;
 	unsigned short *ushort_array;
+	int16_t *int16_array;
+	uint16_t *uint16_array;
 	mx_bool_type *bool_array;
+	int32_t *int32_array;
+	uint32_t *uint32_array;
 	long *long_array;
 	unsigned long *ulong_array;
 	float *float_array;
@@ -686,11 +690,39 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 				sum += ushort_array[i];
 			}
 			break;
+		case MXFT_INT16:
+			int16_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += int16_array[i];
+			}
+			break;
+		case MXFT_UINT16:
+			uint16_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += uint16_array[i];
+			}
+			break;
 		case MXFT_BOOL:
 			bool_array = array_ptr;
 			
 			for ( i = 0; i < num_elements; i++ ) {
 				sum += bool_array[i];
+			}
+			break;
+		case MXFT_INT32:
+			int32_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += int32_array[i];
+			}
+			break;
+		case MXFT_UINT32:
+			uint32_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += uint32_array[i];
 			}
 			break;
 		case MXFT_LONG:

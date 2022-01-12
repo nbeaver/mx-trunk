@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012-2021 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -239,6 +239,10 @@ typedef struct {
 #define MXFT_UINT64		15
 #define MXFT_INT8		16
 #define MXFT_UINT8		17
+#define MXFT_INT16		18
+#define MXFT_UINT16		19
+#define MXFT_INT32		20
+#define MXFT_UINT32		21
 
 #define MXFT_RECORD		31
 #define MXFT_RECORDTYPE		32

@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2016, 2018-2019, 2021 Illinois Institute of Technology
+ * Copyright 1999-2016, 2018-2019, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -84,8 +84,20 @@ mx_get_datatype_from_datatype_name( const char *datatype_name )
 	if ( mx_strcasecmp( datatype_name, "ushort" ) == 0 ) {
 		return MXFT_USHORT;
 	}
+	if ( mx_strcasecmp( datatype_name, "int16" ) == 0 ) {
+		return MXFT_INT16;
+	}
+	if ( mx_strcasecmp( datatype_name, "uint16" ) == 0 ) {
+		return MXFT_UINT16;
+	}
 	if ( mx_strcasecmp( datatype_name, "bool" ) == 0 ) {
 		return MXFT_BOOL;
+	}
+	if ( mx_strcasecmp( datatype_name, "int32" ) == 0 ) {
+		return MXFT_INT32;
+	}
+	if ( mx_strcasecmp( datatype_name, "uint32" ) == 0 ) {
+		return MXFT_UINT32;
 	}
 	if ( mx_strcasecmp( datatype_name, "long" ) == 0 ) {
 		return MXFT_LONG;
@@ -160,8 +172,20 @@ mx_get_datatype_name_from_datatype( long datatype )
 	case MXFT_USHORT:
 		strlcpy( datatype_name, "ushort", sizeof(datatype_name) );
 		break;
+	case MXFT_INT16:
+		strlcpy( datatype_name, "int16", sizeof(datatype_name) );
+		break;
+	case MXFT_UINT16:
+		strlcpy( datatype_name, "uint16", sizeof(datatype_name) );
+		break;
 	case MXFT_BOOL:
 		strlcpy( datatype_name, "bool", sizeof(datatype_name) );
+		break;
+	case MXFT_INT32:
+		strlcpy( datatype_name, "int32", sizeof(datatype_name) );
+		break;
+	case MXFT_UINT32:
+		strlcpy( datatype_name, "uint32", sizeof(datatype_name) );
 		break;
 	case MXFT_LONG:
 		strlcpy( datatype_name, "long", sizeof(datatype_name) );
@@ -301,7 +325,11 @@ mx_get_field_type_string( long field_type )
 	{ MXFT_UINT8,		"MXFT_UINT8" },
 	{ MXFT_SHORT,		"MXFT_SHORT" },
 	{ MXFT_USHORT,		"MXFT_USHORT" },
+	{ MXFT_INT16,		"MXFT_INT16" },
+	{ MXFT_UINT16,		"MXFT_UINT16" },
 	{ MXFT_BOOL,		"MXFT_BOOL" },
+	{ MXFT_INT32,		"MXFT_INT32" },
+	{ MXFT_UINT32,		"MXFT_UINT32" },
 	{ MXFT_LONG,		"MXFT_LONG" },
 	{ MXFT_ULONG,		"MXFT_ULONG" },
 	{ MXFT_INT64,		"MXFT_INT64" },
@@ -1254,7 +1282,6 @@ mx_construct_uchar_field( void *dataptr,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
 static mx_status_type
 mx_parse_int8_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
@@ -1263,15 +1290,12 @@ mx_parse_int8_field( void *dataptr, char *token,
 	static const char fname[] = "mx_parse_int8_field()";
 
 	int num_items;
-	short short_value;
 
-	num_items = sscanf( token, "%hd", &short_value );
+	num_items = sscanf( token, "%" SCNd8, (int8_t *) dataptr );
 
 	if ( num_items != 1 )
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"Int8 not found in token '%s'", token );
-
-	*((int8_t *) dataptr) = (int8_t) short_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1282,7 +1306,7 @@ mx_construct_int8_field( void *dataptr,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
 	snprintf( token_buffer, token_buffer_length,
-			"%hd", (short) *((int8_t *) dataptr) );
+			"%" PRId8, *((int8_t *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1295,15 +1319,12 @@ mx_parse_uint8_field( void *dataptr, char *token,
 	static const char fname[] = "mx_parse_uint8_field()";
 
 	int num_items;
-	unsigned short ushort_value;
 
-	num_items = sscanf( token, "%hu", &ushort_value );
+	num_items = sscanf( token, "%" SCNu8, (uint8_t *) dataptr );
 
 	if ( num_items != 1 )
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"Uint8 not found in token '%s'", token );
-
-	*((uint8_t *) dataptr) = (uint8_t) ushort_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1314,7 +1335,7 @@ mx_construct_uint8_field( void *dataptr,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
 	snprintf( token_buffer, token_buffer_length,
-			"%hu", (unsigned short) *((uint8_t *) dataptr) );
+			"%" PRIu8, *((uint8_t *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1378,6 +1399,64 @@ mx_construct_ushort_field( void *dataptr,
 }
 
 static mx_status_type
+mx_parse_int16_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	static const char fname[] = "mx_parse_int16_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%" SCNd16, (int16_t *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Int16 not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_int16_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRId16, *((int16_t *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_uint16_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	static const char fname[] = "mx_parse_uint16_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%" SCNu16, (uint16_t *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Uint16 not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_uint16_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRIu16, *((uint16_t *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
 mx_parse_bool_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
@@ -1424,6 +1503,64 @@ mx_construct_bool_field( void *dataptr,
 	} else {
 		snprintf( token_buffer, token_buffer_length, "0" );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_int32_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	static const char fname[] = "mx_parse_int32_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%" SCNd32, (int32_t *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Int32 not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_int32_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRId32, *((int32_t *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_uint32_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	static const char fname[] = "mx_parse_uint32_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%" SCNu32, (uint32_t *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Uint32 not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_uint32_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRIu32, *((uint32_t *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2964,8 +3101,20 @@ mx_get_token_parser( long field_type,
 	case MXFT_USHORT:
 		*token_parser = mx_parse_ushort_field;
 		break;
+	case MXFT_INT16:
+		*token_parser = mx_parse_int16_field;
+		break;
+	case MXFT_UINT16:
+		*token_parser = mx_parse_uint16_field;
+		break;
 	case MXFT_BOOL:
 		*token_parser = mx_parse_bool_field;
+		break;
+	case MXFT_INT32:
+		*token_parser = mx_parse_int32_field;
+		break;
+	case MXFT_UINT32:
+		*token_parser = mx_parse_uint32_field;
 		break;
 	case MXFT_LONG:
 		*token_parser = mx_parse_long_field;
@@ -3050,8 +3199,20 @@ mx_get_token_constructor( long field_type,
 	case MXFT_USHORT:
 		*token_constructor = mx_construct_ushort_field;
 		break;
+	case MXFT_INT16:
+		*token_constructor = mx_construct_int16_field;
+		break;
+	case MXFT_UINT16:
+		*token_constructor = mx_construct_uint16_field;
+		break;
 	case MXFT_BOOL:
 		*token_constructor = mx_construct_bool_field;
+		break;
+	case MXFT_INT32:
+		*token_constructor = mx_construct_int32_field;
+		break;
+	case MXFT_UINT32:
+		*token_constructor = mx_construct_uint32_field;
 		break;
 	case MXFT_LONG:
 		*token_constructor = mx_construct_long_field;
@@ -3935,7 +4096,15 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	static size_t short_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_SHORT_SIZEOF;
 	static size_t ushort_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_USHORT_SIZEOF;
+	static size_t int16_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_INT16_SIZEOF;
+	static size_t uint16_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_UINT16_SIZEOF;
 	static size_t bool_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_BOOL_SIZEOF;
+	static size_t int32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_INT32_SIZEOF;
+	static size_t uint32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_UINT32_SIZEOF;
 	static size_t long_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_LONG_SIZEOF;
 	static size_t ulong_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_ULONG_SIZEOF;
 	static size_t int64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
@@ -3974,8 +4143,20 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	case MXFT_USHORT:
 		*sizeof_array = ushort_sizeof;
 		break;
+	case MXFT_INT16:
+		*sizeof_array = int16_sizeof;
+		break;
+	case MXFT_UINT16:
+		*sizeof_array = uint16_sizeof;
+		break;
 	case MXFT_BOOL:
 		*sizeof_array = bool_sizeof;
+		break;
+	case MXFT_INT32:
+		*sizeof_array = int32_sizeof;
+		break;
+	case MXFT_UINT32:
+		*sizeof_array = uint32_sizeof;
 		break;
 	case MXFT_LONG:
 		*sizeof_array = long_sizeof;

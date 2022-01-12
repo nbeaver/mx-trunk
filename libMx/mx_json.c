@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2019, 2021 Illinois Institute of Technology
+ * Copyright 2019, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -301,8 +301,20 @@ mx_json_get_key( MX_JSON *json,
 	case MXFT_USHORT:
 		*((unsigned short *) key_value ) = found_cjson_value->valueint;
 		break;
+	case MXFT_INT16:
+		*((int16_t *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_UINT16:
+		*((uint16_t *) key_value ) = found_cjson_value->valueint;
+		break;
 	case MXFT_BOOL:
 		*((mx_bool_type *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_INT32:
+		*((int32_t *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_UINT32:
+		*((uint32_t *) key_value ) = found_cjson_value->valueint;
 		break;
 	case MXFT_LONG:
 		*((long *) key_value ) = found_cjson_value->valueint;
@@ -427,6 +439,18 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_USHORT:
 			*((unsigned short *) key_value) = bool_array[0];
 			break;
+		case MXFT_INT16:
+			*((int16_t *) key_value) = bool_array[0];
+			break;
+		case MXFT_UINT16:
+			*((uint16_t *) key_value) = bool_array[0];
+			break;
+		case MXFT_INT32:
+			*((int32_t *) key_value) = bool_array[0];
+			break;
+		case MXFT_UINT32:
+			*((uint32_t *) key_value) = bool_array[0];
+			break;
 		case MXFT_LONG:
 			*((long *) key_value) = bool_array[0];
 			break;
@@ -487,6 +511,18 @@ mx_json_get_compatible_key( MX_JSON *json,
 			break;
 		case MXFT_USHORT:
 			*((unsigned short *) key_value) = long_array[0];
+			break;
+		case MXFT_INT16:
+			*((int16_t *) key_value) = long_array[0];
+			break;
+		case MXFT_UINT16:
+			*((uint16_t *) key_value) = long_array[0];
+			break;
+		case MXFT_INT32:
+			*((int32_t *) key_value) = long_array[0];
+			break;
+		case MXFT_UINT32:
+			*((uint32_t *) key_value) = long_array[0];
 			break;
 		case MXFT_LONG:
 			*((long *) key_value) = long_array[0];
@@ -549,6 +585,18 @@ mx_json_get_compatible_key( MX_JSON *json,
 		case MXFT_USHORT:
 			*((unsigned short *) key_value) = ulong_array[0];
 			break;
+		case MXFT_INT16:
+			*((int16_t *) key_value) = ulong_array[0];
+			break;
+		case MXFT_UINT16:
+			*((uint16_t *) key_value) = ulong_array[0];
+			break;
+		case MXFT_INT32:
+			*((int32_t *) key_value) = ulong_array[0];
+			break;
+		case MXFT_UINT32:
+			*((uint32_t *) key_value) = ulong_array[0];
+			break;
 		case MXFT_LONG:
 			*((long *) key_value) = ulong_array[0];
 			break;
@@ -609,6 +657,18 @@ mx_json_get_compatible_key( MX_JSON *json,
 			break;
 		case MXFT_USHORT:
 			*((unsigned short *) key_value) = float_array[0];
+			break;
+		case MXFT_INT16:
+			*((int16_t *) key_value) = float_array[0];
+			break;
+		case MXFT_UINT16:
+			*((uint16_t *) key_value) = float_array[0];
+			break;
+		case MXFT_INT32:
+			*((int32_t *) key_value) = float_array[0];
+			break;
+		case MXFT_UINT32:
+			*((uint32_t *) key_value) = float_array[0];
 			break;
 		case MXFT_LONG:
 			*((long *) key_value) = float_array[0];

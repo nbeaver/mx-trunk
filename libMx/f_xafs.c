@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010, 2015-2019, 2021
+ * Copyright 1999-2006, 2009-2010, 2015-2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -873,12 +873,12 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 					    *((unsigned char *) value_ptr) );
 			    break;
 			case MXFT_INT8:
-			    fprintf( output_file, " %hd",
-				    (short) *((int8_t *) value_ptr) );
+			    fprintf( output_file, " %" PRId8,
+					    *((int8_t *) value_ptr) );
 			    break;
 			case MXFT_UINT8:
-			    fprintf( output_file, " %hu",
-				   (unsigned short) *((uint8_t *) value_ptr) );
+			    fprintf( output_file, " %" PRIu8,
+					    *((uint8_t *) value_ptr) );
 			    break;
 			case MXFT_SHORT:
 			    fprintf( output_file, " %hd",
@@ -888,8 +888,24 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 			    fprintf( output_file, " %hu",
 					   *((unsigned short *) value_ptr) );
 			    break;
+			case MXFT_INT16:
+			    fprintf( output_file, " %" PRId16,
+					    *((int16_t *) value_ptr) );
+			    break;
+			case MXFT_UINT16:
+			    fprintf( output_file, " %" PRIu16,
+					    *((uint16_t *) value_ptr) );
+			    break;
 			case MXFT_BOOL:
 			    fprintf( output_file, " %d", *((int *) value_ptr) );
+			    break;
+			case MXFT_INT32:
+			    fprintf( output_file, " %" PRId32,
+					    *((int32_t *) value_ptr) );
+			    break;
+			case MXFT_UINT32:
+			    fprintf( output_file, " %" PRIu32,
+					    *((uint32_t *) value_ptr) );
 			    break;
 			case MXFT_LONG:
 			    fprintf( output_file, " %ld",

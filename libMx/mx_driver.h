@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -823,6 +823,10 @@ extern "C" {
 #define MXV_INL_UINT64			500015
 #define MXV_INL_INT8			500016
 #define MXV_INL_UINT8			500017
+#define MXV_INL_INT16			500018
+#define MXV_INL_UINT16			500019
+#define MXV_INL_INT32			500020
+#define MXV_INL_UINT32			500021
 #define MXV_INL_RECORD			500031
 
 #define MXV_NET_STRING			501001
@@ -839,6 +843,10 @@ extern "C" {
 #define MXV_NET_UINT64			501015
 #define MXV_NET_INT8			501016
 #define MXV_NET_UINT8			501017
+#define MXV_NET_INT16			501018
+#define MXV_NET_UINT16			501019
+#define MXV_NET_INT32			501020
+#define MXV_NET_UINT32			501021
 #define MXV_NET_RECORD			501031
 
 #define MXV_EPI_STRING			502001
@@ -899,6 +907,10 @@ extern "C" {
 #define MXV_FIELD_UINT64		508015
 #define MXV_FIELD_INT8			508016
 #define MXV_FIELD_UINT8			508017
+#define MXV_FIELD_INT16			508018
+#define MXV_FIELD_UINT16		508019
+#define MXV_FIELD_INT32			508020
+#define MXV_FIELD_UINT32		508021
 #define MXV_FIELD_RECORD		508031
 
 #define MXV_UMX_STRING			509001

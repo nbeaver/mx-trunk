@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005, 2010, 2015, 2021
+ * Copyright 1999-2001, 2003-2005, 2010, 2015, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -462,8 +462,20 @@ mx_set_1d_array( MX_RECORD *record,
 		case MXFT_USHORT:
 			value_size = num_elements * sizeof(unsigned short);
 			break;
+		case MXFT_INT16:
+			value_size = num_elements * sizeof(int16_t);
+			break;
+		case MXFT_UINT16:
+			value_size = num_elements * sizeof(uint16_t);
+			break;
 		case MXFT_BOOL:
 			value_size = num_elements * sizeof(mx_bool_type);
+			break;
+		case MXFT_INT32:
+			value_size = num_elements * sizeof(int32_t);
+			break;
+		case MXFT_UINT32:
+			value_size = num_elements * sizeof(uint32_t);
 			break;
 		case MXFT_LONG:
 			value_size = num_elements * sizeof(long);
@@ -798,6 +810,58 @@ mx_get_unsigned_short_variable( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_get_int16_variable( MX_RECORD *record,
+			int16_t *int16_value )
+{
+	static const char fname[] = "mx_get_int16_variable()";
+
+	long num_elements;
+	void *pointer_to_value;
+	mx_status_type status;
+
+	if ( int16_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"int16_value pointer passed was NULL." );
+	}
+
+	status = mx_get_1d_array( record, MXFT_INT16,
+					&num_elements, &pointer_to_value );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*int16_value = *( (int16_t *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_uint16_variable( MX_RECORD *record,
+			uint16_t *uint16_value )
+{
+	static const char fname[] = "mx_get_uint16_variable()";
+
+	long num_elements;
+	void *pointer_to_value;
+	mx_status_type status;
+
+	if ( uint16_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"uint16_value pointer passed was NULL." );
+	}
+
+	status = mx_get_1d_array( record, MXFT_UINT16,
+					&num_elements, &pointer_to_value );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*uint16_value = *( (uint16_t *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_get_bool_variable( MX_RECORD *record,
 			mx_bool_type *bool_value )
 {
@@ -819,6 +883,58 @@ mx_get_bool_variable( MX_RECORD *record,
 		return status;
 
 	*bool_value = *( (mx_bool_type *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_int32_variable( MX_RECORD *record,
+			int32_t *int32_value )
+{
+	static const char fname[] = "mx_get_int32_variable()";
+
+	long num_elements;
+	void *pointer_to_value;
+	mx_status_type status;
+
+	if ( int32_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"int32_value pointer passed was NULL." );
+	}
+
+	status = mx_get_1d_array( record, MXFT_INT32,
+					&num_elements, &pointer_to_value );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*int32_value = *( (int32_t *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_uint32_variable( MX_RECORD *record,
+			uint32_t *uint32_value )
+{
+	static const char fname[] = "mx_get_uint32_variable()";
+
+	long num_elements;
+	void *pointer_to_value;
+	mx_status_type status;
+
+	if ( uint32_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"uint32_value pointer passed was NULL." );
+	}
+
+	status = mx_get_1d_array( record, MXFT_UINT32,
+					&num_elements, &pointer_to_value );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*uint32_value = *( (uint32_t *) pointer_to_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1050,9 +1166,33 @@ mx_set_unsigned_short_variable( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_set_int16_variable( MX_RECORD *record, int16_t int16_value )
+{
+	return mx_set_1d_array( record, MXFT_INT16, 1L, &int16_value );
+}
+
+MX_EXPORT mx_status_type
+mx_set_uint16_variable( MX_RECORD *record, uint16_t uint16_value )
+{
+	return mx_set_1d_array( record, MXFT_UINT16, 1L, &uint16_value );
+}
+
+MX_EXPORT mx_status_type
 mx_set_bool_variable( MX_RECORD *record, mx_bool_type bool_value )
 {
 	return mx_set_1d_array( record, MXFT_BOOL, 1L, &bool_value );
+}
+
+MX_EXPORT mx_status_type
+mx_set_int32_variable( MX_RECORD *record, int32_t int32_value )
+{
+	return mx_set_1d_array( record, MXFT_INT32, 1L, &int32_value );
+}
+
+MX_EXPORT mx_status_type
+mx_set_uint32_variable( MX_RECORD *record, uint32_t uint32_value )
+{
+	return mx_set_1d_array( record, MXFT_UINT32, 1L, &uint32_value );
 }
 
 MX_EXPORT mx_status_type

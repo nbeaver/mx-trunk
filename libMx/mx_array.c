@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2017, 2020-2021 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2017, 2020-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -166,11 +166,15 @@ mx_get_scalar_element_size( long mx_datatype,
 	case MXFT_STRING:     element_size = sizeof(char);                break;
 	case MXFT_CHAR:       element_size = sizeof(char);                break;
 	case MXFT_UCHAR:      element_size = sizeof(unsigned char);       break;
-	case MXFT_INT8:       element_size = sizeof(int8_t);             break;
-	case MXFT_UINT8:      element_size = sizeof(uint8_t);            break;
+	case MXFT_INT8:       element_size = sizeof(int8_t);              break;
+	case MXFT_UINT8:      element_size = sizeof(uint8_t);             break;
 	case MXFT_SHORT:      element_size = sizeof(short);               break;
 	case MXFT_USHORT:     element_size = sizeof(unsigned short);      break;
+	case MXFT_INT16:      element_size = sizeof(int16_t);             break;
+	case MXFT_UINT16:     element_size = sizeof(uint16_t);            break;
 	case MXFT_BOOL:       element_size = sizeof(mx_bool_type);        break;
+	case MXFT_INT32:      element_size = sizeof(int32_t);             break;
+	case MXFT_UINT32:     element_size = sizeof(uint32_t);            break;
 	case MXFT_INT64:      element_size = sizeof(int64_t);             break;
 	case MXFT_UINT64:     element_size = sizeof(uint64_t);            break;
 	case MXFT_FLOAT:      element_size = sizeof(float);               break;
@@ -1848,7 +1852,11 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 		case MXFT_UINT8:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
+		case MXFT_INT16:
+		case MXFT_UINT16:
 		case MXFT_BOOL:
+		case MXFT_INT32:
+		case MXFT_UINT32:
 		case MXFT_INT64:
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
@@ -1991,7 +1999,11 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 		case MXFT_UINT8:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
+		case MXFT_INT16:
+		case MXFT_UINT16:
 		case MXFT_BOOL:
+		case MXFT_INT32:
+		case MXFT_UINT32:
 		case MXFT_INT64:
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
@@ -2285,7 +2297,11 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 		case MXFT_UINT8:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
+		case MXFT_INT16:
+		case MXFT_UINT16:
 		case MXFT_BOOL:
+		case MXFT_INT32:
+		case MXFT_UINT32:
 		case MXFT_INT64:
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
@@ -2370,7 +2386,11 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 		case MXFT_UINT8:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
+		case MXFT_INT16:
+		case MXFT_UINT16:
 		case MXFT_BOOL:
+		case MXFT_INT32:
+		case MXFT_UINT32:
 		case MXFT_INT64:
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
@@ -2496,7 +2516,11 @@ mx_xdr_get_scalar_element_size( long mx_datatype ) {
 	case MXFT_UINT8:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
+	case MXFT_INT16:
+	case MXFT_UINT16:
 	case MXFT_BOOL:
+	case MXFT_INT32:
+	case MXFT_UINT32:
 	case MXFT_LONG:
 	case MXFT_ULONG:
 	case MXFT_HEX:
@@ -2758,8 +2782,20 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		case MXFT_USHORT:
 			xdr_status = xdr_u_short( &xdrs, array_pointer );
 			break;
+		case MXFT_INT16:
+			xdr_status = xdr_short( &xdrs, array_pointer );
+			break;
+		case MXFT_UINT16:
+			xdr_status = xdr_u_short( &xdrs, array_pointer );
+			break;
 		case MXFT_BOOL:
 			xdr_status = xdr_int( &xdrs, array_pointer );
+			break;
+		case MXFT_INT32:
+			xdr_status = xdr_int( &xdrs, array_pointer );
+			break;
+		case MXFT_UINT32:
+			xdr_status = xdr_u_int( &xdrs, array_pointer );
 			break;
 		case MXFT_LONG:
 			xdr_status = xdr_long( &xdrs, array_pointer );
@@ -2971,7 +3007,11 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			case MXFT_UINT8:  XDR_DO_ARRAY(xdr_u_char);  break;
 			case MXFT_SHORT:  XDR_DO_ARRAY(xdr_short);   break;
 			case MXFT_USHORT: XDR_DO_ARRAY(xdr_u_short); break;
+			case MXFT_INT16:  XDR_DO_ARRAY(xdr_short);   break;
+			case MXFT_UINT16: XDR_DO_ARRAY(xdr_u_short); break;
 			case MXFT_BOOL:   XDR_DO_ARRAY(xdr_int);     break;
+			case MXFT_INT32:  XDR_DO_ARRAY(xdr_int);     break;
+			case MXFT_UINT32: XDR_DO_ARRAY(xdr_u_int);   break;
 			case MXFT_LONG:   XDR_DO_ARRAY(xdr_long);    break;
 			case MXFT_ULONG:  XDR_DO_ARRAY(xdr_u_long);  break;
 			case MXFT_HEX:    XDR_DO_ARRAY(xdr_u_long);  break;
@@ -5968,7 +6008,11 @@ mx_status_type mx_copy_mx_array_to_ascii_buffer(
 	case MXFT_UINT8:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
+	case MXFT_INT16:
+	case MXFT_UINT16:
 	case MXFT_BOOL:
+	case MXFT_INT32:
+	case MXFT_UINT32:
 	case MXFT_LONG:
 	case MXFT_ULONG:
 	case MXFT_INT64:
@@ -6104,7 +6148,11 @@ mx_copy_ascii_buffer_to_mx_array( char *source_ascii_buffer,
 	case MXFT_UINT8:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
+	case MXFT_INT16:
+	case MXFT_UINT16:
 	case MXFT_BOOL:
+	case MXFT_INT32:
+	case MXFT_UINT32:
 	case MXFT_LONG:
 	case MXFT_ULONG:
 	case MXFT_INT64:

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2617,18 +2617,28 @@ mx_print_field_value( FILE *file,
 		fprintf( file, "'%c'", *((unsigned char *) value_ptr) );
 		break;
 	case MXFT_INT8:
-		fprintf( file, "%hd",
-			(short) *((int8_t *) value_ptr ) );
+		fprintf( file, "%" PRId8 " ", *((int8_t *) value_ptr ) );
 		break;
 	case MXFT_UINT8:
-		fprintf( file, "%hu",
-			(unsigned short) *((uint8_t *) value_ptr ) );
+		fprintf( file, "%" PRIu8 " ", *((uint8_t *) value_ptr ) );
 		break;
 	case MXFT_SHORT:
 		fprintf( file, "%hd", *((short *) value_ptr) );
 		break;
 	case MXFT_USHORT:
 		fprintf( file, "%hu", *((unsigned short *) value_ptr) );
+		break;
+	case MXFT_INT16:
+		fprintf( file, "%" PRId16 " ", *((int16_t *) value_ptr ) );
+		break;
+	case MXFT_UINT16:
+		fprintf( file, "%" PRIu16 " ", *((uint16_t *) value_ptr ) );
+		break;
+	case MXFT_INT32:
+		fprintf( file, "%" PRId32 " ", *((int32_t *) value_ptr ) );
+		break;
+	case MXFT_UINT32:
+		fprintf( file, "%" PRIu32 " ", *((uint32_t *) value_ptr ) );
 		break;
 	case MXFT_LONG:
 		fprintf( file, "%ld", *((long *) value_ptr) );

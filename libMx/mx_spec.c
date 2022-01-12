@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2015-2016, 2021 Illinois Institute of Technology
+ * Copyright 2004-2006, 2015-2016, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -776,8 +776,20 @@ mx_spec_get_number( MX_RECORD *spec_server_record,
 	case MXFT_USHORT:
 		strlcpy( format, "%hu", sizeof(format) );
 		break;
+	case MXFT_INT16:
+		strlcpy( format, "%" SCNd16, sizeof(format) );
+		break;
+	case MXFT_UINT16:
+		strlcpy( format, "%" SCNu16, sizeof(format) );
+		break;
 	case MXFT_BOOL:
 		strlcpy( format, "%d", sizeof(format) );
+		break;
+	case MXFT_INT32:
+		strlcpy( format, "%" SCNd32, sizeof(format) );
+		break;
+	case MXFT_UINT32:
+		strlcpy( format, "%" SCNu32, sizeof(format) );
 		break;
 	case MXFT_LONG:
 		strlcpy( format, "%ld", sizeof(format) );
@@ -839,11 +851,11 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 		break;
 	case MXFT_INT8:
 		snprintf( string_buffer, sizeof(string_buffer),
-				"%hd", (short) *((int8_t *) value));
+				"%" SCNd8, *((int8_t *) value));
 		break;
 	case MXFT_UINT8:
 		snprintf( string_buffer, sizeof(string_buffer),
-				"%hu", (unsigned short) *((uint8_t *) value));
+				"%" SCNu8, *((uint8_t *) value));
 		break;
 	case MXFT_SHORT:
 		snprintf( string_buffer, sizeof(string_buffer),
@@ -853,9 +865,25 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 		snprintf( string_buffer, sizeof(string_buffer),
 				"%hu", *((unsigned short *) value));
 		break;
+	case MXFT_INT16:
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%" SCNd16, *((int16_t *) value));
+		break;
+	case MXFT_UINT16:
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%" SCNu16, *((uint16_t *) value));
+		break;
 	case MXFT_BOOL:
 		snprintf( string_buffer, sizeof(string_buffer),
 				"%d", (int) *((mx_bool_type *) value));
+		break;
+	case MXFT_INT32:
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%" SCNd32, *((int32_t *) value));
+		break;
+	case MXFT_UINT32:
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%" SCNu32, *((uint32_t *) value));
 		break;
 	case MXFT_LONG:
 		snprintf( string_buffer, sizeof(string_buffer),

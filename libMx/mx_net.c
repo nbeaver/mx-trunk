@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2018, 2020-2021 Illinois Institute of Technology
+ * Copyright 1999-2018, 2020-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2085,14 +2085,14 @@ mx_network_buffer_show_value( void *buffer,
 			break;
 		case MXFT_INT8:
 			for ( i = 0; i < max_display_values; i++ ) {
-				fprintf( stderr, "%hd ",
-					(short) ((int8_t *) raw_buffer)[i] );
+				fprintf( stderr, "%" PRId8 " ",
+					((int8_t *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_UINT8:
 			for ( i = 0; i < max_display_values; i++ ) {
-				fprintf( stderr, "%hu ",
-				(unsigned short) ((uint8_t *) raw_buffer)[i] );
+				fprintf( stderr, "%" PRIu8 " ",
+					((uint8_t *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_SHORT:
@@ -2107,10 +2107,34 @@ mx_network_buffer_show_value( void *buffer,
 					((unsigned short *) raw_buffer)[i] );
 			}
 			break;
+		case MXFT_INT16:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%" PRId16 " ",
+					((int16_t *) raw_buffer)[i] );
+			}
+			break;
+		case MXFT_UINT16:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%" PRIu16 " ",
+					((uint16_t *) raw_buffer)[i] );
+			}
+			break;
 		case MXFT_BOOL:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%d ",
 				(int)(((mx_bool_type *) raw_buffer)[i]) );
+			}
+			break;
+		case MXFT_INT32:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%" PRId32 " ",
+					((int32_t *) raw_buffer)[i] );
+			}
+			break;
+		case MXFT_UINT32:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%" PRIu32 " ",
+					((uint32_t *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_LONG:
@@ -2572,6 +2596,18 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				fprintf( stderr, "(int8)\n" );
 				break;
 			case MXFT_UINT8:                /* 17 */
+				fprintf( stderr, "(uint8)\n" );
+				break;
+			case MXFT_INT16:                /* 18 */
+				fprintf( stderr, "(int8)\n" );
+				break;
+			case MXFT_UINT16:               /* 19 */
+				fprintf( stderr, "(uint8)\n" );
+				break;
+			case MXFT_INT32:                /* 20 */
+				fprintf( stderr, "(int8)\n" );
+				break;
+			case MXFT_UINT32:               /* 21 */
 				fprintf( stderr, "(uint8)\n" );
 				break;
 
@@ -3052,6 +3088,15 @@ mx_network_dump_value( char *message_ptr,
 {
 	static const char fname[] = "mx_network_dump_value()";
 
+	MX_RECORD_FIELD local_temp_record_field;
+	char display_buffer[1000];
+	long num_items_in_value;
+	size_t *datatype_sizeof_array = NULL;
+	mx_status_type mx_status;
+
+	mx_status_type ( *token_constructor )
+		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD * );
+
 	MX_DEBUG(-2,("...crrrOOOOOAAAK..."));
 
 	if ( network_data_format != MX_NETWORK_DATAFMT_RAW ) {
@@ -3060,6 +3105,53 @@ mx_network_dump_value( char *message_ptr,
 		"Aborting dump...", fname, network_data_format );
 		return;
 	}
+
+	/*-----------------------------------------------------------*/
+
+	/* Display the value in ASCII (UTF-8 ?).  For this purpose,
+	 * we treat the data as a 1-dimensional array.
+	 */
+
+	mx_breakpoint();
+
+	mx_status = mx_get_token_constructor( value_datatype,
+						&token_constructor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_status = mx_get_datatype_sizeof_array( value_datatype,
+						&datatype_sizeof_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	if ( datatype_sizeof_array[0] == 0 ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The data element size of MX datatype %ld is reported "
+		"to be 0.", value_datatype );
+
+		return;
+	}
+
+	num_items_in_value = num_bytes_in_value / datatype_sizeof_array[0];
+
+	if ( num_items_in_value == 0 ) {
+		num_items_in_value = 1;
+
+		mx_warning( "num_items_in_value increased from 0 to 1.");
+	}
+
+	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
+				value_datatype, 1, &num_items_in_value,
+				datatype_sizeof_array, message_ptr );
+
+	mx_status = mx_create_array_description( message_ptr, 0,
+					display_buffer, sizeof(display_buffer),
+					NULL, &local_temp_record_field,
+					token_constructor );
+
+	return;
 }
 
 /*------------------------------------------------------------------------*/
@@ -3739,7 +3831,11 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 	case MXFT_UINT8:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
+	case MXFT_INT16:
+	case MXFT_UINT16:
 	case MXFT_BOOL:
+	case MXFT_INT32:
+	case MXFT_UINT32:
 	case MXFT_LONG:
 	case MXFT_ULONG:
 	case MXFT_INT64:

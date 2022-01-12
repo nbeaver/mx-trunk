@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005-2007, 2016, 2021 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005-2007, 2016, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -307,6 +308,10 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 	uint8_t uint8_value;
 	short short_value;
 	unsigned short ushort_value;
+	int16_t int16_value;
+	uint16_t uint16_value;
+	int32_t int32_value;
+	uint32_t uint32_value;
 	long long_value;
 	unsigned long ulong_value;
 	int64_t int64_value;
@@ -426,6 +431,26 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 				fault_handler->fault_status = TRUE;
 			}
 			break;
+		case MXFT_INT16:
+			mx_status = mx_get_int16_variable( fault_record,
+								&int16_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( int16_value != no_fault_value ) {
+				fault_handler->fault_status = TRUE;
+			}
+			break;
+		case MXFT_UINT16:
+			mx_status = mx_get_uint16_variable(fault_record,
+								&uint16_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uint16_value != no_fault_value ) {
+				fault_handler->fault_status = TRUE;
+			}
+			break;
 		case MXFT_BOOL:
 			mx_status = mx_get_bool_variable( fault_record,
 								&bool_value );
@@ -433,6 +458,26 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 				return mx_status;
 
 			if ( bool_value != no_fault_value ) {
+				fault_handler->fault_status = TRUE;
+			}
+			break;
+		case MXFT_INT32:
+			mx_status = mx_get_int32_variable( fault_record,
+								&int32_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( int32_value != no_fault_value ) {
+				fault_handler->fault_status = TRUE;
+			}
+			break;
+		case MXFT_UINT32:
+			mx_status = mx_get_uint32_variable(fault_record,
+								&uint32_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uint32_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;

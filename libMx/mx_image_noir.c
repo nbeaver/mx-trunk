@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012-2013, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2012-2013, 2015-2016, 2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -600,10 +600,30 @@ mxp_image_noir_info_update_record_value( MX_RECORD *record,
 			array_element->u.long_value =
 				*( (unsigned short *) value_pointer );
 			break;
+		case MXFT_INT16:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (int16_t *) value_pointer );
+			break;
+		case MXFT_UINT16:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (uint16_t *) value_pointer );
+			break;
 		case MXFT_BOOL:
 			array_element->datatype = MXFT_LONG;
 			array_element->u.long_value =
 				*( (mx_bool_type *) value_pointer );
+			break;
+		case MXFT_INT32:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (int32_t *) value_pointer );
+			break;
+		case MXFT_UINT32:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (uint32_t *) value_pointer );
 			break;
 		case MXFT_LONG:
 			array_element->datatype = MXFT_LONG;

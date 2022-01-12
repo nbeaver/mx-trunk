@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006-2007, 2010, 2021 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007, 2010, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +49,11 @@ extern long mxv_inline_int8_variable_num_record_fields;
 extern long mxv_inline_uint8_variable_num_record_fields;
 extern long mxv_inline_short_variable_num_record_fields;
 extern long mxv_inline_ushort_variable_num_record_fields;
+extern long mxv_inline_int16_variable_num_record_fields;
+extern long mxv_inline_uint16_variable_num_record_fields;
 extern long mxv_inline_bool_variable_num_record_fields;
+extern long mxv_inline_int32_variable_num_record_fields;
+extern long mxv_inline_uint32_variable_num_record_fields;
 extern long mxv_inline_long_variable_num_record_fields;
 extern long mxv_inline_ulong_variable_num_record_fields;
 extern long mxv_inline_int64_variable_num_record_fields;
@@ -64,7 +69,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_int8_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint8_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_short_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_ushort_variable_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_int16_variable_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint16_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_bool_variable_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_int32_variable_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint32_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_long_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_ulong_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_int64_variable_def_ptr;

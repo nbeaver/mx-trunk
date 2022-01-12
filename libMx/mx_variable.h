@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006-2007, 2010, 2021 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007, 2010, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -119,8 +120,20 @@ MX_API mx_status_type mx_get_short_variable( MX_RECORD *record,
 MX_API mx_status_type mx_get_unsigned_short_variable( MX_RECORD *record,
 					unsigned short *unsigned_short_value );
 
+MX_API mx_status_type mx_get_int16_variable( MX_RECORD *record,
+					int16_t *int16_value );
+
+MX_API mx_status_type mx_get_uint16_variable( MX_RECORD *record,
+					uint16_t *uint16_value );
+
 MX_API mx_status_type mx_get_bool_variable( MX_RECORD *record,
 					mx_bool_type *bool_value );
+
+MX_API mx_status_type mx_get_int32_variable( MX_RECORD *record,
+					int32_t *int32_value );
+
+MX_API mx_status_type mx_get_uint32_variable( MX_RECORD *record,
+					uint32_t *uint32_value );
 
 MX_API mx_status_type mx_get_long_variable( MX_RECORD *record,
 					long *long_value );
@@ -164,8 +177,20 @@ MX_API mx_status_type mx_set_short_variable( MX_RECORD *record,
 MX_API mx_status_type mx_set_unsigned_short_variable( MX_RECORD *record,
 					unsigned short unsigned_short_value );
 
+MX_API mx_status_type mx_set_int16_variable( MX_RECORD *record,
+					int16_t int16_value );
+
+MX_API mx_status_type mx_set_uint16_variable( MX_RECORD *record,
+					uint16_t uint16_value );
+
 MX_API mx_status_type mx_set_bool_variable( MX_RECORD *record,
 					mx_bool_type bool_value );
+
+MX_API mx_status_type mx_set_int32_variable( MX_RECORD *record,
+					int32_t int32_value );
+
+MX_API mx_status_type mx_set_uint32_variable( MX_RECORD *record,
+					uint32_t uint32_value );
 
 MX_API mx_status_type mx_set_long_variable( MX_RECORD *record,
 					long long_value );
@@ -232,11 +257,35 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(unsigned short ****), sizeof(unsigned short *****), \
 	sizeof(unsigned short ******), sizeof(unsigned short *******) }
 
+#define MXA_INT16_SIZEOF \
+	{ sizeof(int16_t), sizeof(int16_t *), \
+	sizeof(int16_t **), sizeof(int16_t ***), \
+	sizeof(int16_t ****), sizeof(int16_t *****), \
+	sizeof(int16_t ******), sizeof(int16_t *******) }
+
+#define MXA_UINT16_SIZEOF \
+	{ sizeof(uint16_t), sizeof(uint16_t *), \
+	sizeof(uint16_t **), sizeof(uint16_t ***), \
+	sizeof(uint16_t ****), sizeof(uint16_t *****), \
+	sizeof(uint16_t ******), sizeof(uint16_t *******) }
+
 #define MXA_BOOL_SIZEOF \
 	{ sizeof(mx_bool_type), sizeof(mx_bool_type *), \
 	sizeof(mx_bool_type **), sizeof(mx_bool_type ***), \
 	sizeof(mx_bool_type ****), sizeof(mx_bool_type *****), \
 	sizeof(mx_bool_type ******), sizeof(mx_bool_type *******) }
+
+#define MXA_INT32_SIZEOF \
+	{ sizeof(int32_t), sizeof(int32_t *), \
+	sizeof(int32_t **), sizeof(int32_t ***), \
+	sizeof(int32_t ****), sizeof(int32_t *****), \
+	sizeof(int32_t ******), sizeof(int32_t *******) }
+
+#define MXA_UINT32_SIZEOF \
+	{ sizeof(uint32_t), sizeof(uint32_t *), \
+	sizeof(uint32_t **), sizeof(uint32_t ***), \
+	sizeof(uint32_t ****), sizeof(uint32_t *****), \
+	sizeof(uint32_t ******), sizeof(uint32_t *******) }
 
 #define MXA_LONG_SIZEOF \
 	{ sizeof(long), sizeof(long *), \
@@ -351,11 +400,39 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	MXA_USHORT_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
+#define MX_INT16_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_INT16, NULL, \
+	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
+	MXA_INT16_SIZEOF, NULL, \
+	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
+
+#define MX_UINT16_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT16, NULL, \
+	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
+	MXA_UINT16_SIZEOF, NULL, \
+	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
+
 #define MX_BOOL_VARIABLE_STANDARD_FIELDS \
   {MXLV_VAR_VALUE, -1, "value", MXFT_BOOL, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
 	MXA_BOOL_SIZEOF, NULL, \
+	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
+
+#define MX_INT32_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_INT32, NULL, \
+	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
+	MXA_INT32_SIZEOF, NULL, \
+	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
+
+#define MX_UINT32_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT32, NULL, \
+	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
+	MXA_UINT32_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
 #define MX_LONG_VARIABLE_STANDARD_FIELDS \

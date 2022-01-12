@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2021 Illinois Institute of Technology
+ * Copyright 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -236,7 +236,17 @@ mxd_field_relay_relay_command( MX_RELAY *relay )
 						= (unsigned short) new_value;
 		break;
 
+	case MXFT_INT16:
+	case MXFT_UINT16:
+		*( (uint16_t *) field_value_ptr ) = (uint16_t) new_value;
+		break;
+
 	case MXFT_BOOL:
+		*( (uint32_t *) field_value_ptr ) = (uint32_t) new_value;
+		break;
+
+	case MXFT_INT32:
+	case MXFT_UINT32:
 		*( (uint32_t *) field_value_ptr ) = (uint32_t) new_value;
 		break;
 

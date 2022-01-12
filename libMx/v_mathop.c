@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2004-2006, 2008, 2010, 2021
+ * Copyright 2001-2002, 2004-2006, 2008, 2010, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -504,6 +504,18 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			*value = (double)
 				*((unsigned short *) pointer_to_value);
 			break;
+		case MXFT_INT16:
+			*value = (double) *((int16_t *) pointer_to_value);
+			break;
+		case MXFT_UINT16:
+			*value = (double) *((uint16_t *) pointer_to_value);
+			break;
+		case MXFT_INT32:
+			*value = (double) *((int32_t *) pointer_to_value);
+			break;
+		case MXFT_UINT32:
+			*value = (double) *((uint32_t *) pointer_to_value);
+			break;
 		case MXFT_LONG:
 			*value = (double) *((long *) pointer_to_value);
 			break;
@@ -565,6 +577,10 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 	uint8_t *uint8_ptr;
 	short *short_ptr;
 	unsigned short *ushort_ptr;
+	int16_t *int16_ptr;
+	uint16_t *uint16_ptr;
+	int32_t *int32_ptr;
+	uint32_t *uint32_ptr;
 	long *long_ptr;
 	unsigned long *ulong_ptr;
 	int64_t *int64_ptr;
@@ -691,10 +707,30 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 
 			*ushort_ptr = (unsigned short) mx_round( new_value );
 			break;
+		case MXFT_INT16:
+			int16_ptr = (int16_t *) pointer_to_value;
+
+			*int16_ptr = (int16_t) mx_round( new_value );
+			break;
+		case MXFT_UINT16:
+			uint16_ptr = (uint16_t *) pointer_to_value;
+
+			*uint16_ptr = (uint16_t) mx_round( new_value );
+			break;
 		case MXFT_BOOL:
 			bool_ptr = (mx_bool_type *) pointer_to_value;
 
 			*bool_ptr = (mx_bool_type) mx_round( new_value );
+			break;
+		case MXFT_INT32:
+			int32_ptr = (int32_t *) pointer_to_value;
+
+			*int32_ptr = (int32_t) mx_round( new_value );
+			break;
+		case MXFT_UINT32:
+			uint32_ptr = (uint32_t *) pointer_to_value;
+
+			*uint32_ptr = (uint32_t) mx_round( new_value );
 			break;
 		case MXFT_LONG:
 			long_ptr = (long *) pointer_to_value;

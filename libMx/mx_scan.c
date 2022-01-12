@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012, 2014-2018, 2021 Illinois Institute of Technology
+ * Copyright 1999-2012, 2014-2018, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2787,12 +2787,24 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 			*returned_value = (double)
 					*((unsigned short *) ptr_to_value);
 			break;
+		case MXFT_INT16:
+			*returned_value = (double) *((int16_t *) ptr_to_value);
+			break;
+		case MXFT_UINT16:
+			*returned_value = (double) *((uint16_t *) ptr_to_value);
+			break;
 		case MXFT_BOOL:
 			if ( *((mx_bool_type *) ptr_to_value) == FALSE ) {
 				*returned_value = FALSE;
 			} else {
 				*returned_value = TRUE;
 			}
+			break;
+		case MXFT_INT32:
+			*returned_value = (double) *((int32_t *) ptr_to_value);
+			break;
+		case MXFT_UINT32:
+			*returned_value = (double) *((uint32_t *) ptr_to_value);
 			break;
 		case MXFT_LONG:
 			*returned_value = (double) *((long *) ptr_to_value);
