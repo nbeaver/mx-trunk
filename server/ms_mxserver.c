@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1616,6 +1616,20 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
                 }
         }
 
+	/**** If requested, dump out the received binary message ****/
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_DUMP ) {
+		fprintf( stderr,
+		"\n*** MX NET dump: CLIENT (socket %d) --> SERVER\n",
+			(int) socket_handler->mx_socket->socket_fd );
+
+		mx_network_dump_message( received_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
+
+	/*====*/
+
 	message_ptr  = received_message->u.char_buffer;
 
 	message_ptr += header_length;
@@ -2759,6 +2773,22 @@ mxsrv_send_field_value_to_client(
 	}
 #endif
 
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
+
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				(int) mx_socket->socket_fd );
@@ -3283,6 +3313,22 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	}
 #endif
 
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
+
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				(int) mx_socket->socket_fd );
@@ -3531,6 +3577,22 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_message[0] = mx_htonl( record_handle );
 	send_buffer_message[1] = mx_htonl( field_handle );
 
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
+
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->mx_socket->socket_fd );
@@ -3657,6 +3719,22 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		for ( i = 0; i < field->num_dimensions; i++ ) {
 		    send_buffer_message[i+2] = mx_htonl(field->dimension[i]);
 		}
+	}
+
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record_list );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record_list->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
@@ -3889,6 +3967,22 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 			= mx_htonl( socket_handler->last_rpc_message_id );
 	}
 
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
+
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->mx_socket->socket_fd );
@@ -4109,6 +4203,22 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 			= mx_htonl( socket_handler->last_rpc_message_id );
 	}
 
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
+
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->mx_socket->socket_fd );
@@ -4322,6 +4432,22 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 
 	send_buffer_message[0] = '\0';
 
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record_list );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record_list->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
+
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->mx_socket->socket_fd );
@@ -4484,6 +4610,22 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
 			= mx_htonl( socket_handler->last_rpc_message_id );
+	}
+
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record_list );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record_list->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
@@ -4717,6 +4859,13 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
 			= mx_htonl( socket_handler->last_rpc_message_id );
+	}
+
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
@@ -5025,6 +5174,22 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
 
 	uint32_message[0] = mx_htonl( callback_object->callback_id );
+
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD structure pointer for record '%s' "
+			"is NULL.", record->name );
+		}
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
@@ -5415,6 +5580,13 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	char_message = (char *) uint32_message;
 
 	char_message[0] = '\0';
+
+	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
+
+		mx_network_dump_message( network_message,
+					socket_handler->data_format,
+					list_head->max_network_dump_bytes );
+	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
