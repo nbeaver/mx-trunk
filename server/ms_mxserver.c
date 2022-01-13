@@ -4691,6 +4691,14 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	int illegal_option_number, illegal_option_value;
 	mx_status_type mx_status;
 
+	list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
+			record_list->name );
+	}
+
 	option_array  = network_message->u.uint32_buffer;
 	option_array +=
 		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
