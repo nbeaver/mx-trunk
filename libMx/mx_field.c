@@ -4120,6 +4120,14 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	static size_t interface_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_INTERFACE_SIZEOF;
 #endif
+	static size_t long32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_LONG32_SIZEOF;
+	static size_t ulong32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_ULONG32_SIZEOF;
+	static size_t long64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_LONG64_SIZEOF;
+	static size_t ulong64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_ULONG64_SIZEOF;
 
 	switch( datatype ) {
 	case MXFT_STRING:
@@ -4182,6 +4190,20 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
 		*sizeof_array = string_sizeof;
+		break;
+
+	/* The following are for special purpose network code. */
+	case MXFT_LONG32:
+		*sizeof_array = long32_sizeof;
+		break;
+	case MXFT_ULONG32:
+		*sizeof_array = ulong32_sizeof;
+		break;
+	case MXFT_LONG64:
+		*sizeof_array = long64_sizeof;
+		break;
+	case MXFT_ULONG64:
+		*sizeof_array = ulong64_sizeof;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
