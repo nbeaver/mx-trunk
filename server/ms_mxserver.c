@@ -1179,6 +1179,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	mx_status = mx_allocate_network_buffer(
 			&(new_socket_handler->message_buffer),
+			NULL, new_socket_handler,
 			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS ) {

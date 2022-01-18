@@ -66,9 +66,21 @@
 
 /* ====================================================================== */
 
+/* MX_NETWORK_MESSAGE_BUFFERs are used both by MX clients and MX servers
+ * and are created by mx_allocate_network_buffer().
+ *
+ * MX clients should pass an MX_NETWORK_SERVER object in the 'network_server'
+ * argument, while MX servers should pass an MX_SOCKET_HANDLER object in
+ * the 'socket_handler' object.  It is an _error_ for 'network_server'
+ * and 'socket_handler' to both be NULL or for them both to be not NULL.
+ */
+
+
 MX_EXPORT mx_status_type
 mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
-				size_t initial_length )
+			struct mx_network_server_type *network_server,
+			struct mx_socket_handler_type *socket_handler,
+			size_t initial_length )
 {
 	static const char fname[] = "mx_allocate_network_buffer()";
 
@@ -94,6 +106,26 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 			"MX_NETWORK_MESSAGE_BUFFER structure." );
 	}
 
+	/*==============================================================*/
+
+	if ( ( network_server == (MX_NETWORK_SERVER *) NULL )
+	  && ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"It is an error for both the 'network_server' and "
+		"'socket_handler' arguments to both be NULL." );
+	}
+
+	if ( ( network_server != (MX_NETWORK_SERVER *) NULL )
+	  && ( socket_handler != (MX_SOCKET_HANDLER *) NULL ) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"It is an error for both the 'network_server' and "
+		"'socket_handler' arguments to both be _NOT_ NULL." );
+	}
+
+	/*==============================================================*/
+
 	/* We use calloc() rather than malloc() here to make Valgrind happy. */
 
 	(*message_buffer)->u.uint32_buffer = calloc( 1, initial_length + 1 );
@@ -110,6 +142,17 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 	(*message_buffer)->buffer_length = initial_length;
 
 	(*message_buffer)->data_format = MX_NETWORK_DATAFMT_ASCII;
+
+	if ( network_server != (MX_NETWORK_SERVER *) NULL ) {
+
+		(*message_buffer)->used_by_socket_handler = FALSE;
+
+		(*message_buffer)->s.network_server = network_server;
+	} else {
+		(*message_buffer)->used_by_socket_handler = TRUE;
+
+		(*message_buffer)->s.socket_handler = socket_handler;
+	}
 
 #if NETWORK_DEBUG_BUFFER_ALLOCATION
 	MX_DEBUG(-2,

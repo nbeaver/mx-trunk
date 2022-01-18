@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2008, 2010-2012, 2014-2015, 2017, 2019
+ * Copyright 1999-2001, 2003-2008, 2010-2012, 2014-2015, 2017, 2019, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -64,7 +64,7 @@ struct mx_unix_domain_auth {
 };
 #endif
 
-typedef struct {
+typedef struct mx_socket_handler_type {
 	MX_SOCKET *mx_socket;
 	MX_LIST_HEAD *list_head;
 	long handler_array_index;

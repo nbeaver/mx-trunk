@@ -65,10 +65,21 @@ extern "C" {
 /*
  * Define the data type that contains MX network messages.
  *
- * The union in the following data structure is defined so that the address
- * of the first byte will be correctly aligned on a 32-bit word boundary for
- * those computer architectures that require such things.
+ * The union 'u' in the following data structure is defined so that the
+ * address of the first byte will be correctly aligned on a 32-bit word
+ * boundary for * those computer architectures that require such things.
  */
+
+/*
+ * The union 's' contains an MX_NETWORK_SERVER pointer when used in an
+ * MX client role or an MX_SOCKET_HANDLER when using in an MX server role.
+ *
+ * Please note that an MX server can be a client of another MX server,
+ * so you need to keep track of whether a given socket is acting as 
+ * a server or as a client.
+ */
+
+struct mx_socket_handler_type;    /* Complete definition in mx_process.h */
 
 typedef struct mx_network_message_buffer {
 	union {
@@ -77,6 +88,14 @@ typedef struct mx_network_message_buffer {
 	} u;
 	size_t buffer_length;
 	unsigned long data_format;
+
+	mx_bool_type used_by_socket_handler;
+
+	union {
+		struct mx_network_server_type *network_server;
+		struct mx_socket_handler_type *socket_handler;
+	} s;
+
 } MX_NETWORK_MESSAGE_BUFFER;
 
 /*
@@ -97,7 +116,7 @@ struct mx_network_field_type {
 	void *application_ptr;
 };
 
-typedef struct {
+typedef struct mx_network_server_type {
 	MX_RECORD *record;
 
 	unsigned long server_flags;
@@ -364,6 +383,8 @@ MX_API mx_status_type mx_create_network_field( MX_NETWORK_FIELD **nf,
 
 MX_API mx_status_type mx_allocate_network_buffer(
 				MX_NETWORK_MESSAGE_BUFFER **message_buffer,
+				struct mx_network_server_type *network_server,
+				struct mx_socket_handler_type *socket_handler,
 				size_t initial_length );
 
 MX_API mx_status_type mx_reallocate_network_buffer(

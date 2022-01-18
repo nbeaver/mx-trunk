@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2015-2016 Illinois Institute of Technology
+ * Copyright 1999-2008, 2015-2016, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,6 +37,7 @@
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_net_socket.h"
+#include "mx_process.h"
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE || MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
 #include "mx_hrt_debug.h"
@@ -606,9 +607,10 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_network_socket_send_error_message()";
 
-	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
-	uint32_t *header;
-	char     *ptr;
+	MX_SOCKET_HANDLER *socket_handler = NULL;
+	MX_NETWORK_MESSAGE_BUFFER *message_buffer = NULL;
+	uint32_t *header = NULL;
+	char     *ptr = NULL;
 	uint32_t message_length, total_length;
 	mx_status_type mx_status;
 
@@ -617,18 +619,55 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
+	socket_handler = mx_socket->socket_handler;
+
+	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"MX_SOCKET structure %p (socket %ld) does not have an "
+		"associated MX_SOCKET_HANDLER structure.  "
+		"This function is only intended for use with sockets in "
+		"MX network servers which have MX_SOCKET HANDLER structures.  "
+		"Perhaps you are mistakenly trying to call it from "
+		"an MX client?", mx_socket, (long) mx_socket->socket_fd );
+	}
+
 	if ( header_length == 0 ) {
 		header_length = MXU_NETWORK_HEADER_LENGTH;
 	}
 
-	message_length = (uint32_t) ( 1 + strlen( error_message.message ) );
+	message_buffer = socket_handler->message_buffer;
 
-	total_length = header_length + message_length;
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
 
-	mx_status = mx_allocate_network_buffer( &message_buffer, total_length );
+		/* If the MX_SOCKET_HANDLER does not already have an
+		 * MX_NETWORK_MESSAGE_BUFFER, then we allocate one
+		 * right here.
+		 */
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		message_length = (uint32_t)
+			( 1 + strlen( error_message.message ) );
+
+		total_length = header_length + message_length;
+
+		/* MX_NETWORK_MESSAGE_BUFFER objects are expected to have
+		 * an internal message buffer array that is at least
+		 * MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH bytes in length.
+		 */
+
+		if ( total_length < MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH )
+		{
+		    total_length = MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH;
+		}
+
+		mx_status = mx_allocate_network_buffer( &message_buffer,
+							NULL, socket_handler,
+							total_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		socket_handler->message_buffer = message_buffer;
+	}
 
 	message_buffer->data_format = MX_NETWORK_DATAFMT_ASCII;
 
