@@ -257,10 +257,10 @@ typedef struct {
  * You should not normally use them in code that is not network related.
  */
 
-#define MXFT_LONG32		832
-#define MXFT_LONG64		864
-#define MXFT_ULONG32		932
-#define MXFT_ULONG64		964
+#define MXFT_LONG32		( (100L * MXFT_LONG) + 32 )	/* 832 */
+#define MXFT_LONG64		( (100L * MXFT_LONG) + 64 )	/* 864 */
+#define MXFT_ULONG32		( (100L * MXFT_ULONG) + 32 )	/* 932 */
+#define MXFT_ULONG64		( (100L * MXFT_ULONG) + 64 )	/* 964 */
 
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify

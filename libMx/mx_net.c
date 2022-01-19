@@ -2355,6 +2355,9 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	mx_bool_type is_response = FALSE;
 	unsigned long mx_status_code = 0L;
 	unsigned long network_datatype = 0L;
+	unsigned long raw_datatype = 0L;
+	mx_bool_type use_64bit_network_longs = FALSE;
+	mx_bool_type adjust_long_size = FALSE;
 	unsigned long network_message_id = 0L;
 	unsigned long record_handle = 0L;
 	unsigned long field_handle = 0L;
@@ -2526,18 +2529,36 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				fprintf( stderr, "(CMD) " );
 			}
 
+			adjust_long_size = FALSE;
+
 			switch( native_message_type ) {
 			case MX_NETMSG_GET_ARRAY_BY_NAME:
 				fprintf( stderr, "Get array by name\n" );
+
+				if ( is_response ) {
+					adjust_long_size = TRUE;
+				}
 				break;
 			case MX_NETMSG_PUT_ARRAY_BY_NAME:
 				fprintf( stderr, "Put array by name\n" );
+
+				if ( is_response == FALSE ) {
+					adjust_long_size = TRUE;
+				}
 				break;
 			case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 				fprintf( stderr, "Get array by handle\n" );
+
+				if ( is_response ) {
+					adjust_long_size = TRUE;
+				}
 				break;
 			case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
 				fprintf( stderr, "Put array by handle\n" );
+
+				if ( is_response == FALSE ) {
+					adjust_long_size = TRUE;
+				}
 				break;
 			case MX_NETMSG_GET_NETWORK_HANDLE:
 				fprintf( stderr, "Get network handle\n" );
@@ -2568,6 +2589,10 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				break;
 			case MX_NETMSG_CALLBACK:
 				fprintf( stderr, "Callback\n" );
+
+				if ( is_response ) {
+					adjust_long_size = TRUE;
+				}
 				break;
 			default:
 				fprintf( stderr,
@@ -2575,6 +2600,9 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					native_message_type );
 				break;
 			}
+
+			MX_DEBUG(-2,("%s: adjust_long_size = %d",
+				fname, (int) adjust_long_size ));
 			break;
 
 		case MX_NETWORK_STATUS_CODE:            /* 4 */
@@ -2588,6 +2616,41 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETWORK_DATA_TYPE:              /* 5 */
 
 			network_datatype = mx_ntohl( uint32_value );
+
+			/* Need to figure out the raw data type that will
+			 * be used by the data going to/from the socket.
+			 */
+
+			if ( message_buffer->used_by_socket_handler ) {
+				use_64bit_network_longs =
+		    message_buffer->s.socket_handler->use_64bit_network_longs;
+			} else {
+				use_64bit_network_longs =
+		    message_buffer->s.network_server->use_64bit_network_longs;
+			}
+
+			switch( network_datatype ) {
+			case MXFT_LONG:
+				if ( use_64bit_network_longs ) {
+					raw_datatype = MXFT_LONG64;
+				} else {
+					raw_datatype = MXFT_LONG32;
+				}
+				break;
+			case MXFT_ULONG:
+			case MXFT_HEX:
+				if ( use_64bit_network_longs ) {
+					raw_datatype = MXFT_ULONG64;
+				} else {
+					raw_datatype = MXFT_ULONG32;
+				}
+				break;
+			default:
+				raw_datatype = network_datatype;
+				break;
+			}
+
+			/* Print out a description of the data type. */
 
 			fprintf( stderr, "MX datatype = %lu ",
 					network_datatype );
@@ -2615,10 +2678,26 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				fprintf( stderr, "(enum)\n" );
 				break;
 			case MXFT_LONG:                 /* 8 */
-				fprintf( stderr, "(long)\n" );
+
+				if ( adjust_long_size ) {
+					fprintf( stderr,
+					    "(long as %ld-bit (%lu) )\n",
+					    raw_datatype - (100L * MXFT_LONG),
+					    raw_datatype );
+				} else {
+					fprintf( stderr, "(long)\n" );
+				}
 				break;
 			case MXFT_ULONG:                /* 9 */
-				fprintf( stderr, "(ulong)\n" );
+
+				if ( adjust_long_size ) {
+					fprintf( stderr,
+					    "(ulong as %ld-bit (%lu))\n",
+					    raw_datatype - (100L * MXFT_ULONG),
+					    raw_datatype );
+				} else {
+					fprintf( stderr, "(ulong)\n" );
+				}
 				break;
 			case MXFT_FLOAT:                /* 10 */
 				fprintf( stderr, "(float)\n" );
@@ -2627,13 +2706,21 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				fprintf( stderr, "(double)\n" );
 				break;
 			case MXFT_HEX:                  /* 12 */
-				fprintf( stderr, "(hex)\n" );
+
+				if ( adjust_long_size ) {
+					fprintf( stderr,
+					    "(hex as %ld-bit (%lu))\n",
+					    raw_datatype - (100L * MXFT_ULONG),
+					    raw_datatype );
+				} else {
+					fprintf( stderr, "(hex)\n" );
+				}
 				break;
 			case MXFT_INT64:                /* 14 */
-				fprintf( stderr, "(short)\n" );
+				fprintf( stderr, "(int64)\n" );
 				break;
 			case MXFT_UINT64:               /* 15 */
-				fprintf( stderr, "(ushort)\n" );
+				fprintf( stderr, "(uint64)\n" );
 				break;
 			case MXFT_INT8:                 /* 16 */
 				fprintf( stderr, "(int8)\n" );
@@ -2884,7 +2971,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
 			mx_network_dump_value( message_ptr,
 					network_data_format,
-					network_datatype,
+					raw_datatype,
 					bytes_left_to_display );
 			break;
 
@@ -3012,7 +3099,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 			mx_network_dump_value( message_ptr,
 					network_data_format,
-					network_datatype,
+					raw_datatype,
 					bytes_left_to_display );
 			break;
 
@@ -3092,7 +3179,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 				mx_network_dump_value( message_ptr,
 					network_data_format,
-					network_datatype,
+					raw_datatype,
 					bytes_left_to_display );
 			}
 			break;
@@ -3140,8 +3227,6 @@ mx_network_dump_value( char *message_ptr,
 	mx_status_type ( *token_constructor )
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD * );
 
-	MX_DEBUG(-2,("...crrrOOOOOAAAK..."));
-
 	if ( network_data_format != MX_NETWORK_DATAFMT_RAW ) {
 		mx_warning( "%s currently only supports RAW (2) network "
 		"data format, but you requested data format %lu.  "
@@ -3154,8 +3239,6 @@ mx_network_dump_value( char *message_ptr,
 	/* Display the value in ASCII (UTF-8 ?).  For this purpose,
 	 * we treat the data as a 1-dimensional array.
 	 */
-
-	mx_breakpoint();
 
 	mx_status = mx_get_token_constructor( value_datatype,
 						&token_constructor );

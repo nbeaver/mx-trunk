@@ -1818,6 +1818,50 @@ mx_construct_hex_field( void *dataptr,
 }
 
 static mx_status_type
+mx_construct_long32_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRId32, *((int32_t *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_long64_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRId64, *((int64_t *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_ulong32_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRIu32, *((int32_t *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_ulong64_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRIu64, *((int64_t *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
 mx_parse_mx_record_field( void *memory_location, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
@@ -3247,6 +3291,18 @@ mx_get_token_constructor( long field_type,
 	case MXFT_RECORD_FIELD:
 		*token_constructor = mx_construct_mx_record_field_field;
 		break;
+	case MXFT_LONG32:
+		*token_constructor = mx_construct_long32_field;
+		break;
+	case MXFT_LONG64:
+		*token_constructor = mx_construct_long64_field;
+		break;
+	case MXFT_ULONG32:
+		*token_constructor = mx_construct_ulong32_field;
+		break;
+	case MXFT_ULONG64:
+		*token_constructor = mx_construct_ulong64_field;
+		break;
 	default:
 		*token_constructor = NULL;
 
@@ -3269,7 +3325,7 @@ mx_create_array_description( void *array_ptr,
 {
 	static const char fname[] = "mx_create_array_description()";
 
-	const char short_label[] = "creating array";
+	static const char short_label[] = "creating array";
 
 	long i, n, num_dimension_elements, new_dimension_level;
 	long row_ptr_step_size;
@@ -4209,6 +4265,12 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported datatype argument %ld.", datatype );
 	}
+
+#if 0
+	MX_DEBUG(-2,("%s: datatype = %ld, sizeof_array = %p",
+		fname, datatype, sizeof_array));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
