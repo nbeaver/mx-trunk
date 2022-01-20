@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010, 2013, 2016-2017, 2021
+ * Copyright 2005-2006, 2008, 2010, 2013, 2016-2017, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -256,7 +256,7 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	long datatype, num_dimensions;
 	long *dimension_array;
-	size_t *sizeof_array;
+	size_t sizeof_array[ MXU_FIELD_MAX_DIMENSIONS ];
 	void **value_ptr;
 	mx_status_type mx_status;
 
@@ -353,7 +353,8 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 	 * can use it for allocating memory below.
 	 */
 
-	mx_status = mx_get_datatype_sizeof_array( datatype, &sizeof_array );
+	mx_status = mx_get_datatype_sizeof_array( datatype,
+					sizeof_array, sizeof(sizeof_array) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

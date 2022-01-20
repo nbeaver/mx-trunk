@@ -593,7 +593,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	double bytes_per_frame_as_double;
 	time_t timestamp;
 	long dimension_array[2];
-	size_t *sizeof_array = NULL;
+	size_t sizeof_array[2];
 	long mx_datatype;
 	mx_status_type mx_status;
 
@@ -907,7 +907,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		dimension_array[1] = row_framesize;
 
 		mx_status = mx_get_datatype_sizeof_array( mx_datatype,
-							&sizeof_array );
+							sizeof_array,
+							sizeof(sizeof_array) );
 
 		mx_status = mx_array_add_overlay( (*frame)->image_data,
 				mx_datatype, 2, dimension_array, sizeof_array,

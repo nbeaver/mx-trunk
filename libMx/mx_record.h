@@ -924,7 +924,8 @@ MX_API_PRIVATE mx_status_type  mx_fixup_placeholder_records(
 /* --- */
 
 MX_API mx_status_type  mx_get_datatype_sizeof_array( long datatype,
-						size_t **sizeof_array );
+						size_t *sizeof_array,
+						size_t max_dimensions );
 
 /* --- */
 

@@ -3221,7 +3221,7 @@ mx_network_dump_value( char *message_ptr,
 	MX_RECORD_FIELD local_temp_record_field;
 	char display_buffer[1000];
 	long num_items_in_value;
-	size_t *datatype_sizeof_array = NULL;
+	size_t datatype_sizeof_array[ MXU_FIELD_MAX_DIMENSIONS ];
 	mx_status_type mx_status;
 
 	mx_status_type ( *token_constructor )
@@ -3247,7 +3247,8 @@ mx_network_dump_value( char *message_ptr,
 		return;
 
 	mx_status = mx_get_datatype_sizeof_array( value_datatype,
-						&datatype_sizeof_array );
+						datatype_sizeof_array,
+						sizeof(datatype_sizeof_array) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2021 Illinois Institute of Technology
+ * Copyright 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -330,7 +330,7 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 	long *dimension_array;
 	void *value_ptr;
 	long max_value_length_in_bytes;
-	size_t *sizeof_array;
+	size_t sizeof_array[MXU_FIELD_MAX_DIMENSIONS];
 	uint8_t init_reset;
 	char flowbus_status_response[80];
 	mx_status_type mx_status, mx_status_select;
@@ -381,7 +381,8 @@ mxv_flowbus_capacity_receive_variable( MX_VARIABLE *variable )
 
 	/* Compute the maximum length in bytes of the value. */
 
-	mx_status = mx_get_datatype_sizeof_array( mx_field_type, &sizeof_array);
+	mx_status = mx_get_datatype_sizeof_array( mx_field_type,
+					sizeof_array, sizeof(sizeof_array) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

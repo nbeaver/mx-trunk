@@ -468,7 +468,7 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 	char **argv;
 	char record_name[MXU_RECORD_NAME_LENGTH+1];
 	char field_name[MXU_FIELD_NAME_LENGTH+1];
-	size_t *external_sizeof_array;
+	size_t external_sizeof_array[MXU_FIELD_MAX_DIMENSIONS];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -580,7 +580,8 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 	/* Now modify the internal field to match the external field. */
 
 	mx_status = mx_get_datatype_sizeof_array( external_field->datatype,
-						&external_sizeof_array );
+						external_sizeof_array,
+						sizeof(external_sizeof_array) );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 

@@ -4139,137 +4139,170 @@ mx_fixup_placeholder_records( MX_RECORD *list_head_record )
 }
 
 MX_EXPORT mx_status_type
-mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
+mx_get_datatype_sizeof_array( long datatype,
+				size_t *external_sizeof_array,
+				size_t num_external_elements )
 {
 	static const char fname[] = "mx_get_datatype_sizeof_array()";
 
-	static size_t string_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t string_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_STRING_SIZEOF;
-	static size_t char_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_CHAR_SIZEOF;
-	static size_t uchar_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_UCHAR_SIZEOF;
-	static size_t int8_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_INT8_SIZEOF;
-	static size_t uint8_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_UINT8_SIZEOF;
-	static size_t short_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_SHORT_SIZEOF;
-	static size_t ushort_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t char_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_CHAR_SIZEOF;
+	static const size_t uchar_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_UCHAR_SIZEOF;
+	static const size_t int8_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_INT8_SIZEOF;
+	static const size_t uint8_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_UINT8_SIZEOF;
+	static const size_t short_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_SHORT_SIZEOF;
+	static const size_t ushort_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_USHORT_SIZEOF;
-	static size_t int16_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t int16_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_INT16_SIZEOF;
-	static size_t uint16_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t uint16_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_UINT16_SIZEOF;
-	static size_t bool_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_BOOL_SIZEOF;
-	static size_t int32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t bool_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_BOOL_SIZEOF;
+	static const size_t int32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_INT32_SIZEOF;
-	static size_t uint32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t uint32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_UINT32_SIZEOF;
-	static size_t long_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_LONG_SIZEOF;
-	static size_t ulong_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_ULONG_SIZEOF;
-	static size_t int64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t long_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_LONG_SIZEOF;
+	static const size_t ulong_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_ULONG_SIZEOF;
+	static const size_t int64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_INT64_SIZEOF;
-	static size_t uint64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t uint64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_UINT64_SIZEOF;
-	static size_t float_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_FLOAT_SIZEOF;
-	static size_t double_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t float_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_FLOAT_SIZEOF;
+	static const size_t double_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_DOUBLE_SIZEOF;
 #if 0
-	static size_t record_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t record_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_RECORD_SIZEOF;
-	static size_t interface_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t interface_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_INTERFACE_SIZEOF;
 #endif
-	static size_t long32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t long32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_LONG32_SIZEOF;
-	static size_t ulong32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t ulong32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_ULONG32_SIZEOF;
-	static size_t long64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t long64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_LONG64_SIZEOF;
-	static size_t ulong64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+	static const size_t ulong64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_ULONG64_SIZEOF;
+
+	static const size_t *local_sizeof_ptr = NULL;
+
+	size_t i, num_builtin_elements;
+
+	size_t last_builtin_element_size;
+
+	mx_breakpoint();
 
 	switch( datatype ) {
 	case MXFT_STRING:
-		*sizeof_array = string_sizeof;
+		local_sizeof_ptr = string_sizeof;
 		break;
 	case MXFT_CHAR:
-		*sizeof_array = char_sizeof;
+		local_sizeof_ptr = char_sizeof;
 		break;
 	case MXFT_UCHAR:
-		*sizeof_array = uchar_sizeof;
+		local_sizeof_ptr = uchar_sizeof;
 		break;
 	case MXFT_INT8:
-		*sizeof_array = int8_sizeof;
+		local_sizeof_ptr = int8_sizeof;
 		break;
 	case MXFT_UINT8:
-		*sizeof_array = uint8_sizeof;
+		local_sizeof_ptr = uint8_sizeof;
 		break;
 	case MXFT_SHORT:
-		*sizeof_array = short_sizeof;
+		local_sizeof_ptr = short_sizeof;
 		break;
 	case MXFT_USHORT:
-		*sizeof_array = ushort_sizeof;
+		local_sizeof_ptr = ushort_sizeof;
 		break;
 	case MXFT_INT16:
-		*sizeof_array = int16_sizeof;
+		local_sizeof_ptr = int16_sizeof;
 		break;
 	case MXFT_UINT16:
-		*sizeof_array = uint16_sizeof;
+		local_sizeof_ptr = uint16_sizeof;
 		break;
 	case MXFT_BOOL:
-		*sizeof_array = bool_sizeof;
+		local_sizeof_ptr = bool_sizeof;
 		break;
 	case MXFT_INT32:
-		*sizeof_array = int32_sizeof;
+		local_sizeof_ptr = int32_sizeof;
 		break;
 	case MXFT_UINT32:
-		*sizeof_array = uint32_sizeof;
+		local_sizeof_ptr = uint32_sizeof;
 		break;
 	case MXFT_LONG:
-		*sizeof_array = long_sizeof;
+		local_sizeof_ptr = long_sizeof;
 		break;
 	case MXFT_ULONG:
 	case MXFT_HEX:
-		*sizeof_array = ulong_sizeof;
+		local_sizeof_ptr = ulong_sizeof;
 		break;
 	case MXFT_INT64:
-		*sizeof_array = int64_sizeof;
+		local_sizeof_ptr = int64_sizeof;
 		break;
 	case MXFT_UINT64:
-		*sizeof_array = uint64_sizeof;
+		local_sizeof_ptr = uint64_sizeof;
 		break;
 	case MXFT_FLOAT:
-		*sizeof_array = float_sizeof;
+		local_sizeof_ptr = float_sizeof;
 		break;
 	case MXFT_DOUBLE:
-		*sizeof_array = double_sizeof;
+		local_sizeof_ptr = double_sizeof;
 		break;
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
-		*sizeof_array = string_sizeof;
+		local_sizeof_ptr = string_sizeof;
 		break;
 
 	/* The following are for special purpose network code. */
 	case MXFT_LONG32:
-		*sizeof_array = long32_sizeof;
+		local_sizeof_ptr = long32_sizeof;
 		break;
 	case MXFT_ULONG32:
-		*sizeof_array = ulong32_sizeof;
+		local_sizeof_ptr = ulong32_sizeof;
 		break;
 	case MXFT_LONG64:
-		*sizeof_array = long64_sizeof;
+		local_sizeof_ptr = long64_sizeof;
 		break;
 	case MXFT_ULONG64:
-		*sizeof_array = ulong64_sizeof;
+		local_sizeof_ptr = ulong64_sizeof;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported datatype argument %ld.", datatype );
+
+		break;
 	}
 
-#if 0
-	MX_DEBUG(-2,("%s: datatype = %ld, sizeof_array = %p",
-		fname, datatype, sizeof_array));
-#endif
+	if ( num_external_elements <= MXU_FIELD_MAX_DIMENSIONS ) {
+		num_builtin_elements = num_external_elements;
+	} else {
+		num_builtin_elements = MXU_FIELD_MAX_DIMENSIONS;
+	}
+
+	last_builtin_element_size =
+		local_sizeof_ptr[ MXU_FIELD_MAX_DIMENSIONS - 1 ];
+
+	for ( i = 0; i < num_builtin_elements; i++ ) {
+		external_sizeof_array[i] = local_sizeof_ptr[i];
+	}
+
+	for ( /* don't reinitialize */ ; i < num_external_elements; i++ ) {
+		external_sizeof_array[i] = last_builtin_element_size;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -4286,9 +4319,9 @@ mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 
 	static char temp_field_name[] = "temp_field";
 
-	size_t *sizeof_array;
+	size_t local_sizeof_array[ MXU_FIELD_MAX_DIMENSIONS ];
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( temp_record_field == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -4326,17 +4359,19 @@ mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 	} else if ( ( data_element_size == NULL )
 		 || ( data_element_size[0] == 0L ) )
 	{
-		status = mx_get_datatype_sizeof_array( datatype,
-						&sizeof_array );
+		mx_status = mx_get_datatype_sizeof_array( datatype,
+						local_sizeof_array,
+						sizeof( local_sizeof_array ) );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		for ( i = 0; i < num_dimensions; i++ ) {
 			temp_record_field->data_element_size[i]
-				= sizeof_array[i];
+				= local_sizeof_array[i];
 		}
 	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
