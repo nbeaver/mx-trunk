@@ -2372,14 +2372,38 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	uint32_t *uint32_value_ptr = NULL;
 
-	char record_field_name[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
+	char network_data_format_name[8];
 
-	/* mx_breakpoint(); */
+	char record_field_name[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
 
 	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 	}
+
+	/*========*/
+
+	switch( network_data_format ) {
+	case MX_NETWORK_DATAFMT_ASCII:
+		(void) mx_error( MXE_UNSUPPORTED, fname,
+		"ASCII data format is not supported by this function." );
+		break;
+	case MX_NETWORK_DATAFMT_RAW:
+		strlcpy( network_data_format_name, "raw",
+			sizeof(network_data_format_name) );
+		break;
+	case MX_NETWORK_DATAFMT_XDR:
+		strlcpy( network_data_format_name, "xdr",
+			sizeof(network_data_format_name) );
+		break;
+	default:
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"MX network data format %lu is not recognized.",
+			network_data_format );
+		break;
+	}
+
+	/*========*/
 
 	if ( max_network_dump_bytes == 0 ) {
 
@@ -2955,7 +2979,9 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	if ( is_response == FALSE ) {	/* is_command */
 
-		fprintf( stderr, "*** MX command value body ***\n" );
+		fprintf( stderr,
+		"*** MX command value body *** (fmt = '%s')\n",
+			network_data_format_name );
 
 		switch( native_message_type ) {
 		case MX_NETMSG_GET_ARRAY_BY_NAME:
@@ -3066,7 +3092,9 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	} else {
 		/* The message is a response. */
 
-		fprintf( stderr, "*** MX response value body ***\n" );
+		fprintf( stderr,
+		"*** MX response value body *** (fmt = '%s')\n",
+			network_data_format_name );
 
 		switch( native_message_type ) {
 		case MX_NETMSG_GET_FIELD_TYPE:
@@ -3220,8 +3248,10 @@ mx_network_dump_value( char *message_ptr,
 
 	MX_RECORD_FIELD local_temp_record_field;
 	char display_buffer[1000];
-	long num_items_in_value;
+	long i, num_items_in_value, element_size_in_bytes;
 	size_t datatype_sizeof_array[ MXU_FIELD_MAX_DIMENSIONS ];
+	int argc = 0;
+	char **argv = NULL;
 	mx_status_type mx_status;
 
 	mx_status_type ( *token_constructor )
@@ -3247,8 +3277,8 @@ mx_network_dump_value( char *message_ptr,
 		return;
 
 	mx_status = mx_get_datatype_sizeof_array( value_datatype,
-						datatype_sizeof_array,
-						sizeof(datatype_sizeof_array) );
+				datatype_sizeof_array,
+				mx_num_array_elements( datatype_sizeof_array ));
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return;
@@ -3273,10 +3303,162 @@ mx_network_dump_value( char *message_ptr,
 				value_datatype, 1, &num_items_in_value,
 				datatype_sizeof_array, message_ptr );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	memset( display_buffer, 0, sizeof(display_buffer) );
+
 	mx_status = mx_create_array_description( message_ptr, 0,
 					display_buffer, sizeof(display_buffer),
 					NULL, &local_temp_record_field,
 					token_constructor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+#if 0
+	fprintf( stderr, "%s\n", display_buffer );
+#endif
+
+	mx_string_split( display_buffer + 1, " ", &argc, &argv );
+
+	if ( datatype_sizeof_array[0] <= 1 ) {
+		element_size_in_bytes = 1;	/* uint8_t */
+	} else
+	if ( datatype_sizeof_array[0] <= 2 ) {
+		element_size_in_bytes = 2;	/* uint16_t */
+	} else
+	if ( datatype_sizeof_array[0] <= 4 ) {
+		element_size_in_bytes = 4;	/* uint32_t */
+	} else
+	if ( datatype_sizeof_array[0] <= 8 ) {
+		element_size_in_bytes = 8;	/* uint64_t */
+	} else {
+		element_size_in_bytes = 16;	/* uint128_t (maybe) */
+	}
+
+	switch( element_size_in_bytes ) {
+	case 1:		/* uint8_t */
+		{
+			uint8_t net_uint8_value, host_uint8_value;
+			uint8_t *uint8_ptr = (uint8_t *) message_ptr;
+
+			for ( i = 0; i < num_items_in_value; i++ ) {
+				net_uint8_value = *uint8_ptr;
+
+				host_uint8_value = (uint8_t)
+				    ( mx_ntohl( net_uint8_value ) >> 24 );
+
+				fprintf( stderr,
+				"%p, %#04" PRIx8 ", %#04" PRIx8 ", %s\n",
+					uint8_ptr, net_uint8_value,
+					host_uint8_value, argv[i] );
+
+				uint8_ptr++;
+			}
+		}
+		break;
+	case 2:		/* uint16_t */
+		{
+			uint16_t net_uint16_value, host_uint16_value;
+			uint16_t *uint16_ptr = (uint16_t *) message_ptr;
+
+			for ( i = 0; i < num_items_in_value; i++ ) {
+				net_uint16_value = *uint16_ptr;
+
+				host_uint16_value = (uint16_t)
+				    ( mx_ntohl( net_uint16_value ) >> 16 );
+
+				fprintf( stderr,
+				"%p, %#06" PRIx16 ", %#06" PRIx16 ", %s\n",
+					uint16_ptr, net_uint16_value,
+					host_uint16_value, argv[i] );
+
+				uint16_ptr++;
+			}
+		}
+		break;
+	case 4:		/* uint32_t */
+		{
+			uint32_t net_uint32_value, host_uint32_value;
+			uint32_t *uint32_ptr = (uint32_t *) message_ptr;
+
+			for ( i = 0; i < num_items_in_value; i++ ) {
+				net_uint32_value = *uint32_ptr;
+
+				host_uint32_value = (uint32_t)
+				    mx_ntohl( net_uint32_value );
+
+				fprintf( stderr,
+				"%p, %#010" PRIx32 ", %#010" PRIx32 ", %s\n",
+					uint32_ptr, net_uint32_value,
+					host_uint32_value, argv[i] );
+
+				uint32_ptr++;
+			}
+		}
+		break;
+	case 8:		/* uint64_t */
+		{
+			uint64_t net_uint64_value, host_uint64_value;
+			uint64_t net_upper, net_lower;
+			uint64_t host_upper, host_lower;
+			uint64_t *uint64_ptr = (uint64_t *) message_ptr;
+
+			for ( i = 0; i < num_items_in_value; i++ ) {
+				net_uint64_value = *uint64_ptr;
+
+				net_upper = 0xffffffff &
+					( net_uint64_value >> 32 );
+
+				net_lower = 0xffffffff & net_uint64_value;
+
+				host_upper = mx_ntohl( net_lower );
+
+				host_lower = mx_ntohl( net_upper );
+
+				host_uint64_value = host_lower
+					| ( host_upper << 32 );
+
+				fprintf( stderr,
+				"%p, %#018" PRIx64 ", %#018" PRIx64 ", %s\n",
+					uint64_ptr, net_uint64_value,
+					host_uint64_value, argv[i] );
+
+				uint64_ptr++;
+			}
+		}
+		break;
+#if 0
+	case 16:	/* uint128_t  (maybe) */
+		{
+			uint128_t net_uint128_value, host_uint128_value;
+			uint128_t *uint128_ptr = (uint128_t *) message_ptr;
+
+			for ( i = 0; i < num_items_in_value; i++ ) {
+				net_uint128_value = *uint128_ptr;
+
+				host_uint128_value = (uint128_t)
+				    mx_ntohl( net_uint128_value );
+
+				fprintf( stderr,
+				"%p, %#034" PRIx128 ", %#034" PRIx128 ", %s\n",
+					uint128_ptr, net_uint128_value,
+					host_uint128_value, argv[i] );
+
+				uint128_ptr++;
+			}
+		}
+		break;
+#endif
+	default:
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal array element size %lu requested.", 
+			element_size_in_bytes );
+		break;
+	}
+
+	mx_free( argv );
 
 	return;
 }

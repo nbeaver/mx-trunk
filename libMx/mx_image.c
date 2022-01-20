@@ -908,7 +908,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 		mx_status = mx_get_datatype_sizeof_array( mx_datatype,
 							sizeof_array,
-							sizeof(sizeof_array) );
+					mx_num_array_elements( sizeof_array ) );
 
 		mx_status = mx_array_add_overlay( (*frame)->image_data,
 				mx_datatype, 2, dimension_array, sizeof_array,

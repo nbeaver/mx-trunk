@@ -414,7 +414,7 @@ mxv_flowbus_receive_variable( MX_VARIABLE *variable )
 	/* Compute the maximum length in bytes of the value. */
 
 	mx_status = mx_get_datatype_sizeof_array( mx_field_type,
-					sizeof_array, sizeof(sizeof_array) );
+			sizeof_array, mx_num_array_elements( sizeof_array ) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

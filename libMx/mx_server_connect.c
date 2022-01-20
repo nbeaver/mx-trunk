@@ -354,7 +354,7 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 	 */
 
 	mx_status = mx_get_datatype_sizeof_array( datatype,
-					sizeof_array, sizeof(sizeof_array) );
+			sizeof_array, mx_num_array_elements( sizeof_array ) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

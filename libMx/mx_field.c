@@ -4202,8 +4202,6 @@ mx_get_datatype_sizeof_array( long datatype,
 
 	size_t last_builtin_element_size;
 
-	mx_breakpoint();
-
 	switch( datatype ) {
 	case MXFT_STRING:
 		local_sizeof_ptr = string_sizeof;
@@ -4360,8 +4358,8 @@ mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 		 || ( data_element_size[0] == 0L ) )
 	{
 		mx_status = mx_get_datatype_sizeof_array( datatype,
-						local_sizeof_array,
-						sizeof( local_sizeof_array ) );
+				local_sizeof_array,
+				mx_num_array_elements( local_sizeof_array ) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

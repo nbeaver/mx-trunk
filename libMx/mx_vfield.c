@@ -581,7 +581,8 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mx_get_datatype_sizeof_array( external_field->datatype,
 						external_sizeof_array,
-						sizeof(external_sizeof_array) );
+				mx_num_array_elements( external_sizeof_array ));
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
