@@ -2389,11 +2389,11 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		"ASCII data format is not supported by this function." );
 		break;
 	case MX_NETWORK_DATAFMT_RAW:
-		strlcpy( network_data_format_name, "raw",
+		strlcpy( network_data_format_name, "RAW",
 			sizeof(network_data_format_name) );
 		break;
 	case MX_NETWORK_DATAFMT_XDR:
-		strlcpy( network_data_format_name, "xdr",
+		strlcpy( network_data_format_name, "XDR",
 			sizeof(network_data_format_name) );
 		break;
 	default:

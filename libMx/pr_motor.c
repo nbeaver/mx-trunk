@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2012-2016, 2019-2020
+ * Copyright 1999-2004, 2006-2007, 2010, 2012-2016, 2019-2020, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -449,7 +449,10 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_POSITIVE_LIMIT_HIT:
 		case MXLV_MTR_PROPORTIONAL_GAIN:
 		case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
+		case MXLV_MTR_RAW_DESTINATION:
 		case MXLV_MTR_RAW_HOME_COMMAND:
+		case MXLV_MTR_RAW_POSITION:
+		case MXLV_MTR_RAW_SET_POSITION:
 		case MXLV_MTR_RELATIVE_MOVE:
 		case MXLV_MTR_RESTORE_SPEED:
 		case MXLV_MTR_SAVE_SPEED:
@@ -515,6 +518,7 @@ mx_motor_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_MTR_RAW_POSITION:
 		case MXLV_MTR_POSITION:
 			mx_status = mx_motor_get_position( record, NULL );
 			break;
@@ -525,12 +529,6 @@ mx_motor_process_function( void *record_ptr,
 				motor->busy = TRUE;
 				motor->status |= MXSF_MTR_IS_BUSY;
 			}
-#if PR_MOTOR_DEBUG
-			MX_DEBUG(-20,
-			("%s: B -> busy = %d, status = %#lx, sbip = %d",
-				fname, (int) motor->busy, motor->status,
-				motor->server_backlash_in_progress));
-#endif
 			break;
 		case MXLV_MTR_BACKLASH_CORRECTION:
 			switch( motor->subclass ) {
@@ -621,12 +619,6 @@ mx_motor_process_function( void *record_ptr,
 				motor->busy = TRUE;
 				motor->status |= MXSF_MTR_IS_BUSY;
 			}
-#if PR_MOTOR_DEBUG
-			MX_DEBUG(-20,
-			("%s: S -> busy = %d, status = %#lx, sbip = %d",
-				fname, (int) motor->busy, motor->status,
-				motor->server_backlash_in_progress));
-#endif
 			break;
 		case MXLV_MTR_GET_EXTENDED_STATUS:
 			mx_status = mx_motor_get_extended_status( record,
@@ -643,13 +635,6 @@ mx_motor_process_function( void *record_ptr,
 					motor->position,
 					motor->status );
 			}
-#if PR_MOTOR_DEBUG
-			MX_DEBUG(-20,
-		("%s: E -> busy = %d, status = %#lx, sbip = %d, pos = %g",
-				fname, (int) motor->busy, motor->status,
-				motor->server_backlash_in_progress,
-				motor->position));
-#endif
 			break;
 		case MXLV_MTR_LAST_START_TIME:
 			motor->last_start_time =
@@ -711,6 +696,19 @@ mx_motor_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_MTR_RAW_DESTINATION:
+			if ( motor->subclass == MXC_MTR_STEPPER ) {
+				motor->destination
+				    = motor->offset + motor->scale
+				    * (double) motor->raw_destination.stepper;
+			} else {
+				motor->destination
+				    = motor->offset + motor->scale
+				    * motor->raw_destination.analog;
+			}
+			mx_status = mxp_motor_move_absolute_handler(
+						record, motor->destination );
+			break;
 		case MXLV_MTR_DESTINATION:
 			mx_status = mxp_motor_move_absolute_handler(
 						record, motor->destination );
@@ -744,6 +742,20 @@ mx_motor_process_function( void *record_ptr,
 
 			mx_status = mxp_motor_move_absolute_handler(
 							record, destination );
+			break;
+		case MXLV_MTR_RAW_SET_POSITION:
+			if ( motor->subclass == MXC_MTR_STEPPER ) {
+				motor->set_position
+				    = motor->offset + motor->scale
+				    * (double) motor->raw_set_position.stepper;
+			} else {
+				motor->set_position
+				    = motor->offset + motor->scale
+				    * motor->raw_set_position.analog;
+			}
+			mx_status = mx_motor_set_position( record,
+						motor->set_position );
+
 			break;
 		case MXLV_MTR_SET_POSITION:
 			mx_status = mx_motor_set_position( record,
