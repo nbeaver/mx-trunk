@@ -3257,11 +3257,33 @@ mx_network_dump_value( char *message_ptr,
 	mx_status_type ( *token_constructor )
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD * );
 
-	if ( network_data_format != MX_NETWORK_DATAFMT_RAW ) {
-		mx_warning( "%s currently only supports RAW (2) network "
-		"data format, but you requested data format %lu.  "
+	switch( network_data_format ) {
+	case MX_NETWORK_DATAFMT_RAW:
+	case MX_NETWORK_DATAFMT_XDR:
+		break;
+	default:
+		mx_warning( "%s currently only supports RAW (2) "
+		"and XDR (3) data format, but you requested data format %lu.  "
 		"Aborting dump...", fname, network_data_format );
 		return;
+	}
+
+	/*-----------------------------------------------------------*/
+
+	/* The non-numeric datatypes MXFT_RECORD, MXFT_RECORDTYPE,
+	 * MXFT_INTERFACE, and MXFT_RECORD_FIELD are handled specially.
+	 * Essentially their message buffers are treated as 1-dimensional
+	 * strings.
+	 */
+
+	switch( value_datatype ) {
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
+		fprintf( stderr, message_ptr );
+		return;
+		break;
 	}
 
 	/*-----------------------------------------------------------*/
