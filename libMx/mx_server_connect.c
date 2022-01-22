@@ -255,9 +255,9 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	long datatype, num_dimensions;
-	long *dimension_array;
-	size_t sizeof_array[ MXU_FIELD_MAX_DIMENSIONS ];
-	void **value_ptr;
+	long *dimension_array = NULL;
+	size_t *sizeof_array = NULL;
+	void **value_ptr = NULL;
 	mx_status_type mx_status;
 
 	if ( nf == (MX_NETWORK_FIELD **) NULL ) {
@@ -322,6 +322,16 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 			"dimension array.", MXU_SC_MAX_DIMENSIONS );
 	}
 
+	/* For similar reasons, we have to allocate sizeof_array as well. */
+
+	sizeof_array = malloc( MXU_SC_MAX_DIMENSIONS * sizeof(size_t) );
+
+	if ( sizeof_array == (size_t *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Unable to allocate memory for an %d element "
+			"sizeof array.", MXU_SC_MAX_DIMENSIONS );
+	}
+
 	/* Find out the dimensions of the remote network field. */
 
 	/* FIXME! - This should be done using a network field handle. */
@@ -354,7 +364,7 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 	 */
 
 	mx_status = mx_get_datatype_sizeof_array( datatype,
-			sizeof_array, mx_num_array_elements( sizeof_array ) );
+					sizeof_array, MXU_SC_MAX_DIMENSIONS );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

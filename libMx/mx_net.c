@@ -2396,6 +2396,10 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		strlcpy( network_data_format_name, "XDR",
 			sizeof(network_data_format_name) );
 		break;
+	case 0:
+		(void) mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MX network data format has not yet been initialized." );
+		break;
 	default:
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"MX network data format %lu is not recognized.",
@@ -2625,8 +2629,10 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				break;
 			}
 
+#if 0
 			MX_DEBUG(-2,("%s: adjust_long_size = %d",
 				fname, (int) adjust_long_size ));
+#endif
 			break;
 
 		case MX_NETWORK_STATUS_CODE:            /* 4 */
@@ -2995,7 +3001,8 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 		case MX_NETMSG_PUT_ARRAY_BY_NAME:
 		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
-			mx_network_dump_value( message_ptr,
+			message_ptr = mx_network_dump_value(
+					message_ptr,
 					network_data_format,
 					raw_datatype,
 					bytes_left_to_display );
@@ -3125,14 +3132,16 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 		case MX_NETMSG_GET_ARRAY_BY_NAME:
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
-			mx_network_dump_value( message_ptr,
+			message_ptr = mx_network_dump_value(
+					message_ptr,
 					network_data_format,
 					raw_datatype,
 					bytes_left_to_display );
 			break;
 
 		case MX_NETMSG_GET_ATTRIBUTE:
-			mx_network_dump_value( message_ptr,
+			message_ptr = mx_network_dump_value(
+					message_ptr,
 					network_data_format,
 					MXFT_DOUBLE,
 					bytes_left_to_display );
@@ -3205,7 +3214,8 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 				message_ptr = (char *) uint32_value_ptr;
 
-				mx_network_dump_value( message_ptr,
+				message_ptr = mx_network_dump_value(
+					message_ptr,
 					network_data_format,
 					raw_datatype,
 					bytes_left_to_display );
@@ -3226,8 +3236,10 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		}
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: bytes_left_to_display = %ld\n",
 		fname, bytes_left_to_display));
+#endif
 
 	fprintf( stderr, "*** MX last byte at %p\n", message_ptr - 1L );
 
@@ -3238,14 +3250,15 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 /*------------------------------------------------------------------------*/
 
-MX_EXPORT void
-mx_network_dump_value( char *message_ptr,
+MX_EXPORT char *
+mx_network_dump_value( char *value_buffer,
 			unsigned long network_data_format,
 			long value_datatype,
 			long num_bytes_in_value )
 {
 	static const char fname[] = "mx_network_dump_value()";
 
+	char *value_ptr = value_buffer;
 	MX_RECORD_FIELD local_temp_record_field;
 	char display_buffer[1000];
 	long i, num_items_in_value, element_size_in_bytes;
@@ -3265,7 +3278,7 @@ mx_network_dump_value( char *message_ptr,
 		mx_warning( "%s currently only supports RAW (2) "
 		"and XDR (3) data format, but you requested data format %lu.  "
 		"Aborting dump...", fname, network_data_format );
-		return;
+		return NULL;
 	}
 
 	/*-----------------------------------------------------------*/
@@ -3281,8 +3294,11 @@ mx_network_dump_value( char *message_ptr,
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
-		fprintf( stderr, message_ptr );
-		return;
+		fprintf( stderr, value_ptr );
+
+		value_ptr += strlen( value_ptr );
+
+		return value_ptr;
 		break;
 	}
 
@@ -3296,21 +3312,21 @@ mx_network_dump_value( char *message_ptr,
 						&token_constructor );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return;
+		return NULL;
 
 	mx_status = mx_get_datatype_sizeof_array( value_datatype,
 				datatype_sizeof_array,
 				mx_num_array_elements( datatype_sizeof_array ));
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return;
+		return NULL;
 
 	if ( datatype_sizeof_array[0] == 0 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The data element size of MX datatype %ld is reported "
 		"to be 0.", value_datatype );
 
-		return;
+		return NULL;
 	}
 
 	num_items_in_value = num_bytes_in_value / datatype_sizeof_array[0];
@@ -3323,20 +3339,20 @@ mx_network_dump_value( char *message_ptr,
 
 	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
 				value_datatype, 1, &num_items_in_value,
-				datatype_sizeof_array, message_ptr );
+				datatype_sizeof_array, value_ptr );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return;
+		return NULL;
 
 	memset( display_buffer, 0, sizeof(display_buffer) );
 
-	mx_status = mx_create_array_description( message_ptr, 0,
+	mx_status = mx_create_array_description( value_ptr, 0,
 					display_buffer, sizeof(display_buffer),
 					NULL, &local_temp_record_field,
 					token_constructor );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return;
+		return NULL;
 
 #if 0
 	fprintf( stderr, "%s\n", display_buffer );
@@ -3363,7 +3379,7 @@ mx_network_dump_value( char *message_ptr,
 	case 1:		/* uint8_t */
 		{
 			uint8_t net_uint8_value, host_uint8_value;
-			uint8_t *uint8_ptr = (uint8_t *) message_ptr;
+			uint8_t *uint8_ptr = (uint8_t *) value_ptr;
 
 			for ( i = 0; i < num_items_in_value; i++ ) {
 				net_uint8_value = *uint8_ptr;
@@ -3378,12 +3394,14 @@ mx_network_dump_value( char *message_ptr,
 
 				uint8_ptr++;
 			}
+
+			value_ptr = (char *) uint8_ptr;
 		}
 		break;
 	case 2:		/* uint16_t */
 		{
 			uint16_t net_uint16_value, host_uint16_value;
-			uint16_t *uint16_ptr = (uint16_t *) message_ptr;
+			uint16_t *uint16_ptr = (uint16_t *) value_ptr;
 
 			for ( i = 0; i < num_items_in_value; i++ ) {
 				net_uint16_value = *uint16_ptr;
@@ -3398,12 +3416,14 @@ mx_network_dump_value( char *message_ptr,
 
 				uint16_ptr++;
 			}
+
+			value_ptr = (char *) uint16_ptr;
 		}
 		break;
 	case 4:		/* uint32_t */
 		{
 			uint32_t net_uint32_value, host_uint32_value;
-			uint32_t *uint32_ptr = (uint32_t *) message_ptr;
+			uint32_t *uint32_ptr = (uint32_t *) value_ptr;
 
 			for ( i = 0; i < num_items_in_value; i++ ) {
 				net_uint32_value = *uint32_ptr;
@@ -3418,6 +3438,8 @@ mx_network_dump_value( char *message_ptr,
 
 				uint32_ptr++;
 			}
+
+			value_ptr = (char *) uint32_ptr;
 		}
 		break;
 	case 8:		/* uint64_t */
@@ -3425,7 +3447,7 @@ mx_network_dump_value( char *message_ptr,
 			uint64_t net_uint64_value, host_uint64_value;
 			uint64_t net_upper, net_lower;
 			uint64_t host_upper, host_lower;
-			uint64_t *uint64_ptr = (uint64_t *) message_ptr;
+			uint64_t *uint64_ptr = (uint64_t *) value_ptr;
 
 			for ( i = 0; i < num_items_in_value; i++ ) {
 				net_uint64_value = *uint64_ptr;
@@ -3449,13 +3471,15 @@ mx_network_dump_value( char *message_ptr,
 
 				uint64_ptr++;
 			}
+
+			value_ptr = (char *) uint64_ptr;
 		}
 		break;
 #if 0
 	case 16:	/* uint128_t  (maybe) */
 		{
 			uint128_t net_uint128_value, host_uint128_value;
-			uint128_t *uint128_ptr = (uint128_t *) message_ptr;
+			uint128_t *uint128_ptr = (uint128_t *) value_ptr;
 
 			for ( i = 0; i < num_items_in_value; i++ ) {
 				net_uint128_value = *uint128_ptr;
@@ -3470,6 +3494,8 @@ mx_network_dump_value( char *message_ptr,
 
 				uint128_ptr++;
 			}
+
+			value_ptr = (char *) uint128_ptr;
 		}
 		break;
 #endif
@@ -3482,7 +3508,7 @@ mx_network_dump_value( char *message_ptr,
 
 	mx_free( argv );
 
-	return;
+	return value_ptr;
 }
 
 /*------------------------------------------------------------------------*/
