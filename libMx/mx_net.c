@@ -3377,13 +3377,17 @@ mx_network_dump_value( char *value_buffer,
 
 	switch( element_size_in_bytes ) {
 	case 1:		/* uint8_t */
-		{
-			uint8_t net_uint8_value, host_uint8_value;
-			uint8_t *uint8_ptr = (uint8_t *) value_ptr;
+	    {
+		uint8_t net_uint8_value, host_uint8_value;
+		uint8_t *uint8_ptr = (uint8_t *) value_ptr;
 
-			for ( i = 0; i < num_items_in_value; i++ ) {
-				net_uint8_value = *uint8_ptr;
+		for ( i = 0; i < num_items_in_value; i++ ) {
+			net_uint8_value = *uint8_ptr;
 
+			if ( network_data_format == MX_NETWORK_DATAFMT_RAW ) {
+				fprintf( stderr, "%p, %#04" PRIx8 ", %s\n",
+					uint8_ptr, net_uint8_value, argv[i] );
+			} else {
 				host_uint8_value = (uint8_t)
 				    ( mx_ntohl( net_uint8_value ) >> 24 );
 
@@ -3391,21 +3395,26 @@ mx_network_dump_value( char *value_buffer,
 				"%p, %#04" PRIx8 ", %#04" PRIx8 ", %s\n",
 					uint8_ptr, net_uint8_value,
 					host_uint8_value, argv[i] );
-
-				uint8_ptr++;
 			}
 
-			value_ptr = (char *) uint8_ptr;
+			uint8_ptr++;
 		}
-		break;
+
+		value_ptr = (char *) uint8_ptr;
+	    }
+	    break;
 	case 2:		/* uint16_t */
-		{
-			uint16_t net_uint16_value, host_uint16_value;
-			uint16_t *uint16_ptr = (uint16_t *) value_ptr;
+	    {
+		uint16_t net_uint16_value, host_uint16_value;
+		uint16_t *uint16_ptr = (uint16_t *) value_ptr;
 
-			for ( i = 0; i < num_items_in_value; i++ ) {
-				net_uint16_value = *uint16_ptr;
+		for ( i = 0; i < num_items_in_value; i++ ) {
+			net_uint16_value = *uint16_ptr;
 
+			if ( network_data_format == MX_NETWORK_DATAFMT_RAW ) {
+				fprintf( stderr, "%p, %#06" PRIx16 ", %s\n",
+					uint16_ptr, net_uint16_value, argv[i] );
+			} else {
 				host_uint16_value = (uint16_t)
 				    ( mx_ntohl( net_uint16_value ) >> 16 );
 
@@ -3413,21 +3422,26 @@ mx_network_dump_value( char *value_buffer,
 				"%p, %#06" PRIx16 ", %#06" PRIx16 ", %s\n",
 					uint16_ptr, net_uint16_value,
 					host_uint16_value, argv[i] );
-
-				uint16_ptr++;
 			}
 
-			value_ptr = (char *) uint16_ptr;
+			uint16_ptr++;
 		}
-		break;
+
+		value_ptr = (char *) uint16_ptr;
+	    }
+	    break;
 	case 4:		/* uint32_t */
-		{
-			uint32_t net_uint32_value, host_uint32_value;
-			uint32_t *uint32_ptr = (uint32_t *) value_ptr;
+	    {
+		uint32_t net_uint32_value, host_uint32_value;
+		uint32_t *uint32_ptr = (uint32_t *) value_ptr;
 
-			for ( i = 0; i < num_items_in_value; i++ ) {
-				net_uint32_value = *uint32_ptr;
+		for ( i = 0; i < num_items_in_value; i++ ) {
+			net_uint32_value = *uint32_ptr;
 
+			if ( network_data_format == MX_NETWORK_DATAFMT_RAW ) {
+				fprintf( stderr, "%p, %#010" PRIx32 ", %s\n",
+					uint32_ptr, net_uint32_value, argv[i] );
+			} else {
 				host_uint32_value = (uint32_t)
 				    mx_ntohl( net_uint32_value );
 
@@ -3435,23 +3449,28 @@ mx_network_dump_value( char *value_buffer,
 				"%p, %#010" PRIx32 ", %#010" PRIx32 ", %s\n",
 					uint32_ptr, net_uint32_value,
 					host_uint32_value, argv[i] );
-
-				uint32_ptr++;
 			}
 
-			value_ptr = (char *) uint32_ptr;
+			uint32_ptr++;
 		}
-		break;
+
+		value_ptr = (char *) uint32_ptr;
+	    }
+	    break;
 	case 8:		/* uint64_t */
-		{
-			uint64_t net_uint64_value, host_uint64_value;
-			uint64_t net_upper, net_lower;
-			uint64_t host_upper, host_lower;
-			uint64_t *uint64_ptr = (uint64_t *) value_ptr;
+	    {
+		uint64_t net_uint64_value, host_uint64_value;
+		uint64_t net_upper, net_lower;
+		uint64_t host_upper, host_lower;
+		uint64_t *uint64_ptr = (uint64_t *) value_ptr;
 
-			for ( i = 0; i < num_items_in_value; i++ ) {
-				net_uint64_value = *uint64_ptr;
+		for ( i = 0; i < num_items_in_value; i++ ) {
+			net_uint64_value = *uint64_ptr;
 
+			if ( network_data_format == MX_NETWORK_DATAFMT_RAW ) {
+				fprintf( stderr, "%p, %#018" PRIx64 ", %s\n",
+					uint64_ptr, net_uint64_value, argv[i] );
+			} else {
 				net_upper = 0xffffffff &
 					( net_uint64_value >> 32 );
 
@@ -3468,42 +3487,48 @@ mx_network_dump_value( char *value_buffer,
 				"%p, %#018" PRIx64 ", %#018" PRIx64 ", %s\n",
 					uint64_ptr, net_uint64_value,
 					host_uint64_value, argv[i] );
-
-				uint64_ptr++;
 			}
 
-			value_ptr = (char *) uint64_ptr;
+			uint64_ptr++;
 		}
-		break;
+
+		value_ptr = (char *) uint64_ptr;
+	    }
+	    break;
 #if 0
 	case 16:	/* uint128_t  (maybe) */
-		{
-			uint128_t net_uint128_value, host_uint128_value;
-			uint128_t *uint128_ptr = (uint128_t *) value_ptr;
+	    {
+		uint128_t net_uint128_value, host_uint128_value;
+		uint128_t *uint128_ptr = (uint128_t *) value_ptr;
 
-			for ( i = 0; i < num_items_in_value; i++ ) {
-				net_uint128_value = *uint128_ptr;
+		for ( i = 0; i < num_items_in_value; i++ ) {
+			net_uint128_value = *uint128_ptr;
 
-				host_uint128_value = (uint128_t)
-				    mx_ntohl( net_uint128_value );
+			if ( network_data_format == MX_NETWORK_DATAFMT_RAW ) {
+				fprintf( stderr, "%p, %#034" PRIx128 ", %s\n",
+				    uint128_ptr, net_uint128_value, argv[i] );
+			} else {
+				host_uint12128_value = (uint12128_t)
+				    mx_ntohl( net_uint12128_value );
 
 				fprintf( stderr,
 				"%p, %#034" PRIx128 ", %#034" PRIx128 ", %s\n",
 					uint128_ptr, net_uint128_value,
 					host_uint128_value, argv[i] );
-
-				uint128_ptr++;
 			}
 
-			value_ptr = (char *) uint128_ptr;
+			uint128_ptr++;
 		}
-		break;
+
+		value_ptr = (char *) uint128_ptr;
+	    }
+	    break;
 #endif
 	default:
-		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	    (void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal array element size %lu requested.", 
 			element_size_in_bytes );
-		break;
+	    break;
 	}
 
 	mx_free( argv );
