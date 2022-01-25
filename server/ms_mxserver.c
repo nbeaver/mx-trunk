@@ -2598,7 +2598,8 @@ mxsrv_send_field_value_to_client(
 					send_buffer_message,
 					send_buffer_message_length,
 					&num_network_bytes,
-				    socket_handler->use_64bit_network_longs );
+				    socket_handler->use_64bit_network_longs,
+				    socket_handler->remote_mx_version );
 
 			send_buffer_message_actual_length
 				= (long) num_network_bytes;
@@ -3143,7 +3144,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 					record_field->dimension,
 					record_field->data_element_size,
 					&num_value_bytes,
-				    socket_handler->use_64bit_network_longs );
+				    socket_handler->use_64bit_network_longs,
+				    socket_handler->remote_mx_version );
 			break;
 
 		case MX_NETWORK_DATAFMT_XDR:

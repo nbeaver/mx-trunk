@@ -5163,7 +5163,8 @@ mx_get_field_array( MX_RECORD *server_record,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				NULL,
-				server->use_64bit_network_longs );
+				server->use_64bit_network_longs,
+				server->remote_mx_version );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
@@ -5497,7 +5498,8 @@ mx_put_field_array( MX_RECORD *server_record,
 				dimension_array, data_element_size_array,
 				ptr, buffer_left,
 				&num_network_bytes,
-				server->use_64bit_network_longs );
+				server->use_64bit_network_longs,
+				server->remote_mx_version );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
@@ -8694,7 +8696,8 @@ mx_network_copy_message_to_field( MX_RECORD *source_server_record,
 				destination_field->dimension,
 				destination_field->data_element_size,
 				NULL,
-				source_server->use_64bit_network_longs );
+				source_server->use_64bit_network_longs,
+				source_server->remote_mx_version );
 		break;
 
 	case MX_NETWORK_DATAFMT_XDR:

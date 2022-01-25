@@ -47,8 +47,156 @@
 
 unsigned long __mx_maximum_alignment = MX_MAXIMUM_ALIGNMENT;
 
-/*---------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*
+ *            An Explanation of mx_allocate_array() and friends.            *
+ *--------------------------------------------------------------------------*/
 
+/* By default, ANSI C does not provide a way to allocate multidimensional
+ * arrays.  All you get is malloc() and friends, which give you 1-dimensional
+ * arrays.  Sometimes what people do is write things like
+ *
+ *     int **allocate_2d_int_array( int xsize, int ysize);
+ *
+ *     double ***allocate_3d_double_array( int xsize, int ysize, int zsize );
+ *
+ * and other such things.
+ *
+ * In C++ you can do somewhat better using templates, which allow you to do
+ * generic arrays of relatively arbitrary data structures.  But you still
+ * have to have a separate function for each number of dimensions.
+ *
+ * So how do you write a single function that can allocate arbitrarily
+ * dimensional arrays of arbitrary datatypes.  It _can_ be done in an
+ * _almost_ portable if you think about how arrays are interpreted as
+ * pointers in C.
+ *
+ * Suppose you have an array that was declared as
+ *
+ *     int a[5]6][7];
+ *
+ * and you want to read the value of array element a[2][5][4]?  According to
+ * the rules of C, we find that
+ *
+ *     a[2]5][4] = *(*(*(a + 2) + 5) + 4)
+ *
+ * and more generally 
+ *
+ *     a[i][j][k] = *(*(*(a + i) + j) + k)
+ *
+ * So if you create a data structure out of pointers that obeys the rules
+ * expressed on the right hand side of the above equation, then C will
+ * allow you to treat it like an array on the left side of the equation.
+ *
+ * Let's try to demonstrate how to do this using some code that is
+ * pseudo C code.  Please supend judgement for a moment.  You could
+ * do something like this:
+ *
+ *     datatype ***a;
+ *
+ *     a = malloc( imax * sizeof(datatype **) );
+ *
+ *     for ( i = 0; i < imax; i++ ) {
+ *         a[i] = malloc( jmax * sizeof(datatype *) );
+ *
+ *         for ( j = 0; j < jmax; j++ ) {
+ *             a[i][j] = malloc( kmax * sizeof(datatype) );
+ *         }
+ *     }
+ *           
+ * So there are at least two things wrong with the above.
+ *
+ * 1.  The memory allocations become extremely inefficient if you have 
+ *     large arrays with large number of dimensions.  We'll get to that
+ *     later.
+ *
+ * 2.  The above logic is still tied to a particular datatype.  So you'll
+ *     need a version using int * pointers for ints, double * pointers,
+ *     for doubles, struct foo* pointers for struct foos, and so forth.
+ *
+ * Now it so happens that void * pointers can be cast to any other kind
+ * of pointer ( except function pointers on some platforms ).  So if one
+ * did all the above with void pointers and then cast it to the datatype
+ * we really wanted at the end, then all would be well right?
+ *
+ * But you can'd dereference void pointers.  In other words, you can't
+ * do things like this:
+ *
+ *     void *p;
+ *
+ *     *p = 5;    ( illegal )
+ *
+ *     printf( "%d\n", *p );   ( also illegal )
+ *
+ * But what if we reduce our scope a bit and only try to read and write
+ * void pointers to a void pointer.  This is still illegal in C, but this
+ * at least makes the illegality somewhat more manageable.
+ *
+ * If one tried to write this in C, one would get
+ *
+ *     void *p;
+ *     void *q1;
+ *     void *q2;
+ *
+ *     *p = q1;    ( still illegal )
+ *
+ *     q2 = *p;    ( also still illegal )
+ *
+ *     and hope that we end up with  q1 == q2  at the end.
+ *
+ * But C says no.  "Undefined behavior", etc.
+ *
+ * However, imagine that you can write a pair of functions that do
+ * something like this
+ *
+ *     mx_write_void_pointer_to_memory_location( p, q1 );
+ *
+ *     q2 = mx_read_void_pointer_from_memory_location( p );
+ *
+ * and actually end up wth  q1 == q2  at the end.
+ *
+ * If one can do that, then the idea of building arbitrary multidimensional
+ * arrays with void pointers and casting them to the pointer type you 
+ * actually want at the end becomes somewhat more practical.
+ *
+ * MX actually provides an implementation of the functions 
+ * mx_read_void_pointer_from_memory_location() and 
+ * mx_write_void_pointer_to_memory_location() that works on all supported
+ * MX build targets.  The two functions use (abuse?) a C union to do
+ * the dirty work.  The union in question looks like this:
+ *
+ *      union {
+ *              void *ptr_to_void;
+ *              void **ptr_to_ptr_to_void;
+ *      } u;
+ *
+ * The whole scheme depends on _assuming_ that if you write a value to
+ * u.ptr_to_void and then read from u.ptr_to_ptr_to_void that something
+ * "sensible" happens.  And that something similar happens if you go in
+ * the other direction.
+ *
+ * The C programming language does not guarantee in any way that something
+ * like this will allow you to, in effect, do a restricted dereference of
+ * a void pointer.  Remarkably it _does_ work on all the build targets of
+ * MX.  This includes all versions of Windows from Windows 95 on, as well
+ * as Linux, MacOS X, 8 different versions of Unix, Open VMS, 4 different
+ * RTOSes, and even esoteric stuff like Hurd and DJGPP.
+ *
+ * It is likely to work on anything with a flat memory space and which has
+ * a "C-friendly" architecture.  It would probably die horribly on something
+ * that made routine use of segmented memory like MSDOS, or used overlays,
+ * some DSPs, some GPUs, or some of the really worse things that older
+ * hardware architectures did. * But I haven't been bitten by such things yet.
+ *
+ * FIXME: Describe how we do Order(N) mallocs() rather than Order(N^2)
+ * mallocs().  Also describe the calling sequence for the 
+ * mx_allocate_array() family of functions.  In particular, the use
+ * of the data_element_size argument.  Describe how we transparently
+ * save metadata about the array like its dimensions, element sizes, etc.
+ * And other stuff.  But I am out of time right now. 
+ */
+
+/*--------------------------------------------------------------------------*/
+ 
 /* WARNING: Strictly speaking, mx_read_void_pointer_from_memory_location()
  * and mx_write_void_pointer_to_memory_location() are not portable.  But
  * they work on all supported MX platforms and they _probably_ will work
@@ -1484,6 +1632,13 @@ mx_array_is_mx_style_array( void *array_pointer )
 
 /*===========================================================================*/
 
+/* NOTE: The rest of this file deals with using MX arrays in combination
+ * with MX network messages.  It arguably should be in a separate file,
+ * but so far this hasn't been done.
+ */
+
+/*===========================================================================*/
+
 #if defined(OS_VMS) && defined(__VAX)
 
 /* OpenVMS on Vax does not really have a 64-bit integer type, even
@@ -1725,7 +1880,8 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 		long *dimension_array, size_t *data_element_size_array,
 		void *destination_buffer, size_t destination_buffer_length,
 		size_t *num_network_bytes_copied,
-		mx_bool_type use_64bit_network_longs )
+		mx_bool_type use_64bit_network_longs,
+		unsigned long remote_mx_version )
 {
 	static const char fname[] = "mx_copy_array_to_network_buffer()";
 
@@ -2161,7 +2317,8 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 				mx_datatype, num_dimensions - 1,
 				&dimension_array[1], data_element_size_array,
 				destination_pointer, buffer_left,
-				NULL, use_64bit_network_longs );
+				NULL, use_64bit_network_longs,
+				remote_mx_version );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2182,7 +2339,8 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
 		size_t *num_native_bytes_copied,
-		mx_bool_type use_64bit_network_longs )
+		mx_bool_type use_64bit_network_longs,
+		unsigned long remote_mx_version )
 {
 	static const char fname[] = "mx_copy_network_buffer_to_array()";
 
@@ -2486,7 +2644,8 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 				mx_datatype, num_dimensions - 1,
 				&dimension_array[1], data_element_size_array,
 				NULL,
-				use_64bit_network_longs );
+				use_64bit_network_longs,
+				remote_mx_version );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

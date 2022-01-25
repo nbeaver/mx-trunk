@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2007, 2012-2017, 2019, 2021
+ * Copyright 1999-2000, 2003, 2005-2007, 2012-2017, 2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -195,7 +195,8 @@ MX_API mx_status_type mx_copy_array_to_network_buffer( void *array_pointer,
 		long *dimension_array, size_t *data_element_size_array,
 		void *destination_buffer, size_t destination_buffer_length,
 		size_t *num_network_bytes_copied,
-		mx_bool_type use_64bit_network_longs );
+		mx_bool_type use_64bit_network_longs,
+		unsigned long remote_mx_version );
 
 MX_API mx_status_type mx_copy_network_buffer_to_array(
 		void *source_buffer, size_t source_buffer_length,
@@ -204,7 +205,8 @@ MX_API mx_status_type mx_copy_network_buffer_to_array(
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
 		size_t *num_native_bytes_copied,
-		mx_bool_type use_64bit_network_longs );
+		mx_bool_type use_64bit_network_longs,
+		unsigned long remote_mx_version );
 
 /*---*/
 
