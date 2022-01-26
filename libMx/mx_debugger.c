@@ -37,12 +37,6 @@
 #include "mx_thread.h"
 #include "mx_debugger.h"
 
-#if ( defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400) ) || defined(OS_MACOSX)
-#  define USE_MX_DEBUGGER_IS_PRESENT	TRUE
-#else
-#  define USE_MX_DEBUGGER_IS_PRESENT	FALSE
-#endif
-
 /*-------------------------------------------------------------------------*/
 
 static mx_bool_type mxp_just_in_time_debugging_enabled = FALSE;
@@ -830,14 +824,18 @@ mx_start_debugger( char *command )
 
 #if defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400)
 
-MX_EXPORT int
+MX_EXPORT long
 mx_debugger_is_present( void )
 {
-	int result;
+	long debugger_present;
 
-	result = (int) IsDebuggerPresent();
+	debugger_present = (long) IsDebuggerPresent();
 
-	return result;
+	if ( debugger_present ) {
+		mxp_debugger_started = TRUE;
+	}
+
+	return debugger_present;
 }
 
 #elif defined(OS_MACOSX)
@@ -848,7 +846,7 @@ mx_debugger_is_present( void )
 
 #include <sys/sysctl.h>
 
-MX_EXPORT int
+MX_EXPORT long
 mx_debugger_is_present( void )
 {
 	static const char fname[] = "mx_debugger_is_present()";
@@ -883,15 +881,82 @@ mx_debugger_is_present( void )
 	p_flag = pinfo.kp_proc.p_flag;
 
 	if ( p_flag & P_TRACED ) {
+		mxp_debugger_started = TRUE;
+
 		return TRUE;
 	} else {
 		return FALSE;
 	}
 }
 
+#elif defined(OS_LINUX)
+
+/* Look for a non-zero value for TracerPid: in /proc/self/status. */
+
+MX_EXPORT long
+mx_debugger_is_present( void )
+{
+	static const char fname[] = "mx_debugger_is_present()";
+
+	char buffer[200];
+	char error_message[80];
+	int saved_errno, num_items;
+	long debugger_pid;
+
+	FILE *status_file = fopen( "/proc/self/status", "r" );
+
+	if ( status_file == NULL ) {
+		saved_errno = errno;
+
+		(void)  mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to open /proc/self/status failed.  "
+		"errno = %d, error message = '%s'",
+			saved_errno,
+			mx_strerror( saved_errno,
+				error_message, sizeof(error_message)) );
+
+		return FALSE;
+	}
+
+	while( TRUE ) {
+		mx_fgets( buffer, sizeof(buffer), status_file );
+
+		if ( feof( status_file ) ) {
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Did not find TracerPid: in the output of the file "
+			"/proc/self/status." );
+
+			fclose( status_file );
+			return FALSE;
+		}
+		if ( ferror( status_file ) ) {
+			(void) mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while reading from "
+			"/proc/self/status." );
+
+			fclose( status_file );
+			return FALSE;
+		}
+
+		num_items = sscanf( buffer, "TracerPid: %ld", &debugger_pid );
+
+		if ( num_items == 1 ) {
+			fclose( status_file );
+
+			if ( debugger_pid != 0 ) {
+				mxp_debugger_started = TRUE;
+			}
+
+			return debugger_pid;
+		}
+	}
+
+	return FALSE;
+}
+
 #else
 
-MX_EXPORT int
+MX_EXPORT long
 mx_debugger_is_present( void )
 {
 	if ( mxp_debugger_started ) {
@@ -905,13 +970,14 @@ mx_debugger_is_present( void )
 
 /*-------------------------------------------------------------------------*/
 
-#if USE_MX_DEBUGGER_IS_PRESENT
+#if ( defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400) ) || defined(OS_MACOSX) \
+	|| defined(OS_LINUX)
 
 MX_EXPORT void
 mx_wait_for_debugger( void )
 {
 	unsigned long pid;
-	int present;
+	long debugger_pid;
 
 	pid = mx_process_id();
 
@@ -920,11 +986,18 @@ mx_wait_for_debugger( void )
 		pid );
 
 	while (1) {
-		mx_msleep(10);
+		mx_msleep(100);
 
-		present = mx_debugger_is_present();
+		debugger_pid = mx_debugger_is_present();
 
-		if ( present ) {
+		if ( debugger_pid ) {
+			if ( debugger_pid > 1 ) {
+				fprintf( stderr,
+				"Debugger attached (process id = %ld).\n\n",
+					debugger_pid );
+			} else {
+				fprintf( stderr, "Debugger attached.\n\n" );
+			}
 			break;
 		}
 	}

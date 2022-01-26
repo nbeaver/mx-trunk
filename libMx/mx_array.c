@@ -43,6 +43,10 @@
 #  include "mx_xdr.h"
 #endif
 
+#if 1
+#  include "mx_debugger.h"
+#endif
+
 /* Verify that MX_MAXIMUM_ALIGNMENT is defined on this platform. */
 
 unsigned long __mx_maximum_alignment = MX_MAXIMUM_ALIGNMENT;
@@ -1894,6 +1898,7 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 	size_t array_size, subarray_size, buffer_left;
 	size_t element_size;
 	mx_bool_type native_longs_are_64bits;
+	long network_vector_element_size, defacto_network_long_size;
 	long i, n, mx_type;
 	int num_subarray_elements;
 	int structure_name_length;
@@ -2251,6 +2256,56 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 	 * a structure array for which we report the name instead.
 	 */
 
+	/* MX 2.1.17 and before incorrectly placed MXFT_LONG, MXFT_ULONG,
+	 * and MXFT_HEX into the network buffers for network fields with
+	 * two dimensions or more.  But this bug on the transmit side was
+	 * hidden by an equivalent bug on the receive side.  In addition,
+	 * arrays of longs with 2 dimensions or more are not often use.
+	 * So the bug was not user visible.
+	 *
+	 * This was OK as long as a client libMx talked to a server libMx.
+	 * But it causes problems when non-MX programs try to use the
+	 * network buffers, so we fix it in MX 2.1.19.
+	 */
+
+	/* Get the defacto network long size.  "defacto" means that you
+	 * want to get the size it was _actually_ using rather than the
+	 * size it was _supposed_ to be using.
+	 */
+
+	switch( mx_datatype ) {
+	case MXFT_LONG:
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		if ( remote_mx_version >= 2001019 ) {
+			if ( use_64bit_network_longs ) {
+				defacto_network_long_size = 8;
+			} else {
+				defacto_network_long_size = 4;
+			}
+		} else {
+			/* Bug compatibility for old versions of MX */
+
+			if ( MX_WORDSIZE >= 64 ) {
+				defacto_network_long_size = 8;
+			} else {
+				defacto_network_long_size = 4;
+			}
+		}
+
+		network_vector_element_size = defacto_network_long_size;
+		break;
+	default:
+		network_vector_element_size = data_element_size_array[0];
+		break;
+	}
+
+#if 0
+	mx_breakpoint();
+#endif
+
+	/*----*/
+
 	num_subarray_elements = 1;
 
 	for ( i = 1; i < num_dimensions; i++ ) {
@@ -2264,8 +2319,13 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 	} else {
 		/* num_dimensions > 1 */
 
+#if 0
 		subarray_size = num_subarray_elements
 					* data_element_size_array[0];
+#else
+		subarray_size = num_subarray_elements
+					* network_vector_element_size;
+#endif
 	}
 
 	array_size = subarray_size * dimension_array[0];
@@ -2348,6 +2408,7 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 	size_t network_bytes_to_copy, native_bytes_to_copy;
 	size_t array_size, subarray_size, buffer_left;
 	mx_bool_type native_longs_are_64bits;
+	long network_vector_element_size, defacto_network_long_size;
 	long i, n, num_subarray_elements;
 	mx_status_type mx_status;
 
@@ -2602,13 +2663,67 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 
 	/* num_dimensions > 1 */
 
+	/* MX 2.1.17 and before incorrectly placed MXFT_LONG, MXFT_ULONG,
+	 * and MXFT_HEX into the network buffers for network fields with
+	 * two dimensions or more.  But this bug on the transmit side was
+	 * hidden by an equivalent bug on the receive side.  In addition,
+	 * arrays of longs with 2 dimensions or more are not often use.
+	 * So the bug was not user visible.
+	 *
+	 * This was OK as long as a client libMx talked to a server libMx.
+	 * But it causes problems when non-MX programs try to use the
+	 * network buffers, so we fix it in MX 2.1.19.
+	 */
+
+	/* Get the defacto network long size.  "defacto" means that you
+	 * want to get the size it was _actually_ using rather than the
+	 * size it was _supposed_ to be using.
+	 */
+
+	switch( mx_datatype ) {
+	case MXFT_LONG:
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		if ( remote_mx_version >= 2001019 ) {
+			if ( use_64bit_network_longs ) {
+				defacto_network_long_size = 8;
+			} else {
+				defacto_network_long_size = 4;
+			}
+		} else {
+			/* Bug compatibility for old versions of MX */
+
+			if ( MX_WORDSIZE >= 64 ) {
+				defacto_network_long_size = 8;
+			} else {
+				defacto_network_long_size = 4;
+			}
+		}
+
+		network_vector_element_size = defacto_network_long_size;
+		break;
+	default:
+		network_vector_element_size = data_element_size_array[0];
+		break;
+	}
+
+#if 0
+	mx_breakpoint();
+#endif
+
+	/*----*/
+
 	num_subarray_elements = 1;
 
 	for ( i = 1; i < num_dimensions; i++ ) {
 		num_subarray_elements *= ( dimension_array[i] );
 	}
 
+#if 0
 	subarray_size = num_subarray_elements * data_element_size_array[0];
+#else
+	subarray_size = num_subarray_elements * network_vector_element_size;
+#endif
 
 	array_size = subarray_size * dimension_array[0];
 

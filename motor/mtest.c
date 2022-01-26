@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012-2013, 2015-2019, 2021
+ * Copyright 2009-2010, 2012-2013, 2015-2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -65,10 +65,16 @@ motor_test_fn( int argc, char *argv[] )
 			
 			return SUCCESS;
 		} else
+		if ( strcmp( argv[2], "debugger" ) == 0 ) {
+			MX_DEBUG(-2,("Debugger is present = %ld",
+				mx_debugger_is_present() ));
+
+			return SUCCESS;
+		} else
 		if ( strcmp( argv[2], "watch" ) == 0 ) {
 			mx_breakpoint();
 
-			MX_DEBUG(-2,("Debugger is present = %d",
+			MX_DEBUG(-2,("Debugger is present = %ld",
 				mx_debugger_is_present() ));
 
 			mx_info( "Beginning watchpoint test." );
@@ -459,6 +465,7 @@ motor_test_fn( int argc, char *argv[] )
 "Note: Some of these tests can crash mxmotor\n"
 "\n"
 "test address 'start' 'size'- show information about a memory region\n"
+"test debugger - see if the current process has a debugger attached\n"
 "test disk 'filename' - show disk space info for disk containing the file\n"
 "test dll_filename 'filename' - show the file that a dll was opened from\n"
 "test max_fds - show the maximum number of file descriptors (Win32)\n"

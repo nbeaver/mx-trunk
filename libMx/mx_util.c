@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,6 +50,7 @@
 #include "mx_signal_alloc.h"
 #include "mx_atomic.h"
 #include "mx_json.h"
+#include "mx_debugger.h"
 
 /*-------------------------------------------------------------------------*/
 
@@ -232,6 +233,10 @@ mx_initialize_runtime( void )
 #if !defined(OS_WIN32)
 	mx_json_initialize();
 #endif
+
+	/* Check to see if a debugger is already running. */
+
+	(void) mx_debugger_is_present();
 
 	/* We are done, so return to the caller. */
 
