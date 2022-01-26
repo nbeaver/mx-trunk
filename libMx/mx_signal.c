@@ -204,17 +204,9 @@ mxp_standard_new_signal_error_handler( int signal_number,
 	MX_DEBUG(-2,("siginfo_t: si_signo = %d, si_code = %d",
 		info->si_signo, info->si_code ));
 #  else
-	{
-		char function_name[80];
-
-		(void) mx_dynamic_library_get_symbol_from_address(
-			info->si_addr, function_name, sizeof(function_name) );
-
-		MX_DEBUG(-2,
-    ("siginfo_t: si_signo = %d, si_errno = %d, si_code = %d, si_addr = %p, function = '%s'\n",
-		info->si_signo, info->si_errno, info->si_code,
-		info->si_addr, function_name));
-	}
+	MX_DEBUG(-2,
+    ("siginfo_t: si_signo = %d, si_errno = %d, si_code = %d, si_addr = %p\n",
+		info->si_signo, info->si_errno, info->si_code, info->si_addr ));
 #  endif
 #endif
 

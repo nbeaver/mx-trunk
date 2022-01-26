@@ -822,6 +822,8 @@ mx_stack_traceback( void )
  * MacOS X 10.5 and above has it too.
  */
 
+#define USE_ADDR2LINE	FALSE
+
 /* MAXDEPTH is the maximum number of stack frames that will be dumped. */
 
 #define MAXDEPTH	100
@@ -834,6 +836,13 @@ mx_stack_traceback( void )
 	static void *addresses[ MAXDEPTH ];
 	int i, num_addresses;
 	char **names;
+#if USE_ADDR2LINE
+	FILE *addr2line_stream = NULL;
+	char addr2line_command[300];
+	char addr2line_output[200];
+	char addr2line_filename[256];
+	char *ptr;
+#endif
 
 	num_addresses = backtrace( addresses, MAXDEPTH );
 
@@ -850,6 +859,36 @@ mx_stack_traceback( void )
 
 	for ( i = 0; i < num_addresses; i++ ) {
 		mx_info( "%d: %s", i, names[i] );
+
+#if USE_ADDR2LINE
+		strlcpy( addr2line_filename, names[i],
+				sizeof(addr2line_filename) );
+
+		ptr = strchr( addr2line_filename, '(' );
+
+		if ( ptr != NULL ) {
+			*ptr = '\0';
+		}
+
+		snprintf( addr2line_command, sizeof(addr2line_command),
+		    "addr2line -e %s %p", addr2line_filename, addresses[i] );
+
+		mx_info( "addr2line_command = '%s'", addr2line_command );
+
+		addr2line_stream = popen( addr2line_command, "r" );
+
+		while( TRUE ) {
+			mx_fgets( addr2line_output, sizeof(addr2line_output),
+					addr2line_stream );
+			if ( feof( addr2line_stream )
+			  || ferror( addr2line_stream ) )
+			{
+				fclose( addr2line_stream );
+			}
+
+			mx_info( "%s", addr2line_output );
+		}
+#endif
 	}
 
 	if ( num_addresses < MAXDEPTH ) {
