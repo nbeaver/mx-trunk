@@ -920,6 +920,8 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	socket_handler_list->array[i] = socket_handler;
 
 	socket_handler->mx_socket = server_socket;
+	server_socket->socket_handler = socket_handler;
+
 	socket_handler->list_head = list_head;
 	socket_handler->handler_array_index = i;
 	socket_handler->event_handler = event_handler;
@@ -1193,6 +1195,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 					= new_socket_handler->data_format;
 
 	new_socket_handler->mx_socket = client_socket;
+	client_socket->socket_handler = new_socket_handler;
+
 	new_socket_handler->event_handler
 			= server_socket_struct->client_event_handler;
 
