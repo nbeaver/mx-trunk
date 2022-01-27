@@ -669,7 +669,12 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 		socket_handler->message_buffer = message_buffer;
 	}
 
+	/* FIXME: Why in the world were we setting the message buffer
+	 * data format unconditionally to ASCII here?  (WML 2022-01-26)
+	 */
+#if 0
 	message_buffer->data_format = MX_NETWORK_DATAFMT_ASCII;
+#endif
 
 	header = message_buffer->u.uint32_buffer;
 	ptr    = message_buffer->u.char_buffer;
@@ -713,12 +718,18 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 	mx_status = mx_network_socket_send_message(
 				mx_socket, 0, message_buffer );
 
+	/* FIXME: I would imagine that freeing this network buffer here
+	 * would not be a good idea in current versions of MX.  Perhaps
+	 * this was a leftover from the distant, misty beginnings of time"
+	 */
+#if 0
 	/* FIXME: When we start using message queues, we will need to
 	 * change this so that it is no longer necessary to immediately
 	 * free the buffer.
 	 */
 
 	mx_free_network_buffer( message_buffer );
+#endif
 
 	return mx_status;
 }
