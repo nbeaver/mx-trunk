@@ -141,13 +141,13 @@ GCCFLAGS_C = \
 _have_mx_config := $(shell ../scripts/file_exists ../tools/mx_config )
 
 ifeq ($(_have_mx_config),true)
-  _gccver := $(shell ../tools/mx_config gcc )
+  _mx_gccver := $(shell ../tools/mx_config gcc )
 
   #
   # -fexceptions in GCC 2.95 and above
   #
 
-  _have_exceptions := $(shell expr $(_gccver) \>= 2095000 )
+  _have_exceptions := $(shell expr $(_mx_gccver) \>= 2095000 )
 
   ifeq ($(_have_exceptions),1)
       GCCFLAGS += -fexceptions
@@ -157,7 +157,7 @@ ifeq ($(_have_mx_config),true)
   # -fno-strict-aliasing in GCC 3.0 and above
   #
   
-  _have_no_strict_aliasing := $(shell expr $(_gccver) \>= 3000000 )
+  _have_no_strict_aliasing := $(shell expr $(_mx_gccver) \>= 3000000 )
 
   ifeq ($(_have_no_strict_aliasing),1)
       GCCFLAGS += -fno-strict-aliasing
@@ -167,7 +167,7 @@ ifeq ($(_have_mx_config),true)
   # -Wno-unused-but-set-variable in GCC 4.6 and above
   #
 
-  _need_no_unused_but_set_variable := $(shell expr $(_gccver) \> 4006000 )
+  _need_no_unused_but_set_variable := $(shell expr $(_mx_gccver) \> 4006000 )
 
   ifeq ($(_need_no_unused_but_set_variable),1)
       GCCFLAGS += -Wno-unused-but-set-variable
@@ -177,7 +177,7 @@ ifeq ($(_have_mx_config),true)
   # -fwrapv in GCC 4.9 and above
   #
 
-  _have_fwrapv := $(shell expr $(_gccver) \> 4009000 )
+  _have_fwrapv := $(shell expr $(_mx_gccver) \> 4009000 )
 
   ifeq ($(_have_fwrapv),1)
       GCCFLAGS += -fwrapv
@@ -186,8 +186,45 @@ endif
 
 #--------------------------------------------------------------------------
 #
-# Modify LIBRARIES depending on the version of Glibc or Musl.
+# Find the GCC top level directory
 #
+
+#
+# If gcc -v prints it out, then COLLECT_LTO_WRAPPER is a more reliable way
+# to determine the GCC top level directory
+#
+
+_gcc_collect_lto_wrapper := $(shell gcc -v 2>&1 | grep COLLECT_LTO_WRAPPER  | cut -f3  -d' ' | cut -f2 -d=)
+
+_lto_wrapper_length := $(shell echo ${_gcc_collect_lto_wrapper} | wc -c)
+
+_lpl := $(shell expr ${_lto_wrapper_length} - 13)
+
+_gcc_dir_v1 := $(shell echo ${_gcc_collect_lto_wrapper} | cut -c1-${_lpl})
+
+_gcc_dir_v1_len := $(shell echo ${_gcc_dir_v1} | wc -c)
+
+#
+# Otherwise, we construct it from the target and the version.
+#
+
+_gcc_target := $(shell gcc -v 2>&1 | grep Target: | cut -f2 -d' ')
+
+_gcc_version := $(shell gcc -v 2>&1 | grep '^gcc version' | cut -f3  -d' ')
+
+_gcc_dir_v2 := $(shell echo /usr/lib/gcc/${_gcc_target}/${_gcc_version})
+
+#
+# Now select the one we like the best.
+#
+
+ifeq ($(_gcc_dir_v1_len),0)
+    _gcc_dir := $(_gcc_dir_v2)
+else
+    _gcc_dir := $(_gcc_dir_v1)
+endif
+
+$(info _gcc_dir is [${_gcc_dir}])
 
 #--------------------------------------------------------------------------
 #
@@ -264,41 +301,14 @@ endif
 
 $(info _have_librt is [${_have_librt}])
 
-#ifeq ($(_have_mx_config),true)
-#  _id_class := $(shell ../tools/mx_config id_class)
-#  
-#  ###$(info _id_class is [${_id_class}])
+#--------------------------------------------------------------------------
 #
-#  # We only test for old versions of Debian.
-#  
-#  ifeq ($(_id_class),debian)
-#    _hardware_name := $(shell uname -m)
-#  
-#    ifeq ($(_hardware_name),i686)
-#      _library_name := i386
-#    else
-#      _library_name := ${_hardware_name}
-#    endif
-#  
-#    $(info _hardware_name is [${_hardware_name}])
-#    $(info _library_name is [${_library_name}])
-#  
-#    _have_librt := $(shell ../scripts/file_exists /usr/lib/${_library_name}-linux-gnu/librt.so)
-#
-#    ifeq ($(_have_librt),false)
-#      _have_librt := $(shell ../scripts/file_exists /usr/lib/librt.so)
-#    endif
-#  
-#  else
-#    _have_librt := $(shell echo true)
-#  endif
-#  
-#  $(info _have_librt is [${_have_librt}])
-#  
-#  ifeq ($(_have_librt),true)
-#    LIBRARIES += -lrt
-#  endif
-#endif
+_have_libbacktrace := $(shell find $(_gcc_dir) -name libbacktrace.a -print | wc -l)
+
+ifneq ($(_have_libbacktrace),0)
+    MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE
+    LIBRARIES += -L$(_gcc_dir) -lbacktrace
+endif
 
 #--------------------------------------------------------------------------
 
@@ -576,4 +586,7 @@ mx_array.$(OBJ): mx_array.c
 
 mx_net.$(OBJ): mx_net.c
 	$(COMPILE) $(CFLAGS) $(MUSL_INCLUDES) mx_net.c
+
+mx_stack.$(OBJ): mx_stack.c
+	$(COMPILE) $(CFLAGS) $(MX_STACK_INCLUDES) mx_stack.c
 
