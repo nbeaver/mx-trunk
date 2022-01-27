@@ -2115,6 +2115,11 @@ mx_network_buffer_show_value( void *buffer,
 			raw_buffer = buffer;
 		}
 
+		if ( raw_buffer == NULL ) {
+			fprintf( stderr, "<null pointer>\n" );
+			return;
+		}
+
 		switch( data_type ) {
 		case MXFT_STRING:
 			fprintf( stderr, "'%s' ", ((char *) raw_buffer) );
