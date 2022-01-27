@@ -38,6 +38,7 @@
 #include "mx_net.h"
 #include "mx_net_socket.h"
 #include "mx_process.h"
+#include "mx_debugger.h"
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE || MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
 #include "mx_hrt_debug.h"
@@ -534,6 +535,29 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 					saved_errno,
 					mx_socket_strerror(saved_errno) );
 				break;
+
+			case EFAULT:
+				/* If we get here the pointer for the message
+				 * was invalid.  This should never happen.
+				 * If it does happen, then the data structures
+				 * for the connections are sufficiently 
+				 * messed up that all we can do is to 
+				 * unilaterally close the connection.
+				 */
+
+				mx_wait_for_debugger();
+
+				mx_status = mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The data structures for the send buffer "
+				"for socket %d are corrupted.  All we can "
+				"do at this point is close the connection, "
+				"since we cannot even send an error to the "
+				"remote process.", mx_socket->socket_fd );
+
+				return mx_status;
+				break;
+
 			case EAGAIN:
 
 #if ( EAGAIN != EWOULDBLOCK )
@@ -709,7 +733,8 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 			error_message.code,
 			mx_socket->socket_fd );
 
-		mx_network_display_message( message_buffer, NULL );
+		mx_network_display_message( message_buffer, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 

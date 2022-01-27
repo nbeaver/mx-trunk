@@ -1956,13 +1956,25 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		/* Send back the error message. */
 
-		(void) mx_network_socket_send_error_message(
+		mx_status2 =  mx_network_socket_send_error_message(
 					client_socket,
 					message_id, 
 					socket_handler->remote_header_length,
 					socket_handler->network_debug_flags,
 					MX_NETMSG_UNEXPECTED_ERROR,
 					mx_status );
+
+		if ( mx_status2.code == MXE_CORRUPT_DATA_STRUCTURE ) {
+			/* If we get here, then the data structures for this
+			 * connection are broken in some fundamental way.
+			 * So we cannot use this connection and probably
+			 * cannot send an error message either, so all
+			 * we can do is discard the connnection.
+			 */
+
+			(void) mxsrv_free_client_socket_handler( socket_handler,
+							socket_handler_list );
+		}
 
 		return mx_status;
 	}
