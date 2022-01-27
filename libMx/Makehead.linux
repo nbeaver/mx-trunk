@@ -224,7 +224,7 @@ else
     _gcc_dir := $(_gcc_dir_v1)
 endif
 
-$(info _gcc_dir is [${_gcc_dir}])
+#$(info _gcc_dir is [${_gcc_dir}])
 
 #--------------------------------------------------------------------------
 #
@@ -305,7 +305,15 @@ $(info _have_librt is [${_have_librt}])
 #
 _have_libbacktrace := $(shell find $(_gcc_dir) -name libbacktrace.a -print | wc -l)
 
-ifneq ($(_have_libbacktrace),0)
+ifeq ($(_have_libbacktrace),0)
+    _have_libbacktrace := false
+else
+    _have_libbacktrace := true
+endif
+
+$(info _have_libbacktrace is [${_have_libbacktrace}])
+
+ifeq ($(_have_libbacktrace),true)
     MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE -I$(_gcc_dir)/include
     MX_LIB_LIBRARIES += -L$(_gcc_dir) -lbacktrace
 endif
