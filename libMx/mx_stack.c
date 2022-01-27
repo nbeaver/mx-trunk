@@ -16,7 +16,7 @@
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
- *
+ *,
  */
 
 #include <stdio.h>
@@ -28,9 +28,54 @@
 #include "mx_util.h"
 #include "mx_version.h"
 
+#include <backtrace.h>
+
 /*--------------------------------------------------------------------------*/
 
-#if defined( OS_WIN32 ) && ( _MSC_VER >= 1200 )
+#if defined( MX_HAVE_LIBBACKTRACE )
+
+/* If present, libbacktrace.a is bundled with the GCC compiler. */
+
+static struct backtrace_state *mx_stack_backtrace_status = NULL;
+
+static int
+mx_stack_backtrace_full_callback( void *data, uintptr_t pc,
+				const char *filename, int lineno,
+				const char *function )
+{
+	if ( function == NULL ) {
+		return 1;
+	}
+
+	fprintf( stderr, "%p: %s(), %s;, line %d\n",
+		(void *) pc, function, filename, lineno );
+
+	return 0;
+}
+
+static void
+mx_stack_backtrace_error_callback( void *data, const char *msg, int errnum )
+{
+	fprintf( stderr,
+		"mx_stack_backtrace_error_callback() invoked: "
+			"data = %p, msg = %s, errnum = %d\n",
+			data, msg, errnum );
+}
+
+MX_EXPORT void
+mx_stack_traceback( void )
+{
+	void *data = NULL;
+
+	backtrace_full( mx_stack_backtrace_status, 0,
+			mx_stack_backtrace_full_callback,
+			mx_stack_backtrace_error_callback,
+			data );
+}
+
+/*--------------------------------------------------------------------------*/
+
+#elif defined( OS_WIN32 ) && ( _MSC_VER >= 1200 )
 
 /* The following code is inspired by several articles in the Microsoft
  * Systems Journal by Matt Pietrek.  The articles were in the following
@@ -950,7 +995,26 @@ mx_stack_traceback( void )
 
 /*--------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32) && defined(_M_AMD64)
+#if defined( MX_HAVE_LIBBACKTRACE )
+
+MX_EXPORT long
+mx_stack_available( void )
+{
+	return 0L;
+}
+
+MX_EXPORT int
+mx_stack_check( void )
+{
+	if ( mx_stack_backtrace_status == NULL ) {
+		mx_stack_backtrace_status = backtrace_create_state(
+			NULL, TRUE, mx_stack_backtrace_error_callback, NULL );
+	}
+
+	return TRUE;
+}
+	
+#elif defined(OS_WIN32) && defined(_M_AMD64)
 
 /* Warning: mxp_stack_available_cs and mxp_stack_available_cs_initialized
  * are set up in mx_initialize_runtime().  If you call the following functions

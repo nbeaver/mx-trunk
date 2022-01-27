@@ -306,8 +306,8 @@ $(info _have_librt is [${_have_librt}])
 _have_libbacktrace := $(shell find $(_gcc_dir) -name libbacktrace.a -print | wc -l)
 
 ifneq ($(_have_libbacktrace),0)
-    MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE
-    LIBRARIES += -L$(_gcc_dir) -lbacktrace
+    MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE -I$(_gcc_dir)/include
+    MX_LIB_LIBRARIES += -L$(_gcc_dir) -lbacktrace
 endif
 
 #--------------------------------------------------------------------------
@@ -432,7 +432,7 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_SONAME) libMx.so $(MX_LIBRARY_STA
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	$(CC) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
-			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
+		$(LIB_DIRS) $(MX_LIB_OBJS) $(MX_LIB_LIBRARIES) $(LIBRARIES) -lc
 	$(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME)
 	$(LN_SF) $(MX_LIBRARY_NAME) libMx.so
 	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
@@ -479,6 +479,7 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
 			../libMx/$(MX_LIBRARY_STATIC_NAME) \
+			$(MX_LIB_LIBRARIES) \
 			$(LIBRARIES) $(READLINE_LIBRARIES)
 
 motor_install:
