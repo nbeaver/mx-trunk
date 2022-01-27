@@ -1818,50 +1818,6 @@ mx_construct_hex_field( void *dataptr,
 }
 
 static mx_status_type
-mx_construct_long32_field( void *dataptr,
-			char *token_buffer, size_t token_buffer_length,
-			MX_RECORD *record, MX_RECORD_FIELD *record_field )
-{
-	snprintf( token_buffer, token_buffer_length,
-			"%" PRId32, *((int32_t *) dataptr) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mx_construct_long64_field( void *dataptr,
-			char *token_buffer, size_t token_buffer_length,
-			MX_RECORD *record, MX_RECORD_FIELD *record_field )
-{
-	snprintf( token_buffer, token_buffer_length,
-			"%" PRId64, *((int64_t *) dataptr) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mx_construct_ulong32_field( void *dataptr,
-			char *token_buffer, size_t token_buffer_length,
-			MX_RECORD *record, MX_RECORD_FIELD *record_field )
-{
-	snprintf( token_buffer, token_buffer_length,
-			"%" PRIu32, *((int32_t *) dataptr) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mx_construct_ulong64_field( void *dataptr,
-			char *token_buffer, size_t token_buffer_length,
-			MX_RECORD *record, MX_RECORD_FIELD *record_field )
-{
-	snprintf( token_buffer, token_buffer_length,
-			"%" PRIu64, *((int64_t *) dataptr) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
 mx_parse_mx_record_field( void *memory_location, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
@@ -3291,18 +3247,6 @@ mx_get_token_constructor( long field_type,
 	case MXFT_RECORD_FIELD:
 		*token_constructor = mx_construct_mx_record_field_field;
 		break;
-	case MXFT_LONG32:
-		*token_constructor = mx_construct_long32_field;
-		break;
-	case MXFT_LONG64:
-		*token_constructor = mx_construct_long64_field;
-		break;
-	case MXFT_ULONG32:
-		*token_constructor = mx_construct_ulong32_field;
-		break;
-	case MXFT_ULONG64:
-		*token_constructor = mx_construct_ulong64_field;
-		break;
 	default:
 		*token_constructor = NULL;
 
@@ -4187,15 +4131,6 @@ mx_get_datatype_sizeof_array( long datatype,
 	static const size_t interface_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_INTERFACE_SIZEOF;
 #endif
-	static const size_t long32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
-							= MXA_LONG32_SIZEOF;
-	static const size_t ulong32_sizeof[MXU_FIELD_MAX_DIMENSIONS]
-							= MXA_ULONG32_SIZEOF;
-	static const size_t long64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
-							= MXA_LONG64_SIZEOF;
-	static const size_t ulong64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
-							= MXA_ULONG64_SIZEOF;
-
 	static const size_t *local_sizeof_ptr = NULL;
 
 	size_t i, num_builtin_elements;
@@ -4263,20 +4198,6 @@ mx_get_datatype_sizeof_array( long datatype,
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
 		local_sizeof_ptr = string_sizeof;
-		break;
-
-	/* The following are for special purpose network code. */
-	case MXFT_LONG32:
-		local_sizeof_ptr = long32_sizeof;
-		break;
-	case MXFT_ULONG32:
-		local_sizeof_ptr = ulong32_sizeof;
-		break;
-	case MXFT_LONG64:
-		local_sizeof_ptr = long64_sizeof;
-		break;
-	case MXFT_ULONG64:
-		local_sizeof_ptr = ulong64_sizeof;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

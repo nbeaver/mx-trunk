@@ -2662,17 +2662,17 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			switch( network_datatype ) {
 			case MXFT_LONG:
 				if ( use_64bit_network_longs ) {
-					raw_datatype = MXFT_LONG64;
+					raw_datatype = MXFT_INT64;
 				} else {
-					raw_datatype = MXFT_LONG32;
+					raw_datatype = MXFT_INT32;
 				}
 				break;
 			case MXFT_ULONG:
 			case MXFT_HEX:
 				if ( use_64bit_network_longs ) {
-					raw_datatype = MXFT_ULONG64;
+					raw_datatype = MXFT_UINT64;
 				} else {
-					raw_datatype = MXFT_ULONG32;
+					raw_datatype = MXFT_UINT32;
 				}
 				break;
 			default:

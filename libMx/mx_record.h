@@ -249,19 +249,6 @@ typedef struct {
 #define MXFT_INTERFACE		33
 #define MXFT_RECORD_FIELD	34
 
-/* By default, the MX network protocol sends MXFT_LONG and MXFT_ULONG fields
- * as 32-bit integers even on 64-bit computers.  The following data types
- * are used in and around code that marshalls and unmarshalls network messages
- * to distinguish between longs as 32 bits and longs as 64 bits.
- *
- * You should not normally use them in code that is not network related.
- */
-
-#define MXFT_LONG32		( (100L * MXFT_LONG) + 32 )	/* 832 */
-#define MXFT_LONG64		( (100L * MXFT_LONG) + 64 )	/* 864 */
-#define MXFT_ULONG32		( (100L * MXFT_ULONG) + 32 )	/* 932 */
-#define MXFT_ULONG64		( (100L * MXFT_ULONG) + 64 )	/* 964 */
-
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify
  * the record type.  For example,  "testmotor device motor e500".
