@@ -43,9 +43,11 @@ mx_stack_backtrace_full_callback( void *data, uintptr_t pc,
 				const char *filename, int lineno,
 				const char *function )
 {
+#if 0
 	if ( function == NULL ) {
 		return 1;
 	}
+#endif
 
 	fprintf( stderr, "%p: %s(), %s;, line %d\n",
 		(void *) pc, function, filename, lineno );
