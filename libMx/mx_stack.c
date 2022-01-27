@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2021
+ * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -28,11 +28,11 @@
 #include "mx_util.h"
 #include "mx_version.h"
 
-#include <backtrace.h>
-
 /*--------------------------------------------------------------------------*/
 
 #if defined( MX_HAVE_LIBBACKTRACE )
+
+#include <backtrace.h>
 
 /* If present, libbacktrace.a is bundled with the GCC compiler. */
 
