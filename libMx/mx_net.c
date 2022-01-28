@@ -3299,7 +3299,7 @@ mx_network_dump_value( char *value_buffer,
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
-		fprintf( stderr, value_ptr );
+		fputs( value_ptr, stderr );
 
 		value_ptr += strlen( value_ptr );
 
