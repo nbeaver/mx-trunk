@@ -2346,7 +2346,8 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	static const char fname[] = "mx_network_dump_message()";
 
 	uint32_t *uint32_header_ptr = NULL;
-	char *message_ptr = NULL;
+	uint32_t *uint32_message_ptr = NULL;
+	char *char_message_ptr = NULL;
 	long bytes_left_to_display = -1L;
 	mx_bool_type compute_bytes_left_from_header = FALSE;
 	unsigned long native_byteorder = 0L;
@@ -2374,8 +2375,6 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	unsigned long callback_id = 0L;
 
 	uint32_t uint32_value = 0L;
-
-	uint32_t *uint32_value_ptr = NULL;
 
 	char network_data_format_name[8];
 
@@ -2820,7 +2819,8 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	/******** Next dump the message identifiers (if any). ********/
 
-	message_ptr = message_buffer->u.char_buffer + native_header_bytes;
+	uint32_message_ptr =
+		message_buffer->u.uint32_buffer + num_header_dwords;
 
 	if ( is_response == FALSE ) {	/* is_command */
 
@@ -2837,23 +2837,25 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETMSG_GET_NETWORK_HANDLE:
 		case MX_NETMSG_GET_FIELD_TYPE:
 
-			fprintf( stderr, "%p: ", message_ptr );
+			char_message_ptr = (char *) uint32_message_ptr;
+
+			fprintf( stderr, "%p: ", char_message_ptr );
 
 			for ( j = 0; j <= MXU_RECORD_FIELD_NAME_LENGTH; j++ ) {
-				uint32_value = 0xff & ( message_ptr[j] );
+				uint32_value = 0xff & ( char_message_ptr[j] );
 
 				fprintf( stderr, "%#02lx ",
 					(unsigned long) uint32_value );
 
 			}
 
-			strlcpy( record_field_name, message_ptr,
+			strlcpy( record_field_name, char_message_ptr,
 					sizeof( record_field_name ) );
 
 			fprintf( stderr, "\n*** MX record field name = '%s'\n",
 							record_field_name );
 
-			message_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
+			char_message_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
 
 			bytes_left_to_display -= MXU_RECORD_FIELD_NAME_LENGTH;
 			break;
@@ -2863,53 +2865,49 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		case MX_NETMSG_GET_ATTRIBUTE:
 		case MX_NETMSG_SET_ATTRIBUTE:
 		case MX_NETMSG_ADD_CALLBACK:
-			uint32_value_ptr = (uint32_t *) message_ptr;
-
-			record_handle = mx_ntohl( *uint32_value_ptr );
+			record_handle = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr, "%p: %#lx, record handle = %lu\n",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
 				record_handle );
 
-			uint32_value_ptr++;
+			uint32_message_ptr++;
 
-			field_handle = mx_ntohl( *uint32_value_ptr );
+			field_handle = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr, "%p: %#lx, field handle = %lu\n",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
 				field_handle );
 
 			fprintf( stderr,
 			"*** MX record field handle = (%lu, %lu)\n",
 				record_handle, field_handle );
 
-			uint32_value_ptr++;
+			uint32_message_ptr++;
 
-			message_ptr += ( 2L * sizeof(uint32_t) );
+			char_message_ptr = (char *) uint32_message_ptr;
 
 			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
 			break;
 
 		case MX_NETMSG_SET_CLIENT_INFO:
-			uint32_value_ptr = (uint32_t *) message_ptr;
+			char_message_ptr = (char *) uint32_message_ptr;
 
 			fprintf( stderr, "%p: %s\n",
-				uint32_value_ptr, message_ptr );
+				uint32_message_ptr, char_message_ptr );
 			break;
 
 		case MX_NETMSG_GET_OPTION:
 		case MX_NETMSG_SET_OPTION:
-			uint32_value_ptr = (uint32_t *) message_ptr;
-
-			option_number = mx_ntohl( *uint32_value_ptr );
+			option_number = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, option number = %lu *** ",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 				option_number );
 
 			switch( option_number ) {
@@ -2937,47 +2935,50 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				break;
 			}
 
-			uint32_value_ptr++;
-
-			message_ptr += sizeof(uint32_t);
+			uint32_message_ptr++;
 
 			bytes_left_to_display -= sizeof(uint32_t);
 
 			if ( native_message_type == MX_NETMSG_SET_OPTION ) {
 
-				option_value = mx_ntohl( *uint32_value_ptr );
+				option_value = mx_ntohl( *uint32_message_ptr );
 
 				fprintf( stderr,
 				"%p: %#010lx, %#010lx, option value = %lu\n",
-					uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+					uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 					option_value );
 
-				message_ptr += sizeof(uint32_t);
+				uint32_message_ptr++;
 
 				bytes_left_to_display -= sizeof(uint32_t);
 			}
+
+			char_message_ptr = (char *) uint32_message_ptr;
 			break;
 
 		case MX_NETMSG_DELETE_CALLBACK:
-			uint32_value_ptr = (uint32_t *) message_ptr;
-
-			callback_id = mx_ntohl( *uint32_value_ptr );
+			callback_id = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, callback id = %#010lx\n",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 				callback_id );
 
+			uint32_message_ptr++;
+
+			char_message_ptr = (char *) uint32_message_ptr;
 			break;
 
 		default:
 			fprintf( stderr,
 			"*** MX unrecognized command message type %#lx\n",
 				native_message_type );
+
+			char_message_ptr = (char *) uint32_message_ptr;
 			break;
 		}
 	}
@@ -3006,8 +3007,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 		case MX_NETMSG_PUT_ARRAY_BY_NAME:
 		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
-			message_ptr = mx_network_dump_value(
-					message_ptr,
+			mx_network_dump_value( uint32_message_ptr,
 					network_data_format,
 					raw_datatype,
 					bytes_left_to_display );
@@ -3015,13 +3015,13 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 		case MX_NETMSG_GET_ATTRIBUTE:
 		case MX_NETMSG_SET_ATTRIBUTE:
-			attribute_number = mx_ntohl( *uint32_value_ptr );
+			attribute_number = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, attribute number = %lu *** ",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 				attribute_number );
 
 			switch( attribute_number ) {
@@ -3044,9 +3044,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				break;
 			}
 
-			uint32_value_ptr ++;
-
-			message_ptr += sizeof(uint32_t);
+			uint32_message_ptr++;
 
 			bytes_left_to_display -= sizeof(uint32_t);
 
@@ -3054,29 +3052,33 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 			if ( native_message_type == MX_NETMSG_SET_ATTRIBUTE ) {
 
-				attribute_value = mx_ntohl( *uint32_value_ptr );
+				attribute_value =
+					mx_ntohl( *uint32_message_ptr );
 
 				fprintf( stderr,
 				"%p: %#010lx, %#010lx, attribute value = %lu\n",
-					uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+					uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 					attribute_value );
 
-				message_ptr += sizeof(uint32_t);
+				uint32_message_ptr++;
 
 				bytes_left_to_display -= sizeof(uint32_t);
 			}
+
+			char_message_ptr = (char *) uint32_message_ptr;
 			break;
 
 		case MX_NETMSG_ADD_CALLBACK:
-			supported_callback_types = mx_ntohl( *uint32_value_ptr);
+			supported_callback_types =
+					mx_ntohl( *uint32_message_ptr);
 
 			fprintf( stderr,
 		"%p: %#010lx, %#010lx, supported callback types = %#010lx ***",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 				supported_callback_types );
 
 			if ( supported_callback_types & MXCBT_VALUE_CHANGED ) {
@@ -3093,6 +3095,12 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			}
 
 			fprintf( stderr, "\n" );
+
+			uint32_message_ptr++;
+
+			char_message_ptr = (char *) uint32_message_ptr;
+
+			bytes_left_to_display -= sizeof(uint32_t);
 			break;
 
 		default:
@@ -3110,133 +3118,132 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 		switch( native_message_type ) {
 		case MX_NETMSG_GET_FIELD_TYPE:
-			uint32_value_ptr = (uint32_t *) message_ptr;
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, MX datatype = %ld\n",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
-				(unsigned long) mx_ntohl( *uint32_value_ptr ) );
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
+				(unsigned long) mx_ntohl( *uint32_message_ptr));
 
-			uint32_value_ptr++;
+			uint32_message_ptr++;
 
-			field_handle = mx_ntohl( *uint32_value_ptr );
+			field_handle = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, num dimensions = %ld\n",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
-				(unsigned long) mx_ntohl( *uint32_value_ptr ) );
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
+				(unsigned long) mx_ntohl( *uint32_message_ptr));
 
-			message_ptr += ( 2L * sizeof(uint32_t) );
+			uint32_message_ptr++;
+
+			char_message_ptr = (char *) uint32_message_ptr;
 
 			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
 			break;
 
 		case MX_NETMSG_GET_ARRAY_BY_NAME:
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
-			message_ptr = mx_network_dump_value(
-					message_ptr,
+			mx_network_dump_value( uint32_message_ptr,
 					network_data_format,
 					raw_datatype,
 					bytes_left_to_display );
 			break;
 
 		case MX_NETMSG_GET_ATTRIBUTE:
-			message_ptr = mx_network_dump_value(
-					message_ptr,
+			mx_network_dump_value( uint32_message_ptr,
 					network_data_format,
 					MXFT_DOUBLE,
 					bytes_left_to_display );
 			break;
 
 		case MX_NETMSG_GET_NETWORK_HANDLE:
-			uint32_value_ptr = (uint32_t *) message_ptr;
-
-			record_handle = mx_ntohl( *uint32_value_ptr );
+			record_handle = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, record handle = %lu\n",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 				record_handle );
 
-			uint32_value_ptr++;
+			uint32_message_ptr++;
 
-			field_handle = mx_ntohl( *uint32_value_ptr );
+			field_handle = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, field handle = %lu\n",
-				uint32_value_ptr,
-			 	(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				uint32_message_ptr,
+			 	(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 				field_handle );
 
 			fprintf( stderr,
 			"*** MX record field handle = (%lu, %lu)\n",
 				record_handle, field_handle );
 
-			message_ptr += ( 2L * sizeof(uint32_t) );
+			char_message_ptr = (char *) uint32_message_ptr;
 
 			bytes_left_to_display -= ( 2L * sizeof(uint32_t) );
 			break;
 
 		case MX_NETMSG_GET_OPTION:
-			uint32_value_ptr = (uint32_t *) message_ptr;
-
-			option_value = mx_ntohl( *uint32_value_ptr );
+			option_value = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, option value = %lu\n",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 				option_value );
 
 			break;
 
 		case MX_NETMSG_ADD_CALLBACK:
 		case MX_NETMSG_CALLBACK:
-			uint32_value_ptr = (uint32_t *) message_ptr;
-
-			callback_id = mx_ntohl( *uint32_value_ptr );
+			callback_id = mx_ntohl( *uint32_message_ptr );
 
 			fprintf( stderr,
 			"%p: %#010lx, %#010lx, callback_id = %#010lx\n",
-				uint32_value_ptr,
-				(unsigned long) *uint32_value_ptr,
-				(unsigned long) mx_ntohl( *uint32_value_ptr ),
+				uint32_message_ptr,
+				(unsigned long) *uint32_message_ptr,
+				(unsigned long) mx_ntohl( *uint32_message_ptr ),
 				callback_id );
 
-			uint32_value_ptr++;
+			uint32_message_ptr++;
 
 			bytes_left_to_display -= header_item_length;
 
 			if ( native_message_type == MX_NETMSG_CALLBACK ) {
 
-				message_ptr = (char *) uint32_value_ptr;
-
-				message_ptr = mx_network_dump_value(
-					message_ptr,
+				mx_network_dump_value(
+					uint32_message_ptr,
 					network_data_format,
 					raw_datatype,
 					bytes_left_to_display );
+
+				bytes_left_to_display -=
+			    ( (char *) uint32_message_ptr - char_message_ptr );
 			}
+
+			char_message_ptr = (char *) uint32_message_ptr;
 			break;
 
 		case MX_NETMSG_SET_ATTRIBUTE:
 		case MX_NETMSG_SET_OPTION:
 		case MX_NETMSG_SET_CLIENT_INFO:
 		case MX_NETMSG_DELETE_CALLBACK:
+			char_message_ptr = (char *) uint32_message_ptr;
 			break;
 
 		default:
 			fprintf( stderr,
 			"*** MX unrecognized response message type %#lx\n",
 				native_message_type );
+
+			char_message_ptr = (char *) uint32_message_ptr;
 			break;
 		}
 	}
@@ -3246,7 +3253,7 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		fname, bytes_left_to_display));
 #endif
 
-	fprintf( stderr, "*** MX last byte at %p\n", message_ptr - 1L );
+	fprintf( stderr, "*** MX last byte at %p\n", char_message_ptr - 1L );
 
 	fprintf( stderr, "*** MX message end ***\n" );
 
@@ -3255,17 +3262,17 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 /*------------------------------------------------------------------------*/
 
-MX_EXPORT char *
-mx_network_dump_value( char *value_buffer,
+MX_EXPORT void
+mx_network_dump_value( uint32_t *uint32_value_ptr,
 			unsigned long network_data_format,
 			long value_datatype,
 			long num_bytes_in_value )
 {
 	static const char fname[] = "mx_network_dump_value()";
 
-	char *value_ptr = value_buffer;
 	MX_RECORD_FIELD local_temp_record_field;
 	char display_buffer[1000];
+	char *char_value_ptr = NULL;
 	long i, num_items_in_value, element_size_in_bytes;
 	size_t datatype_sizeof_array[ MXU_FIELD_MAX_DIMENSIONS ];
 	int argc = 0;
@@ -3283,7 +3290,7 @@ mx_network_dump_value( char *value_buffer,
 		mx_warning( "%s currently only supports RAW (2) "
 		"and XDR (3) data format, but you requested data format %lu.  "
 		"Aborting dump...", fname, network_data_format );
-		return NULL;
+		return;
 	}
 
 	/*-----------------------------------------------------------*/
@@ -3297,14 +3304,33 @@ mx_network_dump_value( char *value_buffer,
 	switch( value_datatype ) {
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
-	case MXFT_INTERFACE:
-	case MXFT_RECORD_FIELD:
-		fputs( value_ptr, stderr );
+		char_value_ptr = (char *) uint32_value_ptr;
 
-		value_ptr += strlen( value_ptr );
+		fputs( char_value_ptr, stderr );
 
-		return value_ptr;
+		char_value_ptr += MXU_RECORD_NAME_LENGTH;
+
+		return;
 		break;
+
+	case MXFT_INTERFACE:
+		char_value_ptr = (char *) uint32_value_ptr;
+
+		fputs( char_value_ptr, stderr );
+
+		char_value_ptr += MXU_INTERFACE_NAME_LENGTH;
+
+		return;
+		break;
+
+	case MXFT_RECORD_FIELD:
+		char_value_ptr = (char *) uint32_value_ptr;
+
+		fputs( char_value_ptr, stderr );
+
+		char_value_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
+
+		return;
 	}
 
 	/*-----------------------------------------------------------*/
@@ -3317,21 +3343,21 @@ mx_network_dump_value( char *value_buffer,
 						&token_constructor );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return NULL;
+		return;
 
 	mx_status = mx_get_datatype_sizeof_array( value_datatype,
 				datatype_sizeof_array,
 				mx_num_array_elements( datatype_sizeof_array ));
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return NULL;
+		return;
 
 	if ( datatype_sizeof_array[0] == 0 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The data element size of MX datatype %ld is reported "
 		"to be 0.", value_datatype );
 
-		return NULL;
+		return;
 	}
 
 	num_items_in_value = num_bytes_in_value / datatype_sizeof_array[0];
@@ -3344,20 +3370,20 @@ mx_network_dump_value( char *value_buffer,
 
 	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
 				value_datatype, 1, &num_items_in_value,
-				datatype_sizeof_array, value_ptr );
+				datatype_sizeof_array, uint32_value_ptr );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return NULL;
+		return;
 
 	memset( display_buffer, 0, sizeof(display_buffer) );
 
-	mx_status = mx_create_array_description( value_ptr, 0,
+	mx_status = mx_create_array_description( uint32_value_ptr, 0,
 					display_buffer, sizeof(display_buffer),
 					NULL, &local_temp_record_field,
 					token_constructor );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return NULL;
+		return;
 
 #if 0
 	fprintf( stderr, "%s\n", display_buffer );
@@ -3384,7 +3410,7 @@ mx_network_dump_value( char *value_buffer,
 	case 1:		/* uint8_t */
 	    {
 		uint8_t net_uint8_value, host_uint8_value;
-		uint8_t *uint8_ptr = (uint8_t *) value_ptr;
+		uint8_t *uint8_ptr = (uint8_t *) uint32_value_ptr;
 
 		for ( i = 0; i < num_items_in_value; i++ ) {
 			net_uint8_value = *uint8_ptr;
@@ -3404,14 +3430,12 @@ mx_network_dump_value( char *value_buffer,
 
 			uint8_ptr++;
 		}
-
-		value_ptr = (char *) uint8_ptr;
 	    }
 	    break;
 	case 2:		/* uint16_t */
 	    {
 		uint16_t net_uint16_value, host_uint16_value;
-		uint16_t *uint16_ptr = (uint16_t *) value_ptr;
+		uint16_t *uint16_ptr = (uint16_t *) uint32_value_ptr;
 
 		for ( i = 0; i < num_items_in_value; i++ ) {
 			net_uint16_value = *uint16_ptr;
@@ -3431,14 +3455,12 @@ mx_network_dump_value( char *value_buffer,
 
 			uint16_ptr++;
 		}
-
-		value_ptr = (char *) uint16_ptr;
 	    }
 	    break;
 	case 4:		/* uint32_t */
 	    {
 		uint32_t net_uint32_value, host_uint32_value;
-		uint32_t *uint32_ptr = (uint32_t *) value_ptr;
+		uint32_t *uint32_ptr = (uint32_t *) uint32_value_ptr;
 
 		for ( i = 0; i < num_items_in_value; i++ ) {
 			net_uint32_value = *uint32_ptr;
@@ -3458,8 +3480,6 @@ mx_network_dump_value( char *value_buffer,
 
 			uint32_ptr++;
 		}
-
-		value_ptr = (char *) uint32_ptr;
 	    }
 	    break;
 	case 8:		/* uint64_t */
@@ -3467,7 +3487,23 @@ mx_network_dump_value( char *value_buffer,
 		uint64_t net_uint64_value, host_uint64_value;
 		uint64_t net_upper, net_lower;
 		uint64_t host_upper, host_lower;
-		uint64_t *uint64_ptr = (uint64_t *) value_ptr;
+		uint64_t *uint64_ptr;
+
+#if 1
+		/* FIXME: "Sanitizing" a 32 bit pointer to be passable to
+		 * a 64 bit pointer is not really a good thing, since you
+		 * might get alignment faults.  But this is only for
+		 * debugging code, so I will let it pass.  For now.
+		 */
+
+		void *void_ptr;
+
+		void_ptr = (void *) uint32_value_ptr;
+		uint64_ptr = void_ptr;
+#else
+		uint64_ptr = (uint64_t *) uint32_value_ptr;
+#endif
+		/*====*/
 
 		for ( i = 0; i < num_items_in_value; i++ ) {
 			net_uint64_value = *uint64_ptr;
@@ -3496,8 +3532,6 @@ mx_network_dump_value( char *value_buffer,
 
 			uint64_ptr++;
 		}
-
-		value_ptr = (char *) uint64_ptr;
 	    }
 	    break;
 #if 0
@@ -3524,8 +3558,6 @@ mx_network_dump_value( char *value_buffer,
 
 			uint128_ptr++;
 		}
-
-		value_ptr = (char *) uint128_ptr;
 	    }
 	    break;
 #endif
@@ -3538,7 +3570,7 @@ mx_network_dump_value( char *value_buffer,
 
 	mx_free( argv );
 
-	return value_ptr;
+	return;
 }
 
 /*------------------------------------------------------------------------*/

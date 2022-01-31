@@ -691,6 +691,9 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 			return mx_status;
 
 		socket_handler->message_buffer = message_buffer;
+	} else {
+		message_length = (uint32_t)
+			( 1 + strlen( error_message.message ) );
 	}
 
 	/* FIXME: Why in the world were we setting the message buffer

@@ -437,7 +437,7 @@ MX_API void mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					unsigned long network_data_format,
 					long max_network_dump_bytes );
 
-MX_API char *mx_network_dump_value( char *value_buffer,
+MX_API void mx_network_dump_value( uint32_t *value_buffer,
 					unsigned long network_data_format,
 					long value_datatype,
 					long num_bytes_in_value );
