@@ -554,6 +554,11 @@ typedef struct {
 	unsigned long socket_multiplexer_type;
 
 	unsigned long max_network_dump_bytes;
+
+	unsigned long thread_stack;
+	void *thread_stack_object;
+	long thread_stack_signal;
+
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

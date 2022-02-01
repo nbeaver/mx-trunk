@@ -55,6 +55,7 @@ extern "C" {
 #define MXLV_LHD_SHOW_SOCKET_HANDLERS		1027
 #define MXLV_LHD_SHOW_SOCKET_ID			1028
 #define MXLV_LHD_SHORT_ERROR_CODES		1029
+#define MXLV_LHD_THREAD_STACK			1030
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -265,7 +266,15 @@ extern "C" {
   {-1, -1, "max_network_dump_bytes", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, \
 			offsetof(MX_LIST_HEAD, max_network_dump_bytes), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_THREAD_STACK, -1, "thread_stack", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, thread_stack), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "thread_stack_signal", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, thread_stack_signal),\
+	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 

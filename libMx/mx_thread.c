@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011, 2013, 2015-2019
+ * Copyright 2005-2007, 2010-2011, 2013, 2015-2019, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #include "mx_util.h"
+#include "mx_record.h"
 #include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_atomic.h"
@@ -886,6 +887,21 @@ mx_thread_wait( MX_THREAD *thread,
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
+mx_thread_send_signal( MX_THREAD *thread, int signal_number )
+{
+	static const char fname[] = "mx_thread_send_signal()";
+
+	MX_DEBUG(-2,("%s invoked for thread %p, signal %d",
+		fname, thread, signal));
+
+#error mx_thread_send_signal
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
 mx_thread_is_alive( MX_THREAD *thread,
 		mx_bool_type *thread_is_alive )
 {
@@ -1014,6 +1030,66 @@ mx_get_current_thread( MX_THREAD **thread )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+/* The following code was derived from the web page
+ *    https://devblogs.microsoft.com/oldnewthing/20060223-14/?p=32173
+ */
+
+#include <tlhelp32.h>
+
+MX_EXPORT void
+mx_show_thread_list( void )
+{
+	static const char fname[] = "mx_show_thread_list";
+
+	THREADENTRY thread_entry;
+	HANDLE toolhelp_handle = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+	if ( toolhelp_handle == INVALID_HANDLE_VALUE ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_FAILURE, fname,
+		"The attempt to acquire the CreateToolhelp32_Snapshot "
+		"handle failed." );
+	}
+
+	thread_entry.dwSize = sizeof(thread_entry);
+
+	os_status = Thread32First( toolhelp_handle, &thread_entry );
+
+	if ( os_status != 0 ) {
+		CloseHandle( toolhelp_handle );
+		(void) mx_error( MXE_OPERATING_SYSTEM_FAILURE, fname,
+		"The attempt to call Thread32First() failed." )
+		"handle failed." );
+	}
+
+	while( TRUE ) {
+		if ( tool_entry >= FIELD_OFFSET( THREADENTRY32,
+				th32OwnerProcessId,
+				sizeof( thread_entry.th32OwnerProcessID ) ) )
+		{
+			fprintf( stderr, "Process 0x%04x  Thread 0x%04\n",
+				thread_entry.th32OwnerProcessID,
+				thread_entry.th32ThreadID );
+		}
+
+		thread_entry.dwSize = sizeof(thread_entry);
+
+		os_status = Thread32Next( toolhelp_handle, &thread_entry );
+
+		if ( os_status != 0 ) {
+			CloseHandle( toolhelp_handle );
+			(void) mx_error( MXE_OPERATING_SYSTEM_FAILURE, fname,
+			"The attempt to call Thread32First() failed." )
+			"handle failed." );
+		}
+
+		CloseHandle( toolhelp_handle );
+	}
+
+	return;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -2031,6 +2107,69 @@ mx_thread_set_stop_request_handler( MX_THREAD *thread,
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
+mx_thread_is_alive( MX_THREAD *thread,
+		mx_bool_type *thread_is_alive )
+{
+	static const char fname[] = "mx_thread_is_alive()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private;
+	int pthreads_status;
+	mx_bool_type pointer_is_valid = FALSE;
+	mx_status_type mx_status;
+
+	if ( thread_is_alive == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The mx_bool_type pointer passed was NULL." );
+	}
+
+	/* This function is often used by code that is directly visible
+	 * to the network.  We have to protect against the possibility
+	 * that an external client has sent an invalid address, since
+	 * that might cause a segmentation fault.  So we do pointer
+	 * checking that is more intensive than normal.
+	 */
+
+	pointer_is_valid = mx_pointer_is_valid(
+				thread, sizeof(MX_THREAD *), R_OK );
+
+	if ( pointer_is_valid == FALSE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The MX thread pointer %p does not point to a valid "
+		"thread object.", thread );
+	}
+
+	pointer_is_valid = mx_pointer_is_valid( thread->thread_private,
+						sizeof( void * ), R_OK );
+
+	if ( pointer_is_valid == FALSE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The MX private thread pointer %p does not point to a valid "
+		"private thread object.", thread->thread_private );
+	}
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+		return mx_status;
+
+	/* See if the thread still exists by sending signal 0 to it. */
+
+	pthreads_status = pthread_kill( thread_private->thread_id, 0 );
+
+	switch( pthreads_status ) {
+	case 0:
+		*thread_is_alive = TRUE;
+		break;
+	case EINVAL:
+	default:
+		*thread_is_alive = FALSE;
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
 mx_thread_wait( MX_THREAD *thread,
 		long *thread_exit_status,
 		double max_seconds_to_wait )
@@ -2086,6 +2225,41 @@ mx_thread_wait( MX_THREAD *thread,
 		 */
 
 		*thread_exit_status = (long) value_ptr;		/* ICK! */
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_send_signal( MX_THREAD *thread, int signal_number )
+{
+	static const char fname[] = "mx_thread_send_signal()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private;
+	int pthreads_status;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for thread %p, signal %d",
+		fname, thread, signal_number));
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pthreads_status = pthread_kill( thread_private->thread_id,
+					signal_number );
+
+	switch( pthreads_status ) {
+	case 0:
+		break;
+	default:
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to send signal %d to thread %p failed.",
+			signal_number, thread );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2173,6 +2347,21 @@ mx_get_current_thread( MX_THREAD **thread )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+#if defined(OS_LINUX)
+
+MX_EXPORT void
+mx_show_thread_list( void )
+{
+	static const char fname[] = "mx_show_thread_list";
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+}
+
+#else
+#endif
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
 MX_EXPORT void
 mx_show_thread_info( MX_THREAD *thread, char *message )
 {
@@ -2196,6 +2385,44 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 	mx_info( "  thread_private pointer = %p", thread_private );
 	mx_info( "  Posix thread id        = %lx",
 				(unsigned long) thread_private->thread_id );
+
+	return;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT void
+mx_show_thread_stack( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_show_thread_stack()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	MX_RECORD *mx_database = NULL;
+	MX_LIST_HEAD *list_head = NULL;
+	int pthread_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_database = mx_get_database();
+
+	if ( mx_database == (MX_RECORD *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"mx_get_database() returned a NULL pointer." );
+	}
+
+	list_head = mx_get_record_list_head_struct( mx_database );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer is NULL." );
+	}
+
+	pthread_status = pthread_kill( thread_private->thread_id,
+					list_head->thread_stack_signal );
 
 	return;
 }

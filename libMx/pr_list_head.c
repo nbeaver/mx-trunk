@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2019, 2021
+ * Copyright 2003-2004, 2006-2009, 2011-2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -73,6 +73,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SHOW_SOCKET_ID:
 		case MXLV_LHD_STATUS:
 		case MXLV_LHD_SUMMARY:
+		case MXLV_LHD_THREAD_STACK:
 		case MXLV_LHD_UPDATE_ALL:
 		case MXLV_LHD_VM_REGION:
 			record_field->process_function
@@ -97,6 +98,7 @@ mx_list_head_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_SOCKET_HANDLER *socket_handler;
 	MX_LIST_HEAD *list_head;
+	mx_bool_type thread_is_alive;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -176,6 +178,10 @@ mx_list_head_process_function( void *record_ptr,
 			if (strcmp("clock", list_head->status) == 0) {
 				mx_info( "clock ticks per second = %g",
 					mx_clock_ticks_per_second() );
+			} else
+			if (strcmp("threads", list_head->status) == 0) {
+				mx_info( "MX thread list:" );
+				mx_show_thread_list();
 			} else {
 				return mx_error( MXE_ILLEGAL_ARGUMENT,
 						fname,
@@ -292,6 +298,24 @@ mx_list_head_process_function( void *record_ptr,
 			break;
 		case MXLV_LHD_CALLBACKS_ENABLED:
 			/* Nothing to do here. */
+			break;
+		case MXLV_LHD_THREAD_STACK:
+			list_head->thread_stack_object
+				= (MX_THREAD *) list_head->thread_stack;
+
+			mx_status = mx_thread_is_alive(
+			    list_head->thread_stack_object, &thread_is_alive );
+
+			if ( thread_is_alive == FALSE ) {
+				return mx_error( MXE_NOT_FOUND, fname,
+				"The MX thread %p was not found.",
+					list_head->thread_stack_object );
+			}
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_show_thread_stack( list_head->thread_stack_object );
 			break;
 		default:
 			MX_DEBUG( 1,(
