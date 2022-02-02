@@ -303,7 +303,20 @@ $(info _have_librt is [${_have_librt}])
 
 #--------------------------------------------------------------------------
 #
+# libbacktrace is typically installed in a directory that is part of GCC.
+#
 _have_libbacktrace := $(shell find $(_gcc_dir) -name libbacktrace.a -print | wc -l)
+
+#
+# If GCC does not bundle libbacktrace, see if it was installed in /usr/local
+#
+ifeq ($(_have_libbacktrace),0)
+    _have_libbacktrace := $(shell find /usr/local -name libbacktrace.a -print | wc -l)
+endif
+
+#
+# For display purposes, it is better to have 'true' or 'false'.
+#
 
 ifeq ($(_have_libbacktrace),0)
     _have_libbacktrace := false
