@@ -35,6 +35,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <math.h>
+#include <errno.h>
 
 #include "mx_osdef.h"
 #include "mx_util.h"
@@ -3275,8 +3276,10 @@ mx_network_dump_value( uint32_t *uint32_value_ptr,
 	char *char_value_ptr = NULL;
 	long i, num_items_in_value, element_size_in_bytes;
 	size_t datatype_sizeof_array[ MXU_FIELD_MAX_DIMENSIONS ];
+	int saved_errno, split_status;
 	int argc = 0;
 	char **argv = NULL;
+	char error_buffer[80];
 	mx_status_type mx_status;
 
 	mx_status_type ( *token_constructor )
@@ -3389,7 +3392,33 @@ mx_network_dump_value( uint32_t *uint32_value_ptr,
 	fprintf( stderr, "display_buffer = '%s'\n", display_buffer );
 #endif
 
-	mx_string_split( display_buffer + 1, " ", &argc, &argv );
+	if ( value_datatype == MXFT_STRING ) {
+		argc = 1;
+
+		argv = (char **) malloc( sizeof(char *) );
+
+		if ( argv == (char **) NULL ) {
+			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+				"malloc() failed for MXFT_STRING value." );
+			return;
+		}
+
+		*argv = display_buffer + 1;
+	} else {
+		split_status = mx_string_split( display_buffer + 1,
+						" ", &argc, &argv );
+
+		if ( split_status != 0 ) {
+			saved_errno = errno;
+
+			(void) mx_error( MXE_FUNCTION_FAILED, fname,
+			"mx_string_split() failed with "
+			"errno = %d, error_message = '%s'",
+				saved_errno, mx_strerror( saved_errno,
+					error_buffer, sizeof(error_buffer)) );
+			return;
+		}
+	}
 
 	if ( datatype_sizeof_array[0] <= 1 ) {
 		element_size_in_bytes = 1;	/* uint8_t */
@@ -3575,6 +3604,8 @@ mx_network_dump_value( uint32_t *uint32_value_ptr,
 			element_size_in_bytes );
 	    break;
 	}
+
+	MX_DEBUG(-2,("%s: argv = %p", fname, argv));
 
 	mx_free( argv );
 
