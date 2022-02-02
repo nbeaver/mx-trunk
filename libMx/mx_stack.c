@@ -38,19 +38,17 @@
 
 static struct backtrace_state *mx_stack_backtrace_status = NULL;
 
+static long mx_stack_backtrace_level = -1L;
+
 static int
 mx_stack_backtrace_full_callback( void *data, uintptr_t pc,
 				const char *filename, int lineno,
 				const char *function )
 {
-#if 0
-	if ( function == NULL ) {
-		return 1;
-	}
-#endif
+	fprintf( stderr, "%ld: %s(), %s, line %d [%p]\n",
+	    mx_stack_backtrace_level, function, filename, lineno, (void *) pc );
 
-	fprintf( stderr, "%s(), %s;, line %d [5p]\n",
-		function, filename, lineno, (void *) pc );
+	mx_stack_backtrace_level++;
 
 	return 0;
 }
@@ -68,6 +66,8 @@ MX_EXPORT void
 mx_stack_traceback( void )
 {
 	void *data = NULL;
+
+	mx_stack_backtrace_level = 0L;
 
 	backtrace_full( mx_stack_backtrace_status, 0,
 			mx_stack_backtrace_full_callback,
