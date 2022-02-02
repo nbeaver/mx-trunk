@@ -49,8 +49,8 @@ mx_stack_backtrace_full_callback( void *data, uintptr_t pc,
 	}
 #endif
 
-	fprintf( stderr, "%p: %s(), %s;, line %d\n",
-		(void *) pc, function, filename, lineno );
+	fprintf( stderr, "%s(), %s;, line %d [5p]\n",
+		function, filename, lineno, (void *) pc );
 
 	return 0;
 }
