@@ -3386,7 +3386,7 @@ mx_network_dump_value( uint32_t *uint32_value_ptr,
 		return;
 
 #if 0
-	fprintf( stderr, "%s\n", display_buffer );
+	fprintf( stderr, "display_buffer = '%s'\n", display_buffer );
 #endif
 
 	mx_string_split( display_buffer + 1, " ", &argc, &argv );
@@ -3404,6 +3404,14 @@ mx_network_dump_value( uint32_t *uint32_value_ptr,
 		element_size_in_bytes = 8;	/* uint64_t */
 	} else {
 		element_size_in_bytes = 16;	/* uint128_t (maybe) */
+	}
+
+	if ( num_items_in_value > argc ) {
+		fprintf( stderr,
+		"WARNING: argc = %d < num_items_in_value = %ld\n",
+			argc, num_items_in_value );
+
+		num_items_in_value = argc;
 	}
 
 	switch( element_size_in_bytes ) {
