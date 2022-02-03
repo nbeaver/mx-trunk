@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014-2016 Illinois Institute of Technology
+ * Copyright 2014-2016, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -205,6 +205,38 @@ SendAndReceive( int SocketID,
 
 	timeout = timeout_table[ SocketID ];
 
+	/* Wait for the Newport to send us a response. */
+
+	mx_status = mx_socket_wait_for_event( client_socket, timeout );
+
+	/* Normally mx_socket_wait_for_event() hides MXE_TIMED_OUT errors.
+	 * But in this case, we actually want to see the timeout errors.
+	 */
+
+	mx_status.code &= (~MXE_QUIET);
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_TIMED_OUT:
+		(void) mx_error( mx_status.code,
+				mx_status.location,
+				mx_status.message );
+		return;
+		break;
+	default:
+		return;
+		break;
+	}
+
+	/*
+	 * Loop waiting until mx_socket_receive() returns a valid value
+	 * or aborts.  Nominally, the fact that we only get here if the
+	 * function mx_socket_wait_for_event() succeeds, means that
+	 * mx_socket_receive() should succeed, unless the Newport started
+	 * sending a message and stopped partway through.
+	 */
+
 	if ( timeout < 1.0e-6 ) {
 		check_for_timeouts = FALSE;
 	} else {
@@ -217,8 +249,6 @@ SendAndReceive( int SocketID,
 		finish_tick = mx_add_clock_ticks( current_tick,
 						timeout_in_ticks );
 	}
-
-	/*---*/
 
 	exit_loop = FALSE;
 
