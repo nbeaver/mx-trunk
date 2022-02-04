@@ -397,6 +397,18 @@ MX_API mx_status_type mx_socket_discard_unread_input( MX_SOCKET *mx_socket );
 MX_API mx_status_type mx_socket_wait_for_event( MX_SOCKET *mx_socket,
 						double timeout_in_seconds );
 
+MX_API mx_status_type mx_socket_set_send_timeout( MX_SOCKET *mx_socket,
+					double send_timeout_in_seconds );
+
+MX_API mx_status_type mx_socket_set_receive_timeout( MX_SOCKET *mx_socket,
+					double receive_timeout_in_seconds );
+
+MX_API mx_status_type mx_socket_get_send_timeout( MX_SOCKET *mx_socket,
+					double *send_timeout_in_seconds );
+
+MX_API mx_status_type mx_socket_get_receive_timeout( MX_SOCKET *mx_socket,
+					double *receive_timeout_in_seconds );
+
 #ifdef __cplusplus
 }
 #endif

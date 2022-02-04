@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013-2019, 2021 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013-2019, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -225,6 +226,154 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 			return MX_SUCCESSFUL_RESULT;
 		}
 	}
+}
+
+/********************************************************************/
+
+MX_EXPORT mx_status_type
+mx_socket_set_send_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
+{
+	static const char fname[] = "mx_socket_set_send_timeout()";
+
+	struct timeval timeout;
+	int os_status, saved_errno;
+	char error_message[100];
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	timeout.tv_sec = timeout_in_seconds;
+
+	timeout.tv_usec = 1000000.0 * ( timeout_in_seconds - timeout.tv_sec );
+
+	os_status = setsockopt( mx_socket->socket_fd, SOL_SOCKET,
+				SO_SNDTIMEO, &timeout, sizeof(timeout) );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set SO_SNDTIMEO for socket %d failed.  "
+		"errno = %d, error message = '%s'",
+			mx_socket->socket_fd,
+			saved_errno, mx_strerror( saved_errno,
+			error_message, sizeof(error_message)));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_socket_set_receive_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
+{
+	static const char fname[] = "mx_socket_set_receive_timeout()";
+
+	struct timeval timeout;
+	int os_status, saved_errno;
+	char error_message[100];
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	timeout.tv_sec = timeout_in_seconds;
+
+	timeout.tv_usec = 1000000.0 * ( timeout_in_seconds - timeout.tv_sec );
+
+	os_status = setsockopt( mx_socket->socket_fd, SOL_SOCKET,
+				SO_RCVTIMEO, &timeout, sizeof(timeout) );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set SO_SNDTIMEO for socket %d failed.  "
+		"errno = %d, error message = '%s'",
+			mx_socket->socket_fd,
+			saved_errno, mx_strerror( saved_errno,
+			error_message, sizeof(error_message)));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_socket_get_send_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds )
+{
+	static const char fname[] = "mx_socket_set_send_timeout()";
+
+	struct timeval timeout;
+	socklen_t timeval_size = sizeof( struct timeval );
+	int os_status, saved_errno;
+	char error_message[100];
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( timeout_in_seconds == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The timeout_in_seconds pointer is NULL." );
+	}
+
+	os_status = getsockopt( mx_socket->socket_fd, SOL_SOCKET,
+				SO_SNDTIMEO, &timeout, &timeval_size );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to get SO_SNDTIMEO for socket %d failed.  "
+		"errno = %d, error message = '%s'",
+			mx_socket->socket_fd,
+			saved_errno, mx_strerror( saved_errno,
+			error_message, sizeof(error_message)));
+	}
+
+	*timeout_in_seconds = timeout.tv_sec + 1000000.0 * timeout.tv_usec;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_socket_get_receive_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds)
+{
+	static const char fname[] = "mx_socket_set_send_timeout()";
+
+	struct timeval timeout;
+	socklen_t timeval_size = sizeof( struct timeval );
+	int os_status, saved_errno;
+	char error_message[100];
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( timeout_in_seconds == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The timeout_in_seconds pointer is NULL." );
+	}
+
+	os_status = getsockopt( mx_socket->socket_fd, SOL_SOCKET,
+				SO_RCVTIMEO, &timeout, &timeval_size );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to get SO_RCVTIMEO for socket %d failed.  "
+		"errno = %d, error message = '%s'",
+			mx_socket->socket_fd,
+			saved_errno, mx_strerror( saved_errno,
+			error_message, sizeof(error_message)));
+	}
+
+	*timeout_in_seconds = timeout.tv_sec + 1000000.0 * timeout.tv_usec;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /********************************************************************/
