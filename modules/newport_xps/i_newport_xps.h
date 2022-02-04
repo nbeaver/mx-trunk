@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015, 2017 Illinois Institute of Technology
+ * Copyright 2014-2015, 2017, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,6 +37,9 @@ typedef struct {
 	char password[MXU_NEWPORT_XPS_AUTH_LENGTH+1];
 	unsigned long newport_xps_flags;
 
+	double socket_send_timeout;
+	double socket_receive_timeout;
+
 	long socket_id;
 
 	long controller_status;
@@ -54,13 +57,15 @@ typedef struct {
 	MX_RECORD **motor_record_array;
 } MX_NEWPORT_XPS;
 
-#define MXLV_NEWPORT_XPS_SOCKET_ID			87001
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87002
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87003
-#define MXLV_NEWPORT_XPS_ELAPSED_TIME			87004
-#define MXLV_NEWPORT_XPS_FIRMWARE_VERSION		87005
-#define MXLV_NEWPORT_XPS_HARDWARE_TIME			87006
-#define MXLV_NEWPORT_XPS_LIBRARY_VERSION		87007
+#define MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT		87001
+#define MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT		87002
+#define MXLV_NEWPORT_XPS_SOCKET_ID			87003
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87004
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87005
+#define MXLV_NEWPORT_XPS_ELAPSED_TIME			87006
+#define MXLV_NEWPORT_XPS_FIRMWARE_VERSION		87007
+#define MXLV_NEWPORT_XPS_HARDWARE_TIME			87008
+#define MXLV_NEWPORT_XPS_LIBRARY_VERSION		87009
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -87,6 +92,16 @@ typedef struct {
   {-1, -1, "newport_xps_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, newport_xps_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT, -1, "socket_send_timeout", \
+						MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_send_timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT, -1, "socket_receive_timeout", \
+						MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_receive_timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {MXLV_NEWPORT_XPS_SOCKET_ID, -1, "socket_id", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_id), \

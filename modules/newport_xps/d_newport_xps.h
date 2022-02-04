@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2015, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,6 +42,9 @@ typedef struct {
 
 	MX_RECORD *newport_xps_record;
 	char positioner_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
+
+	double socket_send_timeout;
+	double socket_receive_timeout;
 
 	char group_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
 
@@ -122,14 +125,16 @@ extern MX_MOTOR_FUNCTION_LIST mxd_newport_xps_motor_function_list;
 extern long mxd_newport_xps_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 
-#define MXLV_NEWPORT_XPS_GROUP_STATUS		88001
-#define MXLV_NEWPORT_XPS_GROUP_STATUS_STRING	88002
-#define MXLV_NEWPORT_XPS_POSITIONER_ERROR	88003
-#define MXLV_NEWPORT_XPS_HARDWARE_STATUS	88004
-#define MXLV_NEWPORT_XPS_DRIVER_STATUS		88005
-#define MXLV_NEWPORT_XPS_MOVE_THREAD_SOCKET_ID	88006
-#define MXLV_NEWPORT_XPS_PCO_CONFIG_NAME	88007
-#define MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE	88008
+#define MXLV_NEWPORT_XPS_MOTOR_SOCKET_SEND_TIMEOUT	88001
+#define MXLV_NEWPORT_XPS_MOTOR_SOCKET_RECEIVE_TIMEOUT	88002
+#define MXLV_NEWPORT_XPS_GROUP_STATUS			88003
+#define MXLV_NEWPORT_XPS_GROUP_STATUS_STRING		88004
+#define MXLV_NEWPORT_XPS_POSITIONER_ERROR		88005
+#define MXLV_NEWPORT_XPS_HARDWARE_STATUS		88006
+#define MXLV_NEWPORT_XPS_DRIVER_STATUS			88007
+#define MXLV_NEWPORT_XPS_MOVE_THREAD_SOCKET_ID		88008
+#define MXLV_NEWPORT_XPS_PCO_CONFIG_NAME		88009
+#define MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE		88010
 
 #define MXD_NEWPORT_XPS_MOTOR_STANDARD_FIELDS \
   {-1, -1, "newport_xps_record", MXFT_RECORD, NULL, 0, {0},\
@@ -141,6 +146,18 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 				1, {MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, positioner_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
+  {MXLV_NEWPORT_XPS_MOTOR_SOCKET_SEND_TIMEOUT, -1, "socket_send_timeout", \
+					MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_NEWPORT_XPS_MOTOR, socket_send_timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {MXLV_NEWPORT_XPS_MOTOR_SOCKET_RECEIVE_TIMEOUT, -1, "socket_receive_timeout",\
+					MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_NEWPORT_XPS_MOTOR, socket_receive_timeout),\
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "group_name", MXFT_STRING, NULL, \
 				1, {MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH}, \

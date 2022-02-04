@@ -333,7 +333,7 @@ mx_socket_get_send_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds )
 			error_message, sizeof(error_message)));
 	}
 
-	*timeout_in_seconds = timeout.tv_sec + 1000000.0 * timeout.tv_usec;
+	*timeout_in_seconds = timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -371,7 +371,7 @@ mx_socket_get_receive_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds)
 			error_message, sizeof(error_message)));
 	}
 
-	*timeout_in_seconds = timeout.tv_sec + 1000000.0 * timeout.tv_usec;
+	*timeout_in_seconds = timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
 
 	return MX_SUCCESSFUL_RESULT;
 }
