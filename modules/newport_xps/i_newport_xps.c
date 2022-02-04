@@ -528,33 +528,47 @@ MX_EXPORT mx_status_type
 mxi_newport_xps_error( char *api_name,
 			char *error_location,
 			int socket_id,
-			int error_code )
+			int xps_error_code )
 {
 	static const char fname[] = "mxi_newport_xps_error()";
 
 	int status_of_error_string_get;
-	char error_message[300];
+	char xps_error_message[300];
 	mx_status_type mx_status;
 
-	if ( error_code == SUCCESS ) {
+	if ( xps_error_code == SUCCESS ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
 	status_of_error_string_get = ErrorStringGet( socket_id,
-						error_code, error_message );
+					xps_error_code, xps_error_message );
 
 	if ( status_of_error_string_get != SUCCESS ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"The attempt to get the error string for XPS error code %d "
 		"failed for socket ID %d",
-			error_code, socket_id );
+			xps_error_code, socket_id );
 	}
 
-	mx_status = mx_error( MXE_DEVICE_ACTION_FAILED, api_name,
+	switch( xps_error_code ) {
+	case SUCCESS:
+		mx_status = MX_SUCCESSFUL_RESULT;
+		break;
+	case ERR_TCP_TIMEOUT:
+		mx_status = mx_error( MXE_TIMED_OUT, fname,
 			"Function '%s' failed for '%s' (socket ID %d).  "
 			"XPS error code = %d, error message = '%s'",
 			api_name, error_location, socket_id,
-			error_code, error_message );
+			xps_error_code, xps_error_message );
+		break;
+	default:
+		mx_status = mx_error( MXE_DEVICE_ACTION_FAILED, api_name,
+			"Function '%s' failed for '%s' (socket ID %d).  "
+			"XPS error code = %d, error message = '%s'",
+			api_name, error_location, socket_id,
+			xps_error_code, xps_error_message );
+		break;
+	}
 
 	return mx_status;
 }
