@@ -174,9 +174,10 @@ SetTCPTimeout( int SocketID,
 
 /* WARNING: The Newport provided C++ library prototypes SendAndReceive() as
  * not having any return status code and doesn't throw any C++ exceptions
- * either.  The best solution I can come up with is to copy MX's MXE_...
- * error code and message into the sReturnString argument and have the
- * upper level MX code check for responses that begin with MXE_.
+ * either.  The only way to report errors back to higher level MX routines
+ * is to copy an XPS style error number to sReturnString.  Hopefully, the
+ * XPS error code ERR_TCP_TIMEOUT is intended to mean the same thing as the
+ * MX error code MXE_TIMED_OUT.
  */
 
 void
