@@ -20,6 +20,7 @@
 #include <errno.h>
 
 #include "Socket.h"
+#include "XPS_C8_errors.h"
 
 #include "mx_util.h"
 #include "mx_handle.h"
@@ -61,6 +62,26 @@ void
 mxp_newport_xps_set_comm_debug_flag( int debug_flag )
 {
 	mxp_newport_xps_comm_debug_flag = debug_flag;
+}
+
+/*---*/
+
+static void
+mxp_newport_xps_error_string( char sReturnString[], int iReturnStringSize,
+				long xps_error_code, const char *format, ... )
+{
+	va_list args;
+	size_t prefix_length;
+
+	snprintf( sReturnString, iReturnStringSize, "%ld,", xps_error_code );
+
+	prefix_length = strlen( sReturnString );
+
+	va_start( args, format );
+	vsnprintf( sReturnString + prefix_length,
+			iReturnStringSize - prefix_length,
+			format, args );
+	return;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -151,14 +172,19 @@ SetTCPTimeout( int SocketID,
 	return;
 }
 
+/* WARNING: The Newport provided C++ library prototypes SendAndReceive() as
+ * not having any return status code and doesn't throw any C++ exceptions
+ * either.  The best solution I can come up with is to copy MX's MXE_...
+ * error code and message into the sReturnString argument and have the
+ * upper level MX code check for responses that begin with MXE_.
+ */
+
 void
 SendAndReceive( int SocketID,
 		char sSendString[],
 		char sReturnString[],
 		int iReturnStringSize )
 {
-	static const char fname[] = "SendAndReceive()";
-
 	char receive_buffer[SMALL_BUFFER_SIZE];
 	MX_SOCKET *client_socket;
 	void *client_socket_ptr;
@@ -175,8 +201,11 @@ SendAndReceive( int SocketID,
 						handle_table,
 						SocketID );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mxp_newport_xps_error_string( sReturnString, iReturnStringSize,
+					ERR_INTERNAL_ERROR, mx_status.message );
 		return;
+	}
 
 	client_socket = (MX_SOCKET *) client_socket_ptr;
 
@@ -184,8 +213,11 @@ SendAndReceive( int SocketID,
 
 	mx_status = mx_socket_discard_unread_input( client_socket );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mxp_newport_xps_error_string( sReturnString, iReturnStringSize,
+					ERR_BUSY_SOCKET, mx_status.message );
 		return;
+	}
 
 	/*---*/
 
@@ -198,8 +230,11 @@ SendAndReceive( int SocketID,
 				sSendString,
 				strlen( sSendString ) );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mxp_newport_xps_error_string( sReturnString, iReturnStringSize,
+					ERR_BUSY_SOCKET, mx_status.message );
 		return;
+	}
 
 	/*---*/
 
@@ -222,9 +257,14 @@ SendAndReceive( int SocketID,
 		(void) mx_error( mx_status.code,
 				mx_status.location,
 				mx_status.message );
+
+		mxp_newport_xps_error_string( sReturnString, iReturnStringSize,
+					ERR_TCP_TIMEOUT, mx_status.message );
 		return;
 		break;
 	default:
+		mxp_newport_xps_error_string( sReturnString, iReturnStringSize,
+					ERR_INTERNAL_ERROR, mx_status.message );
 		return;
 		break;
 	}
@@ -271,10 +311,18 @@ SendAndReceive( int SocketID,
 				"timed out for XPS socket %d.",
 					SocketID ));
 			}
+
+			mxp_newport_xps_error_string(
+					sReturnString, iReturnStringSize,
+					ERR_TCP_TIMEOUT, mx_status.message );
+
 			exit_loop = TRUE;
 			break;
-
 		default:
+			mxp_newport_xps_error_string(
+					sReturnString, iReturnStringSize,
+					ERR_INTERNAL_ERROR, mx_status.message );
+
 			exit_loop = TRUE;
 			break;
 		}
@@ -295,10 +343,9 @@ SendAndReceive( int SocketID,
 			if ( comparison >= 0 ) {
 				exit_loop = TRUE;
 
-				(void) mx_error( MXE_TIMED_OUT, fname,
-				"Timed out after waiting %f seconds for "
-				"a response from socket %d",
-					timeout, client_socket->socket_fd );
+				mxp_newport_xps_error_string(
+					sReturnString, iReturnStringSize,
+					ERR_TCP_TIMEOUT, mx_status.message );
 			}
 		}
 
