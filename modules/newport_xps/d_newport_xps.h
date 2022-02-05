@@ -253,7 +253,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 		"user_travel_limits_guard_band", MXFT_DOUBLE, NULL, 1, {2}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, user_travel_limits_guard_band), \
-	{sizeof(double)}, NULL, 0 }, \
+	{sizeof(double)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS_GUARD_BAND, -1, \
 		"raw_user_travel_limits_guard_band", MXFT_DOUBLE, NULL, 1, {2},\
