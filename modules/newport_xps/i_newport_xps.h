@@ -37,14 +37,18 @@ typedef struct {
 	char password[MXU_NEWPORT_XPS_AUTH_LENGTH+1];
 	unsigned long newport_xps_flags;
 
+	/* delay before sending next command */
+	double command_delay;
+
 	double socket_send_timeout;
 	double socket_receive_timeout;
+
+	long fault;
 
 	long socket_id;
 
 	long controller_status;
-	char
-	  controller_status_string[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
+	char controller_status_string[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 
 	double elapsed_time;
 	char firmware_version[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
@@ -57,15 +61,16 @@ typedef struct {
 	MX_RECORD **motor_record_array;
 } MX_NEWPORT_XPS;
 
-#define MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT		87001
-#define MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT		87002
-#define MXLV_NEWPORT_XPS_SOCKET_ID			87003
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87004
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87005
-#define MXLV_NEWPORT_XPS_ELAPSED_TIME			87006
-#define MXLV_NEWPORT_XPS_FIRMWARE_VERSION		87007
-#define MXLV_NEWPORT_XPS_HARDWARE_TIME			87008
-#define MXLV_NEWPORT_XPS_LIBRARY_VERSION		87009
+#define MXLV_NEWPORT_XPS_COMMAND_DELAY			87001
+#define MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT		87002
+#define MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT		87003
+#define MXLV_NEWPORT_XPS_SOCKET_ID			87004
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87005
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87006
+#define MXLV_NEWPORT_XPS_ELAPSED_TIME			87007
+#define MXLV_NEWPORT_XPS_FIRMWARE_VERSION		87008
+#define MXLV_NEWPORT_XPS_HARDWARE_TIME			87009
+#define MXLV_NEWPORT_XPS_LIBRARY_VERSION		87010
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -93,6 +98,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, newport_xps_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
+  {MXLV_NEWPORT_XPS_COMMAND_DELAY, -1, "command_delay", \
+					MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, command_delay), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
   {MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT, -1, "socket_send_timeout", \
 						MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_send_timeout), \
@@ -102,6 +112,10 @@ typedef struct {
 						MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_receive_timeout), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "fault", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, fault), \
+	{0}, NULL, 0}, \
   \
   {MXLV_NEWPORT_XPS_SOCKET_ID, -1, "socket_id", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_id), \
@@ -156,10 +170,13 @@ MX_API mx_status_type mxi_newport_xps_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxi_newport_xps_special_processing_setup(
 							MX_RECORD *record );
 
+struct mx_newport_xps_motor_type;
+
 MX_API mx_status_type mxi_newport_xps_error( char *api_name,
-						char *error_location,
-						int socket_id,
-						int error_code );
+			struct mx_newport_xps_motor_type *newport_xps_motor,
+			MX_NEWPORT_XPS *newport_xps,
+			int socket_fd,
+			int error_code );
 
 extern MX_RECORD_FUNCTION_LIST mxi_newport_xps_record_function_list;
 

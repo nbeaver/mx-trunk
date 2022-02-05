@@ -41,7 +41,7 @@
 
 /*---*/
 
-typedef struct {
+typedef struct mx_newport_xps_motor_type {
 	MX_RECORD *record;
 
 	MX_RECORD *newport_xps_record;
@@ -110,6 +110,8 @@ typedef struct {
 
 	double raw_user_travel_limits[2];
 	double raw_user_travel_limits_guard_band[2];
+
+	long fault;
 } MX_NEWPORT_XPS_MOTOR;
 
 MX_API mx_status_type mxd_newport_xps_create_record_structures(
@@ -171,13 +173,13 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 					MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_NEWPORT_XPS_MOTOR, socket_send_timeout), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, 0 }, \
   \
   {MXLV_NEWPORT_XPS_MOTOR_SOCKET_RECEIVE_TIMEOUT, -1, "socket_receive_timeout",\
 					MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_NEWPORT_XPS_MOTOR, socket_receive_timeout),\
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, 0 }, \
   \
   {-1, -1, "group_name", MXFT_STRING, NULL, \
 				1, {MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH}, \
@@ -259,6 +261,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 		"raw_user_travel_limits_guard_band", MXFT_DOUBLE, NULL, 1, {2},\
 	MXF_REC_TYPE_STRUCT, \
 	    offsetof(MX_NEWPORT_XPS_MOTOR, raw_user_travel_limits_guard_band), \
-	{sizeof(double)}, NULL, MXFF_IN_DESCRIPTION }
+	{sizeof(double)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "fault", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, fault), \
+	{0}, NULL, 0 }
 
 #endif /* __D_NEWPORT_XPS_H__ */

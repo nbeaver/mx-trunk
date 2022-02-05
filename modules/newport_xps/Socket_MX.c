@@ -66,6 +66,24 @@ mxp_newport_xps_set_comm_debug_flag( int debug_flag )
 
 /*---*/
 
+/* mxp_newport_xps_comm_delay specifies a time delay in seconds before
+ * each new command sent.
+ */
+
+static double mxp_newport_xps_comm_delay = 0.0;
+
+double mxp_newport_xps_get_comm_delay( void )
+{
+	return mxp_newport_xps_comm_delay;
+}
+
+void mxp_newport_xps_set_comm_delay( double delay_in_seconds )
+{
+	mxp_newport_xps_comm_delay = delay_in_seconds;
+}
+
+/*---*/
+
 static void
 mxp_newport_xps_error_string( char sReturnString[], int iReturnStringSize,
 				long xps_error_code, const char *format, ... )
@@ -191,12 +209,19 @@ SendAndReceive( int SocketID,
 	void *client_socket_ptr;
 	size_t num_bytes_received;
 	mx_bool_type exit_loop;
-	double timeout;
+	double timeout;				/* in seconds */
+	unsigned long command_delay_ms;		/* in milliseconds */
 	MX_CLOCK_TICK timeout_in_ticks;
 	MX_CLOCK_TICK current_tick, finish_tick;
 	int comparison;
 	mx_bool_type check_for_timeouts;
 	mx_status_type mx_status;
+
+	command_delay_ms = mx_round(1000.0 * mxp_newport_xps_get_comm_delay() );
+
+	mx_msleep( command_delay_ms );
+
+	/*---*/
 
 	mx_status = mx_get_pointer_from_handle( &client_socket_ptr,
 						handle_table,

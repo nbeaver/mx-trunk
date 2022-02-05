@@ -21,7 +21,7 @@
   int  ConnectToServer (char *Ip_Address, int Ip_Port, double TimeOut);
 ***************
 *** 12,14 ****
---- 12,24 ----
+--- 12,26 ----
   void CloseSocket (int SocketID);
   char * GetError (int SocketID);
   void strncpyWithEOS(char * szStringOut, const char * szStringIn, int nNumberOfCharToCopy, int nStringOutSize);
@@ -30,6 +30,8 @@
 + 
 + int  mxp_newport_xps_get_comm_debug_flag(void);
 + void mxp_newport_xps_set_comm_debug_flag(int debug_flag);
++ double mxp_newport_xps_get_comm_delay(void);
++ void mxp_newport_xps_set_comm_delay(double delay);
 + 
 + #ifdef __cplusplus
 + }
