@@ -88,17 +88,35 @@ static void
 mxp_newport_xps_error_string( char sReturnString[], int iReturnStringSize,
 				long xps_error_code, const char *format, ... )
 {
-	va_list args;
-	size_t prefix_length;
+	static const char fname[] = "mxp_newport_xps_error_string()";
 
-	snprintf( sReturnString, iReturnStringSize, "%ld,", xps_error_code );
+	va_list args;
+	size_t i, prefix_length, body_length;
+	char *ptr = NULL;
+
+	snprintf( sReturnString, iReturnStringSize,
+		"%ld,Error %ld : ", xps_error_code, xps_error_code );
 
 	prefix_length = strlen( sReturnString );
 
+	ptr = sReturnString + prefix_length;
+
 	va_start( args, format );
-	vsnprintf( sReturnString + prefix_length,
-			iReturnStringSize - prefix_length,
-			format, args );
+	vsnprintf( ptr, iReturnStringSize - prefix_length, format, args );
+	va_end( args );
+
+	body_length = strlen( ptr );
+
+	for ( i = 0; i < body_length; i++ ) {
+		if ( ptr[i] == ',' ) {
+			ptr[i] = ' ';
+		}
+	}
+
+	strlcat( sReturnString, ",EndOfAPI", iReturnStringSize );
+
+	MX_DEBUG(-2,("%s: sReturnString = '%s'", fname, sReturnString ));
+
 	return;
 }
 
