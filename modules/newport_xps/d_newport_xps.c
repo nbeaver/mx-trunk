@@ -1497,7 +1497,9 @@ mxd_newport_xps_special_processing_setup( MX_RECORD *record )
 		case MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE:
 		case MXLV_NEWPORT_XPS_POSITIONER_ERROR:
 		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS:
+		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS_GUARD_BAND:
 		case MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS:
+		case MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS_GUARD_BAND:
 			record_field->process_function
 					= mxd_newport_xps_process_function;
 			break;
@@ -1711,6 +1713,30 @@ mxd_newport_xps_process_function( void *record_ptr,
 			    motor->offset + motor->scale *
 				newport_xps_motor->raw_user_travel_limits[1];
 			break;
+		case MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS_GUARD_BAND:
+			newport_xps_motor->user_travel_limits_guard_band[0]
+			    = motor->offset + motor->scale *
+		    newport_xps_motor->raw_user_travel_limits_guard_band[0];
+
+			newport_xps_motor->user_travel_limits_guard_band[1]
+			    = motor->offset + motor->scale *
+		    newport_xps_motor->raw_user_travel_limits_guard_band[1];
+			break;
+		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS_GUARD_BAND:
+			numerator =
+		    newport_xps_motor->user_travel_limits_guard_band[0]
+							- motor->offset;
+
+			newport_xps_motor->raw_user_travel_limits_guard_band[0]
+				= mx_divide_safely( numerator, motor->scale );
+
+			numerator =
+		    newport_xps_motor->user_travel_limits_guard_band[1]
+							- motor->offset;
+
+			newport_xps_motor->raw_user_travel_limits_guard_band[1]
+				= mx_divide_safely( numerator, motor->scale );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -1855,6 +1881,30 @@ mxd_newport_xps_process_function( void *record_ptr,
 					xps_status );
 			}
 			break;
+		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS_GUARD_BAND:
+			newport_xps_motor->user_travel_limits_guard_band[0]
+			    = motor->offset + motor->scale *
+		    newport_xps_motor->raw_user_travel_limits_guard_band[0];
+
+			newport_xps_motor->user_travel_limits_guard_band[1]
+			    = motor->offset + motor->scale *
+		    newport_xps_motor->raw_user_travel_limits_guard_band[1];
+			break;
+		case MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS_GUARD_BAND:
+			numerator =
+		    newport_xps_motor->user_travel_limits_guard_band[0]
+							- motor->offset;
+
+			newport_xps_motor->raw_user_travel_limits_guard_band[0]
+				= mx_divide_safely( numerator, motor->scale );
+
+			numerator =
+		    newport_xps_motor->user_travel_limits_guard_band[1]
+							- motor->offset;
+
+			newport_xps_motor->raw_user_travel_limits_guard_band[1]
+				= mx_divide_safely( numerator, motor->scale );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
@@ -1918,6 +1968,9 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 		upper_limit = newport_xps_motor->raw_user_travel_limits[1] +
 		  fabs(newport_xps_motor->raw_user_travel_limits_guard_band[1]);
+
+		MX_DEBUG(-2,("%s: lower = %g, dest = %g, upper = %g",
+	    fname, lower_limit, motor->raw_destination.analog, upper_limit ));
 
 		if ( motor->raw_destination.analog < lower_limit ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
