@@ -27,7 +27,11 @@
 
 #define MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH  80
 #define MXU_NETWORK_XPS_PCO_CONFIG_VALUE_LENGTH 80
-/*---*/
+
+/* Flag bits for 'newport_xps_motor_flags'. */
+
+#define MXF_NEWPORT_XPS_MOTOR_DISABLE			0x1
+#define MXF_NEWPORT_XPS_MOTOR_APPLY_USER_TRAVEL_LIMITS	0x2
 
 /* Command types for the move thread. */
 
@@ -42,6 +46,7 @@ typedef struct {
 
 	MX_RECORD *newport_xps_record;
 	char positioner_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
+	unsigned long newport_xps_motor_flags;
 
 	double socket_send_timeout;
 	double socket_receive_timeout;
@@ -99,6 +104,12 @@ typedef struct {
 
 	char pco_config_name[ MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH + 1 ];
 	char pco_config_value[ MXU_NETWORK_XPS_PCO_CONFIG_VALUE_LENGTH + 1 ];
+
+	double user_travel_limits[2];
+	double user_travel_limits_guard_band[2];
+
+	double raw_user_travel_limits[2];
+	double raw_user_travel_limits_guard_band[2];
 } MX_NEWPORT_XPS_MOTOR;
 
 MX_API mx_status_type mxd_newport_xps_create_record_structures(
@@ -135,6 +146,8 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 #define MXLV_NEWPORT_XPS_MOVE_THREAD_SOCKET_ID		88008
 #define MXLV_NEWPORT_XPS_PCO_CONFIG_NAME		88009
 #define MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE		88010
+#define MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS		88011
+#define MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS		88012
 
 #define MXD_NEWPORT_XPS_MOTOR_STANDARD_FIELDS \
   {-1, -1, "newport_xps_record", MXFT_RECORD, NULL, 0, {0},\
@@ -146,6 +159,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 				1, {MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, positioner_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "newport_xps_motor_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NEWPORT_XPS_MOTOR, newport_xps_motor_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
   \
   {MXLV_NEWPORT_XPS_MOTOR_SOCKET_SEND_TIMEOUT, -1, "socket_send_timeout", \
 					MXFT_DOUBLE, NULL, 0, {0}, \
@@ -215,6 +233,18 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
   {MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE, -1, "pco_config_value", \
 	    MXFT_STRING, NULL, 1, {MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, pco_config_value),\
-	{sizeof(char)}, NULL, 0 }
+	{sizeof(char)}, NULL, 0 }, \
+  \
+  {MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS, -1, "user_travel_limits", \
+						MXFT_DOUBLE, NULL, 1, {2}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NEWPORT_XPS_MOTOR, user_travel_limits), \
+	{sizeof(double)}, NULL, 0 }, \
+  \
+  {MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS, -1, "raw_user_travel_limits", \
+						MXFT_DOUBLE, NULL, 1, {2}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NEWPORT_XPS_MOTOR, raw_user_travel_limits), \
+	{sizeof(double)}, NULL, 0 }
 
 #endif /* __D_NEWPORT_XPS_H__ */

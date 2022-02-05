@@ -1496,6 +1496,8 @@ mxd_newport_xps_special_processing_setup( MX_RECORD *record )
 		case MXLV_NEWPORT_XPS_PCO_CONFIG_NAME:
 		case MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE:
 		case MXLV_NEWPORT_XPS_POSITIONER_ERROR:
+		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS:
+		case MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS:
 			record_field->process_function
 					= mxd_newport_xps_process_function;
 			break;
@@ -1529,6 +1531,7 @@ mxd_newport_xps_process_function( void *record_ptr,
 	char error_message[200];
 	int driver_status, group_status, hardware_status, positioner_error;
 	int xps_status;
+	double numerator;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -1684,6 +1687,30 @@ mxd_newport_xps_process_function( void *record_ptr,
 			newport_xps->socket_send_timeout = 
 				timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
 			break;
+		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS:
+		case MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS:
+			xps_status = PositionerUserTravelLimitsGet(
+				newport_xps->socket_id,
+				newport_xps_motor->positioner_name,
+			    &(newport_xps_motor->raw_user_travel_limits[0]),
+			    &(newport_xps_motor->raw_user_travel_limits[1]) );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					"PositionerUserTravelLimitsGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
+					xps_status );
+			}
+
+			newport_xps_motor->user_travel_limits[0] = 
+			    motor->offset + motor->scale *
+				newport_xps_motor->raw_user_travel_limits[0];
+
+			newport_xps_motor->user_travel_limits[1] = 
+			    motor->offset + motor->scale *
+				newport_xps_motor->raw_user_travel_limits[1];
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -1784,6 +1811,50 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			}
 			break;
+		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS:
+			xps_status = PositionerUserTravelLimitsSet(
+				newport_xps->socket_id,
+				newport_xps_motor->positioner_name,
+			    newport_xps_motor->raw_user_travel_limits[0],
+			    newport_xps_motor->raw_user_travel_limits[1] );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					"PositionerUserTravelLimitsGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
+					xps_status );
+			}
+
+			newport_xps_motor->user_travel_limits[0] = 
+			    motor->offset + motor->scale *
+				newport_xps_motor->raw_user_travel_limits[0];
+
+			newport_xps_motor->user_travel_limits[1] = 
+			    motor->offset + motor->scale *
+				newport_xps_motor->raw_user_travel_limits[1];
+			break;
+		case MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS:
+			numerator = newport_xps_motor->user_travel_limits[0]
+							- motor->offset;
+
+			newport_xps_motor->raw_user_travel_limits[0] =
+				mx_divide_safely( numerator, motor->scale );
+
+			xps_status = PositionerUserTravelLimitsSet(
+				newport_xps->socket_id,
+				newport_xps_motor->positioner_name,
+			    newport_xps_motor->raw_user_travel_limits[0],
+			    newport_xps_motor->raw_user_travel_limits[1] );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					"PositionerUserTravelLimitsGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
+					xps_status );
+			}
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
@@ -1808,6 +1879,7 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	double lower_limit, upper_limit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -1815,6 +1887,60 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( newport_xps_motor->newport_xps_motor_flags
+				& MXF_NEWPORT_XPS_MOTOR_DISABLE )
+	{
+		return mx_error( MXE_CLIENT_REQUEST_DENIED, fname,
+		"Motor '%s' cannot be moved since moves have been disabled "
+		"by flag bit 0x1 in the newport_xps_motor_flags field.",
+			motor->record->name );
+	}
+
+	/* If requested, prevent the motor from getting near the 
+	 * Newport's user travel limits.
+	 */
+
+	if ( newport_xps_motor->newport_xps_motor_flags
+			& MXF_NEWPORT_XPS_MOTOR_APPLY_USER_TRAVEL_LIMITS )
+	{
+		/* Update our internal copy of the user travel limits. */
+
+		mx_status = mx_process_record_field_by_name( motor->record,
+						"user_travel_limits",
+						NULL, MX_PROCESS_GET, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		lower_limit = newport_xps_motor->raw_user_travel_limits[0] +
+		  fabs(newport_xps_motor->raw_user_travel_limits_guard_band[0]);
+
+		upper_limit = newport_xps_motor->raw_user_travel_limits[1] +
+		  fabs(newport_xps_motor->raw_user_travel_limits_guard_band[1]);
+
+		if ( motor->raw_destination.analog < lower_limit ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested move of motor '%s' to a raw position "
+			"of %g would exceed the guard band adjusted "
+			"lower raw user travel limit at %g",
+				motor->record->name,
+				motor->raw_destination.analog,
+				lower_limit );
+		}
+
+		if ( motor->raw_destination.analog > upper_limit ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested move of motor '%s' to a raw position "
+			"of %g would exceed the guard band adjusted "
+			"upper raw user travel limit at %g",
+				motor->record->name,
+				motor->raw_destination.analog,
+				upper_limit );
+		}
+	}
+
+	/* Now we can send the move command. */
 
 	mx_status = mxd_newport_xps_send_command_to_move_thread(
 			newport_xps_motor,
@@ -2358,6 +2484,14 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 
 	if ( newport_xps_motor->home_search_succeeded ) {
 		motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+	}
+
+	/*---*/
+
+	if ( newport_xps_motor->newport_xps_motor_flags
+				& MXF_NEWPORT_XPS_MOTOR_DISABLE )
+	{
+		motor->status |= MXSF_MTR_DISABLED_BY_MX;
 	}
 
 	/*---*/
