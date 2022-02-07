@@ -34,7 +34,7 @@
   #define SIZE_BIG 2048
   #define SIZE_HUGE 65536
   
-! #define SIZE_EXECUTE_METHOD (1024+1)
+! #define SIZE_EXECUTE_METHOD 1024
   
   #define SIZE_NAME    100
   #ifdef __cplusplus
