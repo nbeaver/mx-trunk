@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2017, 2021
+ * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2017, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1093,10 +1093,26 @@ mx_get_hrt_counter_tick( void )
 static __inline__ uint64_t
 mx_get_hrt_counter_tick( void )
 {
+	MX_CLOCK_TICK current_clock_tick;
 	uint64_t x;
 
+#if ( defined(__i586__) || defined(__i686__) )
+	/* i586 or above */
+
+	mx_bool_type mx_hrt_use_clock_ticks = FALSE;
+#else
+	/* i386 or i486 */
+
+	mx_bool_type mx_hrt_use_clock_ticks = TRUE;
+#endif
+
 	if ( mx_hrt_use_clock_ticks ) {
-		return mx_high_resolution_time_using_clock_ticks();
+		current_clock_tick = mx_current_clock_tick();
+
+		x = ( ULONG_MAX * (uint64_t) current_clock_tick.high_order )
+			+ current_clock_tick.low_order;
+
+		return x;
 	}
 
 	/* The following generates inline an RDTSC instruction
