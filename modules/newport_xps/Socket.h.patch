@@ -21,17 +21,12 @@
   int  ConnectToServer (char *Ip_Address, int Ip_Port, double TimeOut);
 ***************
 *** 12,14 ****
---- 12,26 ----
+--- 12,21 ----
   void CloseSocket (int SocketID);
   char * GetError (int SocketID);
   void strncpyWithEOS(char * szStringOut, const char * szStringIn, int nNumberOfCharToCopy, int nStringOutSize);
 + 
-+ /* MX functions for enabling or disabling communication socket debugging. */
-+ 
-+ int  mxp_newport_xps_get_comm_debug_flag(void);
-+ void mxp_newport_xps_set_comm_debug_flag(int debug_flag);
-+ double mxp_newport_xps_get_comm_delay(void);
-+ void mxp_newport_xps_set_comm_delay(double delay);
++ #include "Socket_MX.h"
 + 
 + #ifdef __cplusplus
 + }
