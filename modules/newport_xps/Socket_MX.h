@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef __D_NEWPORT_XPS_H__
-#define __D_NEWPORT_XPS_H__
+#ifndef __SOCKET_MX_H__
+#define __SOCKET_MX_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,4 +29,6 @@ void   mxp_newport_xps_set_comm_delay( double delay );
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* __SOCKET_MX_H__ */
 

@@ -33,7 +33,7 @@ VENDOR_OBJS = XPS_C8_drivers.$(OBJ)
 # set to "false".
 #
 
-NEWPORT_XPS_DISTCLEAN_DELETE = true
+NEWPORT_XPS_DISTCLEAN_DELETE = false
 
 #
 # Tested values of MX_ARCH:  linux
