@@ -1,7 +1,7 @@
-*** XPS_C8_drivers.h.orig	2015-02-18 18:36:34.000000000 -0600
---- XPS_C8_drivers.h	2015-02-18 18:49:20.000000000 -0600
+*** XPS_C8_drivers.h.orig	2022-02-14 14:39:58.255906482 -0600
+--- XPS_C8_drivers.h	2022-02-14 14:56:57.891491342 -0600
 ***************
-*** 17,23 ****
+*** 17,31 ****
   extern "C"
   {
   #else
@@ -9,16 +9,7 @@
   #endif
   
   
---- 17,23 ----
-  extern "C"
-  {
-  #else
-! typedef int bool;  /* C does not know bool, only C++ */
-  #endif
-  
-  
-***************
-*** 25,31 ****
+  DLL int __stdcall TCP_ConnectToServer(char *Ip_Address, int Ip_Port, double TimeOut); 
   DLL void __stdcall TCP_SetTimeout(int SocketIndex, double Timeout); 
   DLL void __stdcall TCP_CloseSocket(int SocketIndex); 
   DLL char * __stdcall TCP_GetError(int SocketIndex); 
@@ -26,7 +17,18 @@
   DLL int __stdcall ControllerMotionKernelTimeLoadGet (int SocketIndex, double * CPUTotalLoadRatio, double * CPUCorrectorLoadRatio, double * CPUProfilerLoadRatio, double * CPUServitudesLoadRatio);  /* Get controller motion kernel time load */
   DLL int __stdcall ControllerStatusGet (int SocketIndex, int * ControllerStatus);  /* Read controller current status */
   DLL int __stdcall ControllerStatusStringGet (int SocketIndex, int ControllerStatusCode, char * ControllerStatusString);  /* Return the controller status string corresponding to the controller status code */
---- 25,31 ----
+--- 17,34 ----
+  extern "C"
+  {
+  #else
+! typedef int bool;  /* C does not know bool, only C++ */
+  #endif
+  
++ #if defined(__GNUC__)
++ #pragma GCC diagnostic ignored "-Wstringop-overflow"
++ #endif
+  
+  DLL int __stdcall TCP_ConnectToServer(char *Ip_Address, int Ip_Port, double TimeOut); 
   DLL void __stdcall TCP_SetTimeout(int SocketIndex, double Timeout); 
   DLL void __stdcall TCP_CloseSocket(int SocketIndex); 
   DLL char * __stdcall TCP_GetError(int SocketIndex); 
