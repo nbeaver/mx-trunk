@@ -340,7 +340,7 @@ mx_socket_get_send_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds )
 	}
 
 	os_status = getsockopt( mx_socket->socket_fd, SOL_SOCKET,
-				SO_SNDTIMEO, (char *) &timeout, &timeval_size );
+	    SO_SNDTIMEO, (char *) &timeout, (mx_socklen_t *) &timeval_size );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -386,7 +386,7 @@ mx_socket_get_receive_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds)
 	}
 
 	os_status = getsockopt( mx_socket->socket_fd, SOL_SOCKET,
-				SO_RCVTIMEO, (char *) &timeout, &timeval_size );
+	    SO_RCVTIMEO, (char *) &timeout, (mx_socklen_t *) &timeval_size );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
