@@ -28,6 +28,7 @@
 #include "mx_stdint.h"
 #include "mx_atomic.h"
 #include "mx_thread.h"
+#include "mx_signal.h"
 
 static volatile int mx_threads_are_initialized = FALSE;
 
@@ -584,6 +585,68 @@ mx_thread_exit( MX_THREAD *thread,
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
+mx_thread_suspend( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_suspend()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+	int status;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	status = SuspendThread( thread_private->thread_handle );
+
+	if ( status == 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to suspend Win32 thread %#x",
+			thread_private->thread_id );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_resume( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_resume()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+	int status;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	status = ResumeThread( thread_private->thread_handle );
+
+	if ( status != 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to resume VxWorks task %#x",
+			thread_private->thread_id );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
 mx_thread_kill( MX_THREAD *thread )
 {
 	static const char fname[] = "mx_thread_kill()";
@@ -887,17 +950,85 @@ mx_thread_wait( MX_THREAD *thread,
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+/* FIXME: In order to finish this function, we need to know how to modify
+ * the CONTEXT object to arrange it to call our signal handler.
+ */
+
+/* FIXME: This function is a potentially hilarious mix of the Win32 way
+ * of doing things and the Posix way of doing things.  It has _not_ been
+ * tested yet, so I don't yet know if this hack even works.  It is mainly
+ * a placeholder to remind me of the idea.
+ */
+
 MX_EXPORT mx_status_type
 mx_thread_send_signal( MX_THREAD *thread, int signal_number )
 {
 	static const char fname[] = "mx_thread_send_signal()";
 
+	CONTEXT thread_context;
+	BOOL os_status;
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+	struct sigaction old_sigaction;	  /* sigaction defined in mx_signal.h */
+	int sa_status, saved_errno;
+	mx_status_type mx_status;
+
 	MX_DEBUG(-2,("%s invoked for thread %p, signal %d",
 		fname, thread, signal));
 
-#error mx_thread_send_signal
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+		return mx_status;
 
-	return MX_SUCCESSFUL_RESULT;
+	sa_status = sigaction( signal_number, NULL, &old_sigaction );
+
+	if ( sa_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Getting the existing signal handler function address for "
+		"signal %d failed with errno = %d.",
+			signal_number, saved_errno );
+	}
+
+	/* FIXME: Need to get the signal handler out of old_sigaction.
+	 * If there isn't an installed handler, we must return without
+	 * doing anything.
+	 */
+
+	/* We need to perform open heart surgery on the hapless thread
+	 * to force it to call the Posix-style signal handler.
+	 */
+
+	mx_status = mx_thread_suspend( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We need to get the thread context to be able to force this
+	 * thread to call the signal handler.
+	 */
+
+	os_status = GetThreadContext( thread_private->thread_handle,
+						&thread_context );
+
+	if ( os_status != 0 ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call GetThreadContext() failed." );
+	}
+
+	MX_DEBUG(-2,("%s: FIXME! Modifying the thread contect to force "
+    	"a call to the signal handler here is not yet implemented!", fname));
+
+	os_status = SetThreadContext( thread_private->thread_handle,
+						&thread_context );
+
+	if ( os_status != 0 ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call SetThreadContext() failed." );
+	}
+
+	mx_status = mx_thread_resume( thread );
+
+	return mx_status;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -1046,11 +1177,12 @@ mx_show_thread_list( void )
 {
 	static const char fname[] = "mx_show_thread_list";
 
-	THREADENTRY thread_entry;
+	THREADENTRY32 thread_entry;
+	BOOL os_status;
 	HANDLE toolhelp_handle = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 
 	if ( toolhelp_handle == INVALID_HANDLE_VALUE ) {
-		(void) mx_error( MXE_OPERATING_SYSTEM_FAILURE, fname,
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"The attempt to acquire the CreateToolhelp32_Snapshot "
 		"handle failed." );
 	}
@@ -1061,15 +1193,14 @@ mx_show_thread_list( void )
 
 	if ( os_status != 0 ) {
 		CloseHandle( toolhelp_handle );
-		(void) mx_error( MXE_OPERATING_SYSTEM_FAILURE, fname,
-		"The attempt to call Thread32First() failed." )
-		"handle failed." );
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call Thread32First() failed." );
 	}
 
 	while( TRUE ) {
-		if ( tool_entry >= FIELD_OFFSET( THREADENTRY32,
-				th32OwnerProcessId,
-				sizeof( thread_entry.th32OwnerProcessID ) ) )
+		if ( thread_entry.dwSize >= 
+			FIELD_OFFSET( THREADENTRY32, th32OwnerProcessID )
+			    + sizeof(thread_entry.th32OwnerProcessID) )
 		{
 			fprintf( stderr, "Process 0x%04x  Thread 0x%04\n",
 				thread_entry.th32OwnerProcessID,
@@ -1082,9 +1213,8 @@ mx_show_thread_list( void )
 
 		if ( os_status != 0 ) {
 			CloseHandle( toolhelp_handle );
-			(void) mx_error( MXE_OPERATING_SYSTEM_FAILURE, fname,
-			"The attempt to call Thread32First() failed." )
-			"handle failed." );
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The attempt to call Thread32First() failed." );
 		}
 
 		CloseHandle( toolhelp_handle );
@@ -1128,6 +1258,19 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 	mx_info( "  Win32 stop event handle    = %8lx",
 			(unsigned long) thread_private->stop_event_handle );
 #endif
+
+	return;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT void
+mx_show_thread_stack( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_show_thread_stack()";
+
+	(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"This function is not yet implemented for Win32." );
 
 	return;
 }

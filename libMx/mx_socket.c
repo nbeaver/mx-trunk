@@ -235,7 +235,11 @@ mx_socket_set_send_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 {
 	static const char fname[] = "mx_socket_set_send_timeout()";
 
+#if defined(OS_WIN32)
+	DWORD timeout;		/* in milliseconds */
+#else
 	struct timeval timeout;
+#endif
 	int os_status, saved_errno;
 	char error_message[100];
 
@@ -244,12 +248,16 @@ mx_socket_set_send_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
+#if defined(OS_WIN32)
+	timeout = mx_round( 1000.0 * timeout_in_seconds );
+#else
 	timeout.tv_sec = timeout_in_seconds;
 
 	timeout.tv_usec = 1000000.0 * ( timeout_in_seconds - timeout.tv_sec );
+#endif
 
 	os_status = setsockopt( mx_socket->socket_fd, SOL_SOCKET,
-				SO_SNDTIMEO, &timeout, sizeof(timeout) );
+			SO_SNDTIMEO, (const char *) &timeout, sizeof(timeout) );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -270,7 +278,11 @@ mx_socket_set_receive_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 {
 	static const char fname[] = "mx_socket_set_receive_timeout()";
 
+#if defined(OS_WIN32)
+	DWORD timeout;		/* in milliseconds */
+#else
 	struct timeval timeout;
+#endif
 	int os_status, saved_errno;
 	char error_message[100];
 
@@ -279,12 +291,16 @@ mx_socket_set_receive_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
+#if defined(OS_WIN32)
+	timeout = mx_round( 1000.0 * timeout_in_seconds );
+#else
 	timeout.tv_sec = timeout_in_seconds;
 
 	timeout.tv_usec = 1000000.0 * ( timeout_in_seconds - timeout.tv_sec );
+#endif
 
 	os_status = setsockopt( mx_socket->socket_fd, SOL_SOCKET,
-				SO_RCVTIMEO, &timeout, sizeof(timeout) );
+			SO_RCVTIMEO, (const char *) &timeout, sizeof(timeout) );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -305,8 +321,12 @@ mx_socket_get_send_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds )
 {
 	static const char fname[] = "mx_socket_set_send_timeout()";
 
+#if defined(OS_WIN32)
+	DWORD timeout;		/* in milliseconds */
+#else
 	struct timeval timeout;
-	socklen_t timeval_size = sizeof( struct timeval );
+#endif
+	int timeval_size = sizeof( struct timeval );
 	int os_status, saved_errno;
 	char error_message[100];
 
@@ -320,7 +340,7 @@ mx_socket_get_send_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds )
 	}
 
 	os_status = getsockopt( mx_socket->socket_fd, SOL_SOCKET,
-				SO_SNDTIMEO, &timeout, &timeval_size );
+				SO_SNDTIMEO, (char *) &timeout, &timeval_size );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -333,7 +353,11 @@ mx_socket_get_send_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds )
 			error_message, sizeof(error_message)));
 	}
 
+#if defined(OS_WIN32)
+	*timeout_in_seconds = 1.0e-3 * timeout;
+#else
 	*timeout_in_seconds = timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -343,8 +367,12 @@ mx_socket_get_receive_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds)
 {
 	static const char fname[] = "mx_socket_set_send_timeout()";
 
+#if defined(OS_WIN32)
+	DWORD timeout;		/* in milliseconds */
+#else
 	struct timeval timeout;
-	socklen_t timeval_size = sizeof( struct timeval );
+#endif
+	int timeval_size = sizeof( struct timeval );
 	int os_status, saved_errno;
 	char error_message[100];
 
@@ -358,7 +386,7 @@ mx_socket_get_receive_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds)
 	}
 
 	os_status = getsockopt( mx_socket->socket_fd, SOL_SOCKET,
-				SO_RCVTIMEO, &timeout, &timeval_size );
+				SO_RCVTIMEO, (char *) &timeout, &timeval_size );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -371,7 +399,11 @@ mx_socket_get_receive_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds)
 			error_message, sizeof(error_message)));
 	}
 
+#if defined(OS_WIN32)
+	*timeout_in_seconds = 1.0e-3 * timeout;
+#else
 	*timeout_in_seconds = timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -284,8 +284,6 @@ mx_high_resolution_time_init_from_file( void )
 
 #include <windows.h>
 
-static int mx_high_resolution_time_init_invoked = FALSE;
-
 static int mx_performance_counters_are_available = FALSE;
 
 static void
@@ -1051,7 +1049,23 @@ mx_high_resolution_time_init( void )
  * clock on various CPU architectures.
  */
 
-#if ( defined(__GNUC__) && defined(__x86_64__) )
+#if defined(OS_WIN32)
+
+/* FIXME: This probably does not work on all versions of Windows
+ * and all compiler versions.  We will need to revisit this later.
+ */
+
+static inline uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t x;
+
+	x = __rdtsc();
+
+	return x;
+}
+
+#elif ( defined(__GNUC__) && defined(__x86_64__) )
 
 /******* GCC on x86_64 *******/
 
