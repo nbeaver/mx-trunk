@@ -73,7 +73,9 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SHOW_SOCKET_ID:
 		case MXLV_LHD_STATUS:
 		case MXLV_LHD_SUMMARY:
-		case MXLV_LHD_THREAD_STACK:
+		case MXLV_LHD_SHOW_THREAD_INFO:
+		case MXLV_LHD_SHOW_THREAD_LIST:
+		case MXLV_LHD_SHOW_THREAD_STACK:
 		case MXLV_LHD_UPDATE_ALL:
 		case MXLV_LHD_VM_REGION:
 			record_field->process_function
@@ -299,23 +301,39 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_CALLBACKS_ENABLED:
 			/* Nothing to do here. */
 			break;
-		case MXLV_LHD_THREAD_STACK:
-			list_head->thread_stack_object
-				= (MX_THREAD *) list_head->thread_stack;
-
+		case MXLV_LHD_SHOW_THREAD_LIST:
+			mx_show_thread_list();
+			break;
+		case MXLV_LHD_SHOW_THREAD_INFO:
 			mx_status = mx_thread_is_alive(
-			    list_head->thread_stack_object, &thread_is_alive );
+			    list_head->thread_object, &thread_is_alive );
 
 			if ( thread_is_alive == FALSE ) {
 				return mx_error( MXE_NOT_FOUND, fname,
 				"The MX thread %p was not found.",
-					list_head->thread_stack_object );
+					list_head->thread_object );
 			}
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_show_thread_stack( list_head->thread_stack_object );
+			mx_show_thread_info( list_head->thread_object,
+						"(It was rutabagas)" );
+			break;
+		case MXLV_LHD_SHOW_THREAD_STACK:
+			mx_status = mx_thread_is_alive(
+			    list_head->thread_object, &thread_is_alive );
+
+			if ( thread_is_alive == FALSE ) {
+				return mx_error( MXE_NOT_FOUND, fname,
+				"The MX thread %p was not found.",
+					list_head->thread_object );
+			}
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_show_thread_stack( list_head->thread_object );
 			break;
 		default:
 			MX_DEBUG( 1,(

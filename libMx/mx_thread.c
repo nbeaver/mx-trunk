@@ -29,6 +29,7 @@
 #include "mx_atomic.h"
 #include "mx_thread.h"
 #include "mx_signal.h"
+#include "mx_dirent.h"
 
 static volatile int mx_threads_are_initialized = FALSE;
 
@@ -1175,7 +1176,7 @@ mx_get_current_thread( MX_THREAD **thread )
 MX_EXPORT void
 mx_show_thread_list( void )
 {
-	static const char fname[] = "mx_show_thread_list";
+	static const char fname[] = "mx_show_thread_list()";
 
 	THREADENTRY32 thread_entry;
 	BOOL os_status;
@@ -1545,6 +1546,10 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 #endif
 
 /*---*/
+
+#if defined(OS_LINUX)
+#  define __USE_GNU
+#endif
 
 #include <pthread.h>
 
@@ -1996,6 +2001,33 @@ mx_thread_create( MX_THREAD **thread,
 				status );
 		}
 	}
+
+#if defined(OS_LINUX)
+	/* On Linux we can save the Pthreads thread id in the file
+	 * /proc/self/task/ tid /comm.  This is most easily done by
+	 * invoking pthread_setname_np() to do it.
+	 */
+
+	{
+		char thread_name[100];
+
+		snprintf( thread_name, sizeof(thread_name),
+			"%#lx", thread_private->thread_id );
+
+		MX_DEBUG(-2,("%s: thread_name = '%s'", fname, thread_name ));
+
+		status = pthread_setname_np( thread_private->thread_id,
+								thread_name );
+
+		if ( status != 0 ) {
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The attempt to set the name of thread %p to %s "
+			"failed.  errno = %d, error_message = '%s'",
+				&(thread_private->thread_id), thread_name,
+				status, strerror( status ) );
+		}
+	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2496,9 +2528,97 @@ mx_get_current_thread( MX_THREAD **thread )
 MX_EXPORT void
 mx_show_thread_list( void )
 {
-	static const char fname[] = "mx_show_thread_list";
+	static const char fname[] = "mx_show_thread_list()";
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	DIR *dir = NULL;
+	struct dirent *dirent_ptr = NULL;
+	char *name_ptr = NULL;
+	int i, saved_errno = 0;;
+	char errmsg_buffer[80];
+
+	FILE *comm_file = NULL;
+	char comm_filename[MXU_FILENAME_LENGTH+1];
+	char comm_data[80];
+
+	/* We loop over all of the directories in the /proc/self/task
+	 * directory.
+	 */
+
+	dir = opendir( "/proc/self/task" );
+
+	if ( dir == (DIR *) NULL ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot open the /proc/self/task directory for process %lu.  "
+		"Is it possible that the /proc filesystem is not mounted.",
+			mx_process_id() );
+
+		return;
+	}
+
+	for ( i = 0; ; i++ ) {
+		errno = 0;
+
+		dirent_ptr = readdir( dir );
+
+		if ( dirent_ptr == NULL ) {
+			if ( errno == 0 ) {
+				if ( i == 1 ) {
+					fprintf( stderr, "1 thread found\n" );
+				} else {
+					fprintf( stderr,
+						"%d threads found\n", i );
+				}
+			} else {
+				saved_errno = errno;
+
+				(void) mx_error( MXE_FILE_IO_ERROR, fname,
+				"An error was found while traversing the "
+				"/proc/self/task directory.  "
+				"errno = %d, error_message = '%s'",
+				    saved_errno, mx_strerror( saved_errno,
+				        errmsg_buffer, sizeof(errmsg_buffer) ));
+			}
+
+			closedir( dir );
+			return;
+		} else {
+			name_ptr = dirent_ptr->d_name;
+
+			/* Skip over the '.' and '..' entries. */
+
+			if ( strcmp( name_ptr, "." ) == 0 ) {
+				i--;
+				continue;
+			} else
+			if ( strcmp( name_ptr, ".." ) == 0 ) {
+				i--;
+				continue;
+			}
+
+			fprintf( stderr, "  %d: %s ", i, name_ptr );
+
+			snprintf( comm_filename, sizeof(comm_filename),
+				"/proc/self/task/%s/comm", name_ptr );
+
+			comm_file = fopen( comm_filename, "r" );
+
+			if ( comm_file == NULL ) {
+				saved_errno = errno;
+
+				fprintf( stderr, "<errno %d>\n", saved_errno );
+
+				continue;
+			}
+
+			mx_fgets( comm_data, sizeof(comm_data), comm_file );
+
+			fclose( comm_file );
+
+			fprintf( stderr, "%s\n", comm_data );
+		}
+	}
 }
 
 #else

@@ -555,8 +555,17 @@ typedef struct {
 
 	unsigned long max_network_dump_bytes;
 
-	void * thread_stack;
-	void *thread_stack_object;
+	/* Show a list of all threads in this process. */
+	mx_bool_type show_thread_list;
+
+	/* For the following two, you give it the thread number shown
+	 * by writing to the show_thread_list field above.  Yes, there
+	 * can be race conditions, but this is for diagnostics only.
+	 */
+	unsigned long show_thread_info;
+	unsigned long show_thread_stack;
+
+	void *thread_object;
 	long thread_stack_signal;
 
 } MX_LIST_HEAD;

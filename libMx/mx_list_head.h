@@ -55,7 +55,9 @@ extern "C" {
 #define MXLV_LHD_SHOW_SOCKET_HANDLERS		1027
 #define MXLV_LHD_SHOW_SOCKET_ID			1028
 #define MXLV_LHD_SHORT_ERROR_CODES		1029
-#define MXLV_LHD_THREAD_STACK			1030
+#define MXLV_LHD_SHOW_THREAD_LIST		1030
+#define MXLV_LHD_SHOW_THREAD_INFO		1031
+#define MXLV_LHD_SHOW_THREAD_STACK		1032
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -268,8 +270,16 @@ extern "C" {
 			offsetof(MX_LIST_HEAD, max_network_dump_bytes), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_LHD_THREAD_STACK, -1, "thread_stack", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, thread_stack), \
+  {MXLV_LHD_SHOW_THREAD_LIST, -1, "show_thread_list", MXFT_HEX, NULL, 0, {0},\
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_thread_list), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_SHOW_THREAD_INFO, -1, "show_thread_info", MXFT_HEX, NULL, 0, {0},\
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_thread_info), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_SHOW_THREAD_STACK, -1, "show_thread_stack", MXFT_HEX, NULL, 0, {0},\
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_thread_stack), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "thread_stack_signal", MXFT_LONG, NULL, 0, {0}, \

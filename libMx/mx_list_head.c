@@ -194,8 +194,11 @@ mxr_create_list_head( MX_RECORD *record )
 
 	list_head_struct->max_network_dump_bytes = 0;
 
-	list_head_struct->thread_stack = 0L;
-	list_head_struct->thread_stack_object = NULL;
+	list_head_struct->show_thread_list = FALSE;
+	list_head_struct->show_thread_info = 0L;
+	list_head_struct->show_thread_stack = 0L;
+
+	list_head_struct->thread_object = NULL;
 	list_head_struct->thread_stack_signal = -1L;
 
 	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
