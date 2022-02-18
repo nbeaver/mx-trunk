@@ -1555,6 +1555,10 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 #  endif
 #endif
 
+#if defined(OS_MACOSX) || defined(OS_HURD)
+#  include <mach/mach.h>
+#endif
+
 #include <pthread.h>
 
 typedef struct {
@@ -1564,6 +1568,10 @@ typedef struct {
 #if defined(OS_LINUX)
 	pid_t linux_thread_id;
 #endif
+#if ( defined(OS_MACOSX) || defined(OS_HURD) )
+	mach_port_t mach_task;
+#endif
+
 #if defined(OS_ANDROID)
 	int32_t cancel_requested;
 #endif
@@ -1619,6 +1627,7 @@ mx_thread_start_function( void *args_ptr )
 	static const char fname[] = "mx_thread_start_function()";
 #endif
 
+	MX_POSIX_THREAD_PRIVATE *posix_thread_private;
 	MX_POSIX_THREAD_ARGUMENTS_PRIVATE *thread_arg_struct;
 	MX_THREAD *thread;
 	MX_THREAD_FUNCTION *thread_function;
@@ -1654,21 +1663,19 @@ mx_thread_start_function( void *args_ptr )
 	if ( mx_status.code != MXE_SUCCESS )
 		return NULL;
 
-	/* If available, save the Linux-specific thread ID. */
 
-#if defined(OS_LINUX)
-	{
-		MX_POSIX_THREAD_PRIVATE *posix_thread_private;
-
-		posix_thread_private =
+	posix_thread_private =
 			(MX_POSIX_THREAD_PRIVATE *) thread->thread_private;
 
+#if defined(OS_LINUX)
 #  if ( MX_GLIBC_VERSION >= 2030000L )
-		posix_thread_private->linux_thread_id = gettid();
+	posix_thread_private->linux_thread_id = gettid();
 #  else
-		posix_thread_private->linux_thread_id = syscall(SYS_gettid);
+	posix_thread_private->linux_thread_id = syscall(SYS_gettid);
 #  endif
-	}
+
+#elif defined(OS_MACOSX) || defined(OS_HURD)
+	posix_thread_private->mach_task = mach_task_self();
 #endif
 
 	/* Invoke MX's thread function. */
@@ -2674,7 +2681,21 @@ mx_show_thread_list( void )
 	}
 }
 
+#elif defined(OS_MACOSX)
+
+MX_EXPORT void
+mx_show_thread_list( void )
+{
+	static const char fname[] = "mx_show_thread_list()";
+
+	(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"This function is not yet available for this build target." );
+
+	return;
+}
+
 #else
+#error mx_show_thread_list() has not been implemented for this build target.
 #endif
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
