@@ -2536,9 +2536,11 @@ mx_show_thread_list( void )
 	int i, saved_errno = 0;;
 	char errmsg_buffer[80];
 
-	FILE *comm_file = NULL;
-	char comm_filename[MXU_FILENAME_LENGTH+1];
+	FILE *item_file = NULL;
+	char item_filename[MXU_FILENAME_LENGTH+1];
+
 	char comm_data[80];
+	char wchan_data[80];
 
 	/* We loop over all of the directories in the /proc/self/task
 	 * directory.
@@ -2599,12 +2601,17 @@ mx_show_thread_list( void )
 
 			fprintf( stderr, "  %d: %s ", i, name_ptr );
 
-			snprintf( comm_filename, sizeof(comm_filename),
+			/* 'comm' contains the name of the thread.  For
+			 * threads, created by mx_thread_create(), this
+			 * will be the value of the pthread_t.
+			 */
+
+			snprintf( item_filename, sizeof(item_filename),
 				"/proc/self/task/%s/comm", name_ptr );
 
-			comm_file = fopen( comm_filename, "r" );
+			item_file = fopen( item_filename, "r" );
 
-			if ( comm_file == NULL ) {
+			if ( item_file == NULL ) {
 				saved_errno = errno;
 
 				fprintf( stderr, "<errno %d>\n", saved_errno );
@@ -2612,11 +2619,32 @@ mx_show_thread_list( void )
 				continue;
 			}
 
-			mx_fgets( comm_data, sizeof(comm_data), comm_file );
+			mx_fgets( comm_data, sizeof(comm_data), item_file );
 
-			fclose( comm_file );
+			fclose( item_file );
 
-			fprintf( stderr, "%s\n", comm_data );
+			/* 'wchan' gives a string representation of
+			 * where the process is waiting.
+			 */
+
+			snprintf( item_filename, sizeof(item_filename),
+				"/proc/self/task/%s/wchan", name_ptr );
+
+			item_file = fopen( item_filename, "r" );
+
+			if ( item_file == NULL ) {
+				saved_errno = errno;
+
+				fprintf( stderr, "<errno %d>\n", saved_errno );
+
+				continue;
+			}
+
+			mx_fgets( wchan_data, sizeof(wchan_data), item_file );
+
+			fclose( item_file );
+
+			fprintf( stderr, "%s  %s\n", comm_data, wchan_data );
 		}
 	}
 }
