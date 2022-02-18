@@ -1550,7 +1550,9 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 #if defined(OS_LINUX)
 #  define __USE_GNU
 
-#  if ( MX_GLIBC_VERSION < 2030000L )
+#  if ( MX_GLIBC_VERSION >= 2030000L )
+     extern pid_t gettid( void );
+#  else
 #    include <sys/syscall.h>	/* Needed to call gettid() system call. */
 #  endif
 #endif
