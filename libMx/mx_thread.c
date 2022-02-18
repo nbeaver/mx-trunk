@@ -1549,14 +1549,21 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 
 #if defined(OS_LINUX)
 #  define __USE_GNU
+
+#  if ( MX_GLIBC_VERSION < 2030000L )
+#    include <sys/syscall.h>	/* Needed to call gettid() system call. */
+#  endif
 #endif
 
 #include <pthread.h>
 
 typedef struct {
-	pthread_t thread_id;
-	int kill_requested;
+	pthread_t posix_thread_id;
+	mx_bool_type kill_requested;
 
+#if defined(OS_LINUX)
+	pid_t linux_thread_id;
+#endif
 #if defined(OS_ANDROID)
 	int32_t cancel_requested;
 #endif
@@ -1646,6 +1653,23 @@ mx_thread_start_function( void *args_ptr )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return NULL;
+
+	/* If available, save the Linux-specific thread ID. */
+
+#if defined(OS_LINUX)
+	{
+		MX_POSIX_THREAD_PRIVATE *posix_thread_private;
+
+		posix_thread_private =
+			(MX_POSIX_THREAD_PRIVATE *) thread->thread_private;
+
+#  if ( MX_GLIBC_VERSION >= 2030000L )
+		posix_thread_private->linux_thread_id = gettid();
+#  else
+		posix_thread_private->linux_thread_id = syscall(SYS_gettid);
+#  endif
+	}
+#endif
 
 	/* Invoke MX's thread function. */
 
@@ -1782,7 +1806,7 @@ mx_thread_initialize( void )
 
 	thread_private = (MX_POSIX_THREAD_PRIVATE *) thread->thread_private;
 
-	thread_private->thread_id = pthread_self();
+	thread_private->posix_thread_id = pthread_self();
 
 	thread_private->kill_requested = FALSE;
 
@@ -1963,8 +1987,9 @@ mx_thread_create( MX_THREAD **thread,
 	thread_arg_struct->thread_arguments = thread_arguments;
 
 	/* FIXME: The call to pthread_create() below writes to the variable
-	 * thread_private->thread_id.  And we do not access the thread_id
-	 * member until after we return from mx_thread_create().
+	 * thread_private->posix_thread_id.  And we do not access the
+	 * posix_thread_id member until after we return from the function
+	 * mx_thread_create().
 	 *
 	 * Nevertheless, do we still need to put a memory barrier after
 	 * and/or before the call to pthread_create()?
@@ -1972,7 +1997,7 @@ mx_thread_create( MX_THREAD **thread,
 
 	/* Create the thread. */
 
-	status = pthread_create( &(thread_private->thread_id), NULL, 
+	status = pthread_create( &(thread_private->posix_thread_id), NULL, 
 				mx_thread_start_function,
 				thread_arg_struct );
 
@@ -2012,19 +2037,19 @@ mx_thread_create( MX_THREAD **thread,
 		char thread_name[100];
 
 		snprintf( thread_name, sizeof(thread_name),
-			"%#lx", thread_private->thread_id );
+			"%#lx", thread_private->posix_thread_id );
 
 		MX_DEBUG(-2,("%s: thread_name = '%s'", fname, thread_name ));
 
-		status = pthread_setname_np( thread_private->thread_id,
+		status = pthread_setname_np( thread_private->posix_thread_id,
 								thread_name );
 
 		if ( status != 0 ) {
 			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"The attempt to set the name of thread %p to %s "
 			"failed.  errno = %d, error_message = '%s'",
-				&(thread_private->thread_id), thread_name,
-				status, strerror( status ) );
+				&(thread_private->posix_thread_id),
+				thread_name, status, strerror( status ) );
 		}
 	}
 #endif
@@ -2181,7 +2206,7 @@ mx_thread_kill( MX_THREAD *thread )
 
 	thread_private->kill_requested = TRUE;
 
-	status = pthread_cancel( thread_private->thread_id );
+	status = pthread_cancel( thread_private->posix_thread_id );
 
 	if ( status != 0 ) {
 		switch( status ) {
@@ -2219,7 +2244,7 @@ mx_thread_stop( MX_THREAD *thread )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	status = pthread_cancel( thread_private->thread_id );
+	status = pthread_cancel( thread_private->posix_thread_id );
 
 	if ( status != 0 ) {
 		switch( status ) {
@@ -2328,7 +2353,7 @@ mx_thread_is_alive( MX_THREAD *thread,
 
 	/* See if the thread still exists by sending signal 0 to it. */
 
-	pthreads_status = pthread_kill( thread_private->thread_id, 0 );
+	pthreads_status = pthread_kill( thread_private->posix_thread_id, 0 );
 
 	switch( pthreads_status ) {
 	case 0:
@@ -2370,7 +2395,7 @@ mx_thread_wait( MX_THREAD *thread,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	status = pthread_join( thread_private->thread_id, &value_ptr );
+	status = pthread_join( thread_private->posix_thread_id, &value_ptr );
 
 	if ( status != 0 ) {
 		switch( status ) {
@@ -2425,7 +2450,7 @@ mx_thread_send_signal( MX_THREAD *thread, int signal_number )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	pthreads_status = pthread_kill( thread_private->thread_id,
+	pthreads_status = pthread_kill( thread_private->posix_thread_id,
 					signal_number );
 
 	switch( pthreads_status ) {
@@ -2676,8 +2701,12 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 	mx_info( "  thread pointer         = %p", thread );
 	mx_info( "  thread_private pointer = %p", thread_private );
 	mx_info( "  Posix thread id        = %lx",
-				(unsigned long) thread_private->thread_id );
+			(unsigned long) thread_private->posix_thread_id );
 
+#if defined(OS_LINUX)
+	mx_info( "  Linux thread id        = %lu",
+			(unsigned long) thread_private->linux_thread_id );
+#endif
 	return;
 }
 
@@ -2713,7 +2742,7 @@ mx_show_thread_stack( MX_THREAD *thread )
 		"The MX_LIST_HEAD pointer is NULL." );
 	}
 
-	pthread_status = pthread_kill( thread_private->thread_id,
+	pthread_status = pthread_kill( thread_private->posix_thread_id,
 					list_head->thread_stack_signal );
 
 	return;
@@ -2736,7 +2765,8 @@ mx_get_thread_id( MX_THREAD *thread )
 		if ( thread_private == NULL ) {
 			pthread_id = 0;
 		} else {
-			pthread_id = (unsigned long) thread_private->thread_id;
+			pthread_id = (unsigned long)
+					thread_private->posix_thread_id;
 		}
 	}
 
