@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016-2019 Illinois Institute of Technology
+ * Copyright 2016-2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1826,6 +1826,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	 */
 
 	mx_status = mx_thread_create( &(dalsa_gev_camera->image_wait_thread),
+				"mxd_dalsa_gev_camera_image_wait_thread_fn",
 				mxd_dalsa_gev_camera_image_wait_thread_fn,
 				record );
 

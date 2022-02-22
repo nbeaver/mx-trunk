@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010-2011, 2015, 2018
+ * Copyright 2005-2006, 2008, 2010-2011, 2015, 2018, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -2317,6 +2317,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 
 	mx_status = mx_thread_create(
 			&(bluice_dcss_server->dcss_monitor_thread),
+			"mxn_bluice_dcss_monitor_thread",
 			mxn_bluice_dcss_monitor_thread,
 			record );
 

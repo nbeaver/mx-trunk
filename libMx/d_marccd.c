@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013-2015, 2018-2019, 2021
+ * Copyright 2008-2010, 2013-2015, 2018-2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -696,6 +696,7 @@ mxd_marccd_open( MX_RECORD *record )
 
 	mx_status = mx_thread_create(
 			&(marccd->marccd_monitor_thread),
+			"mxd_marccd_monitor_thread",
 			mxd_marccd_monitor_thread,
 			record );
 

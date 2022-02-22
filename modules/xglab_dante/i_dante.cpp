@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020-2021 Illinois Institute of Technology
+ * Copyright 2020-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1013,6 +1013,7 @@ mxi_dante_open( MX_RECORD *record )
 		MX_THREAD *filter_thread = NULL;
 
 		mx_status = mx_thread_create( &filter_thread,
+					"mxi_dante_filter_thread_fn",
 					mxi_dante_filter_thread_fn,
 					dante );
 

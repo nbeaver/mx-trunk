@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016, 2018, 2020-2021 Illinois Institute of Technology
+ * Copyright 2016, 2018, 2020-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -823,6 +823,7 @@ mxd_soft_mce_open( MX_RECORD *record )
 	/* Create the monitor thread to handle updates to 'mce->value_array'. */
 
 	mx_status = mx_thread_create( &(soft_mce->monitor_thread),
+					"mxd_soft_mce_monitor_thread_fn",
 					mxd_soft_mce_monitor_thread_fn,
 					record );
 

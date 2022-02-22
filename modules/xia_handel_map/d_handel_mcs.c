@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2019-2021 Illinois Institute of Technology
+ * Copyright 2019-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -692,6 +692,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	 */
 
 	mx_status = mx_thread_create( &(handel->monitor_thread),
+				"mxi_handel_mcs_monitor_thread_fn",
 				mxi_handel_mcs_monitor_thread_fn,
 				handel );
 

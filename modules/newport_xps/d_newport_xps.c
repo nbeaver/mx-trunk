@@ -1243,6 +1243,7 @@ mxd_newport_xps_open( MX_RECORD *record )
 	long i, j, num_motors_in_group;
 	const char *our_group_name = NULL;
 	MX_NEWPORT_XPS_MOTOR *other_newport_xps_motor = NULL;
+	char move_thread_name[MXU_THREAD_NAME_LENGTH];
 	int xps_status;
 	mx_status_type mx_status;
 
@@ -1486,8 +1487,13 @@ mxd_newport_xps_open( MX_RECORD *record )
 
 	/* Start the move thread. */
 
+	snprintf( move_thread_name, sizeof(move_thread_name),
+		"XPS %s", newport_xps_motor->record->name );
+
 	mx_status = mx_thread_create( &(newport_xps_motor->move_thread),
-					mxd_newport_xps_move_thread, motor );
+					move_thread_name,
+					mxd_newport_xps_move_thread,
+					motor );
 
 	return mx_status;
 }

@@ -23,6 +23,13 @@
 extern "C" {
 #endif
 
+#if defined(OS_LINUX)
+#  define MXU_THREAD_NAME_LENGTH	16	/* Set by TASK_COMM_LEN */
+#else
+#  define MXU_THREAD_NAME_LENGTH	40	/* To be optimistic */
+#endif
+
+
 struct mx_thread_struct {
 	long thread_exit_status;
 	void *thread_private;
@@ -50,6 +57,7 @@ MX_API mx_status_type mx_thread_build_data_structures( MX_THREAD **thread );
 MX_API mx_status_type mx_thread_free_data_structures( MX_THREAD *thread );
 
 MX_API mx_status_type mx_thread_create( MX_THREAD **thread,
+					const char *thread_name,
 					MX_THREAD_FUNCTION *thread_function,
 					void *thread_arguments );
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018-2019, 2021 Illinois Institute of Technology
+ * Copyright 2018-2019, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1212,6 +1212,7 @@ mxd_eiger_open( MX_RECORD *record )
 	/* Now create the trigger thread. */
 
 	mx_status = mx_thread_create( &(eiger->trigger_thread),
+					"mxd_eiger_trigger_thread_fn",
 					mxd_eiger_trigger_thread_fn,
 					record );
 

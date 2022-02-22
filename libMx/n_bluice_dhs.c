@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008, 2010, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2015-2016, 2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1052,6 +1052,7 @@ mxn_bluice_dhs_server_open( MX_RECORD *record )
 
 	mx_status = mx_thread_create(
 			&(bluice_dhs_server->dhs_monitor_thread),
+			"mxn_bluice_dhs_monitor_thread",
 			mxn_bluice_dhs_monitor_thread,
 			record );
 

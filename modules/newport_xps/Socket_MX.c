@@ -84,6 +84,19 @@ void mxp_newport_xps_set_comm_delay( double delay_in_seconds )
 
 /*---*/
 
+#if 1
+
+static void
+mxp_newport_xps_error_string( char sReturnString[], int iReturnStringSize,
+				long xps_error_code, const char *format, ... )
+{
+	strlcpy( sReturnString, "0,0,EndOfAPI", iReturnStringSize );
+
+	return;
+};
+
+#else
+
 static void
 mxp_newport_xps_error_string( char sReturnString[], int iReturnStringSize,
 				long xps_error_code, const char *format, ... )
@@ -119,6 +132,7 @@ mxp_newport_xps_error_string( char sReturnString[], int iReturnStringSize,
 
 	return;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2017, 2021 Illinois Institute of Technology
+ * Copyright 2012-2017, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1021,6 +1021,7 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 	 */
 
 	mx_status = mx_thread_create( &(monte_carlo_mca->event_thread),
+				"mxd_monte_carlo_mca_event_thread",
 				mxd_monte_carlo_mca_event_thread, mca );
 
 	return mx_status;

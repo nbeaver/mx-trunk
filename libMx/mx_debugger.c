@@ -1682,6 +1682,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	 */
 
 	mx_status = mx_thread_create( &spectator_thread,
+					"mxp_win32_set_watchpoint_spectator",
 					mxp_win32_set_watchpoint_spectator,
 					watchpoint );
 
@@ -1727,6 +1728,7 @@ mx_show_watchpoints( void )
 	 */
 
 	mx_status = mx_thread_create( &spectator_thread,
+					"mxp_win32_show_watchpoint_spectator",
 					mxp_win32_show_watchpoint_spectator,
 					mx_win32_get_current_thread_handle );
 
@@ -2147,6 +2149,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	/* Create the spectator thread. */
 
 	mx_status = mx_thread_create( &spectator_thread,
+					"mxp_win32_watchpoint_spectator",
 					mxp_win32_watchpoint_spectator,
 					watchpoint );
 

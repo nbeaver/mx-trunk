@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2011, 2013, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2009-2011, 2013, 2015-2016, 2018, 2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -638,6 +639,7 @@ mxd_mlfsom_trigger( MX_AREA_DETECTOR *ad )
 	/* Create a thread to run the 'mlfsom' program from. */
 
 	mx_status = mx_thread_create( &(mlfsom->mlfsom_thread),
+				"mxd_mlfsom_mlfsom_monitor_thread",
 				mxd_mlfsom_mlfsom_monitor_thread,
 				mlfsom->mlfsom_tinfo );
 

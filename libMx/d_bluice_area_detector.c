@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2013, 2016, 2018 Illinois Institute of Technology
+ * Copyright 2008-2013, 2016, 2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1236,6 +1236,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_thread_create(
 			&(bluice_area_detector->collect_thread),
+			"mxd_bluice_area_detector_collect_thread",
 			mxd_bluice_area_detector_collect_thread,
 			ad );
 

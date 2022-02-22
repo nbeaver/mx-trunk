@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2019 Illinois Institute of Technology
+ * Copyright 2015-2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1428,6 +1428,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* Create a thread to manage the reading of data from the data port. */
 
 	mx_status = mx_thread_create( &(merlin_medipix->monitor_thread),
+					"mxd_merlin_medipix_monitor_thread_fn",
 					mxd_merlin_medipix_monitor_thread_fn,
 					record );
 

@@ -62,7 +62,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010-2014, 2017, 2020-2021
+ * Copyright 2004-2007, 2010-2014, 2017, 2020-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -856,6 +856,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 #endif
 				
 	mx_status = mx_thread_create( &(vms_itimer_private->event_flag_thread),
+					"mx_interval_timer_event_flag_thread",
 					mx_interval_timer_event_flag_thread,
 					*itimer );
 	return mx_status;
@@ -1776,6 +1777,7 @@ mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 	/* Create a thread to service the signals. */
 
 	mx_status = mx_thread_create( &(posix_itimer_private->thread),
+					"mx_interval_timer_signal_thread",
 					mx_interval_timer_signal_thread,
 					itimer );
 
@@ -2418,6 +2420,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	/* Create a thread to manage the kqueue. */
 
 	mx_status = mx_thread_create( &(kqueue_itimer_private->thread),
+					"mx_interval_timer_thread",
 					mx_interval_timer_thread,
 					*itimer );
 
@@ -2989,6 +2992,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	/* Create a thread to manage the Mach timer. */
 
 	mx_status = mx_thread_create( &(mach_itimer_private->thread),
+					"mx_interval_timer_thread",
 					mx_interval_timer_thread,
 					*itimer );
 
@@ -3680,6 +3684,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	/* Create a thread to handle timer callbacks. */
 
 	mx_status = mx_thread_create( &(vxworks_wd_private->thread),
+					"mx_interval_timer_thread",
 					mx_interval_timer_thread,
 					*itimer );
 
