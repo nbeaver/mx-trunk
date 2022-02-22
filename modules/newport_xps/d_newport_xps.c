@@ -608,7 +608,7 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_MOTOR *motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	double starting_position, destination;
+	double raw_encoder_position, starting_position, destination;
 	int xps_status;
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
@@ -672,8 +672,14 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 			 * case we get ERR_PARAMETER_OUT_OF_RANGE.  If that
 			 * happens, then that will let us figure out which
 			 * controller limit we were trying to exceed.
+			 *
+			 * NOTE: We use the move thread socket to get the
+			 * position instead of mxd_newport_xps_get_position()
+			 * to avoid the possibility of deadlock with the
+			 * main thread.
 			 */
 
+#if 0
 			mx_status = mxd_newport_xps_get_position( motor );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
@@ -688,6 +694,34 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 			}
 
 			starting_position = motor->position;
+#else
+			xps_status = GroupPositionCurrentGet(
+				newport_xps_motor->move_thread_socket_id,
+				newport_xps_motor->group_name,
+				1, &raw_encoder_position );
+
+			if ( xps_status != SUCCESS ) {
+				motor->latched_status
+					|= MXSF_MTR_DEVICE_ACTION_FAILED;
+
+				(void) mxi_newport_xps_error(
+					"GroupPositionCurrentGet()",
+				newport_xps_motor, NULL,
+				newport_xps_motor->move_thread_socket_id,
+				xps_status );
+
+				break;	/* Exit the switch() statement. */
+			}
+
+			/* We deliberately do not write raw_encoder_position
+			 * to motor->raw_position.analog to prevent this
+			 * thread and the main thread from stepping on
+			 * top of each other's actions.
+			 */
+
+			starting_position = motor->offset
+				+ motor->scale * raw_encoder_position;
+#endif
 
 			destination = newport_xps_motor->command_destination;
 
