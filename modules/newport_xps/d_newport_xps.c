@@ -1558,8 +1558,6 @@ mxd_newport_xps_special_processing_setup( MX_RECORD *record )
 		case MXLV_NEWPORT_XPS_GROUP_STATUS:
 		case MXLV_NEWPORT_XPS_GROUP_STATUS_STRING:
 		case MXLV_NEWPORT_XPS_HARDWARE_STATUS:
-		case MXLV_NEWPORT_XPS_MOTOR_SOCKET_RECEIVE_TIMEOUT:
-		case MXLV_NEWPORT_XPS_MOTOR_SOCKET_SEND_TIMEOUT:
 		case MXLV_NEWPORT_XPS_PCO_CONFIG_NAME:
 		case MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE:
 		case MXLV_NEWPORT_XPS_POSITIONER_ERROR:
@@ -1594,10 +1592,6 @@ mxd_newport_xps_process_function( void *record_ptr,
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor;
 	MX_RECORD *newport_xps_record;
 	MX_NEWPORT_XPS *newport_xps;
-	struct timeval timeout;
-	socklen_t timeval_size = sizeof(struct timeval);
-	int os_status, saved_errno;
-	char error_message[200];
 	int driver_status, group_status, hardware_status, positioner_error;
 	int xps_status;
 	double numerator;
@@ -1708,54 +1702,6 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			newport_xps_motor->positioner_error = positioner_error;
 			break;
-		case MXLV_NEWPORT_XPS_MOTOR_SOCKET_RECEIVE_TIMEOUT:
-			os_status = getsockopt(
-				newport_xps_motor->move_thread_socket_id,
-					SOL_SOCKET, SO_RCVTIMEO, 
-					&timeout, &timeval_size );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_NETWORK_IO_ERROR, fname,
-				"The attempt to get SO_SNDTIMEO for the "
-				"move thread socket %d of Newport XPS motor "
-				"'%s' failed.  "
-				"errno = %d, error message = '%s'",
-				    newport_xps_motor->move_thread_socket_id,
-				    newport_xps_motor->record->name,
-				    saved_errno, mx_strerror( saved_errno,
-				    error_message, sizeof(error_message) ) );
-
-			}
-
-			newport_xps->socket_receive_timeout = 
-				timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
-			break;
-		case MXLV_NEWPORT_XPS_MOTOR_SOCKET_SEND_TIMEOUT:
-			os_status = getsockopt(
-				newport_xps_motor->move_thread_socket_id,
-					SOL_SOCKET, SO_SNDTIMEO, 
-					&timeout, &timeval_size );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_NETWORK_IO_ERROR, fname,
-				"The attempt to get SO_SNDTIMEO for the "
-				"move thread socket %d of Newport XPS motor "
-				"'%s' failed.  "
-				"errno = %d, error message = '%s'",
-				    newport_xps_motor->move_thread_socket_id,
-				    newport_xps_motor->record->name,
-				    saved_errno, mx_strerror( saved_errno,
-				    error_message, sizeof(error_message) ) );
-
-			}
-
-			newport_xps->socket_send_timeout = 
-				timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
-			break;
 		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS:
 		case MXLV_NEWPORT_XPS_USER_TRAVEL_LIMITS:
 			xps_status = PositionerUserTravelLimitsGet(
@@ -1848,60 +1794,6 @@ mxd_newport_xps_process_function( void *record_ptr,
 					newport_xps_motor->pco_config_value );
 			break;
 
-		case MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT:
-			timeout.tv_sec =
-				newport_xps_motor->socket_receive_timeout;
-			timeout.tv_usec = 1000000.0 *
-				( newport_xps_motor->socket_receive_timeout
-				- timeout.tv_sec );
-
-			os_status = setsockopt(
-				newport_xps_motor->move_thread_socket_id,
-					SOL_SOCKET, SO_RCVTIMEO, 
-					&timeout, sizeof(timeout) );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_NETWORK_IO_ERROR, fname,
-				"The attempt to set SO_SNDTIMEO for the "
-				"move thread socket %d of Newport XPS motor "
-				"'%s' failed.  "
-				"errno = %d, error message = '%s'",
-				    newport_xps_motor->move_thread_socket_id,
-				    newport_xps_motor->record->name,
-				    saved_errno, mx_strerror( saved_errno,
-				    error_message, sizeof(error_message) ) );
-
-			}
-			break;
-		case MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT:
-			timeout.tv_sec =
-				newport_xps_motor->socket_send_timeout;
-			timeout.tv_usec = 1000000.0 *
-				( newport_xps_motor->socket_send_timeout
-				- timeout.tv_sec );
-
-			os_status = setsockopt(
-				newport_xps_motor->move_thread_socket_id,
-					SOL_SOCKET, SO_SNDTIMEO, 
-					&timeout, sizeof(timeout) );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_NETWORK_IO_ERROR, fname,
-				"The attempt to set SO_SNDTIMEO for the "
-				"move thread socket %d of Newport XPS motor "
-				"'%s' failed.  "
-				"errno = %d, error message = '%s'",
-				    newport_xps_motor->move_thread_socket_id,
-				    newport_xps_motor->record->name,
-				    saved_errno, mx_strerror( saved_errno,
-				    error_message, sizeof(error_message) ) );
-
-			}
-			break;
 		case MXLV_NEWPORT_XPS_RAW_USER_TRAVEL_LIMITS:
 			xps_status = PositionerUserTravelLimitsSet(
 				newport_xps->socket_id,

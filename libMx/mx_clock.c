@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009, 2011, 2015-2018, 2021
+ * Copyright 1999-2006, 2009, 2011, 2015-2018, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -617,6 +617,21 @@ mx_compare_clock_ticks(MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2)
 #endif
 
 	return result;
+}
+
+MX_EXPORT double
+mx_clock_difference_in_seconds( MX_CLOCK_TICK clock_tick_1,
+				MX_CLOCK_TICK clock_tick_2 )
+{
+	MX_CLOCK_TICK difference_ticks;
+	double difference_seconds;
+
+	difference_ticks = mx_subtract_clock_ticks( clock_tick_1,
+							clock_tick_2 );
+	difference_seconds =
+		mx_convert_clock_ticks_to_seconds( difference_ticks );
+
+	return difference_seconds;
 }
 
 MX_EXPORT MX_CLOCK_TICK

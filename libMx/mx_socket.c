@@ -46,6 +46,7 @@
 #include "mx_stdint.h"
 #include "mx_record.h"
 #include "mx_ascii.h"
+#include "mx_clock.h"
 #include "mx_mutex.h"
 #include "mx_dynamic_library.h"
 #include "mx_circular_buffer.h"
@@ -2867,7 +2868,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		size_t *num_bytes_received,
 		void *input_terminators,
 		size_t input_terminators_length_in_bytes,
-		unsigned long receive_flags )
+		double timeout_in_seconds )
 {
 	static const char fname[] = "mx_socket_receive()";
 
@@ -2883,6 +2884,9 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	unsigned long bytes_saved, bytes_peeked_from_buffer;
 	unsigned long num_bytes_to_save, num_bytes_to_zero;
 	unsigned long socket_flags, quiet;
+	MX_CLOCK_TICK starting_clock_tick, current_clock_tick;
+	double elapsed_time_in_seconds = 0.0;
+	double timeout_left_in_seconds = -1.0;
 	mx_status_type mx_status;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
@@ -2915,6 +2919,8 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 
 	total_bytes_in_callers_buffer = 0;
 	num_terminators_seen = 0;
+
+	starting_clock_tick = mx_current_clock_tick();
 
 	while( bytes_left > 0 ) {
 
@@ -2955,6 +2961,50 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	    /* If there is room available, try reading from the socket itself.*/
 
 	    if ( bytes_left > 0 ) {
+
+		/* Have we timed out yet? */
+
+		if ( timeout_in_seconds > 0.0 ) {
+			current_clock_tick = mx_current_clock_tick();
+
+			elapsed_time_in_seconds =
+			    mx_clock_difference_in_seconds( current_clock_tick,
+							starting_clock_tick );
+
+			timeout_left_in_seconds = timeout_in_seconds
+						- elapsed_time_in_seconds;
+
+			if ( timeout_left_in_seconds > 0.0 ) {
+				return mx_error( MXE_TIMED_OUT, fname,
+				"Timed out after waiting %g seconds for "
+				"input from socket %d.",
+					timeout_in_seconds,
+					mx_socket->socket_fd );
+			}
+
+			/* If we have not timed out yet, then wait for
+			 * some more input bytes.
+			 */
+
+			mx_status = mx_socket_wait_for_event( mx_socket,
+						timeout_left_in_seconds );
+
+			/* Mask off the quiet bit before checking
+			 * the wait status.
+			 */
+
+			mx_status.code &= ~(MXE_QUIET);
+
+			/* If we timed out, or anything other errors
+			 * occurred, then we return without doing
+			 * another recv() call.
+			 */
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		/* Attempt the receive. */
 
 		bytes_received_from_socket = recv( mx_socket->socket_fd,
 					write_ptr, (int) bytes_left, 0 );
@@ -3055,11 +3105,11 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	    if ( ( input_terminators == NULL )
 	      || ( input_terminators_length_in_bytes == 0 ) )
 	    {
-		/* If we were requested to wait until the caller's buffer is
-		 * full, then we should go back to the top of the loop here.
+		/* If we were told not to timeout, then go back to the start
+		 * of the while() loop.
 		 */
 
-		if ( receive_flags & MXF_SOCKET_RECEIVE_WAIT ) {
+		if ( timeout_in_seconds < 0.0 ) {
 			continue;    /* Back to the top of the while() loop. */
 		}
 
@@ -3313,8 +3363,10 @@ mx_socket_putline( MX_SOCKET *mx_socket, char *buffer, char *line_terminators )
 }
 
 MX_EXPORT mx_status_type
-mx_socket_getline( MX_SOCKET *mx_socket, char *buffer, size_t buffer_length,
-					char *line_terminators )
+mx_socket_getline( MX_SOCKET *mx_socket,
+		char *buffer, size_t buffer_length,
+		char *line_terminators,
+		double timeout_in_seconds )
 {
 	mx_status_type mx_status;
 	size_t line_terminator_length, num_bytes_received;
@@ -3331,7 +3383,8 @@ mx_socket_getline( MX_SOCKET *mx_socket, char *buffer, size_t buffer_length,
 					buffer, buffer_length,
 					&num_bytes_received,
 					line_terminators,
-					line_terminator_length, 0 );
+					line_terminator_length,
+					timeout_in_seconds );
 
 	return mx_status;
 }

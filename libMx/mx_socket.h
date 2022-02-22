@@ -373,7 +373,7 @@ MX_API mx_status_type mx_socket_receive( MX_SOCKET *mx_socket,
 				size_t *num_bytes_received,
 				void *input_terminators,
 				size_t input_terminators_length_in_bytes,
-				unsigned long receive_flags );
+				double timeout_in_seconds );
 
 MX_API mx_status_type mx_socket_putline( MX_SOCKET *mx_socket,
 					char *buffer,
@@ -382,7 +382,8 @@ MX_API mx_status_type mx_socket_putline( MX_SOCKET *mx_socket,
 MX_API mx_status_type mx_socket_getline( MX_SOCKET *mx_socket,
 					char *buffer,
 					size_t buffer_length,
-					char *line_terminators );
+					char *line_terminators,
+					double timeout_in_seconds );
 
 MX_API mx_status_type mx_socket_num_input_bytes_available(
 					MX_SOCKET *mx_socket,

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015, 2018 Illinois Institute of Technology
+ * Copyright 2014-2015, 2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -256,7 +256,7 @@ mxd_sony_snc_open( MX_RECORD *record )
 		return mx_status;
 
 	mx_status = mx_socket_getline( sony_snc->camera_socket,
-					buffer, sizeof(buffer), "\r\n" );
+					buffer, sizeof(buffer), "\r\n", -1 );
 
 	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 

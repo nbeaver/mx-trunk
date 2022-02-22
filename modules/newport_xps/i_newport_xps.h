@@ -40,9 +40,6 @@ typedef struct {
 	/* delay before sending next command */
 	double command_delay;
 
-	double socket_send_timeout;
-	double socket_receive_timeout;
-
 	long fault;
 
 	long socket_id;
@@ -62,15 +59,13 @@ typedef struct {
 } MX_NEWPORT_XPS;
 
 #define MXLV_NEWPORT_XPS_COMMAND_DELAY			87001
-#define MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT		87002
-#define MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT		87003
-#define MXLV_NEWPORT_XPS_SOCKET_ID			87004
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87005
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87006
-#define MXLV_NEWPORT_XPS_ELAPSED_TIME			87007
-#define MXLV_NEWPORT_XPS_FIRMWARE_VERSION		87008
-#define MXLV_NEWPORT_XPS_HARDWARE_TIME			87009
-#define MXLV_NEWPORT_XPS_LIBRARY_VERSION		87010
+#define MXLV_NEWPORT_XPS_SOCKET_ID			87002
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87003
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87004
+#define MXLV_NEWPORT_XPS_ELAPSED_TIME			87005
+#define MXLV_NEWPORT_XPS_FIRMWARE_VERSION		87006
+#define MXLV_NEWPORT_XPS_HARDWARE_TIME			87007
+#define MXLV_NEWPORT_XPS_LIBRARY_VERSION		87008
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -101,16 +96,6 @@ typedef struct {
   {MXLV_NEWPORT_XPS_COMMAND_DELAY, -1, "command_delay", \
 					MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, command_delay), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT, -1, "socket_send_timeout", \
-						MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_send_timeout), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT, -1, "socket_receive_timeout", \
-						MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_receive_timeout), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "fault", MXFT_LONG, NULL, 0, {0}, \

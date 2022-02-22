@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010, 2013, 2015-2017, 2019
+ * Copyright 1999-2007, 2010, 2013, 2015-2017, 2019, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -687,7 +687,8 @@ mxi_tcp232_getline( MX_RS232 *rs232,
 
 	mx_status = mx_socket_getline( tcp232->mx_socket,
 					buffer, max_bytes_to_read,
-					rs232->read_terminator_array );
+					rs232->read_terminator_array,
+					rs232->timeout );
 
 	if ( bytes_read != NULL ) {
 		*bytes_read = strlen( buffer );

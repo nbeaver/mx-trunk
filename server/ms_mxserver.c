@@ -5848,7 +5848,7 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 	mx_status = mx_socket_getline( client_socket,
 					receive_ptr,
 					remaining_buffer_length,
-					ascii_line_terminators );
+					ascii_line_terminators, -1 );
 
 #if 0
 	MX_DEBUG(-2,("%s: mx_status.code = %lu, message_ptr = '%s'",

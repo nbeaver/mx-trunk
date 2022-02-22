@@ -402,8 +402,6 @@ mxi_newport_xps_special_processing_setup( MX_RECORD *record )
 		case MXLV_NEWPORT_XPS_FIRMWARE_VERSION:
 		case MXLV_NEWPORT_XPS_HARDWARE_TIME:
 		case MXLV_NEWPORT_XPS_LIBRARY_VERSION:
-		case MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT:
-		case MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT:
 			record_field->process_function
 					= mxi_newport_xps_process_function;
 			break;
@@ -428,10 +426,6 @@ mxi_newport_xps_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_NEWPORT_XPS *newport_xps;
-	struct timeval timeout;
-	socklen_t timeval_size = sizeof(struct timeval);
-	int os_status, saved_errno;
-	char error_message[200];
 	int xps_status, controller_status;
 	mx_status_type mx_status;
 
@@ -534,52 +528,6 @@ mxi_newport_xps_process_function( void *record_ptr,
 				GetLibraryVersion(),
 				sizeof(newport_xps->library_version) );
 			break;
-		case MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT:
-			os_status = getsockopt( newport_xps->socket_id,
-					SOL_SOCKET, SO_RCVTIMEO, 
-					&timeout, &timeval_size );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_NETWORK_IO_ERROR, fname,
-				"The attempt to get SO_SNDTIMEO for the "
-				"primary socket %ld of Newport XPS motor "
-				"controller '%s' failed.  "
-				"errno = %d, error message = '%s'",
-				    newport_xps->socket_id,
-				    newport_xps->record->name,
-				    saved_errno, mx_strerror( saved_errno,
-				    error_message, sizeof(error_message) ) );
-
-			}
-
-			newport_xps->socket_receive_timeout = 
-				timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
-			break;
-		case MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT:
-			os_status = getsockopt( newport_xps->socket_id,
-					SOL_SOCKET, SO_SNDTIMEO, 
-					&timeout, &timeval_size );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_NETWORK_IO_ERROR, fname,
-				"The attempt to get SO_SNDTIMEO for the "
-				"primary socket %ld of Newport XPS motor "
-				"controller '%s' failed.  "
-				"errno = %d, error message = '%s'",
-				    newport_xps->socket_id,
-				    newport_xps->record->name,
-				    saved_errno, mx_strerror( saved_errno,
-				    error_message, sizeof(error_message) ) );
-
-			}
-
-			newport_xps->socket_send_timeout = 
-				timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
-			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -592,56 +540,6 @@ mxi_newport_xps_process_function( void *record_ptr,
 		case MXLV_NEWPORT_XPS_COMMAND_DELAY:
 			mxp_newport_xps_set_comm_delay(
 					newport_xps->command_delay );
-			break;
-		case MXLV_NEWPORT_XPS_SOCKET_RECEIVE_TIMEOUT:
-			timeout.tv_sec = newport_xps->socket_receive_timeout;
-			timeout.tv_usec = 1000000.0 *
-				( newport_xps->socket_receive_timeout
-				- timeout.tv_sec );
-
-			os_status = setsockopt( newport_xps->socket_id,
-					SOL_SOCKET, SO_RCVTIMEO, 
-					&timeout, sizeof(timeout) );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_NETWORK_IO_ERROR, fname,
-				"The attempt to set SO_SNDTIMEO for the "
-				"primary socket %ld of Newport XPS motor "
-				"controller '%s' failed.  "
-				"errno = %d, error message = '%s'",
-				    newport_xps->socket_id,
-				    newport_xps->record->name,
-				    saved_errno, mx_strerror( saved_errno,
-				    error_message, sizeof(error_message) ) );
-
-			}
-			break;
-		case MXLV_NEWPORT_XPS_SOCKET_SEND_TIMEOUT:
-			timeout.tv_sec = newport_xps->socket_send_timeout;
-			timeout.tv_usec = 1000000.0 *
-				( newport_xps->socket_send_timeout
-				- timeout.tv_sec );
-
-			os_status = setsockopt( newport_xps->socket_id,
-					SOL_SOCKET, SO_SNDTIMEO, 
-					&timeout, sizeof(timeout) );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_NETWORK_IO_ERROR, fname,
-				"The attempt to set SO_SNDTIMEO for the "
-				"primary socket %ld of Newport XPS motor "
-				"controller '%s' failed.  "
-				"errno = %d, error message = '%s'",
-				    newport_xps->socket_id,
-				    newport_xps->record->name,
-				    saved_errno, mx_strerror( saved_errno,
-				    error_message, sizeof(error_message) ) );
-
-			}
 			break;
 		default:
 			MX_DEBUG( 1,(
