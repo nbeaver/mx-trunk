@@ -1521,8 +1521,15 @@ mxd_newport_xps_open( MX_RECORD *record )
 
 	/* Start the move thread. */
 
+#if 0
 	snprintf( move_thread_name, sizeof(move_thread_name),
 		"XPS %s", newport_xps_motor->record->name );
+#else
+	strlcpy( move_thread_name, "XPS ", sizeof(move_thread_name) );
+
+	strlcat( move_thread_name, newport_xps_motor->record->name,
+					sizeof(move_thread_name) );
+#endif
 
 	mx_status = mx_thread_create( &(newport_xps_motor->move_thread),
 					move_thread_name,
