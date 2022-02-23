@@ -2037,60 +2037,11 @@ mx_thread_create( MX_THREAD **thread,
 		}
 	}
 
-#if defined(OS_LINUX)
-	/* On Linux we can save a thread-specific ID in the file
-	 * /proc/self/task/[tid]/comm.  This is most easily done by
-	 * invoking pthread_setname_np() to do it.
-	 *
-	 * Regrettably, the task comm field has a maximum length of only
-	 * 16 bytes.  This is set by the TASK_COMM_LEN macro in the file
-	 * include/linux/sched.h in the Linux kernel source code tree.
-	 * Increasing the value, even by recompiling the kernel, is not
-	 * practical, since it forms part of the ABI exported by the
-	 * Linux kernel to user space.  In all likelihood, 16 bytes is
-	 * all we are ever going to get for this.
-	 *
-	 * There is documentation on the net that says that if you use
-	 * a name that is longer than 16 bytes, then the name will be
-	 * truncated to 16 bytes.  That is _NOT_ what actually happens,
-	 * at least on the Linux 4.9 kernel.  Instead, any attempt to
-	 * send a name that is longer than 16 bytes is silently ignored.
-	 *
-	 * Note: 'struct taskstats' in linux/taskstats.h contains an
-	 * ac_comm field that is of length TS_COMM_LEN (32).  However,
-	 * we can only get at this via a netlink socket, which is
-	 * probably more trouble than it is worth.
-	 */
+	/* Set the thread name, if possible. */
 
-	{
-		char thread_name_buffer[MXU_THREAD_NAME_LENGTH];
+	mx_status = mx_thread_set_name( *thread, thread_name );
 
-		if ( thread_name == (const char *) NULL ) {
-			snprintf( thread_name_buffer,
-				sizeof(thread_name_buffer),
-				"%#lx", thread_private->posix_thread_id );
-		} else {
-			strlcpy( thread_name_buffer, thread_name,
-					sizeof(thread_name_buffer) );
-		}
-
-		MX_DEBUG(-2,("%s: thread_name_buffer = '%s'",
-					fname, thread_name_buffer ));
-
-		status = pthread_setname_np( thread_private->posix_thread_id,
-							thread_name_buffer );
-
-		if ( status != 0 ) {
-			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"The attempt to set the name of thread %p to %s "
-			"failed.  errno = %d, error_message = '%s'",
-				&(thread_private->posix_thread_id),
-				thread_name_buffer, status, strerror( status ));
-		}
-	}
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -2844,6 +2795,155 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 
 	return buffer;
 }
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+#if defined(OS_LINUX)
+
+/* On Linux we can save a thread-specific name in /proc/self/task/[tid]/comm.
+ * This is most easily done by invoking pthread_setname_np() to do it.
+ *
+ * There is documentation on the net that says that if you use a name that
+ * is longer than 16 bytes, then the name will be truncated to 16 bytes.
+ * That is _NOT_ what actually happens, at least on the Linux 4.9 kernel.
+ * Instead, any attempt to send a name that is longer than 16 bytes is
+ * silently ignored.
+ */
+
+MX_EXPORT mx_status_type
+mx_thread_set_name( MX_THREAD *thread,
+			const char *thread_name )
+{
+	static const char fname[] = "mx_thread_set_name()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	char thread_name_buffer[MXU_THREAD_NAME_LENGTH];
+	int pthread_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( thread_name == (const char *) NULL ) {
+		snprintf( thread_name_buffer, sizeof(thread_name_buffer),
+			"%#lx", thread_private->posix_thread_id );
+	} else {
+		strlcpy( thread_name_buffer, thread_name,
+					sizeof(thread_name_buffer) );
+	}
+
+	MX_DEBUG(-2,("%s: thread_name_buffer = '%s'",
+				fname, thread_name_buffer ));
+
+	pthread_status = pthread_setname_np( thread_private->posix_thread_id,
+							thread_name_buffer );
+
+	if ( pthread_status != 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to set the name of thread %p to %s "
+		"failed.  errno = %d, error_message = '%s'",
+			&(thread_private->posix_thread_id),
+			thread_name_buffer,
+			pthread_status, strerror( pthread_status ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_MACOSX)
+
+MX_EXPORT mx_status_type
+mx_thread_get_name( MX_THREAD *thread,
+			char *thread_name,
+			size_t max_thread_name_length )
+{
+	static const char fname[] = "mx_thread_set_name()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	int pthread_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pthread_status = pthread_getname_np( thread_private->posix_thread_id,
+					thread_name, max_thread_name_length );
+
+	if ( pthread_status != 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the name of thread %p failed.  "
+		"errno = %d, error_message = '%s'",
+			&(thread_private->posix_thread_id),
+			pthread_status, strerror( pthread_status ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_thread_set_name( MX_THREAD *thread,
+			const char *thread_name )
+{
+	static const char fname[] = "mx_thread_set_name()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	int pthread_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* For macOS, you can only set the thread name for the current thread.
+	 * However, we do not want that to be an error, so we just return
+	 * if that is not the case.
+	 */
+
+	if ( thread_private->posix_thread_id != pthread_self() ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	pthread_status = pthread_setname_np( thread_name );
+
+	if ( pthread_status != 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to set the name of thread %p to %s "
+		"failed.  errno = %d, error_message = '%s'",
+			&(thread_private->posix_thread_id), thread_name,
+			pthread_status, strerror( pthread_status ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif 0
+
+MX_EXPORT mx_status_type
+mx_thread_get_name( MX_THREAD *thread,
+			char *thread_name,
+			size_t max_thread_name_length )
+{
+	if ( thread_name != NULL ) {
+		*thread_name = '\0';
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_thread_set_name( MX_THREAD *thread, const char *thread_name )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else
+#error mx_thread_get_name() and mx_thread_set_name() not yet defined for this target.
+#endif
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 

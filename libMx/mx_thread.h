@@ -104,6 +104,13 @@ MX_API unsigned long mx_get_thread_id( MX_THREAD *thread );
 
 MX_API char *mx_thread_id_string( char *buffer, size_t buffer_length );
 
+MX_API mx_status_type mx_thread_get_name( MX_THREAD *thread,
+					char *thread_name,
+					size_t max_thread_name_length );
+
+MX_API mx_status_type mx_thread_set_name( MX_THREAD *thread,
+					const char *thread_name );
+
 /*---*/
 
 /* Functions for Thread Local Storage (aka Thread Specific Data, etc.). */
