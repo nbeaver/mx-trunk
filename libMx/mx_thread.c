@@ -2811,6 +2811,36 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
  */
 
 MX_EXPORT mx_status_type
+mx_thread_get_name( MX_THREAD *thread,
+			char *thread_name,
+			size_t max_thread_name_length )
+{
+	static const char fname[] = "mx_thread_set_name()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	int pthread_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pthread_status = pthread_getname_np( thread_private->posix_thread_id,
+					thread_name, max_thread_name_length );
+
+	if ( pthread_status != 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the name of thread %p failed.  "
+		"errno = %d, error_message = '%s'",
+			&(thread_private->posix_thread_id),
+			pthread_status, strerror( pthread_status ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_thread_set_name( MX_THREAD *thread,
 			const char *thread_name )
 {
