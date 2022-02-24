@@ -434,6 +434,7 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 
 MX_EXPORT mx_status_type
 mx_thread_create( MX_THREAD **thread,
+		const char *thread_name,
 		MX_THREAD_FUNCTION *thread_function,
 		void *thread_arguments )
 {
@@ -553,7 +554,11 @@ mx_thread_create( MX_THREAD **thread,
 			thread, last_error_code, message_buffer );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Set the thread name, if available. */
+
+	mx_status = mx_thread_set_name( *thread, thread_name );
+
+	return mx_status;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -1321,6 +1326,84 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 		thread, (unsigned long) GetCurrentThreadId() );
 
 	return buffer;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_get_name( MX_THREAD *thread,
+			char *thread_name,
+			size_t max_thread_name_length )
+{
+	static const char fname[] = "mx_thread_set_name()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private = NULL;
+	wchar_t *win32_thread_name;
+	HRESULT hresult;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	hresult = GetThreadDescription( thread_private->thread_handle,
+							&win32_thread_name );
+
+	if ( hresult != 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the name of thread %p failed.  "
+		"errno = %d, error_message = '%s'",
+			&(thread_private->thread_handle),
+			hresult, strerror( hresult ));
+	}
+
+	wcstombs( thread_name, win32_thread_name, max_thread_name_length );
+
+	LocalFree( win32_thread_name );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_set_name( MX_THREAD *thread,
+			const char *thread_name )
+{
+	static const char fname[] = "mx_thread_set_name()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private = NULL;
+	wchar_t *win32_thread_name;
+	size_t wstring_length;
+	HRESULT hresult;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	wstring_length = strlen( thread_name ) + 1;
+
+	win32_thread_name = malloc( wstring_length * sizeof( wchar_t ) );
+
+	mbtowc( win32_thread_name, thread_name, wstring_length );
+
+	hresult = SetThreadDescription( thread_private->thread_handle,
+							win32_thread_name );
+
+	mx_free( win32_thread_name );
+
+	if ( hresult != 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to set the name of thread %p to %s "
+		"failed.  errno = %d, error_message = '%s'",
+			&(thread_private->thread_handle), thread_name,
+			hresult, strerror( hresult ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/

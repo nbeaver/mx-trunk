@@ -2200,7 +2200,7 @@ mx_show_watchpoints( void )
 	/* FIXME: The following does not work. */
 
 	mx_status = mx_thread_create( &spectator_thread,
-					NULL,
+					NULL, NULL,
 					mx_win32_get_current_thread_handle );
 #endif
 
