@@ -323,30 +323,17 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(double ****), sizeof(double *****), \
 	sizeof(double ******), sizeof(double *******) }
 
-#define MXA_RECORD_SIZEOF \
-	{ sizeof(MX_RECORD *), sizeof(MX_RECORD **), \
-	sizeof(MX_RECORD ***), sizeof(MX_RECORD ****), \
-	sizeof(MX_RECORD *****), sizeof(MX_RECORD ******), \
-	sizeof(MX_RECORD *******), sizeof(MX_RECORD ********) }
-
-#define MXA_INTERFACE_SIZEOF \
-	{ sizeof(MX_INTERFACE *), sizeof(MX_INTERFACE **), \
-	sizeof(MX_INTERFACE ***), sizeof(MX_INTERFACE ****), \
-	sizeof(MX_INTERFACE *****), sizeof(MX_INTERFACE ******), \
-	sizeof(MX_INTERFACE *******), sizeof(MX_INTERFACE ********) }
-
-/* NOTE: The following datatypes are only meant for use in copying
- * MXFT_LONG and MXFT_ULONG values to and from network buffers.
- *
- * If you need to directly handle values that are 32-bit or 64-bit
- * in size, then you should use instead the MXFT_INT32, MXFT_UINT32,
- * MXFT_INT64, and MXFT_UINT64 datatypes.
+/* The following defines are mostly for internal use and should not be
+ * used for new record field types.
  */
 
-#define MXA_LONG32_SIZEOF	MXA_INT32_SIZEOF
-#define MXA_ULONG32_SIZEOF	MXA_UINT32_SIZEOF
-#define MXA_LONG64_SIZEOF	MXA_INT64_SIZEOF
-#define MXA_ULONG64_SIZEOF	MXA_UINT64_SIZEOF
+#define MXA_RECORD_SIZEOF	{ sizeof(char) }
+
+#define MXA_RECORDTYPE_SIZEOF	{ sizeof(char) }
+
+#define MXA_INTERFACE_SIZEOF	{ sizeof(char) }
+
+#define MXA_RECORD_FIELD_SIZEOF	{ sizeof(char) }
 
 /* =========================================== */
 

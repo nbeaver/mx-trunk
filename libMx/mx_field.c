@@ -686,6 +686,52 @@ mx_find_record_field_defaults_index( MX_DRIVER *driver,
 
 /*=====================================================================*/
 
+static void *
+mx_get_special_field_value_pointer( MX_RECORD_FIELD *field )
+{
+	void *value_pointer = NULL;
+
+	MX_RECORD *record = NULL;
+	MX_DRIVER *driver = NULL;
+
+	record = field->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return NULL;
+	}
+
+	switch( field->datatype ) {
+	case MXFT_RECORD:
+		value_pointer = record->name;
+		break;
+	case MXFT_RECORDTYPE:
+		driver = mx_get_driver_for_record( field->record );
+
+		if ( driver == (MX_DRIVER *) NULL ) {
+			return NULL;
+		}
+
+		if ( strcmp( field->name, "mx_type" ) == 0 ) {
+			value_pointer = driver->name;
+		}
+
+		/* FIXME: Need to split out driver object detection from
+		 * mx_get_driver_class() and mx_get_driver_superclass().
+		 */
+
+		break;
+	case MXFT_INTERFACE:
+		break;
+	case MXFT_RECORD_FIELD:
+		value_pointer = field->name;
+		break;
+	}
+
+	return value_pointer;
+}
+
+/*=====================================================================*/
+
 MX_EXPORT void *
 mx_get_field_value_pointer( MX_RECORD_FIELD *field )
 {
@@ -699,12 +745,25 @@ mx_get_field_value_pointer( MX_RECORD_FIELD *field )
 		return NULL;
 	}
 
-	if ( field->flags & MXFF_VARARGS ) {
-		value_pointer = mx_read_void_pointer_from_memory_location(
+	switch( field->datatype ) {
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
+		value_pointer = mx_get_special_field_value_pointer( field );
+		break;
+
+	default:
+		if ( field->flags & MXFF_VARARGS ) {
+			value_pointer =
+				mx_read_void_pointer_from_memory_location(
 						field->data_pointer );
-	} else {
-		value_pointer = field->data_pointer;
+		} else {
+			value_pointer = field->data_pointer;
+		}
+		break;
 	}
+
 	return value_pointer;
 }
 
@@ -4125,12 +4184,16 @@ mx_get_datatype_sizeof_array( long datatype,
 							= MXA_FLOAT_SIZEOF;
 	static const size_t double_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_DOUBLE_SIZEOF;
-#if 0
+
 	static const size_t record_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_RECORD_SIZEOF;
+	static const size_t recordtype_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_RECORDTYPE_SIZEOF;
 	static const size_t interface_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_INTERFACE_SIZEOF;
-#endif
+	static const size_t record_field_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+						= MXA_RECORD_FIELD_SIZEOF;
+
 	static const size_t *local_sizeof_ptr = NULL;
 
 	size_t i, num_builtin_elements;
@@ -4193,11 +4256,18 @@ mx_get_datatype_sizeof_array( long datatype,
 	case MXFT_DOUBLE:
 		local_sizeof_ptr = double_sizeof;
 		break;
+
 	case MXFT_RECORD:
+		local_sizeof_ptr = record_sizeof;
+		break;
 	case MXFT_RECORDTYPE:
+		local_sizeof_ptr = recordtype_sizeof;
+		break;
 	case MXFT_INTERFACE:
+		local_sizeof_ptr = interface_sizeof;
+		break;
 	case MXFT_RECORD_FIELD:
-		local_sizeof_ptr = string_sizeof;
+		local_sizeof_ptr = record_field_sizeof;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
