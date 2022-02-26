@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010, 2012-2017, 2019, 2021
+ * Copyright 1999-2006, 2008-2010, 2012-2017, 2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -282,9 +282,9 @@ mx_get_driver_by_type( long mx_type )
 }
 
 MX_EXPORT MX_DRIVER *
-mx_get_driver_for_record( MX_RECORD *record )
+mx_get_driver_object( MX_RECORD *record )
 {
-	static const char fname[] = "mx_get_driver_for_record()";
+	static const char fname[] = "mx_get_driver_object()";
 
 	MX_RECORD_FIELD *field;
 	MX_DRIVER *driver;
@@ -324,7 +324,7 @@ mx_get_driver_name( MX_RECORD *record )
 {
 	MX_DRIVER *driver;
 
-	driver = mx_get_driver_for_record( record );
+	driver = mx_get_driver_object( record );
 
 	if ( driver == (MX_DRIVER *) NULL ) 
 		return NULL;
@@ -332,10 +332,10 @@ mx_get_driver_name( MX_RECORD *record )
 	return driver->name;
 }
 
-MX_EXPORT const char *
-mx_get_driver_class( MX_RECORD *record )
+MX_EXPORT MX_DRIVER *
+mx_get_driver_class_object( MX_RECORD *record )
 {
-	static const char fname[] = "mx_get_driver_class()";
+	static const char fname[] = "mx_get_driver_class_objecgt()";
 
 	MX_DRIVER *driver_class_object = NULL;
 	long driver_class_number;
@@ -363,13 +363,26 @@ mx_get_driver_class( MX_RECORD *record )
 		return NULL;
 	}
 
-	return ((const char *) driver_class_object->name );
+	return driver_class_object;
 }
 
 MX_EXPORT const char *
-mx_get_driver_superclass( MX_RECORD *record )
+mx_get_driver_class_name( MX_RECORD *record )
 {
-	static const char fname[] = "mx_get_driver_superclass()";
+	MX_DRIVER *driver_class;
+
+	driver_class = mx_get_driver_class_object( record );
+
+	if ( driver_class == (MX_DRIVER *) NULL ) 
+		return NULL;
+
+	return driver_class->name;
+}
+
+MX_EXPORT MX_DRIVER *
+mx_get_driver_superclass_object( MX_RECORD *record )
+{
+	static const char fname[] = "mx_get_driver_superclass_object()";
 
 	MX_DRIVER *driver_superclass_object = NULL;
 	long driver_superclass_number;
@@ -400,7 +413,20 @@ mx_get_driver_superclass( MX_RECORD *record )
 		return NULL;
 	}
 
-	return ((const char *) driver_superclass_object->name );
+	return driver_superclass_object;
+}
+
+MX_EXPORT const char *
+mx_get_driver_superclass_name( MX_RECORD *record )
+{
+	MX_DRIVER *driver_superclass;
+
+	driver_superclass = mx_get_driver_superclass_object( record );
+
+	if ( driver_superclass == (MX_DRIVER *) NULL ) 
+		return NULL;
+
+	return driver_superclass->name;
 }
 
 /*=====================================================================*/

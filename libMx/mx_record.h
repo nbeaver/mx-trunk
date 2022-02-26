@@ -593,10 +593,13 @@ MX_API mx_bool_type mx_verify_driver_type( MX_RECORD *record,
 MX_API MX_DRIVER *mx_get_driver_by_name( char *name );
 MX_API MX_DRIVER *mx_get_driver_by_type( long record_type );
 
-MX_API MX_DRIVER *mx_get_driver_for_record( MX_RECORD *record );
+MX_API MX_DRIVER *mx_get_driver_object( MX_RECORD *record );
+MX_API MX_DRIVER *mx_get_driver_class_object( MX_RECORD *record );
+MX_API MX_DRIVER *mx_get_driver_superclass_object( MX_RECORD *record );
+
 MX_API const char *mx_get_driver_name( MX_RECORD *record );
-MX_API const char *mx_get_driver_class( MX_RECORD *record );
-MX_API const char *mx_get_driver_superclass( MX_RECORD *record );
+MX_API const char *mx_get_driver_class_name( MX_RECORD *record );
+MX_API const char *mx_get_driver_superclass_name( MX_RECORD *record );
 
 MX_API MX_DRIVER *mx_get_superclass_driver_by_name( char *name );
 MX_API MX_DRIVER *mx_get_class_driver_by_name( char *name );

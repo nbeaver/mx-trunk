@@ -689,6 +689,8 @@ mx_find_record_field_defaults_index( MX_DRIVER *driver,
 static void *
 mx_get_special_field_value_pointer( MX_RECORD_FIELD *field )
 {
+	static const char fname[] = "mx_get_special_field_value_pointer()";
+
 	void *value_pointer = NULL;
 
 	MX_RECORD *record = NULL;
@@ -705,25 +707,50 @@ mx_get_special_field_value_pointer( MX_RECORD_FIELD *field )
 		value_pointer = record->name;
 		break;
 	case MXFT_RECORDTYPE:
-		driver = mx_get_driver_for_record( field->record );
+
+		if ( strcmp( field->name, "mx_type" ) == 0 ) {
+			driver = mx_get_driver_object( field->record );
+		} else
+		if ( strcmp( field->name, "mx_class" ) == 0 ) {
+			driver = mx_get_driver_class_object( field->record );
+		} else
+		if ( strcmp( field->name, "mx_superclass" ) == 0 ) {
+			driver = mx_get_driver_superclass_object(
+							field->record );
+		} else {
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"'%s' is not a valid field name for a driver class.",
+				field->name );
+
+			return NULL;
+		}
 
 		if ( driver == (MX_DRIVER *) NULL ) {
 			return NULL;
 		}
 
-		if ( strcmp( field->name, "mx_type" ) == 0 ) {
-			value_pointer = driver->name;
-		}
-
-		/* FIXME: Need to split out driver object detection from
-		 * mx_get_driver_class() and mx_get_driver_superclass().
-		 */
-
+		value_pointer = driver->name;
 		break;
 	case MXFT_INTERFACE:
+		/* FIXME: Figure out how to implement this, although it
+		 * is not likely to ever be needed.
+		 */
+
+		(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"MXFT_INTERFACE field '%s.%s' is not yet supported.",
+			field->record->name, field->name );
+
+		return NULL;
 		break;
 	case MXFT_RECORD_FIELD:
 		value_pointer = field->name;
+		break;
+	default:
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"MX datatype %ld is not a valid special datatype.",
+			field->datatype );
+
+		return NULL;
 		break;
 	}
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2016, 2020 Illinois Institute of Technology
+ * Copyright 2006-2016, 2020, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -222,7 +222,7 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 			"actually of MX class '%s'.",
 				record->name,
 				trigger_record->name,
-				mx_get_driver_class( trigger_record ) );
+				mx_get_driver_class_name( trigger_record ) );
 		}
 
 		soft_area_detector->trigger_record = trigger_record;
