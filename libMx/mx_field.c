@@ -686,6 +686,7 @@ mx_find_record_field_defaults_index( MX_DRIVER *driver,
 
 /*=====================================================================*/
 
+#if 1
 static void *
 mx_get_special_field_value_pointer( MX_RECORD_FIELD *field )
 {
@@ -756,6 +757,7 @@ mx_get_special_field_value_pointer( MX_RECORD_FIELD *field )
 
 	return value_pointer;
 }
+#endif
 
 /*=====================================================================*/
 
@@ -773,12 +775,14 @@ mx_get_field_value_pointer( MX_RECORD_FIELD *field )
 	}
 
 	switch( field->datatype ) {
+#if 1
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
 		value_pointer = mx_get_special_field_value_pointer( field );
 		break;
+#endif
 
 	default:
 		if ( field->flags & MXFF_VARARGS ) {
