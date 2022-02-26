@@ -10,8 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015, 2018-2019,
- *      2021-2022
+ * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015, 2018-2019, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -840,7 +839,7 @@ mxd_epics_motor_simultaneous_start( long num_motor_records,
 
 	/* Get the driver type for the first motor. */
 
-	our_driver = mx_get_driver_object( motor_record_array[0] );
+	our_driver = mx_get_driver_for_record( motor_record_array[0] );
 
 	if ( our_driver == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,

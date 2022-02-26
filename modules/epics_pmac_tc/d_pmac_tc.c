@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006, 2008-2011, 2014, 2021-2022
+ * Copyright 1999-2001, 2003-2004, 2006, 2008-2011, 2014, 2021
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -171,7 +171,7 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 	strlcpy( record->network_type_name, "epics",
 				MXU_NETWORK_TYPE_NAME_LENGTH );
 
-	driver = mx_get_driver_object( record );
+	driver = mx_get_driver_for_record( record );
 
 	if ( driver == (MX_DRIVER *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,

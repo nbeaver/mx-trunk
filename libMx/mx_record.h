@@ -275,17 +275,17 @@ typedef struct {
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY \
 	 	| MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
-  {-1, -1, "mx_superclass", MXFT_RECORDTYPE, NULL, 1, {MXU_DRIVER_NAME_LENGTH}, \
+  {-1, -1, "mx_superclass", MXFT_RECORDTYPE, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, mx_superclass), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY \
 			| MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "mx_class", MXFT_RECORDTYPE, NULL, 1, {MXU_DRIVER_NAME_LENGTH}, \
+  {-1, -1, "mx_class", MXFT_RECORDTYPE, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, mx_class), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY \
 			| MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "mx_type", MXFT_RECORDTYPE, NULL, 1, {MXU_DRIVER_NAME_LENGTH}, \
+  {-1, -1, "mx_type", MXFT_RECORDTYPE, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, mx_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY \
 			| MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)},\
@@ -593,13 +593,10 @@ MX_API mx_bool_type mx_verify_driver_type( MX_RECORD *record,
 MX_API MX_DRIVER *mx_get_driver_by_name( char *name );
 MX_API MX_DRIVER *mx_get_driver_by_type( long record_type );
 
-MX_API MX_DRIVER *mx_get_driver_object( MX_RECORD *record );
-MX_API MX_DRIVER *mx_get_driver_class_object( MX_RECORD *record );
-MX_API MX_DRIVER *mx_get_driver_superclass_object( MX_RECORD *record );
-
+MX_API MX_DRIVER *mx_get_driver_for_record( MX_RECORD *record );
 MX_API const char *mx_get_driver_name( MX_RECORD *record );
-MX_API const char *mx_get_driver_class_name( MX_RECORD *record );
-MX_API const char *mx_get_driver_superclass_name( MX_RECORD *record );
+MX_API const char *mx_get_driver_class( MX_RECORD *record );
+MX_API const char *mx_get_driver_superclass( MX_RECORD *record );
 
 MX_API MX_DRIVER *mx_get_superclass_driver_by_name( char *name );
 MX_API MX_DRIVER *mx_get_class_driver_by_name( char *name );

@@ -686,81 +686,6 @@ mx_find_record_field_defaults_index( MX_DRIVER *driver,
 
 /*=====================================================================*/
 
-#if 1
-static void *
-mx_get_special_field_value_pointer( MX_RECORD_FIELD *field )
-{
-	static const char fname[] = "mx_get_special_field_value_pointer()";
-
-	void *value_pointer = NULL;
-
-	MX_RECORD *record = NULL;
-	MX_DRIVER *driver = NULL;
-
-	record = field->record;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return NULL;
-	}
-
-	switch( field->datatype ) {
-	case MXFT_RECORD:
-		value_pointer = record->name;
-		break;
-	case MXFT_RECORDTYPE:
-
-		if ( strcmp( field->name, "mx_type" ) == 0 ) {
-			driver = mx_get_driver_object( field->record );
-		} else
-		if ( strcmp( field->name, "mx_class" ) == 0 ) {
-			driver = mx_get_driver_class_object( field->record );
-		} else
-		if ( strcmp( field->name, "mx_superclass" ) == 0 ) {
-			driver = mx_get_driver_superclass_object(
-							field->record );
-		} else {
-			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"'%s' is not a valid field name for a driver class.",
-				field->name );
-
-			return NULL;
-		}
-
-		if ( driver == (MX_DRIVER *) NULL ) {
-			return NULL;
-		}
-
-		value_pointer = driver->name;
-		break;
-	case MXFT_INTERFACE:
-		/* FIXME: Figure out how to implement this, although it
-		 * is not likely to ever be needed.
-		 */
-
-		(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"MXFT_INTERFACE field '%s.%s' is not yet supported.",
-			field->record->name, field->name );
-
-		return NULL;
-		break;
-	case MXFT_RECORD_FIELD:
-		value_pointer = field->name;
-		break;
-	default:
-		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"MX datatype %ld is not a valid special datatype.",
-			field->datatype );
-
-		return NULL;
-		break;
-	}
-
-	return value_pointer;
-}
-#endif
-
-/*=====================================================================*/
-
 MX_EXPORT void *
 mx_get_field_value_pointer( MX_RECORD_FIELD *field )
 {
@@ -774,27 +699,12 @@ mx_get_field_value_pointer( MX_RECORD_FIELD *field )
 		return NULL;
 	}
 
-	switch( field->datatype ) {
-#if 1
-	case MXFT_RECORD:
-	case MXFT_RECORDTYPE:
-	case MXFT_INTERFACE:
-	case MXFT_RECORD_FIELD:
-		value_pointer = mx_get_special_field_value_pointer( field );
-		break;
-#endif
-
-	default:
-		if ( field->flags & MXFF_VARARGS ) {
-			value_pointer =
-				mx_read_void_pointer_from_memory_location(
+	if ( field->flags & MXFF_VARARGS ) {
+		value_pointer = mx_read_void_pointer_from_memory_location(
 						field->data_pointer );
-		} else {
-			value_pointer = field->data_pointer;
-		}
-		break;
+	} else {
+		value_pointer = field->data_pointer;
 	}
-
 	return value_pointer;
 }
 
@@ -4215,16 +4125,12 @@ mx_get_datatype_sizeof_array( long datatype,
 							= MXA_FLOAT_SIZEOF;
 	static const size_t double_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_DOUBLE_SIZEOF;
-
+#if 0
 	static const size_t record_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_RECORD_SIZEOF;
-	static const size_t recordtype_sizeof[MXU_FIELD_MAX_DIMENSIONS]
-							= MXA_RECORDTYPE_SIZEOF;
 	static const size_t interface_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_INTERFACE_SIZEOF;
-	static const size_t record_field_sizeof[MXU_FIELD_MAX_DIMENSIONS]
-						= MXA_RECORD_FIELD_SIZEOF;
-
+#endif
 	static const size_t *local_sizeof_ptr = NULL;
 
 	size_t i, num_builtin_elements;
@@ -4287,18 +4193,11 @@ mx_get_datatype_sizeof_array( long datatype,
 	case MXFT_DOUBLE:
 		local_sizeof_ptr = double_sizeof;
 		break;
-
 	case MXFT_RECORD:
-		local_sizeof_ptr = record_sizeof;
-		break;
 	case MXFT_RECORDTYPE:
-		local_sizeof_ptr = recordtype_sizeof;
-		break;
 	case MXFT_INTERFACE:
-		local_sizeof_ptr = interface_sizeof;
-		break;
 	case MXFT_RECORD_FIELD:
-		local_sizeof_ptr = record_field_sizeof;
+		local_sizeof_ptr = string_sizeof;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008-2012, 2014-2015, 2017, 2019-2020, 2022
+ * Copyright 2002-2003, 2006, 2008-2012, 2014-2015, 2017, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -237,7 +237,7 @@ mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 
 	/* Get the driver type for our driver. */
 
-	our_driver = mx_get_driver_object( record );
+	our_driver = mx_get_driver_for_record( record );
 
 	if ( our_driver == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
