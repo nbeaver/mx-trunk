@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -359,7 +359,7 @@ mx_dictionary_entry_create_from_description(
 	 */
 
 	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
-			mx_datatype, num_dimensions, dimension_array,
+			NULL, mx_datatype, num_dimensions, dimension_array,
 			data_element_size, &(dictionary_entry_ptr->value) );
 
 	if ( mx_status.code != MXE_SUCCESS )

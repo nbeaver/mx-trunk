@@ -27,6 +27,8 @@
 
 #define MXF_NEWPORT_XPS_DEBUG_XPS_SOCKET	0x1
 
+#define MXF_NEWPORT_XPS_SHOW_OPEN		0x1000
+
 typedef struct {
 	MX_RECORD *record;
 

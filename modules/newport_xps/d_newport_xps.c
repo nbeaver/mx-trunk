@@ -609,8 +609,9 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 	MX_MOTOR *motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
 	double raw_encoder_position, starting_position, destination;
+	mx_bool_type debug_move = FALSE;
 	int xps_status;
-	unsigned long mx_status_code;
+	unsigned long flags, mx_status_code;
 	mx_status_type mx_status;
 
 	if ( thread_argument == NULL ) {
@@ -666,6 +667,14 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 			newport_xps_motor->command_type,
 			newport_xps_motor->command_destination));
 #endif
+		flags = newport_xps_motor->newport_xps_motor_flags;
+
+		if ( flags & MXF_NEWPORT_XPS_MOTOR_DEBUG_MOVE ) {
+			debug_move = TRUE;
+		} else {
+			debug_move = FALSE;
+		}
+
 		switch( newport_xps_motor->command_type ) {
 		case MXT_NEWPORT_XPS_GROUP_MOVE_ABSOLUTE:
 			/* Get the current position of the motor, just in
@@ -679,22 +688,6 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 			 * main thread.
 			 */
 
-#if 0
-			mx_status = mxd_newport_xps_get_position( motor );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				motor->latched_status
-					|= MXSF_MTR_DEVICE_ACTION_FAILED;
-
-				/* If we cannot get the motor's current
-				 * position, then we will not attempt
-				 * to make the move.
-				 */
-				break;
-			}
-
-			starting_position = motor->position;
-#else
 			xps_status = GroupPositionCurrentGet(
 				newport_xps_motor->move_thread_socket_id,
 				newport_xps_motor->group_name,
@@ -721,17 +714,18 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 
 			starting_position = motor->offset
 				+ motor->scale * raw_encoder_position;
-#endif
 
 			destination = newport_xps_motor->command_destination;
 
-			MX_DEBUG(-2,
+			if ( debug_move ) {
+				MX_DEBUG(-2,
 ("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
-			MX_DEBUG(-2,
+				MX_DEBUG(-2,
 			("%s: About to call GroupMoveAbsolute( %d, %s, 1, %g )",
 				fname, newport_xps_motor->move_thread_socket_id,
 				newport_xps_motor->positioner_name,
 				newport_xps_motor->command_destination));
+			}
 
 			xps_status = GroupMoveAbsolute(
 				newport_xps_motor->move_thread_socket_id,
@@ -739,11 +733,13 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 				1,
 				&(newport_xps_motor->command_destination) );
 
-			MX_DEBUG(-2,
+			if ( debug_move ) {
+				MX_DEBUG(-2,
 		("%s: Returned from GroupMoveAbsolute(), xps_status = %d",
 				fname, xps_status));
-			MX_DEBUG(-2,
+				MX_DEBUG(-2,
 ("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
+			}
 
 			switch( xps_status ) {
 			case SUCCESS:

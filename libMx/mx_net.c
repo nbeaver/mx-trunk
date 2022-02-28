@@ -3372,7 +3372,7 @@ mx_network_dump_value( uint32_t *uint32_value_ptr,
 	}
 
 	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
-				value_datatype, 1, &num_items_in_value,
+				NULL, value_datatype, 1, &num_items_in_value,
 				datatype_sizeof_array, uint32_value_ptr );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -4590,6 +4590,7 @@ mx_internal_get_array( MX_RECORD *server_record,
 	static const char fname[] = "mx_internal_get_array()";
 
 	MX_RECORD_FIELD local_temp_record_field;
+	MX_DRIVER driver;
 	long *dimension_array;
 	long local_dimension_array[MXU_FIELD_MAX_DIMENSIONS];
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
@@ -4607,6 +4608,9 @@ mx_internal_get_array( MX_RECORD *server_record,
 			num_dimensions );
 	}
 
+	memset( &local_temp_record_field, 0, sizeof(MX_RECORD_FIELD) );
+	memset( &driver, 0, sizeof(MX_DRIVER) );
+
 	/* Setting the first element of data_element_size to be zero causes
 	 * mx_construct_temp_record_field() to use a default data element
 	 * size array.
@@ -4619,7 +4623,7 @@ mx_internal_get_array( MX_RECORD *server_record,
 	 */
 
 	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
-			datatype, num_dimensions, dimension_array,
+			&driver, datatype, num_dimensions, dimension_array,
 			data_element_size, value_ptr );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -4650,6 +4654,7 @@ mx_internal_put_array( MX_RECORD *server_record,
 	static const char fname[] = "mx_internal_put_array()";
 
 	MX_RECORD_FIELD local_temp_record_field;
+	MX_DRIVER driver;
 	long *dimension_array;
 	long local_dimension_array[MXU_FIELD_MAX_DIMENSIONS];
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
@@ -4679,7 +4684,7 @@ mx_internal_put_array( MX_RECORD *server_record,
 	 */
 
 	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
-			datatype, num_dimensions, dimension_array,
+			&driver, datatype, num_dimensions, dimension_array,
 			data_element_size, value_ptr );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -5179,11 +5184,18 @@ mx_get_field_array( MX_RECORD *server_record,
 	/************ Parse the data that was returned. ***************/
 
 	switch( datatype ) {
+		/* The following special datatypes are treated specially
+		 * by the server, so we must treat them specially in
+		 * the client.
+		 */
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
 		datatype = MXFT_STRING;
+		num_dimensions = 1;
+		dimension_array[0] = message_length;
+		data_element_size_array[0] = sizeof( char );
 	}
 
 	switch( server->data_format ) {

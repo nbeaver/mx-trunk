@@ -2568,6 +2568,7 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 
 	if ( num_dimensions == 1 ) {
 
+#if 0
 		switch( mx_datatype ) {
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
@@ -2576,6 +2577,7 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 			dimension_array[0] = 1;
 			break;
 		}
+#endif
 
 		native_bytes_to_copy = dimension_array[0]
 				* mx_get_scalar_element_size( mx_datatype,

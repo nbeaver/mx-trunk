@@ -1993,9 +1993,15 @@ mx_construct_recordtype_field( void *dataptr,
 	driver = (MX_DRIVER *)(record_field->typeinfo);
 
 	if ( driver == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Field '%s' in record '%s' has a NULL typeinfo entry.",
-			record_field->name, record->name );
+		if ( record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Field '%s' has a NULL typeinfo entry.",
+				record_field->name );
+		} else {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Field '%s' in record '%s' has a NULL typeinfo entry.",
+				record_field->name, record->name );
+		}
 	}
 
 	snprintf( token_buffer, token_buffer_length,
@@ -4228,6 +4234,7 @@ mx_get_datatype_sizeof_array( long datatype,
 
 MX_EXPORT mx_status_type
 mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
+			void *typeinfo_ptr,
 			long datatype,
 			long num_dimensions,
 			long *dimension,
@@ -4260,7 +4267,7 @@ mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 	temp_record_field->field_number = 0;
 	temp_record_field->name = temp_field_name;
 	temp_record_field->datatype = datatype;
-	temp_record_field->typeinfo = NULL;
+	temp_record_field->typeinfo = typeinfo_ptr;
 	temp_record_field->num_dimensions = num_dimensions;
 	temp_record_field->dimension = dimension;
 	temp_record_field->data_element_size = data_element_size;

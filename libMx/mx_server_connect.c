@@ -415,6 +415,7 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 #endif
 
 	mx_status = mx_initialize_temp_record_field( local_field,
+							NULL,
 							datatype,
 							num_dimensions,
 							dimension_array,

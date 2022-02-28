@@ -14,9 +14,7 @@
  *
  */
 
-#define MXI_NEWPORT_XPS_DEBUG			TRUE
-
-#define MXI_NEWPORT_XPS_FIND_MOTOR_RECORDS	TRUE
+#define MXI_NEWPORT_XPS_FIND_MOTOR_RECORDS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -236,16 +234,15 @@ mxi_newport_xps_open( MX_RECORD *record )
 	static const char fname[] = "mxi_newport_xps_open()";
 
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	mx_bool_type show_open = FALSE;
 	mx_status_type mx_status;
 
-#if MXI_NEWPORT_XPS_DEBUG
 	int xps_status;
 	int controller_status_code;
 	char controller_status_string[200];
 	char firmware_version[200];
 	char hardware_date_and_time[200];
 	double elapsed_seconds_since_power_on;
-#endif
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -260,6 +257,12 @@ mxi_newport_xps_open( MX_RECORD *record )
 			record->name );
 	}
 
+	if ( newport_xps->newport_xps_flags & MXF_NEWPORT_XPS_SHOW_OPEN ) {
+		show_open = TRUE;
+	} else {
+		show_open = FALSE;
+	}
+
 	/* Set the initial value for the minimum delay between XPS commands. */
 
 	mx_status = mx_process_record_field_by_name( record,
@@ -269,9 +272,9 @@ mxi_newport_xps_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NEWPORT_XPS_DEBUG
-	MX_DEBUG(-2,("%s: '%s'", fname, GetLibraryVersion() ));
-#endif
+	if ( show_open ) {
+		MX_DEBUG(-2,("%s: '%s'", fname, GetLibraryVersion() ));
+	}
 
 	/*** Connect to the Newport XPS controller. ***/
 
@@ -280,10 +283,10 @@ mxi_newport_xps_open( MX_RECORD *record )
 					newport_xps->port_number,
 					newport_xps->timeout );
 
-#if MXI_NEWPORT_XPS_DEBUG
-	MX_DEBUG(-2,("%s: newport_xps->socket_id = %ld",
-			fname, newport_xps->socket_id));
-#endif
+	if ( show_open ) {
+		MX_DEBUG(-2,("%s: newport_xps->socket_id = %ld",
+					fname, newport_xps->socket_id));
+	}
 
 	if ( newport_xps->socket_id < 0 ) {
 		newport_xps->connected_to_controller = FALSE;
@@ -313,68 +316,78 @@ mxi_newport_xps_open( MX_RECORD *record )
 		return mx_status;
 #endif
 
-#if MXI_NEWPORT_XPS_DEBUG
+	if ( show_open ) {
 
-	/*** Display some information about the controller's configuration. ***/
+		/* Display some information about the configuration of
+		 * the Newport XPS controller.
+		 */
 
-	xps_status = FirmwareVersionGet( newport_xps->socket_id,
-					firmware_version );
+		xps_status = FirmwareVersionGet( newport_xps->socket_id,
+						firmware_version );
 
-	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( "FirmwareVersionGet()",
-			NULL, newport_xps, newport_xps->socket_id, xps_status );
-	}
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( "FirmwareVersionGet()",
+				NULL, newport_xps, newport_xps->socket_id,
+				xps_status );
+		}
 
-	MX_DEBUG(-2,("%s: firmware version = '%s'", fname, firmware_version));
+		MX_DEBUG(-2,("%s: firmware version = '%s'",
+					fname, firmware_version));
 
-	/*---*/
+		/*---*/
 
-	xps_status = ElapsedTimeGet( newport_xps->socket_id,
+		xps_status = ElapsedTimeGet( newport_xps->socket_id,
 					&elapsed_seconds_since_power_on );
 
-	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( "ElapsedTimeGet()",
-			NULL, newport_xps, newport_xps->socket_id, xps_status );
-	}
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( "ElapsedTimeGet()",
+				NULL, newport_xps, newport_xps->socket_id,
+				xps_status );
+		}
 
-	MX_DEBUG(-2,("%s: %f seconds since power on.",
-		fname, elapsed_seconds_since_power_on));
+		MX_DEBUG(-2,("%s: %f seconds since power on.",
+			fname, elapsed_seconds_since_power_on));
 
-	/*---*/
+		/*---*/
 
-	xps_status = HardwareDateAndTimeGet( newport_xps->socket_id,
-					hardware_date_and_time );
+		xps_status = HardwareDateAndTimeGet( newport_xps->socket_id,
+						hardware_date_and_time );
 
-	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( "HardwareDateAndTimeGet()",
-			NULL, newport_xps, newport_xps->socket_id, xps_status );
-	}
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error("HardwareDateAndTimeGet()",
+				NULL, newport_xps, newport_xps->socket_id,
+				xps_status );
+		}
 
-	MX_DEBUG(-2,("%s: hardware date and time = '%s'",
-		fname, hardware_date_and_time ));
+		MX_DEBUG(-2,("%s: hardware date and time = '%s'",
+			fname, hardware_date_and_time ));
 
-	/*---*/
+		/*---*/
 
-	xps_status = ControllerStatusGet( newport_xps->socket_id,
-					&controller_status_code );
+		xps_status = ControllerStatusGet( newport_xps->socket_id,
+						&controller_status_code );
 
-	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( "ControllerStatusGet()",
-			NULL, newport_xps, newport_xps->socket_id, xps_status );
-	}
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( "ControllerStatusGet()",
+				NULL, newport_xps, newport_xps->socket_id,
+				xps_status );
+		}
 
-	xps_status = ControllerStatusStringGet( newport_xps->socket_id,
+		xps_status = ControllerStatusStringGet( newport_xps->socket_id,
 						controller_status_code,
 						controller_status_string );
 
-	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( "ControllerStatusStringGet()",
-			NULL, newport_xps, newport_xps->socket_id, xps_status );
-	}
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error(
+				"ControllerStatusStringGet()",
+				NULL, newport_xps, newport_xps->socket_id,
+				xps_status );
+		}
 
-	MX_DEBUG(-2,("%s: controller status = %d, '%s'",
-		fname, controller_status_code, controller_status_string));
-#endif
+		MX_DEBUG(-2,("%s: controller status = %d, '%s'",
+			fname, controller_status_code,
+			controller_status_string));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

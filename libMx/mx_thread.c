@@ -1335,7 +1335,7 @@ mx_thread_get_name( MX_THREAD *thread,
 			char *thread_name,
 			size_t max_thread_name_length )
 {
-	static const char fname[] = "mx_thread_set_name()";
+	static const char fname[] = "mx_thread_get_name()";
 
 	MX_WIN32_THREAD_PRIVATE *thread_private = NULL;
 	wchar_t *win32_thread_name;
@@ -2898,7 +2898,7 @@ mx_thread_get_name( MX_THREAD *thread,
 			char *thread_name,
 			size_t max_thread_name_length )
 {
-	static const char fname[] = "mx_thread_set_name()";
+	static const char fname[] = "mx_thread_get_name()";
 
 	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
 	int pthread_status;
@@ -2947,8 +2947,10 @@ mx_thread_set_name( MX_THREAD *thread,
 					sizeof(thread_name_buffer) );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: thread_name_buffer = '%s'",
 				fname, thread_name_buffer ));
+#endif
 
 	pthread_status = pthread_setname_np( thread_private->posix_thread_id,
 							thread_name_buffer );
