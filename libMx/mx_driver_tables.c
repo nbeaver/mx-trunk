@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010, 2012-2017, 2019, 2021
+ * Copyright 1999-2006, 2008-2010, 2012-2017, 2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -282,9 +282,9 @@ mx_get_driver_by_type( long mx_type )
 }
 
 MX_EXPORT MX_DRIVER *
-mx_get_driver_for_record( MX_RECORD *record )
+mx_get_driver_object( MX_RECORD *record )
 {
-	static const char fname[] = "mx_get_driver_for_record()";
+	static const char fname[] = "mx_get_driver_object()";
 
 	MX_RECORD_FIELD *field;
 	MX_DRIVER *driver;
@@ -319,12 +319,89 @@ mx_get_driver_for_record( MX_RECORD *record )
 	return driver;
 }
 
+MX_EXPORT MX_DRIVER *
+mx_get_driver_class_object( MX_RECORD *record )
+{
+	static const char fname[] = "mx_get_driver_class_object()";
+
+	MX_RECORD_FIELD *field;
+	MX_DRIVER *driver;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+
+		return NULL;
+	}
+
+	field = mx_get_record_field( record, "mx_class" );
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Record '%s' does not have a 'mx_class' field.", record->name );
+
+		return NULL;
+	}
+
+	driver = (MX_DRIVER *) field->typeinfo;
+
+	if ( driver == (MX_DRIVER *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Record '%s' does not appear to have a device driver.  "
+		"This should be impossible for a running database!", 
+			record->name );
+
+		return NULL;
+	}
+
+	return driver;
+}
+
+MX_EXPORT MX_DRIVER *
+mx_get_driver_superclass_object( MX_RECORD *record )
+{
+	static const char fname[] = "mx_get_driver_superclass_object()";
+
+	MX_RECORD_FIELD *field;
+	MX_DRIVER *driver;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+
+		return NULL;
+	}
+
+	field = mx_get_record_field( record, "mx_superclass" );
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Record '%s' does not have a 'mx_superclass' field.",
+		record->name );
+
+		return NULL;
+	}
+
+	driver = (MX_DRIVER *) field->typeinfo;
+
+	if ( driver == (MX_DRIVER *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Record '%s' does not appear to have a device driver.  "
+		"This should be impossible for a running database!", 
+			record->name );
+
+		return NULL;
+	}
+
+	return driver;
+}
+
 MX_EXPORT const char *
 mx_get_driver_name( MX_RECORD *record )
 {
 	MX_DRIVER *driver;
 
-	driver = mx_get_driver_for_record( record );
+	driver = mx_get_driver_object( record );
 
 	if ( driver == (MX_DRIVER *) NULL ) 
 		return NULL;
@@ -333,74 +410,29 @@ mx_get_driver_name( MX_RECORD *record )
 }
 
 MX_EXPORT const char *
-mx_get_driver_class( MX_RECORD *record )
+mx_get_driver_class_name( MX_RECORD *record )
 {
-	static const char fname[] = "mx_get_driver_class()";
+	MX_DRIVER *driver;
 
-	MX_DRIVER *driver_class_object = NULL;
-	long driver_class_number;
-	size_t i, num_driver_classes;
+	driver = mx_get_driver_class_object( record );
 
-	driver_class_number = record->mx_class;
-
-	/* Walk through the class table looking for this driver. */
-
-	num_driver_classes = sizeof(mx_class_table) / sizeof(mx_class_table[0]);
-
-	for ( i = 0; i < num_driver_classes; i++ ) {
-		driver_class_object = &(mx_class_table[i]);
-
-		if ( driver_class_number == driver_class_object->mx_class ) {
-			break;
-		}
-	}
-
-	if ( i >= num_driver_classes ) {
-		(void) mx_error( MXE_NOT_FOUND, fname,
-		"The MX driver class was not found for record '%s'.  "
-		"This should never happen!", record->name );
-
+	if ( driver == (MX_DRIVER *) NULL ) 
 		return NULL;
-	}
 
-	return ((const char *) driver_class_object->name );
+	return driver->name;
 }
 
 MX_EXPORT const char *
-mx_get_driver_superclass( MX_RECORD *record )
+mx_get_driver_superclass_name( MX_RECORD *record )
 {
-	static const char fname[] = "mx_get_driver_superclass()";
+	MX_DRIVER *driver;
 
-	MX_DRIVER *driver_superclass_object = NULL;
-	long driver_superclass_number;
-	size_t i, num_driver_superclasses;
+	driver = mx_get_driver_superclass_object( record );
 
-	driver_superclass_number = record->mx_superclass;
-
-	/* Walk through the superclass table looking for this driver. */
-
-	num_driver_superclasses = sizeof(mx_superclass_table)
-					/ sizeof(mx_superclass_table[0]);
-
-	for ( i = 0; i < num_driver_superclasses; i++ ) {
-		driver_superclass_object = &(mx_superclass_table[i]);
-
-		if ( driver_superclass_number ==
-			driver_superclass_object->mx_superclass )
-		{
-			break;
-		}
-	}
-
-	if ( i >= num_driver_superclasses ) {
-		(void) mx_error( MXE_NOT_FOUND, fname,
-		"The MX driver superclass was not found for record '%s'.  "
-		"This should never happen!", record->name );
-
+	if ( driver == (MX_DRIVER *) NULL ) 
 		return NULL;
-	}
 
-	return ((const char *) driver_superclass_object->name );
+	return driver->name;
 }
 
 /*=====================================================================*/
