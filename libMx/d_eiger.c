@@ -1213,7 +1213,7 @@ mxd_eiger_open( MX_RECORD *record )
 	/* Now create the trigger thread. */
 
 	snprintf( thread_name, sizeof(thread_name),
-		"Eiger %s", record->name );
+		"TRG %s", record->name );
 
 	mx_status = mx_thread_create( &(eiger->trigger_thread),
 					thread_name,

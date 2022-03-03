@@ -693,7 +693,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	 */
 
 	snprintf( thread_name, sizeof(thread_name),
-			"Mon %s", handel->record->name );
+			"MON %s", handel->record->name );
 
 	mx_status = mx_thread_create( &(handel->monitor_thread),
 				thread_name,

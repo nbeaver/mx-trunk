@@ -1429,7 +1429,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* Create a thread to manage the reading of data from the data port. */
 
 	snprintf( thread_name, sizeof(thread_name),
-			"Mon %s", record->name );
+			"MON %s", record->name );
 
 	mx_status = mx_thread_create( &(merlin_medipix->monitor_thread),
 					thread_name,

@@ -640,7 +640,7 @@ mxd_mlfsom_trigger( MX_AREA_DETECTOR *ad )
 	/* Create a thread to run the 'mlfsom' program from. */
 
 	snprintf( thread_name, sizeof(thread_name),
-		"Mon %s", ad->record->name );
+		"MON %s", ad->record->name );
 
 	mx_status = mx_thread_create( &(mlfsom->mlfsom_thread),
 				thread_name,

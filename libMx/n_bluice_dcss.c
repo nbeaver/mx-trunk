@@ -2316,7 +2316,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	 * receive messages from the DCSS server.
 	 */
 
-	snprintf( thread_name, sizeof(thread_name), "Mon %s", record->name );
+	snprintf( thread_name, sizeof(thread_name), "MON %s", record->name );
 
 	mx_status = mx_thread_create(
 			&(bluice_dcss_server->dcss_monitor_thread),

@@ -696,7 +696,7 @@ mxd_marccd_open( MX_RECORD *record )
 	/* Start a thread to monitor messages sent by MarCCD. */
 
 	snprintf( thread_name, sizeof(thread_name),
-			"Mon %s", record->name );
+			"MON %s", record->name );
 
 	mx_status = mx_thread_create(
 			&(marccd->marccd_monitor_thread),

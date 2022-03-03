@@ -1051,7 +1051,7 @@ mxn_bluice_dhs_server_open( MX_RECORD *record )
 	 * receive messages from the DHS server.
 	 */
 
-	snprintf( thread_name, sizeof(thread_name), "Mon %s", record->name );
+	snprintf( thread_name, sizeof(thread_name), "MON %s", record->name );
 
 	mx_status = mx_thread_create(
 			&(bluice_dhs_server->dhs_monitor_thread),

@@ -823,7 +823,7 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	/* Create the monitor thread to handle updates to 'mce->value_array'. */
 
-	snprintf( thread_name, sizeof(thread_name), "Mon %s", record->name );
+	snprintf( thread_name, sizeof(thread_name), "MON %s", record->name );
 
 	mx_status = mx_thread_create( &(soft_mce->monitor_thread),
 					thread_name,
