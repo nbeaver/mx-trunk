@@ -1270,6 +1270,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	unsigned long i;
 	short gev_status;
 	char *ptr;
+	char thread_name[50];
 	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
@@ -1825,8 +1826,10 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	 * has been created.
 	 */
 
+	snprintf( thread_name, sizeof(thread_name), "IMWT %s", record->name );
+
 	mx_status = mx_thread_create( &(dalsa_gev_camera->image_wait_thread),
-				"mxd_dalsa_gev_camera_image_wait_thread_fn",
+				thread_name,
 				mxd_dalsa_gev_camera_image_wait_thread_fn,
 				record );
 

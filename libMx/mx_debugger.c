@@ -1620,6 +1620,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	MX_THREAD *spectator_thread = NULL;
 	MX_WIN32_WATCHPOINT_PRIVATE *win32_private = NULL;
 	double timeout_seconds;
+	char thread_name[50];
 	mx_status_type mx_status; 
 
 	if ( watchpoint_ptr == (MX_WATCHPOINT **) NULL ) {
@@ -1681,8 +1682,11 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	 * structure has been updated.
 	 */
 
+	snprintf( thread_name, sizeof(thread_name),
+		"WPSPEC %p", watchpoint );
+
 	mx_status = mx_thread_create( &spectator_thread,
-					"mxp_win32_set_watchpoint_spectator",
+					thread_name,
 					mxp_win32_set_watchpoint_spectator,
 					watchpoint );
 
@@ -2074,6 +2078,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	MX_THREAD *spectator_thread = NULL;
 	MX_WIN32_WATCHPOINT_PRIVATE *win32_private = NULL;
 	double timeout_seconds;
+	char thread_name[50];
 	mx_status_type mx_status; 
 
 	if ( watchpoint_ptr == (MX_WATCHPOINT **) NULL ) {
@@ -2148,8 +2153,11 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 
 	/* Create the spectator thread. */
 
+	snprintf( thread_name, sizeof(thread_name),
+			"WPSPEC %p", watchpoint );
+
 	mx_status = mx_thread_create( &spectator_thread,
-					"mxp_win32_watchpoint_spectator",
+					thread_name,
 					mxp_win32_watchpoint_spectator,
 					watchpoint );
 

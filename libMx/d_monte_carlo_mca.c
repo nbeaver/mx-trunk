@@ -873,6 +873,7 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 	long i;
 	char *source_dup;
 	int argc; char **argv;
+	char thread_name[50];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1020,8 +1021,11 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 	 * for the private array.
 	 */
 
+	snprintf( thread_name, sizeof(thread_name),
+		"EVT %s", mca->record->name );
+
 	mx_status = mx_thread_create( &(monte_carlo_mca->event_thread),
-				"mxd_monte_carlo_mca_event_thread",
+				thread_name,
 				mxd_monte_carlo_mca_event_thread, mca );
 
 	return mx_status;

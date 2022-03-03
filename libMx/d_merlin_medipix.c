@@ -1093,6 +1093,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	char response[100];
 	int num_items;
 	unsigned long version_major, version_minor, version_update;
+	char thread_name[50];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1427,8 +1428,11 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	/* Create a thread to manage the reading of data from the data port. */
 
+	snprintf( thread_name, sizeof(thread_name),
+			"Mon %s", record->name );
+
 	mx_status = mx_thread_create( &(merlin_medipix->monitor_thread),
-					"mxd_merlin_medipix_monitor_thread_fn",
+					thread_name,
 					mxd_merlin_medipix_monitor_thread_fn,
 					record );
 

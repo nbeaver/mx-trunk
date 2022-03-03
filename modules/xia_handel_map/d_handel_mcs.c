@@ -374,6 +374,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	unsigned long old_buffer_length;
 	int xia_status, ignored;
 	int32_t total_num_pixels_at_start;
+	char thread_name[50];
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
@@ -691,8 +692,11 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	 * XIA hardware generates it.
 	 */
 
+	snprintf( thread_name, sizeof(thread_name),
+			"Mon %s", handel->record->name );
+
 	mx_status = mx_thread_create( &(handel->monitor_thread),
-				"mxi_handel_mcs_monitor_thread_fn",
+				thread_name,
 				mxi_handel_mcs_monitor_thread_fn,
 				handel );
 

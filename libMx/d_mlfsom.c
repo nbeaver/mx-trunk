@@ -623,6 +623,7 @@ mxd_mlfsom_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_mlfsom_trigger()";
 
 	MX_MLFSOM *mlfsom = NULL;
+	char thread_name[50];
 	mx_status_type mx_status;
 
 	mx_status = mxd_mlfsom_get_pointers( ad, &mlfsom, fname );
@@ -638,8 +639,11 @@ mxd_mlfsom_trigger( MX_AREA_DETECTOR *ad )
 
 	/* Create a thread to run the 'mlfsom' program from. */
 
+	snprintf( thread_name, sizeof(thread_name),
+		"Mon %s", ad->record->name );
+
 	mx_status = mx_thread_create( &(mlfsom->mlfsom_thread),
-				"mxd_mlfsom_mlfsom_monitor_thread",
+				thread_name,
 				mxd_mlfsom_mlfsom_monitor_thread,
 				mlfsom->mlfsom_tinfo );
 

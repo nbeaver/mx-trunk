@@ -2022,6 +2022,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	long num_bytes_available;
 	unsigned long wait_ms, flags, mask;
 	long actual_data_length;
+	char thread_name[50];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -2314,6 +2315,8 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	 * only mxn_bluice_dcss_monitor_thread() is allowed to
 	 * receive messages from the DCSS server.
 	 */
+
+	snprintf( thread_name, sizeof(thread_name), "Mon %s", record->name );
 
 	mx_status = mx_thread_create(
 			&(bluice_dcss_server->dcss_monitor_thread),

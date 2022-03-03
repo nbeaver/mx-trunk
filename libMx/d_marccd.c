@@ -616,6 +616,7 @@ mxd_marccd_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_MARCCD *marccd = NULL;
 	unsigned long mask;
+	char thread_name[50];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -694,9 +695,12 @@ mxd_marccd_open( MX_RECORD *record )
 
 	/* Start a thread to monitor messages sent by MarCCD. */
 
+	snprintf( thread_name, sizeof(thread_name),
+			"Mon %s", record->name );
+
 	mx_status = mx_thread_create(
 			&(marccd->marccd_monitor_thread),
-			"mxd_marccd_monitor_thread",
+			thread_name,
 			mxd_marccd_monitor_thread,
 			record );
 

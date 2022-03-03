@@ -962,6 +962,7 @@ mxd_eiger_open( MX_RECORD *record )
 	MX_URL_SERVER *url_trigger = NULL;
 	char response[1000];
 	long dimension[1];
+	char thread_name[50];
 	long mx_status_code;
 	mx_status_type mx_status;
 
@@ -1211,8 +1212,11 @@ mxd_eiger_open( MX_RECORD *record )
 
 	/* Now create the trigger thread. */
 
+	snprintf( thread_name, sizeof(thread_name),
+		"Eiger %s", record->name );
+
 	mx_status = mx_thread_create( &(eiger->trigger_thread),
-					"mxd_eiger_trigger_thread_fn",
+					thread_name,
 					mxd_eiger_trigger_thread_fn,
 					record );
 

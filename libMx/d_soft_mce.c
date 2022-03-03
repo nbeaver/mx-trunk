@@ -721,6 +721,7 @@ mxd_soft_mce_open( MX_RECORD *record )
 	MX_MCE *mce = NULL;
 	MX_SOFT_MCE *soft_mce = NULL;
 	MX_MOTOR *motor = NULL;
+	char thread_name[50];
 	long mx_status_code;
 	mx_status_type mx_status;
 
@@ -822,8 +823,10 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	/* Create the monitor thread to handle updates to 'mce->value_array'. */
 
+	snprintf( thread_name, sizeof(thread_name), "Mon %s", record->name );
+
 	mx_status = mx_thread_create( &(soft_mce->monitor_thread),
-					"mxd_soft_mce_monitor_thread_fn",
+					thread_name,
 					mxd_soft_mce_monitor_thread_fn,
 					record );
 

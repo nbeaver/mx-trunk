@@ -932,6 +932,8 @@ mxi_dante_open( MX_RECORD *record )
 
 		/*---*/
 
+		char thread_name[50];
+
 		BOOL pipe_status;
 		HANDLE read_pipe = NULL;
 		HANDLE write_pipe = NULL;
@@ -1011,6 +1013,9 @@ mxi_dante_open( MX_RECORD *record )
 		/*---*/
 
 		MX_THREAD *filter_thread = NULL;
+
+		snprintf( thread_name, sizeof(thread_name),
+				"FILT %s", dante->record->name );
 
 		mx_status = mx_thread_create( &filter_thread,
 					"mxi_dante_filter_thread_fn",

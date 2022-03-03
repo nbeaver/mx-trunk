@@ -1083,6 +1083,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	char datafile_directory[MXU_FILENAME_LENGTH+1];
 	char *ptr;
 	char motor_name[MXU_BLUICE_NAME_LENGTH+1];
+	char thread_name[80];
 	unsigned long dark_current_fu;
 	unsigned long client_number;
 	int32_t operation_counter;
@@ -1231,12 +1232,15 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		 * separate thread.
 		 */
 
+		snprintf( thread_name, sizeof(thread_name),
+			"AD collect %s", ad->record->name );
+
 		collect_operation->u.operation.operation_state
 				= MXSF_BLUICE_OPERATION_STARTED;
 
 		mx_status = mx_thread_create(
 			&(bluice_area_detector->collect_thread),
-			"mxd_bluice_area_detector_collect_thread",
+			thread_name,
 			mxd_bluice_area_detector_collect_thread,
 			ad );
 

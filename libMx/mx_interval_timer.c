@@ -759,6 +759,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
 	uint32_t event_flag_number;
+	char thread_name[50];
 	int vms_status;
 	mx_status_type mx_status;
 
@@ -854,9 +855,11 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	MX_DEBUG(-2,
   ("%s: About to invoke mx_thread_create() for args = %p", fname, *itimer ));
 #endif
+
+	snprintf( thread_name, sizeof(thread_name), "ITEVT %p", *itimer );
 				
 	mx_status = mx_thread_create( &(vms_itimer_private->event_flag_thread),
-					"mx_interval_timer_event_flag_thread",
+					thread_name,
 					mx_interval_timer_event_flag_thread,
 					*itimer );
 	return mx_status;
@@ -1745,6 +1748,7 @@ static mx_status_type
 mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
 {
+	char thread_name[50];
 	mx_status_type mx_status;
 
 	if ( mx_signal_alloc_is_initialized() == FALSE ) {
@@ -1775,6 +1779,8 @@ mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 	 */
 
 	/* Create a thread to service the signals. */
+
+	snprintf( thread_name, sizeof(thread_name), "ITSIG %p", *itimer );
 
 	mx_status = mx_thread_create( &(posix_itimer_private->thread),
 					"mx_interval_timer_signal_thread",
@@ -2346,6 +2352,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	static const char fname[] = "mx_interval_timer_create()";
 
 	MX_KQUEUE_ITIMER_PRIVATE *kqueue_itimer_private;
+	char thread_name[50];
 	int saved_errno;
 	mx_status_type mx_status;
 
@@ -2419,8 +2426,10 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 
 	/* Create a thread to manage the kqueue. */
 
+	snprintf( thread_name, sizeof(thread_name), "ITKQ %p", *itimer );
+
 	mx_status = mx_thread_create( &(kqueue_itimer_private->thread),
-					"mx_interval_timer_thread",
+					thread_name,
 					mx_interval_timer_thread,
 					*itimer );
 
@@ -2898,6 +2907,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	MX_MACH_ITIMER_PRIVATE *mach_itimer_private;
 	struct mach_timebase_info timebase_info;
 
+	char thread_name[50];
 	int status, saved_errno;
 	mx_status_type mx_status;
 
@@ -2991,8 +3001,10 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 
 	/* Create a thread to manage the Mach timer. */
 
+	snprintf( thread_name, sizeof(thread_name), "ITMACH %p", *itimer );
+
 	mx_status = mx_thread_create( &(mach_itimer_private->thread),
-					"mx_interval_timer_thread",
+					thread_name,
 					mx_interval_timer_thread,
 					*itimer );
 
@@ -3601,6 +3613,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	static const char fname[] = "mx_interval_timer_create()";
 
 	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	char thread_name[50];
 	mx_status_type mx_status;
 
 #if MX_INTERVAL_TIMER_DEBUG
@@ -3682,6 +3695,8 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	vxworks_wd_private->event_counter = 0;
 
 	/* Create a thread to handle timer callbacks. */
+
+	snprintf( thread_name, sizeof(thread_name), "ITVX %p", *itimer );
 
 	mx_status = mx_thread_create( &(vxworks_wd_private->thread),
 					"mx_interval_timer_thread",
