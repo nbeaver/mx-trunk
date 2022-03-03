@@ -2635,7 +2635,7 @@ mx_show_thread_list( void )
 	char item_filename[MXU_FILENAME_LENGTH+1];
 
 	char comm_data[80];
-	char wchan_data[80];
+	char stack_data[80];
 
 	/* We loop over all of the directories in the /proc/self/task
 	 * directory.
@@ -2723,9 +2723,9 @@ mx_show_thread_list( void )
 			 */
 
 			snprintf( item_filename, sizeof(item_filename),
-				"/proc/self/task/%s/wchan", name_ptr );
+				"/proc/self/task/%s/stack", name_ptr );
 
-			item_file = fopen( item_filename, "r" );
+			item_file = fopen( item_filename, "rb" );
 
 			if ( item_file == NULL ) {
 				saved_errno = errno;
@@ -2735,11 +2735,25 @@ mx_show_thread_list( void )
 				continue;
 			}
 
-			mx_fgets( wchan_data, sizeof(wchan_data), item_file );
+#if 1
+			mx_fgets( stack_data, sizeof(stack_data), item_file );
 
 			fclose( item_file );
 
-			fprintf( stderr, "%s  %s\n", comm_data, wchan_data );
+			fprintf( stderr, "\"%s\"  %s\n",
+					comm_data, stack_data );
+#else
+			while ( !feof(item_file)  ) {
+				int c = fgetc( item_file );
+
+				fprintf( stderr, " %#x, '%c'\n",
+					c, c );
+			}
+
+			fclose( item_file );
+
+			stack_data[0] = 0;
+#endif
 		}
 	}
 }
