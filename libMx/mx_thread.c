@@ -3076,6 +3076,59 @@ mx_thread_set_name( MX_THREAD *thread, const char *thread_name )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+/* On some platforms, it is helpful to intercept calls to pthread_create()
+ * in order to save information about the newly created thread that is not
+ * easily accessible in any other way.
+ */
+
+/* FIXME: This is only exploratory work at this time and should not
+ * be enabled.
+ */
+
+#if 0 && defined( OS_LINUX )
+
+#include <dlfcn.h>
+
+static int (*real_pthread_create)( pthread_t *thread,
+			const pthread_attr_t *attr,
+			void *(*start_routine) (void *),
+			void *arg ) = NULL;
+
+int
+pthread_create( pthread_t *thread,
+		const pthread_attr_t *attr,
+		void *(*start_routine) (void *),
+		void *arg )
+{
+	int pthread_status;
+
+	if ( real_pthread_create == NULL ) {
+		real_pthread_create = dlsym( RTLD_NEXT, "pthread_create" );
+
+		if ( real_pthread_create == NULL ) {
+			fprintf( stderr,
+				"Warning: pthread_create() not found.  "
+				"Reason = '%s'.\n", dlerror() );
+
+			return ENOSYS;
+		}
+	}
+
+	fprintf( stderr, "Fake pthread_create() invoked!\n" );
+
+	pthread_status = real_pthread_create( thread, attr,
+					start_routine, arg );
+
+	fprintf( stderr, "Fake pthread_create() complete, pthread_t = %p\n",
+				thread );
+
+	return pthread_status;
+};
+
+#endif
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
 MX_EXPORT mx_status_type
 mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 {
