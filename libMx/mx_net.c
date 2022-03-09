@@ -6354,8 +6354,6 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	network_debug_flags = list_head->network_debug_flags;
 
-	network_debug_flags = list_head->network_debug_flags;
-
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		net_debug_summary = TRUE;
 	} else
@@ -6507,8 +6505,6 @@ mx_set_client_info( MX_RECORD *server_record,
 			local_username,
 			local_program_name));
 	}
-
-	network_debug_flags = list_head->network_debug_flags;
 
 	network_debug_flags = list_head->network_debug_flags;
 
@@ -6864,8 +6860,6 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	network_debug_flags = list_head->network_debug_flags;
 
-	network_debug_flags = list_head->network_debug_flags;
-
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		net_debug_summary = TRUE;
 	} else
@@ -6949,8 +6943,6 @@ mx_network_set_option( MX_RECORD *server_record,
 		MX_DEBUG(-2,("\n*** SET OPTION %lu for server '%s'.",
 			option_number, server_record->name ));
 	}
-
-	network_debug_flags = list_head->network_debug_flags;
 
 	network_debug_flags = list_head->network_debug_flags;
 
@@ -7335,8 +7327,6 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 
 	MX_DEBUG( 2,("%s invoked, *attribute_value = '%g'",
 			fname, *attribute_value));
-
-	network_debug_flags = list_head->network_debug_flags;
 
 	network_debug_flags = list_head->network_debug_flags;
 
