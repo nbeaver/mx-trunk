@@ -187,6 +187,8 @@ MX_API void mx_show_array_info( void *array_pointer );
 
 MX_API mx_bool_type mx_array_is_mx_style_array( void *array_pointer );
 
+MX_API void mx_array_dump( void *array_pointer );
+
 /*---*/
 
 MX_API mx_status_type mx_copy_array_to_network_buffer( void *array_pointer,

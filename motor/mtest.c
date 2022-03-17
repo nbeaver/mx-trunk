@@ -22,6 +22,7 @@
 #include "mx_inttypes.h"
 #include "mx_io.h"
 #include "mx_vm_alloc.h"
+#include "mx_array.h"
 #include "mx_net_interface.h"
 #include "mx_callback.h"
 #include "mx_signal_alloc.h"
@@ -457,6 +458,37 @@ motor_test_fn( int argc, char *argv[] )
 				return SUCCESS;
 			}
 		}
+
+		else
+		if ( strcmp( argv[2], "array_dump" ) == 0 ) {
+			MX_RECORD_FIELD *record_field;
+			void *value_ptr;
+
+			record_field = mx_get_record_field_by_name(
+						motor_record_list, argv[3] );
+
+			if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+				fprintf( output,
+				 "Record field '%s' was not found.\n", argv[3]);
+
+				return FAILURE;
+			}
+
+			value_ptr = mx_get_field_value_pointer( record_field );
+
+			if ( value_ptr == NULL ) {
+				fprintf( output,
+				  "Warning: record field '%s' has a NULL for "
+				  "its value pointer.  This should _NOT_ be "
+				  "able to happen.\n", argv[3] );
+
+				return FAILURE;
+			}
+
+			mx_array_dump( value_ptr );
+
+			return SUCCESS;
+		}
 	}
 
 	fprintf( output,
@@ -465,6 +497,7 @@ motor_test_fn( int argc, char *argv[] )
 "Note: Some of these tests can crash mxmotor\n"
 "\n"
 "test address 'start' 'size'- show information about a memory region\n"
+"test array_dump 'rfname' - show info about the value of a record field.\n"
 "test debugger - see if the current process has a debugger attached\n"
 "test disk 'filename' - show disk space info for disk containing the file\n"
 "test dll_filename 'filename' - show the file that a dll was opened from\n"

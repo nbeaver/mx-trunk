@@ -1634,6 +1634,72 @@ mx_array_is_mx_style_array( void *array_pointer )
 	return TRUE;
 }
 
+static void
+mxp_array_dump_level( unsigned long num_dimensions,
+			unsigned long dimension_level,
+			MX_ARRAY_HEADER_WORD_TYPE *header,
+			void *subarray_ptr )
+{
+	long dimension_offset, sizeof_offset;
+	unsigned long num_elements_in_row, element_size_in_row;
+
+	dimension_offset = MX_ARRAY_OFFSET_DIMENSION_ARRAY
+				+ dimension_level - num_dimensions;
+
+	sizeof_offset = (MX_ARRAY_OFFSET_DIMENSION_ARRAY - num_dimensions)
+				+ (dimension_level - num_dimensions);
+
+	fprintf( stderr, "dimension_offset = %ld, sizeof_offset = %ld\n",
+			dimension_offset, sizeof_offset );
+
+	num_elements_in_row = header[dimension_offset];
+	element_size_in_row = header[sizeof_offset];
+
+	fprintf( stderr,
+		"num_elements_in_row = %lu, element_size_in_row = %lu\n",
+		num_elements_in_row, element_size_in_row );
+}
+
+MX_EXPORT void
+mx_array_dump( void *array_pointer )
+{
+	static const char fname[] = "mx_array_dump()";
+
+	MX_ARRAY_HEADER_WORD_TYPE *header;
+	mx_bool_type is_mx_array;
+	unsigned long header_length, mx_datatype, num_dimensions;
+
+	is_mx_array = mx_array_is_mx_style_array( array_pointer );
+
+	if ( is_mx_array == FALSE ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The value %p is not a valid MX array.",
+			array_pointer );
+	}
+
+	fprintf( stderr, "%s: array_pointer = %p\n", fname, array_pointer );
+
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
+
+	header_length = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
+
+	fprintf( stderr, "%s: header_length = %lu\n", fname, header_length );
+
+	mx_datatype = header[MX_ARRAY_OFFSET_MX_DATATYPE];
+
+	fprintf( stderr, "%s: datatype = (%lu) '%s'\n", fname,
+		mx_datatype, mx_get_datatype_name_from_datatype( mx_datatype ));
+
+	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+	fprintf( stderr, "%s: num_dimensions = %lu\n", fname, num_dimensions );
+
+	mxp_array_dump_level( num_dimensions, num_dimensions,
+					header, array_pointer );
+
+	return;
+}
+
 /*===========================================================================*/
 
 /* NOTE: The rest of this file deals with using MX arrays in combination

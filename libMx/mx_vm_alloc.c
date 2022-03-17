@@ -10,7 +10,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2013-2016, 2018, 2021 Illinois Institute of Technology
+ * Copyright 2013-2016, 2018, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -772,7 +772,7 @@ mx_vm_get_region( void *address,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: entry_buffer = '%s'", fname, entry_buffer));
 #endif
 
