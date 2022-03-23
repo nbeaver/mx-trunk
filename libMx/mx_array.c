@@ -1700,6 +1700,181 @@ mx_array_dump( void *array_pointer )
 	return;
 }
 
+/*---------------------------------------------------------------------------*/
+
+/* mx_array_copy_vector() expects the use of explicitly specified sizes
+ * like MXFT_INT8, ... , MXFT_UINT64.  Float types MXFT_FLOAT and MXFT_DOUBLE
+ * are expected to use the IEEE 754 floating point format.
+ *
+ * NOTE: Twos complement integer arithmetic is expected
+ *       (for sign extension purposes).
+ *
+ * FIXME: Need to figure out what to do with XDR string types.  Do we actually
+ * need to do _anything_ special for XDR string types?
+ */
+
+MX_EXPORT mx_status_type
+mx_array_copy_vector( void *dest_vector,
+			unsigned long dest_mx_datatype,
+			size_t dest_max_bytes,
+			void *src_vector,
+			unsigned long src_mx_datatype,
+			size_t src_max_bytes,
+			size_t *num_bytes_copied,
+			mx_bool_type do_byteswap )
+{
+	static const char fname[] = "mx_array_copy_vector()";
+
+	size_t bytes_to_copy;
+	size_t i, num_elements, num_dest_elements, num_src_elements;
+	size_t dest_element_size, src_element_size;
+	size_t dest_element_selector, src_element_selector;
+	uint8_t *uint8_dest_vector;
+	uint16_t *uint16_src_vector;
+	uint32_t *uint32_src_vector;
+	uint64_t *uint64_src_vector;
+	float *float_src_vector;
+	double *double_src_vector;
+
+	if ( dest_vector == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The destination vector pointer was NULL." );
+	}
+	if ( src_vector == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The source vector pointer was NULL." );
+	}
+
+	/* If 'dest_max_bytes' is bigger than 'src_max_bytes', then we want
+	 * the trailing bytes to all be zeros.  The easiest way to ensure this
+	 * is to set all of the bytes in dest_vector to zero at the start.
+	 */
+
+	memset( dest_vector, 0, dest_max_bytes );
+
+	if ( dest_max_bytes >= src_max_bytes ) {
+		bytes_to_copy = src_max_bytes;
+	} else {
+		bytes_to_copy = dest_max_bytes;
+	}
+
+	/* The easiest case is if the destination MX datatype and the
+	 * source MX datatype are the same.  If so, then we can do the
+	 * job with memmove().
+	 *
+	 * FIXME: Is memcpy() really noticeably faster for this?
+	 */
+
+	if ( ( dest_mx_datatype == src_mx_datatype )
+	  && ( do_byteswap == FALSE ) )
+	{
+		memmove( dest_vector, src_vector, bytes_to_copy );
+
+		if ( num_bytes_copied != (size_t *) NULL ) {
+			*num_bytes_copied = bytes_to_copy;
+		}
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	dest_element_size = mx_get_scalar_element_size(dest_mx_datatype, FALSE);
+
+	src_element_size = mx_get_scalar_element_size( src_mx_datatype, FALSE );
+
+	num_dest_elements = dest_max_bytes / dest_element_size;
+
+	num_src_elements = src_max_bytes / src_element_size;
+
+	if ( num_dest_elements >= num_src_elements ) {
+		num_elements = num_src_elements;
+	} else {
+		num_elements = num_dest_elements;
+	}
+
+	/* Note: MXFT_FLOAT and MXFT_DOUBLE have values of 10 and 11
+	 * respectively, so they do not collide with the power-of-2
+	 * values used for most of the rest of the selectors.
+	 */
+
+	switch( dest_mx_datatype ) {
+	case MXFT_FLOAT:
+		dest_element_selector = MXFT_FLOAT;
+		break;
+	case MXFT_DOUBLE:
+		dest_element_selector = MXFT_DOUBLE;
+		break;
+	default:
+		dest_element_selector = dest_element_size;
+		break;
+	}
+
+	switch( src_mx_datatype ) {
+	case MXFT_FLOAT:
+		src_element_selector = MXFT_FLOAT;
+		break;
+	case MXFT_DOUBLE:
+		src_element_selector = MXFT_DOUBLE;
+		break;
+	default:
+		src_element_selector = src_element_size;
+		break;
+	}
+
+	/*----*/
+
+	switch( dest_element_selector ) {
+	case 8:
+		switch( src_element_selector ) {
+		case 8:
+			memmove( dest_vector, src_vector, bytes_to_copy );
+			break;
+		case 16:
+			uint8_dest_vector = dest_vector;
+			uint16_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_dest_vector[i] = uint16_src_vector[i];
+			}
+			break;
+		case 32:
+			uint8_dest_vector = dest_vector;
+			uint32_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_dest_vector[i] = uint32_src_vector[i];
+			}
+			break;
+		case 64:
+			uint8_dest_vector = dest_vector;
+			uint64_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_dest_vector[i] = uint64_src_vector[i];
+			}
+			break;
+		case MXFT_FLOAT:
+			uint8_dest_vector = dest_vector;
+			float_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_dest_vector[i] = float_src_vector[i];
+			}
+			break;
+		case MXFT_DOUBLE:
+			uint8_dest_vector = dest_vector;
+			double_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_dest_vector[i] = double_src_vector[i];
+			}
+			break;
+		}
+		break;
+	}
+
+	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
+}
+
 /*===========================================================================*/
 
 /* NOTE: The rest of this file deals with using MX arrays in combination

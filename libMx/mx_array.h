@@ -191,6 +191,17 @@ MX_API void mx_array_dump( void *array_pointer );
 
 /*---*/
 
+MX_API mx_status_type mx_array_copy_vector( void *dest_vector,
+					unsigned long dest_mx_datatype,
+					size_t dest_max_bytes,
+					void *src_vector,
+					unsigned long src_mx_datatype,
+					size_t src_max_bytes,
+					size_t *num_bytes_copied,
+					mx_bool_type do_byteswap );
+
+/*---*/
+
 MX_API mx_status_type mx_copy_array_to_network_buffer( void *array_pointer,
 		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
