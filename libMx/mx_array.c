@@ -1729,9 +1729,13 @@ mx_array_copy_vector( void *dest_vector,
 	size_t i, num_elements, num_dest_elements, num_src_elements;
 	size_t dest_element_size, src_element_size;
 	size_t dest_element_selector, src_element_selector;
-	uint8_t *uint8_dest_vector;
-	uint16_t *uint16_src_vector;
-	uint32_t *uint32_src_vector;
+
+	uint8_t uint8_value;
+	uint16_t uint16_value;
+
+	uint8_t *uint8_dest_vector, *uint8_src_vector;
+	uint16_t *uint16_dest_vector, *uint16_src_vector;
+	uint32_t *uint32_dest_vector, *uint32_src_vector;
 	uint64_t *uint64_src_vector;
 	float *float_src_vector;
 	double *double_src_vector;
@@ -1866,6 +1870,120 @@ mx_array_copy_vector( void *dest_vector,
 
 			for ( i = 0; i < num_elements; i++ ) {
 				uint8_dest_vector[i] = double_src_vector[i];
+			}
+			break;
+		}
+		break;
+
+	case 16:
+		switch( src_element_selector ) {
+		case 8:
+			uint16_dest_vector = dest_vector;
+			uint8_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_value = uint8_src_vector[i];
+
+				uint16_dest_vector[i] = uint8_value;
+
+				if ( uint8_value & 0x80 ) {
+					uint16_dest_vector[i] |= 0xff00;
+				}
+			}
+			break;
+		case 16:
+			memmove( dest_vector, src_vector, bytes_to_copy );
+			break;
+		case 32:
+			uint16_dest_vector = dest_vector;
+			uint32_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint16_dest_vector[i] = uint32_src_vector[i];
+			}
+			break;
+		case 64:
+			uint16_dest_vector = dest_vector;
+			uint64_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint16_dest_vector[i] = uint64_src_vector[i];
+			}
+			break;
+		case MXFT_FLOAT:
+			uint16_dest_vector = dest_vector;
+			float_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint16_dest_vector[i] = float_src_vector[i];
+			}
+			break;
+		case MXFT_DOUBLE:
+			uint16_dest_vector = dest_vector;
+			double_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint16_dest_vector[i] = double_src_vector[i];
+			}
+			break;
+		}
+		break;
+
+	case 32:
+		switch( src_element_selector ) {
+		case 8:
+			uint32_dest_vector = dest_vector;
+			uint8_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_value = uint8_src_vector[i];
+
+				uint32_dest_vector[i] = uint8_value;
+
+				if ( uint8_value & 0x80 ) {
+					uint32_dest_vector[i] |= 0xffffff00;
+				}
+			}
+			break;
+		case 16:
+			uint32_dest_vector = dest_vector;
+			uint16_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint16_value = uint16_src_vector[i];
+
+				uint32_dest_vector[i] = uint16_value;
+
+				if ( uint16_value & 0x80 ) {
+					uint32_dest_vector[i] |= 0xffff0000;
+				}
+			}
+			break;
+		case 32:
+			memmove( dest_vector, src_vector, bytes_to_copy );
+			break;
+		case 64:
+			uint32_dest_vector = dest_vector;
+			uint64_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint32_dest_vector[i] = uint64_src_vector[i];
+			}
+			break;
+		case MXFT_FLOAT:
+			uint32_dest_vector = dest_vector;
+			float_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint32_dest_vector[i] = float_src_vector[i];
+			}
+			break;
+		case MXFT_DOUBLE:
+			uint32_dest_vector = dest_vector;
+			double_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint32_dest_vector[i] = double_src_vector[i];
 			}
 			break;
 		}
