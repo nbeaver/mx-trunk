@@ -1732,13 +1732,15 @@ mx_array_copy_vector( void *dest_vector,
 
 	uint8_t uint8_value;
 	uint16_t uint16_value;
+	uint32_t uint32_value;
+	uint32_t uint64_value;
 
 	uint8_t *uint8_dest_vector, *uint8_src_vector;
 	uint16_t *uint16_dest_vector, *uint16_src_vector;
 	uint32_t *uint32_dest_vector, *uint32_src_vector;
-	uint64_t *uint64_src_vector;
-	float *float_src_vector;
-	double *double_src_vector;
+	uint64_t *uint64_dest_vector, *uint64_src_vector;
+	float *float_dest_vector, *float_src_vector;
+	double *double_dest_vector, *double_src_vector;
 
 	if ( dest_vector == (void *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1954,7 +1956,7 @@ mx_array_copy_vector( void *dest_vector,
 
 				uint32_dest_vector[i] = uint16_value;
 
-				if ( uint16_value & 0x80 ) {
+				if ( uint16_value & 0x8000 ) {
 					uint32_dest_vector[i] |= 0xffff0000;
 				}
 			}
@@ -1988,9 +1990,230 @@ mx_array_copy_vector( void *dest_vector,
 			break;
 		}
 		break;
+
+	case 64:
+		switch( src_element_selector ) {
+		case 8:
+			uint64_dest_vector = dest_vector;
+			uint8_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_value = uint8_src_vector[i];
+
+				uint64_dest_vector[i] = uint8_value;
+
+				if ( uint8_value & 0x80 ) {
+					uint64_dest_vector[i]
+						|= 0xffffffffffffff00;
+				}
+			}
+			break;
+		case 16:
+			uint64_dest_vector = dest_vector;
+			uint16_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint16_value = uint16_src_vector[i];
+
+				uint64_dest_vector[i] = uint16_value;
+
+				if ( uint16_value & 0x8000 ) {
+					uint64_dest_vector[i]
+						|= 0xffffffffffff0000;
+				}
+			}
+			break;
+		case 32:
+			uint64_dest_vector = dest_vector;
+			uint32_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint32_value = uint32_src_vector[i];
+
+				uint64_dest_vector[i] = uint32_value;
+
+				if ( uint32_value & 0x80000000 ) {
+					uint64_dest_vector[i]
+						|= 0xffffffff00000000;
+				}
+			}
+			break;
+		case 64:
+			memmove( dest_vector, src_vector, bytes_to_copy );
+			break;
+		case MXFT_FLOAT:
+			uint64_dest_vector = dest_vector;
+			float_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint64_dest_vector[i] = float_src_vector[i];
+			}
+			break;
+		case MXFT_DOUBLE:
+			uint64_dest_vector = dest_vector;
+			double_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint64_dest_vector[i] = double_src_vector[i];
+			}
+			break;
+		}
+		break;
+
+	case MXFT_FLOAT:
+		switch( src_element_selector ) {
+		case 8:
+			float_dest_vector = dest_vector;
+			uint8_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_value = uint8_src_vector[i];
+
+				if ( uint8_value & 0x80 ) {
+					float_dest_vector[i] =
+						(long) uint8_value;
+				} else {
+					float_dest_vector[i] = uint8_value;
+				}
+			}
+			break;
+		case 16:
+			float_dest_vector = dest_vector;
+			uint16_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint16_value = uint16_src_vector[i];
+
+				if ( uint16_value & 0x8000 ) {
+					float_dest_vector[i] =
+						(long) uint16_value;
+				} else {
+					float_dest_vector[i] = uint16_value;
+				}
+			}
+			break;
+		case 32:
+			float_dest_vector = dest_vector;
+			uint32_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint32_value = uint32_src_vector[i];
+
+				if ( uint32_value & 0x80000000 ) {
+					float_dest_vector[i] =
+						(long) uint32_value;
+				} else {
+					float_dest_vector[i] = uint32_value;
+				}
+			}
+			break;
+		case 64:
+			float_dest_vector = dest_vector;
+			uint64_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint64_value = uint64_src_vector[i];
+
+				if ( uint64_value & 0x8000000000000000 ) {
+					float_dest_vector[i] =
+						(long) uint64_value;
+				} else {
+					float_dest_vector[i] = uint64_value;
+				}
+			}
+			break;
+		case MXFT_FLOAT:
+			memmove( dest_vector, src_vector, bytes_to_copy );
+			break;
+		case MXFT_DOUBLE:
+			float_dest_vector = dest_vector;
+			double_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				float_dest_vector[i] = double_src_vector[i];
+			}
+			break;
+		}
+		break;
+
+	case MXFT_DOUBLE:
+		switch( src_element_selector ) {
+		case 8:
+			double_dest_vector = dest_vector;
+			uint8_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint8_value = uint8_src_vector[i];
+
+				if ( uint8_value & 0x80 ) {
+					double_dest_vector[i] =
+						(long) uint8_value;
+				} else {
+					double_dest_vector[i] = uint8_value;
+				}
+			}
+			break;
+		case 16:
+			double_dest_vector = dest_vector;
+			uint16_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint16_value = uint16_src_vector[i];
+
+				if ( uint16_value & 0x8000 ) {
+					double_dest_vector[i] =
+						(long) uint16_value;
+				} else {
+					double_dest_vector[i] = uint16_value;
+				}
+			}
+			break;
+		case 32:
+			double_dest_vector = dest_vector;
+			uint32_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint32_value = uint32_src_vector[i];
+
+				if ( uint32_value & 0x80000000 ) {
+					double_dest_vector[i] =
+						(long) uint32_value;
+				} else {
+					double_dest_vector[i] = uint32_value;
+				}
+			}
+			break;
+		case 64:
+			double_dest_vector = dest_vector;
+			uint64_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				uint64_value = uint64_src_vector[i];
+
+				if ( uint64_value & 0x8000000000000000 ) {
+					double_dest_vector[i] =
+						(long) uint64_value;
+				} else {
+					double_dest_vector[i] = uint64_value;
+				}
+			}
+			break;
+		case MXFT_FLOAT:
+			double_dest_vector = dest_vector;
+			float_src_vector = src_vector;
+
+			for ( i = 0; i < num_elements; i++ ) {
+				double_dest_vector[i] = float_src_vector[i];
+			}
+			break;
+		case MXFT_DOUBLE:
+			memmove( dest_vector, src_vector, bytes_to_copy );
+			break;
+		}
+		break;
 	}
 
-	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*===========================================================================*/
