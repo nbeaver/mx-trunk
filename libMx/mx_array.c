@@ -1731,10 +1731,10 @@ mx_array_copy_vector( void *dest_vector,
 	size_t i, num_elements, num_dest_elements, num_src_elements;
 	size_t dest_element_size, src_element_size;
 
-	int8_t *int8_src_vector, *int8_dest_vector;
-	int16_t *int16_src_vector;
-	int32_t *int32_src_vector;
-	int64_t *int64_src_vector;
+	int8_t *int8_dest_vector, *int8_src_vector;
+	int16_t *int16_dest_vector, *int16_src_vector;
+	int32_t *int32_dest_vector, *int32_src_vector;
+	int64_t *int64_dest_vector, *int64_src_vector;
 
 	uint8_t *uint8_dest_vector, *uint8_src_vector;
 	uint16_t *uint16_dest_vector, *uint16_src_vector;
@@ -1870,6 +1870,475 @@ mx_array_copy_vector( void *dest_vector,
 	    }
 	    break;
 
+	case MXFT_UINT8:
+	    uint8_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_INT8:
+	    case MXFT_UINT8:
+		memmove( dest_vector, src_vector, bytes_to_copy );
+		break;
+	    case MXFT_INT16:
+		int16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint8_dest_vector[i] = (uint8_t) int16_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT16:
+		uint16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint8_dest_vector[i] = (uint8_t) uint16_src_vector[i];
+		}
+		break;
+	    case MXFT_INT32:
+		int32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint8_dest_vector[i] = (uint8_t) int32_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT32:
+		uint32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint8_dest_vector[i] = (uint8_t) uint32_src_vector[i];
+		}
+		break;
+	    case MXFT_INT64:
+		int64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint8_dest_vector[i] = (uint8_t) int64_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT64:
+		uint64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint8_dest_vector[i] = (uint8_t) uint64_src_vector[i];
+		}
+		break;
+	    case MXFT_FLOAT:
+		float_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint8_dest_vector[i] = (uint8_t) float_src_vector[i];
+		}
+		break;
+	    case MXFT_DOUBLE:
+		double_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint8_dest_vector[i] = (uint8_t) double_src_vector[i];
+		}
+		break;
+	    }
+	    break;
+
+	case MXFT_INT16:
+	    int16_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_INT8:
+		int8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int16_dest_vector[i] = (int16_t) int8_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT8:
+		uint8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int16_dest_vector[i] = (int16_t) uint8_src_vector[i];
+		}
+		break;
+	    case MXFT_INT16:
+	    case MXFT_UINT16:
+		memmove( dest_vector, src_vector, bytes_to_copy );
+		break;
+	    case MXFT_INT32:
+		int32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int16_dest_vector[i] = (int16_t) int32_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT32:
+		uint32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int16_dest_vector[i] = (int16_t) uint32_src_vector[i];
+		}
+		break;
+	    case MXFT_INT64:
+		int64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int16_dest_vector[i] = (int16_t) int64_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT64:
+		uint64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int16_dest_vector[i] = (int16_t) uint64_src_vector[i];
+		}
+		break;
+	    case MXFT_FLOAT:
+		float_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int16_dest_vector[i] = (int16_t) float_src_vector[i];
+		}
+		break;
+	    case MXFT_DOUBLE:
+		double_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int16_dest_vector[i] = (int16_t) double_src_vector[i];
+		}
+		break;
+	    }
+	    break;
+
+	case MXFT_UINT16:
+	    uint16_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_INT8:
+		int8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint16_dest_vector[i] = (uint16_t) int8_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT8:
+		uint8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint16_dest_vector[i] = (uint16_t) uint8_src_vector[i];
+		}
+		break;
+	    case MXFT_INT16:
+	    case MXFT_UINT16:
+		memmove( dest_vector, src_vector, bytes_to_copy );
+		break;
+	    case MXFT_INT32:
+		int32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint16_dest_vector[i] = (uint16_t) int32_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT32:
+		uint32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint16_dest_vector[i] = (uint16_t) uint32_src_vector[i];
+		}
+		break;
+	    case MXFT_INT64:
+		int64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint16_dest_vector[i] = (uint16_t) int64_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT64:
+		uint64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint16_dest_vector[i] = (uint16_t) uint64_src_vector[i];
+		}
+		break;
+	    case MXFT_FLOAT:
+		float_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint16_dest_vector[i] = (uint16_t) float_src_vector[i];
+		}
+		break;
+	    case MXFT_DOUBLE:
+		double_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint16_dest_vector[i] = (uint16_t) double_src_vector[i];
+		}
+		break;
+	    }
+	    break;
+
+	case MXFT_INT32:
+	    int32_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_INT8:
+		int8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int32_dest_vector[i] = (int32_t) int8_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT8:
+		uint8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int32_dest_vector[i] = (int32_t) uint8_src_vector[i];
+		}
+		break;
+	    case MXFT_INT16:
+		int16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int32_dest_vector[i] = (int32_t) int16_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT16:
+		uint16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int32_dest_vector[i] = (int32_t) uint16_src_vector[i];
+		}
+		break;
+	    case MXFT_INT32:
+	    case MXFT_UINT32:
+		memmove( dest_vector, src_vector, bytes_to_copy );
+		break;
+	    case MXFT_INT64:
+		int64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int32_dest_vector[i] = (int32_t) int64_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT64:
+		uint64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int32_dest_vector[i] = (int32_t) uint64_src_vector[i];
+		}
+		break;
+	    case MXFT_FLOAT:
+		float_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int32_dest_vector[i] = (int32_t) float_src_vector[i];
+		}
+		break;
+	    case MXFT_DOUBLE:
+		double_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int32_dest_vector[i] = (int32_t) double_src_vector[i];
+		}
+		break;
+	    }
+	    break;
+
+	case MXFT_UINT32:
+	    uint32_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_INT8:
+		int8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint32_dest_vector[i] = (uint32_t) int8_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT8:
+		uint8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint32_dest_vector[i] = (uint32_t) uint8_src_vector[i];
+		}
+		break;
+	    case MXFT_INT16:
+		int16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint32_dest_vector[i] = (uint32_t) int16_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT16:
+		uint16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint32_dest_vector[i] = (uint32_t) uint16_src_vector[i];
+		}
+		break;
+	    case MXFT_INT32:
+	    case MXFT_UINT32:
+		memmove( dest_vector, src_vector, bytes_to_copy );
+		break;
+	    case MXFT_INT64:
+		int64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint32_dest_vector[i] = (uint32_t) int64_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT64:
+		uint64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint32_dest_vector[i] = (uint32_t) uint64_src_vector[i];
+		}
+		break;
+	    case MXFT_FLOAT:
+		float_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint32_dest_vector[i] = (uint32_t) float_src_vector[i];
+		}
+		break;
+	    case MXFT_DOUBLE:
+		double_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint32_dest_vector[i] = (uint32_t) double_src_vector[i];
+		}
+		break;
+	    }
+	    break;
+
+	case MXFT_INT64:
+	    int64_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_INT8:
+		int8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int64_dest_vector[i] = (int64_t) int8_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT8:
+		uint8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int64_dest_vector[i] = (int64_t) uint8_src_vector[i];
+		}
+		break;
+	    case MXFT_INT16:
+		int16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int64_dest_vector[i] = (int64_t) int16_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT16:
+		uint16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int64_dest_vector[i] = (int64_t) uint16_src_vector[i];
+		}
+		break;
+	    case MXFT_INT32:
+		int32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int64_dest_vector[i] = (int64_t) int32_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT32:
+		uint32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int64_dest_vector[i] = (int64_t) uint32_src_vector[i];
+		}
+		break;
+	    case MXFT_INT64:
+	    case MXFT_UINT64:
+		memmove( dest_vector, src_vector, bytes_to_copy );
+		break;
+	    case MXFT_FLOAT:
+		float_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int64_dest_vector[i] = (int64_t) float_src_vector[i];
+		}
+		break;
+	    case MXFT_DOUBLE:
+		double_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    int64_dest_vector[i] = (int64_t) double_src_vector[i];
+		}
+		break;
+	    }
+	    break;
+
+	case MXFT_UINT64:
+	    uint64_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_INT8:
+		int8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint64_dest_vector[i] = (uint64_t) int8_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT8:
+		uint8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint64_dest_vector[i] = (uint64_t) uint8_src_vector[i];
+		}
+		break;
+	    case MXFT_INT16:
+		int16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint64_dest_vector[i] = (uint64_t) int16_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT16:
+		uint16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint64_dest_vector[i] = (uint64_t) uint16_src_vector[i];
+		}
+		break;
+	    case MXFT_INT32:
+		int32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint64_dest_vector[i] = (uint64_t) int32_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT32:
+		uint32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint64_dest_vector[i] = (uint64_t) uint32_src_vector[i];
+		}
+		break;
+	    case MXFT_INT64:
+	    case MXFT_UINT64:
+		memmove( dest_vector, src_vector, bytes_to_copy );
+		break;
+	    case MXFT_FLOAT:
+		float_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint64_dest_vector[i] = (uint64_t) float_src_vector[i];
+		}
+		break;
+	    case MXFT_DOUBLE:
+		double_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    uint64_dest_vector[i] = (uint64_t) double_src_vector[i];
+		}
+		break;
+	    }
+	    break;
+
 	case MXFT_FLOAT:
 	    float_dest_vector = dest_vector;
 
@@ -1939,6 +2408,79 @@ mx_array_copy_vector( void *dest_vector,
 		for ( i = 0; i < num_elements; i++ ) {
 		    float_dest_vector[i] = double_src_vector[i];
 		}
+		break;
+	    }
+	    break;
+
+	case MXFT_DOUBLE:
+	    double_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_INT8:
+		int8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = (double) int8_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT8:
+		uint8_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = (double) uint8_src_vector[i];
+		}
+		break;
+	    case MXFT_INT16:
+		int16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = (double) int16_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT16:
+		uint16_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = (double) uint16_src_vector[i];
+		}
+		break;
+	    case MXFT_INT32:
+		int32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = (double) int32_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT32:
+		uint32_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = (double) uint32_src_vector[i];
+		}
+		break;
+	    case MXFT_INT64:
+		int64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = (double) int64_src_vector[i];
+		}
+		break;
+	    case MXFT_UINT64:
+		uint64_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = (double) uint64_src_vector[i];
+		}
+		break;
+	    case MXFT_FLOAT:
+		float_src_vector = src_vector;
+
+		for ( i = 0; i < num_elements; i++ ) {
+		    double_dest_vector[i] = float_src_vector[i];
+		}
+		break;
+	    case MXFT_DOUBLE:
+		memmove( dest_vector, src_vector, bytes_to_copy );
 		break;
 	    }
 	    break;
