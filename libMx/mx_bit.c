@@ -241,6 +241,82 @@ mx_is_power_of_two( unsigned long value )
 
 /*------------------------------------------------------------------------*/
 
+#if defined(__GNUC__)
+
+/* GCC-style byteswap intrinsics */
+
+MX_EXPORT uint16_t
+mx_uint16_byteswap( uint16_t original_value )
+{
+	uint16_t new_value;
+
+	new_value = __builtin_bswap16( original_value );
+
+	return new_value;
+}
+
+MX_EXPORT uint32_t
+mx_uint32_byteswap( uint32_t original_value )
+{
+	uint32_t new_value;
+
+	new_value = __builtin_bswap32( original_value );
+
+	return new_value;
+}
+
+MX_EXPORT uint64_t
+mx_uint64_byteswap( uint64_t original_value )
+{
+	uint64_t new_value;
+
+	new_value = __builtin_bswap64( original_value );
+
+	return new_value;
+}
+
+#elif defined(_MSC_VER)
+
+/* Visual C++ style byteswap intrinsics */
+
+MX_EXPORT uint16_t
+mx_uint16_byteswap( uint16_t original_value )
+{
+	uint16_t new_value;
+
+	new_value = _byteswap_ushort( original_value );
+
+	return new_value;
+}
+
+MX_EXPORT uint32_t
+mx_uint32_byteswap( uint32_t original_value )
+{
+	uint32_t new_value;
+
+	new_value = _byteswap_ulong( original_value );
+
+	return new_value;
+}
+
+MX_EXPORT uint64_t
+mx_uint64_byteswap( uint64_t original_value )
+{
+	uint64_t new_value;
+
+	new_value = _byteswap_uint64( original_value );
+
+	return new_value;
+}
+
+#elif 1
+
+#error byteswap routines not yet defined for this build target.
+
+#else
+
+/* Fallback generic byteswap routines. */
+
 MX_EXPORT uint16_t
 mx_uint16_byteswap( uint16_t original_value )
 {
@@ -301,4 +377,6 @@ mx_uint64_byteswap( uint64_t original_value )
 
 	return new_value;
 }
+
+#endif
 
