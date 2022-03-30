@@ -272,6 +272,8 @@ callback_list_traverse( MX_RECORD *record_list,
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
+	MXW_UNUSED( mx_status );
+
 	callback_number = 0;
 
 	current_record = record_list->next_record;
@@ -335,6 +337,8 @@ add_new_callback( MX_RECORD *record_list )
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
+	MXW_UNUSED( mx_status );
+
 	list_head = mx_get_record_list_head_struct( record_list );
 
 	mx_info_entry_dialog( "Enter new callback name --> ",
@@ -369,6 +373,8 @@ scod_traverse_fn( MX_LIST *callback_list,
 	mx_status_type mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
+
+	MXW_UNUSED( mx_status );
 
 	callback_identifier = *((unsigned long *) argument );
 
@@ -532,6 +538,8 @@ list_callbacks_function( MX_RECORD *record_list )
 	mx_status_type mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
+
+	MXW_UNUSED( mx_status );
 
 	mx_info( "==== Current Callbacks ====" );
 

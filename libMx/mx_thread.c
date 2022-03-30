@@ -2843,6 +2843,8 @@ mx_show_thread_stack( MX_THREAD *thread )
 	pthread_status = pthread_kill( thread_private->posix_thread_id,
 					list_head->thread_stack_signal );
 
+	MXW_UNUSED( pthread_status );
+
 	return;
 }
 

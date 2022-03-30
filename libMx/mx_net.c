@@ -2422,6 +2422,8 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	native_byteorder = mx_native_byteorder();
 
+	MXW_UNUSED( native_byteorder );
+
 	header_item_length = sizeof(uint32_t);
 
 	uint32_header_ptr = message_buffer->u.uint32_buffer;

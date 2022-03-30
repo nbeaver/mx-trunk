@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2013-2017, 2019, 2021 Illinois Institute of Technology
+ * Copyright 1999-2011, 2013-2017, 2019, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -477,6 +478,8 @@ mx_copy_file_classic( char *existing_filename,
 	/* Copy the contents of the existing file to the new file. */
 
 	new_file_size = 0;
+
+	MXW_UNUSED( new_file_size );
 
 	for (;;) {
 		bytes_read = read( existing_fd, buffer, file_blocksize );

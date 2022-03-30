@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007, 2010-2011, 2015
+ * Copyright 1999-2001, 2003, 2005-2007, 2010-2011, 2015, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -595,6 +595,8 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 	/* Everything else is handled by configuration word #2. */
 
 	config_word_2 = 0;
+
+	MXW_UNUSED( config_word_2 );
 
 	/* Set the port speed. */
 
