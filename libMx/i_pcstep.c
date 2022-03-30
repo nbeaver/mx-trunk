@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010-2012
+ * Copyright 2000-2001, 2003, 2006-2007, 2010-2012, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -445,7 +445,7 @@ mxi_pcstep_get_status_word( MX_PCSTEP *pcstep )
 
 	result = mx_portio_inp16( pcstep->portio_record, port_address );
 
-	result = mx_16bit_byteswap( result );
+	result = mx_uint16_byteswap( result );
 
 	return result;
 }
@@ -476,7 +476,7 @@ mxi_pcstep_transmit_word( MX_PCSTEP *pcstep, uint16_t transmitted_word )
 			pcstep->retries );
 	}
 
-	transmitted_word = mx_16bit_byteswap( transmitted_word );
+	transmitted_word = mx_uint16_byteswap( transmitted_word );
 
 	mx_portio_outp16( pcstep->portio_record,
 				pcstep->base_address,
@@ -513,7 +513,7 @@ mxi_pcstep_receive_word( MX_PCSTEP *pcstep, uint16_t *received_word )
 	original_received_word = mx_portio_inp16( pcstep->portio_record,
 						pcstep->base_address );
 
-	*received_word = mx_16bit_byteswap( original_received_word );
+	*received_word = mx_uint16_byteswap( original_received_word );
 
 	return MX_SUCCESSFUL_RESULT;
 }

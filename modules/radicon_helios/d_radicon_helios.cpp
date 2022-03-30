@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2011-2013, 2015-2016, 2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -454,7 +454,7 @@ mxd_radicon_helios_descramble_10x10_with_byteswap(
 			}
 
 			dest_2d_array[i_dest][j_dest]
-			  = mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			  = mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 	}
 
@@ -604,14 +604,14 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 			j_src = 5110 - 10 * j_dest + 9;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * j_dest;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 	}
 
@@ -621,14 +621,14 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 			j_src = 10230 - 10 * j_dest + 7;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 512) + 2;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 	}
 	for ( j_dest = 1024; j_dest < 1536; j_dest++ ) {
@@ -637,14 +637,14 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 			j_src = 15350 - 10 * j_dest + 5;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 1024) + 4;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 	}
 	for ( j_dest = 1536; j_dest < 2048; j_dest++ ) {
@@ -653,14 +653,14 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 			j_src = 20470 - 10 * j_dest + 3;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 1536) + 6;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 	}
 	for ( j_dest = 2048; j_dest < 2560; j_dest++ ) {
@@ -669,14 +669,14 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 			j_src = 25590 - 10 * j_dest + 1;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 2048) + 8;
 
 			dest_2d_array[i_dest][j_dest] =
-			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+			    mx_uint16_byteswap( source_2d_array[i_src][j_src] );
 		}
 	}
 

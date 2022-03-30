@@ -2088,7 +2088,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 		num_words = (ad->bytes_per_frame) / 2L;
 
 		for ( i = 0; i < num_words; i++ ) {
-			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+			uint16_array[i] = mx_uint16_byteswap( uint16_array[i] );
 		}
 	}
 #endif

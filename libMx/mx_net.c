@@ -2058,7 +2058,7 @@ mx_network_buffer_show_value( void *buffer,
 
 				if ( little_endian_byteorder ) {
 					xdr_array_length =
-				    mx_32bit_byteswap( raw_xdr_array_length );
+				    mx_uint32_byteswap( raw_xdr_array_length );
 				} else {
 					xdr_array_length = raw_xdr_array_length;
 				}
@@ -2083,7 +2083,7 @@ mx_network_buffer_show_value( void *buffer,
 
 					if ( little_endian_byteorder ) {
 						modified_xdr_array_length =
-						  mx_32bit_byteswap(
+						  mx_uint32_byteswap(
 						    modified_xdr_array_length );
 					}
 

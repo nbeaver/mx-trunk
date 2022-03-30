@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2019 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2019, 2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -213,55 +214,6 @@ mx_native_program_model( void )
 
 #endif
 
-MX_EXPORT uint16_t
-mx_16bit_byteswap( uint16_t original_value )
-{
-	uint8_t high_byte, low_byte;
-	uint16_t new_value;
-
-	high_byte = (uint8_t) ( ( original_value & 0xff00 ) >> 8 );
-	low_byte = (uint8_t) ( original_value & 0xff );
-
-	new_value = high_byte;
-	new_value |= ( low_byte << 8 );
-
-	return new_value;
-}
-
-MX_EXPORT uint32_t
-mx_32bit_byteswap( uint32_t original_value )
-{
-	uint8_t byte0, byte1, byte2, byte3;
-	uint32_t new_value;
-
-	byte3 = (uint8_t) ( ( original_value & 0xff000000 ) >> 24 );
-	byte2 = (uint8_t) ( ( original_value & 0xff0000 ) >> 16 );
-	byte1 = (uint8_t) ( ( original_value & 0xff00 ) >> 8 );
-	byte0 = (uint8_t) ( original_value & 0xff );
-
-	new_value = byte3;
-	new_value |= ( byte2 << 8 );
-	new_value |= ( byte1 << 16 );
-	new_value |= ( byte0 << 24 );
-
-	return new_value;
-}
-
-MX_EXPORT uint32_t
-mx_32bit_wordswap( uint32_t original_value )
-{
-	uint16_t high_word, low_word;
-	uint32_t new_value;
-
-	high_word = (uint16_t) ( ( original_value & 0xffff0000 ) >> 16 );
-	low_word = (uint16_t) ( original_value & 0xffff );
-
-	new_value = high_word;
-	new_value |= ( low_word << 16 );
-
-	return new_value;
-}
-
 /*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_bool_type
@@ -285,5 +237,68 @@ mx_is_power_of_two( unsigned long value )
 	} else {
 		return FALSE;
 	}
+}
+
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT uint16_t
+mx_uint16_byteswap( uint16_t original_value )
+{
+	uint16_t high_byte, low_byte;
+	uint16_t new_value;
+
+	high_byte = (uint8_t) ( ( original_value & 0xff00 ) >> 8 );
+	low_byte = (uint8_t) ( original_value & 0xff );
+
+	new_value = high_byte;
+	new_value |= ( low_byte << 8 );
+
+	return new_value;
+}
+
+MX_EXPORT uint32_t
+mx_uint32_byteswap( uint32_t original_value )
+{
+	uint32_t byte0, byte1, byte2, byte3;
+	uint32_t new_value;
+
+	byte3 = (uint8_t) ( ( original_value & 0xff000000 ) >> 24 );
+	byte2 = (uint8_t) ( ( original_value & 0xff0000 ) >> 16 );
+	byte1 = (uint8_t) ( ( original_value & 0xff00 ) >> 8 );
+	byte0 = (uint8_t) ( original_value & 0xff );
+
+	new_value = byte3;
+	new_value |= ( byte2 << 8 );
+	new_value |= ( byte1 << 16 );
+	new_value |= ( byte0 << 24 );
+
+	return new_value;
+}
+
+MX_EXPORT uint64_t
+mx_uint64_byteswap( uint64_t original_value )
+{
+	uint64_t byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7;
+	uint64_t new_value;
+
+	byte7 = (uint8_t) ( ( original_value & 0xff00000000000000 ) >> 56 );
+	byte6 = (uint8_t) ( ( original_value & 0xff000000000000 ) >> 48 );
+	byte5 = (uint8_t) ( ( original_value & 0xff0000000000 ) >> 40 );
+	byte4 = (uint8_t) ( ( original_value & 0xff00000000 ) >> 32 );
+	byte3 = (uint8_t) ( ( original_value & 0xff000000 ) >> 24 );
+	byte2 = (uint8_t) ( ( original_value & 0xff0000 ) >> 16 );
+	byte1 = (uint8_t) ( ( original_value & 0xff00 ) >> 8 );
+	byte0 = (uint8_t) ( original_value & 0xff );
+
+	new_value = byte7;
+	new_value |= ( byte6 << 8 );
+	new_value |= ( byte5 << 16 );
+	new_value |= ( byte4 << 24 );
+	new_value |= ( byte3 << 32 );
+	new_value |= ( byte2 << 40 );
+	new_value |= ( byte1 << 48 );
+	new_value |= ( byte0 << 56 );
+
+	return new_value;
 }
 

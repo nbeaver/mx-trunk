@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2008, 2010, 2015, 2017, 2019 Illinois Institute of Technology
+ * Copyright 2004-2008, 2010, 2015, 2017, 2019, 2022
+ *     Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -235,7 +236,7 @@ mxd_roentec_rcl_read_32bit_array( MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 
 			original_value = value_array[i];
 
-			new_value = mx_32bit_byteswap( original_value );
+			new_value = mx_uint32_byteswap( original_value );
 	
 			value_array[i] = new_value;
 		}

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000, 2003, 2006-2007, 2019 Illinois Institute of Technology
+ * Copyright 2000, 2003, 2006-2007, 2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,11 +45,11 @@ MX_API unsigned long mx_native_data_format( void );
 
 MX_API unsigned long mx_native_program_model( void );
 
-MX_API uint16_t mx_16bit_byteswap( uint16_t original_value );
+MX_API uint16_t mx_uint16_byteswap( uint16_t original_value );
 
-MX_API uint32_t mx_32bit_byteswap( uint32_t original_value );
+MX_API uint32_t mx_uint32_byteswap( uint32_t original_value );
 
-MX_API uint32_t mx_32bit_wordswap( uint32_t original_value );
+MX_API uint64_t mx_uint64_byteswap( uint64_t original_value );
 
 /*---*/
 

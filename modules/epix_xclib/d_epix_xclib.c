@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2013, 2015, 2017-2018 Illinois Institute of Technology
+ * Copyright 2006-2013, 2015, 2017-2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2750,7 +2750,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 			fname, num_image_words));
 #endif
 		for ( i = 0; i < num_image_words; i++ ) {
-			image_data16[i] = mx_16bit_byteswap( image_data16[i] );
+			image_data16[i] = mx_uint16_byteswap( image_data16[i] );
 		}
 	}
 

@@ -4064,7 +4064,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *image_filename )
 		words_per_frame = framesize[0] * framesize[1];
 
 		for ( i = 0; i < words_per_frame; i++ ) {
-			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+			uint16_array[i] = mx_uint16_byteswap( uint16_array[i] );
 		}
 
 		MXIF_BYTE_ORDER(*frame) = MX_DATAFMT_LITTLE_ENDIAN;
@@ -5440,7 +5440,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 
 			for ( i = 0; i < words_per_frame; i++ ) {
 				uint16_array[i] =
-					mx_16bit_byteswap( uint16_array[i] );
+					mx_uint16_byteswap( uint16_array[i] );
 			}
 
 			MXIF_BYTE_ORDER(*frame) = mx_native_byteorder();
@@ -5459,7 +5459,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 
 			for ( i = 0; i < words_per_frame; i++ ) {
 				uint32_array[i] =
-					mx_32bit_byteswap( uint32_array[i] );
+					mx_uint32_byteswap( uint32_array[i] );
 			}
 
 			MXIF_BYTE_ORDER(*frame) = mx_native_byteorder();
@@ -6198,7 +6198,7 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 		uint16_array = (*frame)->image_data;
 
 		for ( i = 0; i < image_size_in_pixels; i++ ) {
-			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+			uint16_array[i] = mx_uint16_byteswap( uint16_array[i] );
 		}
 	}
 
@@ -6580,7 +6580,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *image_filename )
 		words_per_frame = framesize[0] * framesize[1];
 
 		for ( i = 0; i < words_per_frame; i++ ) {
-			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+			uint16_array[i] = mx_uint16_byteswap( uint16_array[i] );
 		}
 
 		MXIF_BYTE_ORDER(*frame) = mx_native_byteorder();
