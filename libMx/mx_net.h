@@ -98,6 +98,10 @@ typedef struct mx_network_message_buffer {
 
 } MX_NETWORK_MESSAGE_BUFFER;
 
+/* nf_flags bit definitions */
+
+#define MXF_NF_USE_NEW_ARRAY_COPY	0x100000
+
 /*
  * MX network server data structures.
  */
@@ -107,6 +111,8 @@ struct mx_network_field_type {
 	MX_RECORD *server_record;
 	long record_handle;
 	long field_handle;
+
+	unsigned long nf_flags;
 
 	MX_RECORD_FIELD *local_field;
 
@@ -241,7 +247,10 @@ typedef struct {
 
 #define MXF_NETWORK_SERVER_USE_64BIT_LONGS	0x10000
 
+#define MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY	0x100000
+
 #define MXF_NETWORK_SERVER_DEBUG_MESSAGE_IDS	0x8000000
+
 #define MXF_NETWORK_SERVER_QUIET_RECONNECTION	0x10000000
 #define MXF_NETWORK_SERVER_BLOCKING_IO		0x20000000
 #define MXF_NETWORK_SERVER_DEBUG_VERBOSE	0x40000000

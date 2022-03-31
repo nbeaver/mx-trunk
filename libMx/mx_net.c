@@ -4420,6 +4420,8 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 	nf->record_handle = MX_ILLEGAL_HANDLE;
 	nf->field_handle = MX_ILLEGAL_HANDLE;
 
+	nf->nf_flags = 0x0;
+
 	nf->local_field = NULL;
 	nf->must_free_local_field_on_delete = FALSE;
 	nf->do_not_copy_buffer_on_callback = FALSE;
@@ -4497,6 +4499,12 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 		MX_DEBUG( 2,("%s: Added network field (%lu) '%s,%s'",
 			fname, num_fields, nf->server_record->name,
 			nf->nfname ));
+
+		if ( network_server->server_flags 
+			& MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY )
+		{
+			nf->nf_flags |= MXF_NF_USE_NEW_ARRAY_COPY;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
