@@ -57,6 +57,7 @@ wavenumber      device motor wavenumber_motor "" "" 4.4532438 0 0 1e+08 0 -1 -1 
 k               device motor xafs_wavenumber "" "" 0 0 0 1e+08 0 -1 -1 1 0 A-1 energy
 e_minus_e0      device motor delta_motor "" "" -192.49164 0 -1e+08 1e+08 0 -1 -1 1 0 eV energy edge_energy
 time            device motor elapsed_time "" "" 7072612.3 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 1832575.8
+hrt_time        device motor hrt_motor "" "" 0 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 0
 #
 # An example of a simple diffractometer table.
 #

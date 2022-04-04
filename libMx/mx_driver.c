@@ -352,6 +352,7 @@
 #include "d_polynomial_motor.h"
 #include "d_cubic_spline_motor.h"
 #include "d_limited_move.h"
+#include "d_hrt_motor.h"
 
 #include "d_als_dewar_positioner.h"
 #include "d_coordinated_angle.h"
@@ -2573,6 +2574,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_limited_move_motor_function_list,
 				&mxd_limited_move_num_record_fields,
 				&mxd_limited_move_rfield_def_ptr},
+
+{"hrt_motor",          MXT_MTR_HIGH_RESOLUTION_TIME, MXC_MOTOR, MXR_DEVICE,
+				&mxd_hrt_motor_record_function_list,
+				NULL,
+				&mxd_hrt_motor_motor_function_list,
+				&mxd_hrt_motor_num_record_fields,
+				&mxd_hrt_motor_rfield_def_ptr},
 
 {"als_dewar_positioner", MXT_MTR_ALS_DEWAR_POSITIONER, MXC_MOTOR, MXR_DEVICE,
 				&mxd_als_dewar_positioner_record_function_list,
