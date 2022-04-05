@@ -1,7 +1,7 @@
 /*
- * Name:    mx_clock.h
+ * Name:    mx_clock_tick.h
  *
- * Purpose: Header file for MX time keeping functions.  This is mostly used
+ * Purpose: Header file for MX elapsed time functions.  This is mostly used
  *          by servers.
  *
  * Author:  William Lavender
@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef __MX_CLOCK_H__
-#define __MX_CLOCK_H__
+#ifndef __MX_CLOCK_TICK_H__
+#define __MX_CLOCK_TICK_H__
 
 #include <time.h>
 
@@ -71,5 +71,5 @@ MX_API MX_CLOCK_TICK mx_set_clock_tick_to_maximum( void );
 }
 #endif
 
-#endif /* __MX_CLOCK_H__ */
+#endif /* __MX_CLOCK_TICK_H__ */
 

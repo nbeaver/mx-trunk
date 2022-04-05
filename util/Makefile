@@ -70,6 +70,7 @@ mx_clean:
 	-$(RM) $(MXGET_NAME)
 	-$(RM) $(MXPUT_NAME)
 	-$(RM) $(MXSERIAL_NAME)
+	-$(RM) $(MXGPIB_NAME)
 
 mx_distclean: mx_clean
 	-$(MAKEDEPEND_CLEAN)

@@ -46,7 +46,7 @@
 #include "mx_stdint.h"
 #include "mx_record.h"
 #include "mx_ascii.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_mutex.h"
 #include "mx_dynamic_library.h"
 #include "mx_circular_buffer.h"

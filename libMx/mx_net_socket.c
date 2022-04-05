@@ -33,7 +33,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_stdint.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_net_socket.h"

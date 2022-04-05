@@ -24,7 +24,7 @@
 
 #include "mx_util.h"
 #include "mx_handle.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_socket.h"
 
 /*---*/

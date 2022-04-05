@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2007, 2009-2010, 2013, 2021
+ * Copyright 1999-2001, 2003-2004, 2006-2007, 2009-2010, 2013, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -27,7 +27,7 @@
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_driver.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_motor.h"
 #include "mx_rs232.h"
 #include "d_pm304.h"

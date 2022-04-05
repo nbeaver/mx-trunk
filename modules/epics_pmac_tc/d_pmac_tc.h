@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2004, 2006, 2011, 2014
+ * Copyright 1999-2000, 2003-2004, 2006, 2011, 2014, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -20,7 +20,7 @@
 #define __D_PMACTC_H__
 
 #include "mx_motor.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 
 /* Define values for the 'motion_state' field below. */
 

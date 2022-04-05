@@ -46,7 +46,7 @@
 #include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_cfn.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_hrt.h"
 
 /*--------------------------------------------------------------------------*/

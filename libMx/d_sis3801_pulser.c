@@ -10,7 +10,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2008, 2010, 2015, 2018 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008, 2010, 2015, 2018, 2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +26,7 @@
 #include "mx_record.h"
 #include "mx_stdint.h"
 #include "mx_driver.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_vme.h"
 #include "mx_mcs.h"
 #include "mx_pulse_generator.h"

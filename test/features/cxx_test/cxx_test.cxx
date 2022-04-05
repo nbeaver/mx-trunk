@@ -26,7 +26,7 @@
 #include "mx_camera_link_api.h"
 #include "mx_cfn.h"
 #include "mx_cfn_defaults.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_constants.h"
 #include "mx_datafile.h"
 #include "mx_dead_reckoning.h"

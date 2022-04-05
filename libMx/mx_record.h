@@ -23,7 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_stdint.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 
 /* Make the header file C++ safe. */
 

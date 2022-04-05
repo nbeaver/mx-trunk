@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2017, 2020
+ * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2017, 2020, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -25,7 +25,7 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_stdint.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_io.h"
 #include "mx_coprocess.h"
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008, 2010, 2018-2019, 2021
+ * Copyright 2001-2006, 2008, 2010, 2018-2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -26,7 +26,7 @@
 #include "mx_record.h"
 #include "mx_stdint.h"
 #include "mx_driver.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_vme.h"
 #include "mx_pulse_generator.h"
 #include "mx_mcs.h"

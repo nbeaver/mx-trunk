@@ -1,7 +1,7 @@
 /*
  * Name:    mx_clock.c
  *
- * Purpose: MX time keeping functions.
+ * Purpose: MX elapsed time functions.
  *
  * Author:  William Lavender
  *
@@ -51,7 +51,7 @@
 
 #include "mx_util.h"
 #include "mx_unistd.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 
 /* The most recent value of the system clock tick value for this process
  * is kept in the variable mx_most_recent_clock_tick_value.

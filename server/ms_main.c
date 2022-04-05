@@ -41,7 +41,7 @@
 #include "mx_io.h"
 #include "mx_key.h"
 #include "mx_callback.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_hrt.h"
 #include "mx_cfn.h"
 #include "mx_log.h"

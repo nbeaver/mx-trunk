@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2007-2008, 2010-2011, 2013, 2015, 2021
+ * Copyright 1999-2003, 2007-2008, 2010-2011, 2013, 2015, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -26,7 +26,7 @@
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_scan.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "d_elapsed_time.h"
 
 /* Initialize the motor driver jump table. */

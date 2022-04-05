@@ -37,7 +37,7 @@
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_callback.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_hrt_debug.h"
 
 #include "mx_process.h"

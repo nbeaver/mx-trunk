@@ -24,7 +24,7 @@
 #include <math.h>
 
 #include "mx_util.h"
-#include "mx_clock.h"
+#include "mx_clock_tick.h"
 #include "mx_driver.h"
 #include "mx_epics.h"
 #include "mx_motor.h"
