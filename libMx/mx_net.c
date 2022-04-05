@@ -4866,6 +4866,199 @@ mx_put_array_ascii_error_message( uint32_t status_code,
 
 /* ====================================================================== */
 
+static mx_status_type
+mx_old_copy_get_field_array( MX_RECORD *server_record,
+			MX_NETWORK_SERVER *server,
+			char *remote_record_field_name,
+			MX_RECORD_FIELD *local_field,
+			mx_bool_type array_is_dynamically_allocated,
+			void *value_ptr,
+			long message_length,
+			char *message,
+			long datatype,
+			long num_dimensions,
+			long *dimension_array,
+			size_t *data_element_size_array )
+{
+	static const char fname[] = "mx_old_copy_get_field_array()";
+
+
+	MX_RECORD_FIELD_PARSE_STATUS temp_parse_status;
+	mx_status_type ( *token_parser )
+		( void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
+		  MX_RECORD_FIELD_PARSE_STATUS * );
+
+	char token_buffer[500];
+	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
+	mx_status_type mx_status;
+
+	/************ Parse the data that was returned. ***************/
+
+	switch( datatype ) {
+		/* The following special datatypes are treated specially
+		 * by the server, so we must treat them specially in
+		 * the client.
+		 */
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
+		datatype = MXFT_STRING;
+		num_dimensions = 1;
+		dimension_array[0] = message_length;
+		data_element_size_array[0] = sizeof( char );
+	}
+
+	switch( server->data_format ) {
+	case MX_NETWORK_DATAFMT_ASCII:
+
+		/* The data was returned using the ASCII MX database format. */
+
+		mx_status = mx_get_token_parser( datatype, &token_parser );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_initialize_parse_status( &temp_parse_status,
+						message, separators );
+
+		/* If this is a string field, figure out what the maximum
+		 * string token length is.
+		 */
+
+		if ( datatype == MXFT_STRING ) {
+			temp_parse_status.max_string_token_length =
+				mx_get_max_string_token_length( local_field );
+		} else {
+			temp_parse_status.max_string_token_length = 0L;
+		}
+
+		/* Now we are ready to parse the tokens. */
+
+		if ( (num_dimensions == 0) ||
+			((datatype == MXFT_STRING) && (num_dimensions == 1)) )
+		{
+			mx_status = mx_get_next_record_token(
+				&temp_parse_status,
+				token_buffer, sizeof(token_buffer) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = ( *token_parser ) ( value_ptr,
+					token_buffer, NULL, local_field,
+					&temp_parse_status );
+		} else {
+			mx_status = mx_parse_array_description( value_ptr,
+				num_dimensions - 1, NULL, local_field,
+				&temp_parse_status, token_parser );
+		}
+		break;
+
+	case MX_NETWORK_DATAFMT_RAW:
+		mx_status = mx_copy_network_buffer_to_array(
+				message, message_length,
+				value_ptr, array_is_dynamically_allocated,
+				datatype, num_dimensions,
+				dimension_array, data_element_size_array,
+				NULL,
+				server->use_64bit_network_longs,
+				server->remote_mx_version );
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+		case MXE_WOULD_EXCEED_LIMIT:
+			break;
+		default:
+			/* Only display an error message here if the returned
+			 * error code was not MXE_WOULD_EXCEED_LIMIT, since
+			 * MXE_WOULD_EXCEED_LIMIT is used to request that the
+			 * network buffer be increased in size.
+			 */
+
+			(void) mx_error( mx_status.code, fname,
+	"Buffer copy for MX_GET of parameter '%s' in server '%s' failed.",
+				remote_record_field_name, server_record->name );
+		}
+		break;
+
+	case MX_NETWORK_DATAFMT_XDR:
+#if HAVE_XDR
+		/* For the "special" field types MXFT_RECORD, MXFT_RECORDTYPE,
+		 * MXFT_INTERFACE, and MXFT_RECORD_FIELD, the server does not
+		 * actually use XDR format.  Instead, it just copies a string
+		 * into the message buffer for all data formats, so we must
+		 * handle those cases specially.
+		 */
+
+		switch( local_field->datatype ) {
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
+			if ( num_dimensions != 1 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The receiving array for the MXFT_RECORD, "
+				"MXFT_RECORDTYPE, MXFT_INTERFACE field, "
+				"or MXFT_RECORD_FIELD "
+				"'%s' from server '%s' _must_ be a "
+				"1-dimensional string.  Instead, it is "
+				"a %lu-dimensional array of datatype %lu.",
+					remote_record_field_name,
+					server_record->name,
+					num_dimensions, local_field->datatype);
+			}
+
+			/* We just copy the string here. */
+
+			strlcpy( value_ptr, message, dimension_array[0] );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* If we get here, then we _should_ have an XDR formatted
+		 * buffer to convert.
+		 */
+
+		mx_status = mx_xdr_data_transfer( MX_XDR_DECODE,
+				value_ptr, array_is_dynamically_allocated,
+				datatype, num_dimensions,
+				dimension_array, data_element_size_array,
+				message, message_length, NULL );
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+		case MXE_WOULD_EXCEED_LIMIT:
+			break;
+		default:
+			/* Only display an error message here if the returned
+			 * error code was not MXE_WOULD_EXCEED_LIMIT, since
+			 * MXE_WOULD_EXCEED_LIMIT is used to request that the
+			 * network buffer be increased in size.
+			 */
+
+			(void) mx_error( mx_status.code, fname,
+	"Buffer copy for MX_GET of parameter '%s' in server '%s' failed.",
+				remote_record_field_name, server_record->name );
+		}
+#else
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"XDR network data format is not supported "
+			"on this system." );
+#endif
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized network data format type %lu was requested.",
+			server->data_format );
+	}
+
+	return mx_status;
+}
+
+/* ---------------------------------------------------------------------- */
+
 MX_EXPORT mx_status_type
 mx_get_field_array( MX_RECORD *server_record,
 			char *remote_record_field_name,
@@ -4879,10 +5072,6 @@ mx_get_field_array( MX_RECORD *server_record,
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	MX_LIST_HEAD *list_head;
 	char nf_label[NF_LABEL_LENGTH];
-	MX_RECORD_FIELD_PARSE_STATUS temp_parse_status;
-	mx_status_type ( *token_parser )
-		(void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
-		MX_RECORD_FIELD_PARSE_STATUS *);
 	long datatype, num_dimensions, *dimension_array;
 	size_t *data_element_size_array;
 	mx_bool_type array_is_dynamically_allocated;
@@ -4898,9 +5087,6 @@ mx_get_field_array( MX_RECORD *server_record,
 	unsigned long network_debug_flags;
 	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
-	char token_buffer[500];
-
-	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
@@ -5191,167 +5377,20 @@ mx_get_field_array( MX_RECORD *server_record,
 		fprintf( stderr, "\n" );
 	}
 
-	/************ Parse the data that was returned. ***************/
+	/************ Copy the data that was returned. ***************/
 
-	switch( datatype ) {
-		/* The following special datatypes are treated specially
-		 * by the server, so we must treat them specially in
-		 * the client.
-		 */
-	case MXFT_RECORD:
-	case MXFT_RECORDTYPE:
-	case MXFT_INTERFACE:
-	case MXFT_RECORD_FIELD:
-		datatype = MXFT_STRING;
-		num_dimensions = 1;
-		dimension_array[0] = message_length;
-		data_element_size_array[0] = sizeof( char );
-	}
-
-	switch( server->data_format ) {
-	case MX_NETWORK_DATAFMT_ASCII:
-
-		/* The data was returned using the ASCII MX database format. */
-
-		mx_status = mx_get_token_parser( datatype, &token_parser );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_initialize_parse_status( &temp_parse_status,
-						message, separators );
-
-		/* If this is a string field, figure out what the maximum
-		 * string token length is.
-		 */
-
-		if ( datatype == MXFT_STRING ) {
-			temp_parse_status.max_string_token_length =
-				mx_get_max_string_token_length( local_field );
-		} else {
-			temp_parse_status.max_string_token_length = 0L;
-		}
-
-		/* Now we are ready to parse the tokens. */
-
-		if ( (num_dimensions == 0) ||
-			((datatype == MXFT_STRING) && (num_dimensions == 1)) )
-		{
-			mx_status = mx_get_next_record_token(
-				&temp_parse_status,
-				token_buffer, sizeof(token_buffer) );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			mx_status = ( *token_parser ) ( value_ptr,
-					token_buffer, NULL, local_field,
-					&temp_parse_status );
-		} else {
-			mx_status = mx_parse_array_description( value_ptr,
-				num_dimensions - 1, NULL, local_field,
-				&temp_parse_status, token_parser );
-		}
-		break;
-
-	case MX_NETWORK_DATAFMT_RAW:
-		mx_status = mx_copy_network_buffer_to_array(
-				message, message_length,
-				value_ptr, array_is_dynamically_allocated,
-				datatype, num_dimensions,
-				dimension_array, data_element_size_array,
-				NULL,
-				server->use_64bit_network_longs,
-				server->remote_mx_version );
-
-		switch( mx_status.code ) {
-		case MXE_SUCCESS:
-		case MXE_WOULD_EXCEED_LIMIT:
-			break;
-		default:
-			/* Only display an error message here if the returned
-			 * error code was not MXE_WOULD_EXCEED_LIMIT, since
-			 * MXE_WOULD_EXCEED_LIMIT is used to request that the
-			 * network buffer be increased in size.
-			 */
-
-			(void) mx_error( mx_status.code, fname,
-	"Buffer copy for MX_GET of parameter '%s' in server '%s' failed.",
-				remote_record_field_name, server_record->name );
-		}
-		break;
-
-	case MX_NETWORK_DATAFMT_XDR:
-#if HAVE_XDR
-		/* For the "special" field types MXFT_RECORD, MXFT_RECORDTYPE,
-		 * MXFT_INTERFACE, and MXFT_RECORD_FIELD, the server does not
-		 * actually use XDR format.  Instead, it just copies a string
-		 * into the message buffer for all data formats, so we must
-		 * handle those cases specially.
-		 */
-
-		switch( local_field->datatype ) {
-		case MXFT_RECORD:
-		case MXFT_RECORDTYPE:
-		case MXFT_INTERFACE:
-		case MXFT_RECORD_FIELD:
-			if ( num_dimensions != 1 ) {
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"The receiving array for the MXFT_RECORD, "
-				"MXFT_RECORDTYPE, MXFT_INTERFACE field, "
-				"or MXFT_RECORD_FIELD "
-				"'%s' from server '%s' _must_ be a "
-				"1-dimensional string.  Instead, it is "
-				"a %lu-dimensional array of datatype %lu.",
-					remote_record_field_name,
-					server_record->name,
-					num_dimensions, local_field->datatype);
-			}
-
-			/* We just copy the string here. */
-
-			strlcpy( value_ptr, message, dimension_array[0] );
-
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		/* If we get here, then we _should_ have an XDR formatted
-		 * buffer to convert.
-		 */
-
-		mx_status = mx_xdr_data_transfer( MX_XDR_DECODE,
-				value_ptr, array_is_dynamically_allocated,
-				datatype, num_dimensions,
-				dimension_array, data_element_size_array,
-				message, message_length, NULL );
-
-		switch( mx_status.code ) {
-		case MXE_SUCCESS:
-		case MXE_WOULD_EXCEED_LIMIT:
-			break;
-		default:
-			/* Only display an error message here if the returned
-			 * error code was not MXE_WOULD_EXCEED_LIMIT, since
-			 * MXE_WOULD_EXCEED_LIMIT is used to request that the
-			 * network buffer be increased in size.
-			 */
-
-			(void) mx_error( mx_status.code, fname,
-	"Buffer copy for MX_GET of parameter '%s' in server '%s' failed.",
-				remote_record_field_name, server_record->name );
-		}
-#else
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"XDR network data format is not supported "
-			"on this system." );
-#endif
-		break;
-
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unrecognized network data format type %lu was requested.",
-			server->data_format );
-	}
+	mx_status = mx_old_copy_get_field_array( server_record,
+						server,
+						remote_record_field_name,
+						local_field,
+						array_is_dynamically_allocated,
+						value_ptr,
+						message_length,
+						message,
+						datatype,
+						num_dimensions,
+						dimension_array,
+						data_element_size_array );
 
 	return mx_status;
 }
