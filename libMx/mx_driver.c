@@ -516,6 +516,8 @@
 #include "d_network_wvout.h"
 #include "d_bkprecision_912x_wvout.h"
 
+#include "d_os_clock.h"
+
 #include "s_input.h"
 #include "s_motor.h"
 #include "s_theta_2theta.h"
@@ -3754,6 +3756,13 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_bkprecision_912x_wvout_wvout_function_list,
 			&mxd_bkprecision_912x_wvout_num_record_fields,
 			&mxd_bkprecision_912x_wvout_rfield_def_ptr},
+
+{"os_clock",    MXT_CLK_OS_CLOCK, MXC_CLOCK, MXR_DEVICE,
+			&mxd_os_clock_record_function_list,
+			NULL,
+			&mxd_os_clock_clock_function_list,
+			&mxd_os_clock_num_record_fields,
+			&mxd_os_clock_rfield_def_ptr},
 
   /* ===================== Scan types ===================== */
 

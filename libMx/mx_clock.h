@@ -34,17 +34,19 @@ typedef struct {
 #define MXLV_CLK_SECONDS	8802
 
 #define MX_CLOCK_STANDARD_FIELDS \
-  {MLV_CLK_TIMESPEC, -1, "timespec", MXFT_UINT64, NULL, 1, {2}, \
+  {MXLV_CLK_TIMESPEC, -1, "timespec", MXFT_UINT64, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CLOCK, timespec), \
-	{sizeof(uint64_t), NULL, MXFF_READ_ONLY }, \
+	{sizeof(uint64_t)}, NULL, MXFF_READ_ONLY }, \
   \
-  {MLV_CLK_SECONDS, -1, "seconds", MXFT_DOUBLE, NULL, 0, {0}, \
+  {MXLV_CLK_SECONDS, -1, "seconds", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CLOCK, seconds), \
-	{sizeof(uint64_t), NULL, MXFF_READ_ONLY }
+	{sizeof(double)}, NULL, (MXFF_READ_ONLY | MXFF_IN_SUMMARY) }
 
 typedef struct {
 	mx_status_type ( *get_timespec )( MX_CLOCK *clock );
 } MX_CLOCK_FUNCTION_LIST;
+
+extern MX_RECORD_FUNCTION_LIST mx_clock_record_function_list;
 
 MX_API_PRIVATE mx_status_type mx_clock_get_pointers( MX_RECORD *clock_record,
 	MX_CLOCK **clock, MX_CLOCK_FUNCTION_LIST **function_list_ptr,
@@ -59,7 +61,7 @@ MX_API mx_status_type mx_clock_get_seconds( MX_RECORD *clock_record,
 #define mx_convert_clock_time_to_seconds( value ) \
 	( (double) (value).tv_sec + 1.0e-9 * (double) (value).tv_nsec );
 
-extern MX_RECORD_FUNCTION_LIST mx_clock_record_function_list;
+MX_API mx_status_type mx_clock_get_time( struct timespec *timespec );
 
 #ifdef __cplusplus
 }

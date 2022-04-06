@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2008, 2011, 2013-2014, 2017-2019
+ * Copyright 2004-2008, 2011, 2013-2014, 2017-2019, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -312,6 +312,15 @@ extern mx_status_type mx_setup_waveform_output_process_functions(
 					MX_RECORD *record_list );
 
 extern mx_status_type mx_waveform_output_process_function(
+					void *record, void *record_field,
+					void *socket_handler, int operation );
+
+/*---*/
+
+extern mx_status_type mx_setup_clock_process_functions(
+					MX_RECORD *record_list );
+
+extern mx_status_type mx_clock_process_function(
 					void *record, void *record_field,
 					void *socket_handler, int operation );
 

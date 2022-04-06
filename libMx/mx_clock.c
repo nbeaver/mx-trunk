@@ -16,6 +16,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <time.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -137,4 +139,35 @@ mx_clock_get_seconds( MX_RECORD *clock_record, double *seconds )
 
 	return mx_status;
 }
+
+/*=======================================================================*/
+
+#if defined( OS_LINUX )
+
+/* For Posix clocks */
+
+MX_EXPORT mx_status_type
+mx_clock_get_time( struct timespec *timespec )
+{
+	static const char fname[] = "mx_clock_get_time()";
+
+	int os_status, saved_errno;
+
+	os_status = clock_gettime( CLOCK_REALTIME, timespec );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"A call to clock_gettime( CLOCK_REALTIME, ... ) failed.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else
+#  error mx_clock_get_time() is not yet implemented for this build target.
+#endif
 

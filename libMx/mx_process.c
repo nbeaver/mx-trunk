@@ -73,6 +73,7 @@ static MX_PROCESS_FUNCTION_SETUP mx_process_function_setup_array[] = {
 { MXR_DEVICE, MXC_AREA_DETECTOR, mx_setup_area_detector_process_functions },
 { MXR_DEVICE, MXC_WAVEFORM_INPUT, mx_setup_waveform_input_process_functions },
 { MXR_DEVICE, MXC_WAVEFORM_OUTPUT, mx_setup_waveform_output_process_functions },
+{ MXR_DEVICE, MXC_CLOCK, mx_setup_clock_process_functions },
 { MXR_INTERFACE, MXI_RS232, mx_setup_rs232_process_functions },
 { MXR_INTERFACE, MXI_GPIB, mx_setup_gpib_process_functions },
 { MXR_INTERFACE, MXI_VME, mx_setup_vme_process_functions },

@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2014, 2018 Illinois Institute of Technology
+ * Copyright 1999-2009, 2014, 2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,6 +42,7 @@
 #include "mx_mcai.h"
 #include "mx_pulse_generator.h"
 #include "mx_ptz.h"
+#include "mx_clock.h"
 #include "mx_variable.h"
 #include "mx_operation.h"
 
@@ -231,6 +232,9 @@ mx_update_record_values( MX_RECORD *record )
 				break;
 			}
 			mx_status = mx_ptz_get_focus( record, NULL );
+			break;
+		case MXC_CLOCK:
+			mx_status = mx_clock_get_timespec( record, NULL );
 			break;
 		case MXC_TIMER:
 		case MXC_MULTICHANNEL_ANALYZER:

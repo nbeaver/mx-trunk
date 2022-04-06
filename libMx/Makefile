@@ -53,7 +53,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_virtual_timer.c mx_vm_alloc.c mx_vme.c mx_vnet.c mx_warning.c \
 	mx_waveform_input.c mx_waveform_output.c \
 	pr_amplifier.c pr_analog_input.c pr_analog_output.c \
-	pr_area_detector.c pr_autoscale.c \
+	pr_area_detector.c pr_autoscale.c pr_clock.c \
 	pr_digital_input.c pr_digital_output.c pr_gpib.c \
 	pr_list_head.c pr_mca.c pr_mcai.c pr_mce.c pr_mcs.c \
 	pr_motor.c pr_operation.c pr_ptz.c pr_pulser.c pr_record.c \
@@ -133,7 +133,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_network_scaler.c d_network_timer.c d_network_vinput.c \
 	d_network_wvin.c d_network_wvout.c d_newport.c \
 	d_numato_gpio_ainput.c d_numato_gpio_dinput.c d_numato_gpio_doutput.c \
-	d_ortec974_scaler.c d_ortec974_timer.c d_p6000a.c \
+	d_ortec974_scaler.c d_ortec974_timer.c d_os_clock.c d_p6000a.c \
 	d_panasonic_kx_dp702.c d_panther.c d_pcstep.c \
 	d_pdi40.c d_pdi45_aio.c d_pdi45_dio.c d_pdi45_pulser.c \
 	d_pdi45_scaler.c d_pdi45_timer.c \
