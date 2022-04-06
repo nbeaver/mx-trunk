@@ -134,6 +134,8 @@ static MX_DRIVER mx_class_table[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"waveform_output",0, MXC_WAVEFORM_OUTPUT, MXR_DEVICE,
 				NULL, NULL, NULL, NULL, NULL},
+{"clock",          0, MXC_CLOCK, MXR_DEVICE,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* ==================== Scan classes ==================== */
 

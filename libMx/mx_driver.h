@@ -123,6 +123,7 @@ extern "C" {
 #define MXC_AREA_DETECTOR		47
 #define MXC_WAVEFORM_INPUT		48
 #define MXC_WAVEFORM_OUTPUT		49
+#define MXC_CLOCK			50
 
 /* --- Scan classes --- */
 
@@ -785,6 +786,11 @@ extern "C" {
 #define MXT_WVO_NETWORK			260002
 #define MXT_WVO_BKPRECISION_912X	260003
 #define MXT_WVO_WGM_101			260004
+
+/* --- Clock types --- */
+
+#define MXT_CLK_OS_CLOCK		270001
+#define MXT_CLK_HRT_CLOCK		270002
 
 /* --- Scan types --- */
 
