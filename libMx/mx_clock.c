@@ -142,7 +142,7 @@ mx_clock_get_seconds( MX_RECORD *clock_record, double *seconds )
 
 /*=======================================================================*/
 
-#if defined( OS_LINUX )
+#if defined(OS_LINUX) || defined(OS_CYGWIN)
 
 /* For Posix clocks */
 

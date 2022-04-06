@@ -2758,7 +2758,7 @@ mx_show_thread_list( void )
 	}
 }
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) || defined(OS_CYGWIN)
 
 MX_EXPORT void
 mx_show_thread_list( void )
@@ -3052,7 +3052,7 @@ mx_thread_set_name( MX_THREAD *thread,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 0
+#elif defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
 mx_thread_get_name( MX_THREAD *thread,

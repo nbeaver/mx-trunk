@@ -53,7 +53,7 @@ MX_API_PRIVATE mx_status_type mx_clock_get_pointers( MX_RECORD *clock_record,
 	const char *calling_fname );
 
 MX_API mx_status_type mx_clock_get_timespec( MX_RECORD *clock_record,
-						uint64_t timespec[2] );
+						uint64_t *timespec );
 
 MX_API mx_status_type mx_clock_get_seconds( MX_RECORD *clock_record,
 						double *seconds );
