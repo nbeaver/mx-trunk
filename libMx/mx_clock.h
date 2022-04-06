@@ -36,11 +36,11 @@ typedef struct {
 #define MX_CLOCK_STANDARD_FIELDS \
   {MXLV_CLK_TIMESPEC, -1, "timespec", MXFT_UINT64, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CLOCK, timespec), \
-	{sizeof(uint64_t)}, NULL, MXFF_READ_ONLY }, \
+	{sizeof(uint64_t)}, NULL, (MXFF_READ_ONLY | MXFF_IN_SUMMARY) }, \
   \
   {MXLV_CLK_SECONDS, -1, "seconds", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CLOCK, seconds), \
-	{sizeof(double)}, NULL, (MXFF_READ_ONLY | MXFF_IN_SUMMARY) }
+	{sizeof(double)}, NULL, MXFF_READ_ONLY }
 
 typedef struct {
 	mx_status_type ( *get_timespec )( MX_CLOCK *clock );
