@@ -43,8 +43,10 @@ mx_setup_clock_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_CLK_OFFSET:
 		case MXLV_CLK_SECONDS:
 		case MXLV_CLK_TIMESPEC:
+		case MXLV_CLK_TIMESPEC_OFFSET:
 			record_field->process_function
 					    = mx_clock_process_function;
 			break;
@@ -66,20 +68,20 @@ mx_clock_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_CLOCK *clock;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	clock = (MX_CLOCK *) (record->record_class_struct);
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_CLK_TIMESPEC:
 		case MXLV_CLK_SECONDS:
-			status = mx_clock_get_timespec( record, NULL );
+			mx_status = mx_clock_get_timespec( record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -90,6 +92,13 @@ mx_clock_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_CLK_OFFSET:
+			mx_status = mx_clock_set_offset( record, clock->offset);
+			break;
+		case MXLV_CLK_TIMESPEC_OFFSET:
+			mx_status = mx_clock_set_timespec_offset( record,
+							clock->timespec_offset);
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
@@ -102,6 +111,6 @@ mx_clock_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

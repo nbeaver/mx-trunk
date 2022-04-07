@@ -29,7 +29,8 @@
 
 MX_RECORD_FUNCTION_LIST mxd_os_clock_record_function_list = {
 	NULL,
-	mxd_os_clock_create_record_structures
+	mxd_os_clock_create_record_structures,
+	mx_clock_finish_record_initialization
 };
 
 MX_CLOCK_FUNCTION_LIST mxd_os_clock_clock_function_list = {
