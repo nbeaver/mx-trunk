@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_time.h"
 #include "mx_clock.h"
 #include "d_os_clock.h"
 
@@ -149,10 +150,7 @@ mxd_os_clock_get_timespec( MX_CLOCK *clock )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_clock_get_time( &os_timespec );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	os_timespec = mx_current_os_time();
 
 	clock->timespec[0] = os_timespec.tv_sec;
 	clock->timespec[1] = os_timespec.tv_nsec;

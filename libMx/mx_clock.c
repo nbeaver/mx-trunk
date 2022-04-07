@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_clock.h"
 
@@ -221,11 +222,7 @@ mx_clock_set_offset( MX_RECORD *clock_record, double offset )
 		return mx_status;
 
 	if ( offset < 0.0 ) {
-		mx_status = mx_clock_get_time(
-				&(clock->timespec_offset_struct) );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		clock->timespec_offset_struct = mx_current_os_time();
 
 		clock->offset = mx_convert_high_resolution_time_to_seconds(
 						clock->timespec_offset_struct );
@@ -241,35 +238,4 @@ mx_clock_set_offset( MX_RECORD *clock_record, double offset )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-/*=======================================================================*/
-
-#if defined(OS_LINUX) || defined(OS_CYGWIN)
-
-/* For Posix clocks */
-
-MX_EXPORT mx_status_type
-mx_clock_get_time( struct timespec *timespec )
-{
-	static const char fname[] = "mx_clock_get_time()";
-
-	int os_status, saved_errno;
-
-	os_status = clock_gettime( CLOCK_REALTIME, timespec );
-
-	if ( os_status != 0 ) {
-		saved_errno = errno;
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"A call to clock_gettime( CLOCK_REALTIME, ... ) failed.  "
-		"Errno = %d, error message = '%s'",
-			saved_errno, strerror(saved_errno) );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#else
-#  error mx_clock_get_time() is not yet implemented for this build target.
-#endif
 

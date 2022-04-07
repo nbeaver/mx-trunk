@@ -84,8 +84,6 @@ MX_API mx_status_type mx_clock_set_offset( MX_RECORD *clock_record,
 #define mx_convert_clock_time_to_seconds( value ) \
 	( (double) (value).tv_sec + 1.0e-9 * (double) (value).tv_nsec );
 
-MX_API mx_status_type mx_clock_get_time( struct timespec *timespec );
-
 #ifdef __cplusplus
 }
 #endif
