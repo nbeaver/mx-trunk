@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2015-2019 Illinois Institute of Technology
+ * Copyright 2011-2013, 2015-2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,6 +66,7 @@
 #include "mx_bit.h"
 #include "mx_memory.h"
 #include "mx_process.h"
+#include "mx_time.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_sapera_lt.h"
@@ -210,9 +211,8 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 
 	time_offset = mx_high_resolution_time();
 
-	frame_time = mx_add_high_resolution_times(
-			sapera_lt_frame_grabber->boot_time,
-			time_offset );
+	frame_time = mx_add_timespec_times( sapera_lt_frame_grabber->boot_time,
+								time_offset );
 
 	i = vinput->total_num_frames
 		% sapera_lt_frame_grabber->num_frame_buffers;
@@ -1907,7 +1907,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 #endif
 
 	struct timespec exposure_timespec =
-	    mx_convert_seconds_to_high_resolution_time( exposure_time );
+	    mx_convert_seconds_to_timespec_time( exposure_time );
 
 	MXIF_EXPOSURE_TIME_SEC( vinput->frame )  = exposure_timespec.tv_sec;
 

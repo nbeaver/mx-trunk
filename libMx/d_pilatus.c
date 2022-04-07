@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2019, 2021 Illinois Institute of Technology
+ * Copyright 2015-2019, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,6 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_rs232.h"
-#include "mx_hrt.h"
 #include "mx_process.h"
 #include "mx_inttypes.h"
 #include "mx_bit.h"

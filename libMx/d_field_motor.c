@@ -9,7 +9,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010, 2012, 2019, 2021 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010, 2012, 2019, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +28,7 @@
 #include "mx_driver.h"
 #include "mx_socket.h"
 #include "mx_process.h"
+#include "mx_time.h"
 #include "mx_hrt_debug.h"
 #include "mx_motor.h"
 #include "d_field_motor.h"

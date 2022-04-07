@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2007, 2021 Illinois Institute of Technology
+ * Copyright 2003-2004, 2007, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,11 +47,11 @@ typedef struct {
 	do {								\
 		(x).end_time = mx_high_resolution_time();		\
 									\
-		(x).time_difference = mx_subtract_high_resolution_times(\
+		(x).time_difference = mx_subtract_timespec_times(       \
 					(x).end_time, (x).start_time ); \
 									\
-		(x).time_in_seconds =				\
-		    mx_convert_high_resolution_time_to_seconds(	\
+		(x).time_in_seconds =				        \
+		    mx_convert_timespec_time_to_seconds(	        \
 			(x).time_difference );				\
 	} while (0)
 
@@ -64,13 +64,13 @@ MX_HRT_RESULTS( MX_HRT_TIMING x,
 #define MX_HRT_TIME_BETWEEN_MEASUREMENTS(meas1, meas2, fname)		\
 	do {								\
 		struct timespec mx_hrt_time_between;			\
-		double mx_hrt_time_between_in_seconds;		\
+		double mx_hrt_time_between_in_seconds;		        \
 									\
-		mx_hrt_time_between = mx_subtract_high_resolution_times(\
+		mx_hrt_time_between = mx_subtract_timespec_times(       \
 			(meas2).start_time, (meas1).end_time );		\
 									\
 		mx_hrt_time_between_in_seconds =			\
-		  mx_convert_high_resolution_time_to_seconds(	\
+		  mx_convert_timespec_time_to_seconds(	        	\
 			mx_hrt_time_between );				\
 									\
 		MX_DEBUG(-2,						\
@@ -107,15 +107,15 @@ typedef struct {
 	do {								\
 		(x).end_time = mx_high_resolution_time();		\
 									\
-		(x).time_difference = mx_subtract_high_resolution_times(\
+		(x).time_difference = mx_subtract_timespec_times(	\
 					(x).end_time, (x).start_time ); \
 									\
-		(x).time_in_seconds =				\
-		    mx_convert_high_resolution_time_to_seconds(	\
+		(x).time_in_seconds =					\
+		    mx_convert_timespec_time_to_seconds(		\
 			(x).time_difference );				\
 									\
-		(x).chars_per_second = mx_divide_safely(	\
-			(double)(x).length, (x).time_in_seconds ); \
+		(x).chars_per_second = mx_divide_safely(		\
+			(double)(x).length, (x).time_in_seconds ); 	\
 	} while (0)
 
 #define MX_HRT_RS232_COMMAND_RESULTS( x, cmd, fname )			\
@@ -170,23 +170,23 @@ typedef struct {
 									\
 		if ( (x).do_busy_wait ) {				\
 		    (x).busy_wait_time_difference =			\
-			  mx_subtract_high_resolution_times(		\
+			  mx_subtract_timespec_times(			\
 			     (x).start_time, (x).busy_wait_start_time );\
 									\
-		    (x).busy_wait_time_in_seconds =		\
-		      mx_convert_high_resolution_time_to_seconds(	\
+		    (x).busy_wait_time_in_seconds =			\
+		      mx_convert_timespec_time_to_seconds(		\
 			  (x).busy_wait_time_difference );		\
 		}							\
 									\
-		(x).time_difference = mx_subtract_high_resolution_times(\
+		(x).time_difference = mx_subtract_timespec_times(	\
 					(x).end_time, (x).start_time ); \
 									\
-		(x).time_in_seconds =				\
-		    mx_convert_high_resolution_time_to_seconds(	\
+		(x).time_in_seconds =					\
+		    mx_convert_timespec_time_to_seconds(		\
 			(x).time_difference );				\
 									\
-		(x).chars_per_second = mx_divide_safely(	\
-			(double)(x).length, (x).time_in_seconds ); \
+		(x).chars_per_second = mx_divide_safely(		\
+			(double)(x).length, (x).time_in_seconds ); 	\
 	} while (0)
 
 #define MX_HRT_RS232_RESPONSE_RESULTS( x, resp, fname )			\

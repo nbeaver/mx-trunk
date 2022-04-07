@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2019 Illinois Institute of Technology
+ * Copyright 2013-2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -224,9 +224,8 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 
 	time_offset = mx_high_resolution_time();
 
-	frame_timespec = mx_add_high_resolution_times(
-				sapera_lt_camera->boot_time,
-				time_offset );
+	frame_timespec = mx_add_timespec_times( sapera_lt_camera->boot_time,
+								time_offset );
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
 	MX_DEBUG(-2,("%s: boot_time = (%lu,%lu), time_offset = (%lu,%lu)",
@@ -2459,7 +2458,7 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 #endif
 
 	struct timespec exposure_timespec =
-	    mx_convert_seconds_to_high_resolution_time( exposure_time );
+			mx_convert_seconds_to_timespec_time( exposure_time );
 
 	MXIF_EXPOSURE_TIME_SEC( vinput->frame )  = exposure_timespec.tv_sec;
 

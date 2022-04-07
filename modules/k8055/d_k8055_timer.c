@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,7 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_timer.h"
 #include "i_k8055.h"
@@ -178,7 +179,7 @@ mxd_k8055_timer_is_busy( MX_TIMER *timer )
 
 	current_timespec = mx_high_resolution_time();
 
-	comparison = mx_compare_high_resolution_times( current_timespec,
+	comparison = mx_compare_timespec_times( current_timespec,
 						k8055_timer->finish_timespec );
 
 	if ( comparison < 0 ) {
@@ -207,12 +208,12 @@ mxd_k8055_timer_start( MX_TIMER *timer )
 
 	seconds = timer->value;
 
-	counting_timespec = mx_convert_seconds_to_high_resolution_time(seconds);
+	counting_timespec = mx_convert_seconds_to_timespec_time( seconds );
 
 	current_timespec = mx_high_resolution_time();
 
-	k8055_timer->finish_timespec = mx_add_high_resolution_times(
-					current_timespec, counting_timespec );
+	k8055_timer->finish_timespec = mx_add_timespec_times( current_timespec,
+							counting_timespec );
 
 	ResetCounter(1);
 	ResetCounter(2);

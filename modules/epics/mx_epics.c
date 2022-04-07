@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2013, 2017-2018, 2021
+ * Copyright 1999-2006, 2009-2013, 2017-2018, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -96,6 +96,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_mutex.h"
+#include "mx_time.h"
 #include "mx_epics.h"
 #include "mx_hrt.h"
 
@@ -868,14 +869,14 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 	pv->channel_id = NULL;
 
 	pv->connect_timeout_interval =
-		mx_convert_seconds_to_high_resolution_time(
+		mx_convert_seconds_to_timespec_time(
 					mx_epics_connect_timeout_interval );
 
 	pv->reconnect_timeout_interval =
-		mx_convert_seconds_to_high_resolution_time(
+		mx_convert_seconds_to_timespec_time(
 					mx_epics_connect_timeout_interval );
 
-	pv->io_timeout_interval = mx_convert_seconds_to_high_resolution_time(
+	pv->io_timeout_interval = mx_convert_seconds_to_timespec_time(
 					mx_epics_io_timeout_interval );
 
 	pv->put_callback_status = MXF_EPVH_IDLE;
@@ -945,7 +946,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 		wait_for_connection = FALSE;
 	}
 
-	timeout_in_seconds = mx_convert_high_resolution_time_to_seconds(
+	timeout_in_seconds = mx_convert_timespec_time_to_seconds(
 					pv->connect_timeout_interval );
 
 	/* Initialize the connection state variables. */
@@ -1004,7 +1005,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 		MX_DEBUG(-2,("%s: pvname = '%s', channel_id = %p, "
 		"connect_timeout_interval = %g",
 			fname, pv->pvname, pv->channel_id,
-			  mx_convert_high_resolution_time_to_seconds(
+			  mx_convert_timespec_time_to_seconds(
 				pv->connect_timeout_interval ) ));
 #endif
 
@@ -1028,9 +1029,8 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 
 		/* When will the connection timeout interval expire? */
 
-		timeout_time = mx_add_high_resolution_times(
-				attempt_start_time,
-				pv->connect_timeout_interval );
+		timeout_time = mx_add_timespec_times( attempt_start_time,
+						pv->connect_timeout_interval );
 
 		/* Wait for the search request to complete. */
 
@@ -1068,7 +1068,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 
 			current_time = mx_high_resolution_time();
 
-			time_comparison = mx_compare_high_resolution_times(
+			time_comparison = mx_compare_timespec_times(
 						current_time, timeout_time );
 
 			if ( time_comparison >= 0 ) {
@@ -2413,7 +2413,7 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 	 * reconnection takes too long.
 	 */
 
-	timeout_time = mx_add_high_resolution_times(
+	timeout_time = mx_add_timespec_times(
 					pv->connection_state_last_change_time,
 					pv->reconnect_timeout_interval );
 
@@ -2449,7 +2449,7 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 
 		current_time = mx_high_resolution_time();
 
-		time_comparison = mx_compare_high_resolution_times(
+		time_comparison = mx_compare_timespec_times(
 						current_time, timeout_time );
 
 		if ( time_comparison >= 0 ) {
@@ -2459,7 +2459,7 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 			MX_DEBUG(-2,("%s: PV '%s' reconnection timeout "
 				"of %g seconds has expired, i = %lu.",
 				fname, pv->pvname,
-				mx_convert_high_resolution_time_to_seconds(
+				    mx_convert_timespec_time_to_seconds(
 					pv->reconnect_timeout_interval ), i ));
 #endif
 

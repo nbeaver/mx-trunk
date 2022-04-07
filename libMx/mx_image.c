@@ -5369,8 +5369,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 	MXIF_ROW_BINSIZE(*frame)    = binsize[0];
 	MXIF_COLUMN_BINSIZE(*frame) = binsize[1];
 
-	exposure_timespec =
-		mx_convert_seconds_to_high_resolution_time( exposure_time );
+	exposure_timespec = mx_convert_seconds_to_timespec_time( exposure_time);
 
 	MXIF_EXPOSURE_TIME_SEC(*frame)  = exposure_timespec.tv_sec;
 	MXIF_EXPOSURE_TIME_NSEC(*frame) = exposure_timespec.tv_nsec;
@@ -5863,8 +5862,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	exposure_timespec.tv_sec  = (long) MXIF_EXPOSURE_TIME_SEC(frame);
 	exposure_timespec.tv_nsec = (long) MXIF_EXPOSURE_TIME_NSEC(frame);
 
-	exposure_time =
-		mx_convert_high_resolution_time_to_seconds( exposure_timespec );
+	exposure_time = mx_convert_timespec_time_to_seconds( exposure_timespec);
 
 	MXP_SMV_CHECK_FPRINTF( fprintf( file, "TIME=%.6f;\n", exposure_time ) );
 
@@ -6517,8 +6515,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *image_filename )
 	MXIF_ROW_BINSIZE(*frame)    = binsize[0];
 	MXIF_COLUMN_BINSIZE(*frame) = binsize[1];
 
-	exposure_timespec =
-		mx_convert_seconds_to_high_resolution_time( exposure_time );
+	exposure_timespec = mx_convert_seconds_to_timespec_time( exposure_time);
 
 	MXIF_EXPOSURE_TIME_SEC(*frame)  = exposure_timespec.tv_sec;
 	MXIF_EXPOSURE_TIME_NSEC(*frame) = exposure_timespec.tv_nsec;

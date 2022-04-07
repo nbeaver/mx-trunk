@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010, 2012, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2006-2010, 2012, 2015-2016, 2018, 2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +27,6 @@
 #include "mx_driver.h"
 #include "mx_constants.h"
 #include "mx_bit.h"
-#include "mx_hrt.h"
 #include "mx_array.h"
 #include "mx_image.h"
 #include "mx_video_input.h"

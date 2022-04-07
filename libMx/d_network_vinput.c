@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009-2010, 2014, 2021 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009-2010, 2014, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +24,6 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_net.h"
-#include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "d_network_vinput.h"

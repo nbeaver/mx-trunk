@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2003-2005, 2007, 2009, 2021 Illinois Institute of Technology
+ * Copyright 2003-2005, 2007, 2009, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,24 +41,6 @@ MX_API void mx_high_resolution_time_init( void );
  */
 
 MX_API struct timespec mx_high_resolution_time( void );
-
-MX_API struct timespec mx_add_high_resolution_times( struct timespec time1,
-						struct timespec time2 );
-
-MX_API struct timespec mx_subtract_high_resolution_times( struct timespec time1,
-						struct timespec time2 );
-
-MX_API int mx_compare_high_resolution_times( struct timespec time1,
-						struct timespec time2 );
-
-MX_API struct timespec mx_rescale_high_resolution_time( double scale_factor,
-						struct timespec original_time );
-
-MX_API struct timespec mx_convert_seconds_to_high_resolution_time(
-						double seconds );
-
-#define mx_convert_high_resolution_time_to_seconds( value ) \
-	( (double) (value).tv_sec + 1.0e-9 * (double) (value).tv_nsec )
 
 /*---*/
 

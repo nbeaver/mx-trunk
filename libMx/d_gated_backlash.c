@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009, 2010, 2013, 2020-2021
+ * Copyright 2006-2007, 2009, 2010, 2013, 2020-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -23,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_analog_output.h"
 #include "mx_digital_output.h"
@@ -279,8 +280,7 @@ mxd_gated_backlash_open( MX_RECORD *record )
 
 	motor->real_motor_record = gated_backlash->real_motor_record;
 
-	gated_backlash->gate_delay =
-		mx_convert_seconds_to_high_resolution_time( 0.1 );
+	gated_backlash->gate_delay = mx_convert_seconds_to_timespec_time( 0.1 );
 
 	gated_backlash->gate_delay_finish = mx_high_resolution_time();
 
@@ -391,7 +391,7 @@ mxd_gated_backlash_move_absolute( MX_MOTOR *motor )
 			return mx_status;
 
 		gated_backlash->gate_delay_finish =
-			mx_add_high_resolution_times( mx_high_resolution_time(),
+			mx_add_timespec_times( mx_high_resolution_time(),
 				gated_backlash->gate_delay );
 	}
 
@@ -717,7 +717,7 @@ mxd_gated_backlash_get_status( MX_MOTOR *motor )
 	if ( motor->backlash_move_in_progress ) {
 		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
 
-			comparison = mx_compare_high_resolution_times(
+			comparison = mx_compare_timespec_times(
 					mx_high_resolution_time(),
 					gated_backlash->gate_delay_finish );
 

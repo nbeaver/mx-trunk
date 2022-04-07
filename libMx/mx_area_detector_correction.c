@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2016 Illinois Institute of Technology
+ * Copyright 2006-2016, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,6 +55,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_cfn.h"
+#include "mx_time.h"
 #include "mx_hrt_debug.h"
 #include "mx_memory.h"
 #include "mx_image.h"
@@ -1659,7 +1660,7 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 	/* Set the image frame exposure time. */
 
 	exposure_timespec =
-	    mx_convert_seconds_to_high_resolution_time( corr->exposure_time );
+	    mx_convert_seconds_to_timespec_time( corr->exposure_time );
 
 	MXIF_EXPOSURE_TIME_SEC(dest_frame)  = exposure_timespec.tv_sec;
 	MXIF_EXPOSURE_TIME_NSEC(dest_frame) = exposure_timespec.tv_nsec;

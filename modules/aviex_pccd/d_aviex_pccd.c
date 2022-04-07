@@ -3225,8 +3225,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	exposure_timespec =
-		mx_convert_seconds_to_high_resolution_time( exposure_time );
+	exposure_timespec = mx_convert_seconds_to_timespec_time( exposure_time);
 
 	MXIF_EXPOSURE_TIME_SEC(aviex_pccd->raw_frame)
 						= exposure_timespec.tv_sec;

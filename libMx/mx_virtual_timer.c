@@ -5,7 +5,7 @@
  *
  * Author:  William Lavender
  *
- * Copyright 2006-2008, 2018 Illinois Institute of Technology
+ * Copyright 2006-2008, 2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include "mx_util.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_mutex.h"
 #include "mx_virtual_timer.h"
@@ -228,8 +229,8 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 			(unsigned long) current_time.tv_nsec));
 #endif
 
-		new_event->expiration_time = mx_add_high_resolution_times(
-				    current_time, timer_interval );
+		new_event->expiration_time = mx_add_timespec_times(
+					    current_time, timer_interval );
 		break;
 	}
 
@@ -271,7 +272,7 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 			fname, current_event));
 #endif
 
-		comparison = mx_compare_high_resolution_times(
+		comparison = mx_compare_timespec_times(
 					new_event->expiration_time,
 					current_event->expiration_time );
 
@@ -688,8 +689,8 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 
 		expiration_time = current_event->expiration_time;
 
-		comparison = mx_compare_high_resolution_times(
-						current_time, expiration_time );
+		comparison = mx_compare_timespec_times( current_time,
+							expiration_time );
 
 #if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
 		MX_DEBUG(-2,("%s: current_time = (%lu,%lu), "
@@ -728,7 +729,7 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 			 * the current time.
 			 */
 
-			new_expiration_time = mx_add_high_resolution_times(
+			new_expiration_time = mx_add_timespec_times(
 						expiration_time,
 						vtimer->timer_period );
 
@@ -1027,9 +1028,8 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 		/* Save the timer period. */
 
-		vtimer->timer_period =
-			mx_convert_seconds_to_high_resolution_time(
-				timer_period_in_seconds );
+		vtimer->timer_period = mx_convert_seconds_to_timespec_time(
+						timer_period_in_seconds );
 
 	} else {
 		/* If the timer period in seconds is zero or a negative
@@ -1085,9 +1085,8 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 			vtimer->timer_period.tv_nsec,
 			vtimer ));
 	} else {
-		timer_period_in_seconds =
-		mx_convert_high_resolution_time_to_seconds(
-				vtimer->timer_period );
+		timer_period_in_seconds = mx_convert_timespec_time_to_seconds(
+							vtimer->timer_period );
 
 		MX_DEBUG(-2,
 	    ("%s: Resubmitting %g second (%ld,%ld) timer event for vtimer %p",
@@ -1211,17 +1210,17 @@ mx_virtual_timer_read( MX_VIRTUAL_TIMER *vtimer,
 
 		expiration_time = next_event->expiration_time;
 
-		comparison = mx_compare_high_resolution_times(
-					current_time, expiration_time );
+		comparison = mx_compare_timespec_times( current_time,
+							expiration_time );
 
 		if ( comparison >= 0 ) {
 			*seconds_till_expiration = 0.0;
 		} else {
-			time_difference = mx_subtract_high_resolution_times(
+			time_difference = mx_subtract_timespec_times(
 					expiration_time, current_time );
 
 			*seconds_till_expiration =
-		    mx_convert_high_resolution_time_to_seconds(time_difference);
+			  mx_convert_timespec_time_to_seconds(time_difference);
 		}
 	}
 

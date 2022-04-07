@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2014-2018, 2021 Illinois Institute of Technology
+ * Copyright 2014-2018, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,6 +25,7 @@
 #include "mx_util.h"
 #include "mx_osdef.h"
 #include "mx_stdint.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_dynamic_library.h"
 #include "mx_thread.h"
@@ -359,8 +360,7 @@ mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
 		"The Win32 mutex pointer for MX mutex %p is NULL.", mutex );
 	}
 
-	timeout_in_msec =
-		1000.0 * mx_convert_high_resolution_time_to_seconds( *ts );
+	timeout_in_msec = 1000.0 * mx_convert_timespec_time_to_seconds( *ts );
 
 	if ( timeout_in_msec >= (double)INFINITE ) {
 		dword_timeout = INFINITE;
@@ -766,7 +766,7 @@ mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
 	case 0:
 		break;
 	case ETIMEDOUT:
-		timeout = mx_convert_high_resolution_time_to_seconds( *ts );
+		timeout = mx_convert_timespec_time_to_seconds( *ts );
 
 		return mx_error( MXE_TIMED_OUT, fname,
 		"The wait for MX condition variable %p using MX mutex %p "

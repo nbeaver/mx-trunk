@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010-2011, 2015 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010-2011, 2015, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -524,12 +524,11 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 	timeout_in_seconds = 0.001 * (double) serial_timeout;
 
 	timeout_interval = 
-	    mx_convert_seconds_to_high_resolution_time( timeout_in_seconds );
+	    mx_convert_seconds_to_timespec_time( timeout_in_seconds );
 
 	start_time = mx_high_resolution_time();
 
-	timeout_time = mx_add_high_resolution_times( start_time,
-							timeout_interval );
+	timeout_time = mx_add_timespec_times( start_time, timeout_interval );
 
 	/* Loop until we read all of the bytes or else timeout. */
 
@@ -643,7 +642,7 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 
 		current_time = mx_high_resolution_time();
 
-		timeout_status = mx_compare_high_resolution_times( current_time,
+		timeout_status = mx_compare_timespec_times( current_time,
 								timeout_time );
 
 		if ( timeout_status >= 0 ) {
@@ -707,12 +706,11 @@ mxi_epix_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 	timeout_in_seconds = 0.001 * (double) serial_timeout;
 
 	timeout_interval = 
-	    mx_convert_seconds_to_high_resolution_time( timeout_in_seconds );
+	    mx_convert_seconds_to_timespec_time( timeout_in_seconds );
 
 	start_time = mx_high_resolution_time();
 
-	timeout_time = mx_add_high_resolution_times( start_time,
-							timeout_interval );
+	timeout_time = mx_add_timespec_times( start_time, timeout_interval );
 
 	/* Loop until we write all of the bytes or else timeout. */
 
@@ -797,7 +795,7 @@ mxi_epix_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 
 		current_time = mx_high_resolution_time();
 
-		timeout_status = mx_compare_high_resolution_times( current_time,
+		timeout_status = mx_compare_timespec_times( current_time,
 								timeout_time );
 
 		if ( timeout_status >= 0 ) {

@@ -21,6 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_stdint.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_clock_tick.h"
 
@@ -620,7 +621,7 @@ mx_get_system_boot_time_from_ticks( struct timespec *system_boot_timespec )
 	boot_time_in_seconds = seconds_since_the_epoch - seconds_since_boot;
 
 	*system_boot_timespec =
-	    mx_convert_seconds_to_high_resolution_time( boot_time_in_seconds );
+		mx_convert_seconds_to_timespec_time( boot_time_in_seconds );
 
 #if MX_BOOT_DEBUG
 	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,

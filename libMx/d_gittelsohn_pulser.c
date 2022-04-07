@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2015-2019, 2021 Illinois Institute of Technology
+ * Copyright 2015-2019, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_ascii.h"
 #include "mx_cfn.h"
@@ -993,12 +994,11 @@ mxd_gittelsohn_pulser_internal_get_last_pulse_number(
 
 	current_hrt_time = mx_high_resolution_time();
 
-	hrt_time_difference =
-		mx_subtract_high_resolution_times( current_hrt_time,
+	hrt_time_difference = mx_subtract_timespec_times( current_hrt_time,
 						last_internal_start_time );
 
 	difference_seconds =
-	    mx_convert_high_resolution_time_to_seconds( hrt_time_difference );
+		mx_convert_timespec_time_to_seconds( hrt_time_difference );
 
 	pulses_since_start_as_double = mx_divide_safely( difference_seconds,
 							pulser->pulse_period );

@@ -33,6 +33,7 @@
 #include "mx_motor.h"
 #include "mx_scan.h"
 #include "mx_process.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "d_hrt_motor.h"
 
@@ -165,8 +166,7 @@ mxd_hrt_motor_get_current_time( void )
 
 	current_hrt_time = mx_high_resolution_time();
 
-	current_time =
-	    mx_convert_high_resolution_time_to_seconds( current_hrt_time );
+	current_time = mx_convert_timespec_time_to_seconds( current_hrt_time );
 
 	return current_time;
 }
@@ -181,8 +181,7 @@ mxd_hrt_motor_move_absolute( MX_MOTOR *motor )
 	int interrupt;
 	mx_status_type mx_status;
 
-	hrt_motor = (MX_HRT_MOTOR *)
-			motor->record->record_type_struct;
+	hrt_motor = (MX_HRT_MOTOR *) motor->record->record_type_struct;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

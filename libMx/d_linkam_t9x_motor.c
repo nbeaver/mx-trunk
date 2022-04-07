@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2013, 2021 Illinois Institute of Technology
+ * Copyright 2010, 2013, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,6 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_hrt.h"
 #include "mx_motor.h"
 #include "i_linkam_t9x.h"
 #include "d_linkam_t9x_motor.h"

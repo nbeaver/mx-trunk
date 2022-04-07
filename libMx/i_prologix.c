@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2015, 2017-2018, 2021 Illinois Institute of Technology
+ * Copyright 2009-2010, 2015, 2017-2018, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +30,7 @@
 #include "mx_record.h"
 #include "mx_unistd.h"
 #include "mx_ascii.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_gpib.h"
 #include "mx_rs232.h"
@@ -792,12 +794,11 @@ mxi_prologix_wait_for_service_request( MX_GPIB *gpib, double timeout )
 
 	/* Compute the timeout time in 'struct timespec' units. */
 
-	timeout_duration = mx_convert_seconds_to_high_resolution_time(timeout);
+	timeout_duration = mx_convert_seconds_to_timespec_time( timeout );
 
 	current_time = mx_high_resolution_time();
 
-	finish_time = mx_add_high_resolution_times( current_time,
-							timeout_duration );
+	finish_time = mx_add_timespec_times( current_time, timeout_duration );
 
 	/* Loop waiting for the SRQ signal to be asserted. */
 
@@ -836,8 +837,8 @@ mxi_prologix_wait_for_service_request( MX_GPIB *gpib, double timeout )
 
 		current_time = mx_high_resolution_time();
 
-		comparison = mx_compare_high_resolution_times( current_time,
-								finish_time );
+		comparison = mx_compare_timespec_times( current_time,
+							finish_time );
 
 		/* If the timeout time has arrived, then break
 		 * out of the while loop.

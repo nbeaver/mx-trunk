@@ -46,6 +46,7 @@
 #include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_cfn.h"
+#include "mx_time.h"
 #include "mx_clock_tick.h"
 #include "mx_hrt.h"
 
@@ -72,108 +73,6 @@ mx_get_hrt_counter_ticks_per_second( void )
 
 /*--------------------------------------------------------------------------*/
 
-MX_EXPORT struct timespec
-mx_add_high_resolution_times( struct timespec time1,
-				struct timespec time2 )
-{
-	struct timespec result;
-	long nanoseconds;
-
-	nanoseconds = time1.tv_nsec + time2.tv_nsec;
-
-	result.tv_nsec = nanoseconds % 1000000000L;
-
-	result.tv_sec = (time_t)
-		( time1.tv_sec + time2.tv_sec + nanoseconds / 1000000000L );
-
-	return result;
-}
-
-MX_EXPORT struct timespec
-mx_subtract_high_resolution_times( struct timespec time1,
-				struct timespec time2 )
-{
-	struct timespec result;
-
-	if ( time1.tv_nsec < time2.tv_nsec ) {
-		time1.tv_sec  -= 1L;
-		time1.tv_nsec += 1000000000L;
-	}
-
-	result.tv_nsec = time1.tv_nsec - time2.tv_nsec;
-
-	result.tv_sec = time1.tv_sec - time2.tv_sec;
-
-	return result;
-}
-
-MX_EXPORT int
-mx_compare_high_resolution_times( struct timespec time1,
-				struct timespec time2 )
-{
-	unsigned long H1, H2, L1, L2;
-
-	H1 = time1.tv_sec;
-	H2 = time2.tv_sec;
-
-	L1 = time1.tv_nsec;
-	L2 = time2.tv_nsec;
-
-	if ( H1 < H2 ) {
-		return (-1);
-	} else if ( H1 > H2 ) {
-		return 1;
-	} else {
-		if ( L1 < L2 ) {
-			return (-1);
-
-		} else if ( L1 > L2 ) {
-			return 1;
-
-		} else {
-			return 0;
-		}
-	}
-}
-
-MX_EXPORT struct timespec
-mx_rescale_high_resolution_time( double scale_factor,
-				struct timespec original_time )
-{
-	struct timespec new_time;
-	double new_seconds, new_nanoseconds, extra_seconds;
-
-	new_seconds = scale_factor * original_time.tv_sec;
-	new_nanoseconds = scale_factor * original_time.tv_nsec;
-
-	if ( new_nanoseconds >= 1.0e9 ) {
-		extra_seconds = (long) (new_nanoseconds / 1.0e9);
-
-		new_seconds = new_seconds + extra_seconds;
-		new_nanoseconds = fmod( new_nanoseconds, 1.0e9 );
-	}
-
-	new_time.tv_sec = mx_round( new_seconds );
-
-	new_time.tv_nsec = mx_round( new_nanoseconds );
-
-	return new_time;
-}
-
-MX_EXPORT struct timespec
-mx_convert_seconds_to_high_resolution_time( double seconds )
-{
-	struct timespec result;
-
-	result.tv_sec = (time_t) seconds;
-
-	seconds -= (double) result.tv_sec;
-
-	result.tv_nsec = (long) ( 1.0e9 * seconds );
-
-	return result;
-}
-
 MX_EXPORT double
 mx_high_resolution_time_as_double( void )
 {
@@ -182,7 +81,7 @@ mx_high_resolution_time_as_double( void )
 
 	hrt = mx_high_resolution_time();
 
-	result = mx_convert_high_resolution_time_to_seconds( hrt );
+	result = mx_convert_timespec_time_to_seconds( hrt );
 
 	return result;
 }

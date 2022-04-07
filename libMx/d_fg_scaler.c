@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2010, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_constants.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_scaler.h"
 #include "d_fg_scaler.h"
@@ -138,11 +139,11 @@ mxd_fg_scaler_read( MX_SCALER *scaler )
 
 	current_time = mx_high_resolution_time();
 
-	time_difference = mx_subtract_high_resolution_times( current_time,
-							fg_scaler->start_time );
+	time_difference = mx_subtract_timespec_times( current_time,
+						fg_scaler->start_time );
 
 	seconds_since_start =
-		mx_convert_high_resolution_time_to_seconds( time_difference );
+		mx_convert_timespec_time_to_seconds( time_difference );
 
 	num_periods = (unsigned long) mx_divide_safely( seconds_since_start,
 							 fg_scaler->period );

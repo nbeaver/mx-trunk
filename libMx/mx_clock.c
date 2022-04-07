@@ -140,7 +140,7 @@ mx_clock_get_timespec( MX_RECORD *clock_record, uint64_t *timespec )
 	timespec_struct.tv_sec = clock->timespec[0];
 	timespec_struct.tv_nsec = clock->timespec[0];
 
-	result_struct = mx_subtract_high_resolution_times( timespec_struct,
+	result_struct = mx_subtract_timespec_times( timespec_struct,
 						clock->timespec_offset_struct );
 
 	clock->timespec[0] = result_struct.tv_sec;
@@ -176,7 +176,7 @@ mx_clock_set_timespec_offset( MX_RECORD *clock_record,
 	clock->timespec_offset_struct.tv_sec = timespec_offset[0];
 	clock->timespec_offset_struct.tv_nsec = timespec_offset[1];
 
-	clock->offset = mx_convert_high_resolution_time_to_seconds(
+	clock->offset = mx_convert_timespec_time_to_seconds(
 						clock->timespec_offset_struct );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -224,13 +224,13 @@ mx_clock_set_offset( MX_RECORD *clock_record, double offset )
 	if ( offset < 0.0 ) {
 		clock->timespec_offset_struct = mx_current_os_time();
 
-		clock->offset = mx_convert_high_resolution_time_to_seconds(
+		clock->offset = mx_convert_timespec_time_to_seconds(
 						clock->timespec_offset_struct );
 	} else {
 		clock->offset = offset;
 
 		clock->timespec_offset_struct =
-			mx_convert_seconds_to_high_resolution_time( offset );
+			mx_convert_seconds_to_timespec_time( offset );
 	}
 
 	clock->timespec_offset[0] = clock->timespec_offset_struct.tv_sec;

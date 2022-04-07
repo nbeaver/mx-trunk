@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2007-2008, 2010, 2012, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -301,12 +301,11 @@ mxi_edt_rs232_read( MX_RS232 *rs232,
 	/* Compute the timeout time in high resolution time units. */
 
 	timeout_interval = 
-	    mx_convert_seconds_to_high_resolution_time( rs232->timeout );
+	    mx_convert_seconds_to_timespec_time( rs232->timeout );
 
 	start_time = mx_high_resolution_time();
 
-	timeout_time = mx_add_high_resolution_times( start_time,
-							timeout_interval );
+	timeout_time = mx_add_timespec_times( start_time, timeout_interval );
 
 	/* Loop until we read all of the bytes or else timeout. */
 
@@ -395,7 +394,7 @@ mxi_edt_rs232_read( MX_RS232 *rs232,
 
 		current_time = mx_high_resolution_time();
 
-		timeout_status = mx_compare_high_resolution_times( current_time,
+		timeout_status = mx_compare_timespec_times( current_time,
 								timeout_time );
 
 		if ( timeout_status >= 0 ) {

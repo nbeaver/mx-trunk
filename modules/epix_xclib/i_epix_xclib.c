@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010, 2015, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -647,17 +647,15 @@ mxi_epix_xclib_estimate_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 	MX_DEBUG(-2,("%s: sequence_time = %g", fname, sequence_time));
 #endif
 
-	sequence_timespec =
-		mx_convert_seconds_to_high_resolution_time( sequence_time );
+	sequence_timespec = mx_convert_seconds_to_timespec_time( sequence_time);
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: sequence_timespec = (%lu,%ld)",
 		fname, sequence_timespec.tv_sec, sequence_timespec.tv_nsec));
 #endif
 
-	result = mx_add_high_resolution_times(
-				epix_xclib->sequence_start_timespec,
-				sequence_timespec );
+	result = mx_add_timespec_times( epix_xclib->sequence_start_timespec,
+							sequence_timespec );
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: result = (%lu,%ld)",
@@ -773,8 +771,8 @@ mxi_epix_xclib_get_buffer_timestamp( MX_EPIX_XCLIB *epix_xclib,
 		offset.tv_sec, offset.tv_nsec));
 #endif
 
-	result = mx_add_high_resolution_times(
-			epix_xclib->system_boot_timespec, offset );
+	result = mx_add_timespec_times( epix_xclib->system_boot_timespec,
+								offset );
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: result = (%lu,%ld)", fname,

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010, 2017, 2019 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010, 2017, 2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_rs232.h"
 #include "i_picomotor.h"
@@ -135,7 +136,7 @@ mxi_picomotor_create_record_structures( MX_RECORD *record )
 	 */
 
 	picomotor_controller->minimum_time_between_commands
-		= mx_convert_seconds_to_high_resolution_time(
+		= mx_convert_seconds_to_timespec_time(
 			0.001 * (double) MX_MINIMUM_PICOMOTOR_COMMAND_INTERVAL);
 
 	return MX_SUCCESSFUL_RESULT;
@@ -595,7 +596,7 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	for (;;) {
 		current_time = mx_high_resolution_time();
 
-		comparison = mx_compare_high_resolution_times(
+		comparison = mx_compare_timespec_times(
 				picomotor_controller->next_command_time,
 				current_time );
 
@@ -727,7 +728,7 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 	current_time = mx_high_resolution_time();
 
-	picomotor_controller->next_command_time = mx_add_high_resolution_times(
+	picomotor_controller->next_command_time = mx_add_timespec_times(
 	    current_time, picomotor_controller->minimum_time_between_commands );
 
 	MX_DEBUG( 2,("%s complete.", fname));

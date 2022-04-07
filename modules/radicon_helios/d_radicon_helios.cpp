@@ -43,6 +43,7 @@
 #include "mx_driver.h"
 #include "mx_cfn.h"
 #include "mx_bit.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_array.h"
 #include "mx_pulse_generator.h"
@@ -1583,7 +1584,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	/* Save the difference as the new PLC timestamp base. */
 
-	radicon_helios->timestamp_base = mx_subtract_high_resolution_times(
+	radicon_helios->timestamp_base = mx_subtract_timespec_times(
 				host_current_time, current_timestamp_timespec );
 
 #if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
@@ -2407,7 +2408,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		image_timestamp_timespec.tv_nsec ));
 #endif
 
-	absolute_timespec = mx_add_high_resolution_times(
+	absolute_timespec = mx_add_timespce_times(
 		radicon_helios->timestamp_base, image_timestamp_timespec );
 
 #if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
@@ -2430,7 +2431,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		double exposure_time = sp->parameter_array[0];
 
 		struct timespec exposure_timespec =
-		    mx_convert_seconds_to_high_resolution_time( exposure_time );
+		    mx_convert_seconds_to_timespec_time( exposure_time );
 
 		MXIF_EXPOSURE_TIME_SEC( ad->image_frame )
 						= exposure_timespec.tv_sec;

@@ -923,9 +923,8 @@ mxd_epix_xclib_save_start_timespec( MX_EPIX_XCLIB *xclib )
 
 	relative_timespec = mx_high_resolution_time();
 
-	absolute_timespec = mx_add_high_resolution_times(
-					xclib->system_boot_timespec,
-					relative_timespec );
+	absolute_timespec = mx_add_timespec_times( xclib->system_boot_timespec,
+							relative_timespec );
 
 	xclib->sequence_start_timespec = absolute_timespec;
 

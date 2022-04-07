@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2017-2019 Illinois Institute of Technology
+ * Copyright 2011-2013, 2017-2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_callback.h"
 #include "mx_digital_output.h"
@@ -162,8 +163,8 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 
 	transition_timespec = doutput_pulser->next_transition_timespec;
 
-	comparison = mx_compare_high_resolution_times( current_timespec,
-							transition_timespec );
+	comparison = mx_compare_timespec_times( current_timespec,
+						transition_timespec );
 
 #if MXD_DOUTPUT_PULSER_DEBUG
 	MX_DEBUG(-2,("%s: current_time = (%lu,%lu), "
@@ -239,7 +240,7 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 
 	if ( pulser->busy ) {
 		timespec_until_next_transition =
-			mx_convert_seconds_to_high_resolution_time(
+			mx_convert_seconds_to_timespec_time(
 				time_until_next_transition );
 
 		if ( flags & MXF_DOUTPUT_PULSER_ALLOW_TIME_SKEW ) {
@@ -250,7 +251,7 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 		}
 
 		doutput_pulser->next_transition_timespec =
-			mx_add_high_resolution_times( old_transition_timespec,
+			mx_add_timespec_times( old_transition_timespec,
 					timespec_until_next_transition );
 
 #if MXD_DOUTPUT_PULSER_DEBUG

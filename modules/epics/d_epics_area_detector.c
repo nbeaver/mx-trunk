@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2013-2016, 2018-2019, 2021
+ * Copyright 2010-2011, 2013-2016, 2018-2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -24,6 +24,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_time.h"
 #include "mx_bit.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
@@ -1289,7 +1290,7 @@ mxd_epics_ad_readout_frame( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	acquisition_timespec =
-		mx_convert_seconds_to_high_resolution_time( acquisition_time );
+		mx_convert_seconds_to_timespec_time( acquisition_time );
 
 	MXIF_EXPOSURE_TIME_SEC(ad->image_frame)  = acquisition_timespec.tv_sec;
 	MXIF_EXPOSURE_TIME_NSEC(ad->image_frame) = acquisition_timespec.tv_nsec;

@@ -30,7 +30,6 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_hrt.h"
 #include "mx_ascii.h"
 #include "mx_cfn.h"
 #include "mx_rs232.h"

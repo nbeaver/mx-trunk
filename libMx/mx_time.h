@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2015-2017, 2021 Illinois Institute of Technology
+ * Copyright 2010-2012, 2015-2017, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,6 +68,25 @@ MX_API char *mx_current_time_string( char *buffer, size_t buffer_length );
 
 MX_API uint64_t mx_posix_time( void );
 
-/*----*/
+/*---- Functions for performing calculations with timespec values. */
+
+MX_API struct timespec mx_add_timespec_times( struct timespec time1,
+						struct timespec time2 );
+
+MX_API struct timespec mx_subtract_timespec_times( struct timespec time1,
+						struct timespec time2 );
+
+MX_API int mx_compare_timespec_times( struct timespec time1,
+						struct timespec time2 );
+
+MX_API struct timespec mx_rescale_timespec_time( double scale_factor,
+						struct timespec original_time );
+
+MX_API struct timespec mx_convert_seconds_to_timespec_time( double seconds );
+
+#define mx_convert_timespec_time_to_seconds( value ) \
+	( (double) (value).tv_sec + 1.0e-9 * (double) (value).tv_nsec )
+
+/*---*/
 
 #endif /* _MX_TIME_H_ */
