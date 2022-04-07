@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2021 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,7 @@
 #include "mx_digital_output.h"
 #include "mx_scaler.h"
 #include "mx_timer.h"
+#include "mx_clock.h"
 #include "mx_plot.h"
 #include "mx_module.h"
 #include "mx_array.h"
@@ -153,6 +154,7 @@ motor_show_fn( int argc, char *argv[] )
 "        show adcs           <or>  show adc 'name'\n"
 "        show amplifiers     <or>  show amplifier 'name'\n"
 "        show area_detectors <or>  show area_detector 'name'\n"
+"        show clocks         <or>  show clock 'name'\n"
 "        show dacs           <or>  show dac 'name'\n"
 "        show dinputs        <or>  show dinput 'name'\n"
 "        show doutputs       <or>  show doutput 'name'\n"
@@ -391,6 +393,14 @@ motor_show_fn( int argc, char *argv[] )
 		record_type = MXT_ANY;
 
 		strlcpy( record_type_phrase, "an area detector",
+					sizeof(record_type_phrase) );
+
+	} else if ( strncmp( "clocks", argv[2], max(2,length) ) == 0 ) {
+		record_superclass = MXR_DEVICE;
+		record_class = MXC_CLOCK;
+		record_type = MXT_ANY;
+
+		strlcpy( record_type_phrase, "a clock",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "dacs", argv[2], max(2,length) ) == 0 ) {

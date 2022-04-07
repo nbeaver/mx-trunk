@@ -151,7 +151,7 @@ mx_clock_get_timespec( MX_RECORD *clock_record, uint64_t *timespec )
 		timespec[1] = clock->timespec[1];
 	}
 
-	clock->seconds = timespec[0] + 1.0e-9 * timespec[1];
+	clock->seconds = clock->timespec[0] + 1.0e-9 * clock->timespec[1];
 
 	return mx_status;
 }
@@ -169,6 +169,12 @@ mx_clock_set_timespec_offset( MX_RECORD *clock_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( timespec_offset == (uint64_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The timespec_offset pointer passed for clock '%s' was NULL.",
+			clock_record->name );
+	}
 
 	clock->timespec_offset[0] = timespec_offset[0];
 	clock->timespec_offset[1] = timespec_offset[1];

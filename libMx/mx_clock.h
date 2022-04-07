@@ -42,7 +42,7 @@ typedef struct {
 #define MX_CLOCK_STANDARD_FIELDS \
   {MXLV_CLK_TIMESPEC, -1, "timespec", MXFT_UINT64, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CLOCK, timespec), \
-	{sizeof(uint64_t)}, NULL, (MXFF_READ_ONLY | MXFF_IN_SUMMARY) }, \
+	{sizeof(uint64_t)}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_CLK_TIMESPEC_OFFSET, -1, "timespec_offset", MXFT_UINT64, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CLOCK, timespec_offset), \
@@ -50,7 +50,7 @@ typedef struct {
   \
   {MXLV_CLK_SECONDS, -1, "seconds", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CLOCK, seconds), \
-	{sizeof(double)}, NULL, MXFF_READ_ONLY }, \
+	{sizeof(double)}, NULL, (MXFF_READ_ONLY | MXFF_IN_SUMMARY) }, \
   \
   {MXLV_CLK_OFFSET, -1, "offset", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CLOCK, offset), \

@@ -517,6 +517,7 @@
 #include "d_bkprecision_912x_wvout.h"
 
 #include "d_os_clock.h"
+#include "d_hrt_clock.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -3763,6 +3764,13 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_os_clock_clock_function_list,
 			&mxd_os_clock_num_record_fields,
 			&mxd_os_clock_rfield_def_ptr},
+
+{"hrt_clock",   MXT_CLK_HRT_CLOCK, MXC_CLOCK, MXR_DEVICE,
+			&mxd_hrt_clock_record_function_list,
+			NULL,
+			&mxd_hrt_clock_clock_function_list,
+			&mxd_hrt_clock_num_record_fields,
+			&mxd_hrt_clock_rfield_def_ptr},
 
   /* ===================== Scan types ===================== */
 
