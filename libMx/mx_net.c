@@ -4866,6 +4866,289 @@ mx_put_array_ascii_error_message( uint32_t status_code,
 
 /* ====================================================================== */
 
+static long
+mx_get_sized_local_datatype( long mx_datatype )
+{
+	static const char fname[] = "mx_get_sized_local_datatype()";
+
+	long sized_datatype;
+
+	switch( mx_datatype ) {
+	case MXFT_CHAR:
+	case MXFT_INT8:
+		sized_datatype = MXFT_INT8;
+		break;
+	case MXFT_UCHAR:
+	case MXFT_UINT8:
+		sized_datatype = MXFT_UINT8;
+		break;
+	case MXFT_SHORT:
+	case MXFT_INT16:
+		sized_datatype = MXFT_INT16;
+		break;
+	case MXFT_USHORT:
+	case MXFT_UINT16:
+		sized_datatype = MXFT_UINT16;
+		break;
+	case MXFT_BOOL:
+	case MXFT_INT32:
+		sized_datatype = MXFT_INT32;
+		break;
+	case MXFT_ENUM:
+	case MXFT_UINT32:
+		sized_datatype = MXFT_UINT32;
+		break;
+	case MXFT_LONG:
+		if ( MX_WORDSIZE == 64 ) {
+			sized_datatype = MXFT_INT64;
+		} else {
+			sized_datatype = MXFT_INT32;
+		}
+		break;
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		if ( MX_WORDSIZE == 64 ) {
+			sized_datatype = MXFT_UINT64;
+		} else {
+			sized_datatype = MXFT_UINT32;
+		}
+		break;
+	case MXFT_STRING:
+	case MXFT_FLOAT:
+	case MXFT_DOUBLE:
+		sized_datatype = mx_datatype;
+		break;
+	default:
+		MX_DEBUG(-2,("%s: Unsupported MX datatype %ld passed.",
+			fname, mx_datatype));
+	}
+
+	return sized_datatype;
+}
+
+static long
+mx_get_sized_network_datatype( long mx_datatype,
+	       		mx_bool_type use_64bit_network_long )
+{
+	static const char fname[] = "mx_get_sized_network_datatype()";
+
+	long sized_datatype;
+
+	switch( mx_datatype ) {
+	case MXFT_CHAR:
+	case MXFT_INT8:
+		sized_datatype = MXFT_INT8;
+		break;
+	case MXFT_UCHAR:
+	case MXFT_UINT8:
+		sized_datatype = MXFT_UINT8;
+		break;
+	case MXFT_SHORT:
+	case MXFT_INT16:
+		sized_datatype = MXFT_INT16;
+		break;
+	case MXFT_USHORT:
+	case MXFT_UINT16:
+		sized_datatype = MXFT_UINT16;
+		break;
+	case MXFT_BOOL:
+	case MXFT_INT32:
+		sized_datatype = MXFT_INT32;
+		break;
+	case MXFT_ENUM:
+	case MXFT_UINT32:
+		sized_datatype = MXFT_UINT32;
+		break;
+	case MXFT_LONG:
+		if ( use_64bit_network_long ) {
+			sized_datatype = MXFT_INT64;
+		} else {
+			sized_datatype = MXFT_INT32;
+		}
+		break;
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		if ( use_64bit_network_long ) {
+			sized_datatype = MXFT_UINT64;
+		} else {
+			sized_datatype = MXFT_UINT32;
+		}
+		break;
+	case MXFT_STRING:
+	case MXFT_FLOAT:
+	case MXFT_DOUBLE:
+		sized_datatype = mx_datatype;
+		break;
+	default:
+		MX_DEBUG(-2,("%s: Unsupported MX datatype %ld passed.",
+			fname, mx_datatype));
+	}
+
+	return sized_datatype;
+}
+
+
+static mx_status_type
+mx_new_copy_get_field_array( MX_RECORD *server_record,
+			MX_NETWORK_SERVER *server,
+			char *remote_record_field_name,
+			MX_RECORD_FIELD *local_field,
+			mx_bool_type array_is_dynamically_allocated,
+			void *value_ptr,
+			long message_length,
+			char *message,
+			long datatype,
+			long num_dimensions,
+			long *dimension_array,
+			size_t *data_element_size_array )
+{
+	static const char fname[] = "mx_new_copy_get_field_array()";
+
+
+	MX_RECORD_FIELD_PARSE_STATUS temp_parse_status;
+	mx_status_type ( *token_parser )
+		( void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
+		  MX_RECORD_FIELD_PARSE_STATUS * );
+
+	char token_buffer[500];
+	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
+	mx_status_type mx_status;
+
+	/*--------*/
+
+	void *local_vector = NULL;
+	long local_mx_datatype;
+	size_t local_max_bytes;
+
+	void *network_vector = NULL;
+	long network_mx_datatype;
+	size_t network_max_bytes;
+
+	size_t num_bytes_copied;
+
+	/************ Parse the data that was returned. ***************/
+
+	switch( datatype ) {
+		/* The following special datatypes are treated specially
+		 * by the server, so we must treat them specially in
+		 * the client.
+		 */
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
+		datatype = MXFT_STRING;
+		num_dimensions = 1;
+		dimension_array[0] = message_length;
+		data_element_size_array[0] = sizeof( char );
+	}
+
+	switch( server->data_format ) {
+	case MX_NETWORK_DATAFMT_ASCII:
+
+		/* The data was returned using the ASCII MX database format. */
+
+		mx_status = mx_get_token_parser( datatype, &token_parser );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_initialize_parse_status( &temp_parse_status,
+						message, separators );
+
+		/* If this is a string field, figure out what the maximum
+		 * string token length is.
+		 */
+
+		if ( datatype == MXFT_STRING ) {
+			temp_parse_status.max_string_token_length =
+				mx_get_max_string_token_length( local_field );
+		} else {
+			temp_parse_status.max_string_token_length = 0L;
+		}
+
+		/* Now we are ready to parse the tokens. */
+
+		if ( (num_dimensions == 0) ||
+			((datatype == MXFT_STRING) && (num_dimensions == 1)) )
+		{
+			mx_status = mx_get_next_record_token(
+				&temp_parse_status,
+				token_buffer, sizeof(token_buffer) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = ( *token_parser ) ( value_ptr,
+					token_buffer, NULL, local_field,
+					&temp_parse_status );
+		} else {
+			mx_status = mx_parse_array_description( value_ptr,
+				num_dimensions - 1, NULL, local_field,
+				&temp_parse_status, token_parser );
+		}
+		break;
+
+	case MX_NETWORK_DATAFMT_RAW:
+	case MX_NETWORK_DATAFMT_XDR:
+
+		MX_DEBUG(-2,("%s: server '%s', use 64 bit network longs = %d",
+			fname, server->record->name,
+			server->use_64bit_network_longs));
+
+		local_vector = value_ptr;
+		local_mx_datatype =
+			mx_get_sized_local_datatype( local_field->datatype );
+
+		local_max_bytes = 500L;
+
+		network_vector = message;
+		network_mx_datatype =
+			mx_get_sized_network_datatype( datatype,
+					server->use_64bit_network_longs );
+
+		network_max_bytes = 400L;
+
+		MX_DEBUG(-2,
+			("%s: name = '%s'", fname, remote_record_field_name));
+		MX_DEBUG(-2,
+			("    local_vector = %p, local_mx_datatype = %ld (%ld), local_max_bytes = %lu",
+			local_vector, local_mx_datatype,
+			local_field->datatype,
+			(unsigned long) local_max_bytes));
+
+		MX_DEBUG(-2,
+			("    network_vector = %p, network_mx_datatype = %ld (%ld), network_max_bytes = %lu",
+			network_vector, network_mx_datatype,
+			datatype,
+			(unsigned long) network_max_bytes));
+
+		MX_DEBUG(-2,
+		("%s: ******** BEFORE mx_array_copy_vector() *******", fname));
+
+		mx_status = mx_array_copy_vector( local_vector,
+						local_mx_datatype,
+						local_max_bytes,
+						network_vector,
+						network_mx_datatype,
+						network_max_bytes,
+						&num_bytes_copied, FALSE );
+
+		MX_DEBUG(-2,
+		("%s: ******** AFTER mx_array_copy_vector() *******", fname));
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized network data format type %lu was requested.",
+			server->data_format );
+	}
+
+	return mx_status;
+}
+
+/* ---------------------------------------------------------------------- */
+
 static mx_status_type
 mx_old_copy_get_field_array( MX_RECORD *server_record,
 			MX_NETWORK_SERVER *server,
@@ -5086,6 +5369,9 @@ mx_get_field_array( MX_RECORD *server_record,
 	uint32_t status_code;
 	unsigned long network_debug_flags;
 	mx_bool_type net_debug_summary = FALSE;
+
+	mx_bool_type use_new_array_copy = FALSE;
+
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -5379,7 +5665,20 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	/************ Copy the data that was returned. ***************/
 
-	mx_status = mx_old_copy_get_field_array( server_record,
+	use_new_array_copy = FALSE;
+
+	if ( nf != (MX_NETWORK_FIELD *) NULL ) {
+		if ( nf->nf_flags & MXF_NF_USE_NEW_ARRAY_COPY ) {
+			use_new_array_copy = TRUE;
+		}
+	} else
+	if ( server->server_flags & MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY ) {
+		use_new_array_copy = TRUE;
+	}
+
+	if ( use_new_array_copy ) {
+		mx_status = mx_new_copy_get_field_array(
+						server_record,
 						server,
 						remote_record_field_name,
 						local_field,
@@ -5391,6 +5690,21 @@ mx_get_field_array( MX_RECORD *server_record,
 						num_dimensions,
 						dimension_array,
 						data_element_size_array );
+	} else {
+		mx_status = mx_old_copy_get_field_array(
+						server_record,
+						server,
+						remote_record_field_name,
+						local_field,
+						array_is_dynamically_allocated,
+						value_ptr,
+						message_length,
+						message,
+						datatype,
+						num_dimensions,
+						dimension_array,
+						data_element_size_array );
+	}
 
 	return mx_status;
 }
