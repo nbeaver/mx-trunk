@@ -489,6 +489,101 @@ motor_test_fn( int argc, char *argv[] )
 
 			return SUCCESS;
 		}
+
+		else
+		if ( strcmp( argv[2], "mxget" ) == 0 ) {
+#if 0
+			static const char cname[] = "mxget";
+#endif
+
+			char server_name[MXU_RECORD_NAME_LENGTH+1];
+			char server_arguments[200];
+			char record_name[MXU_RECORD_NAME_LENGTH+1];
+			char field_name[MXU_FIELD_NAME_LENGTH+1];
+
+			MX_RECORD *server_record = NULL;
+			MX_NETWORK_FIELD *nf = NULL;
+			MX_RECORD_FIELD *local_field = NULL;
+			void *value_ptr;
+
+			mx_status = mx_parse_network_field_id(
+				argv[3],
+				server_name, sizeof(server_name),
+				server_arguments, sizeof(server_arguments),
+				record_name, sizeof(record_name),
+				field_name, sizeof(field_name) );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				return FAILURE;
+			}
+
+#if 0
+			MX_DEBUG(-2,("%s: server_name = '%s'",
+				cname, server_name));
+			MX_DEBUG(-2,("%s: server_arguments = '%s'",
+				cname, server_arguments));
+			MX_DEBUG(-2,("%s: record_name = '%s'",
+				cname, record_name));
+			MX_DEBUG(-2,("%s: field_name = '%s'",
+				cname, field_name));
+#endif
+
+			server_record = motor_record_list;
+
+			mx_status = mx_connect_to_mx_server(
+						&server_record,
+						server_name,
+						atoi( server_arguments ),
+						5.0, 0x0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+#if 0
+			MX_DEBUG(-2,("%s: server_record = '%s'",
+				cname, server_record->name));
+#endif
+
+			mx_status = mx_create_network_field(
+					&nf, server_record,
+					record_name, field_name, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+#if 0
+			MX_DEBUG(-2,("%s: nf->nfname = '%s'",
+				cname, nf->nfname));
+#endif
+
+			nf->nf_flags |= MXF_NF_USE_NEW_ARRAY_COPY;
+
+			fprintf( output,
+	"Turned on MXF_NF_USE_NEW_ARRAY_COPY for network field '%s:%s\n",
+				server_record->name, nf->nfname );
+
+			/* Connect to the network field. */
+
+			mx_status = mx_network_field_connect( nf );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			/* Get the value pointer for the local
+			 * MX_RECORD_FIELD.
+			 */
+
+			local_field = nf->local_field;
+
+			value_ptr = mx_get_field_value_pointer( local_field );
+
+			/* Get the field value from the remote MX SERVER. */
+
+			mx_status = mx_get_field_array( NULL, NULL,
+						nf, local_field, value_ptr );
+
+			return SUCCESS;
+		}
 	}
 
 	fprintf( output,
@@ -502,6 +597,7 @@ motor_test_fn( int argc, char *argv[] )
 "test disk 'filename' - show disk space info for disk containing the file\n"
 "test dll_filename 'filename' - show the file that a dll was opened from\n"
 "test max_fds - show the maximum number of file descriptors (Win32)\n"
+"test mxget - get server:record.field using new array copy\n"
 "test num_open_fds - show the number of open file descriptors\n"
 "test offset - test stack offset\n"
 "test process - execute all outstanding MX callbacks\n"
