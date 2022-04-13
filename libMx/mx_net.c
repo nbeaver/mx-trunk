@@ -4919,8 +4919,11 @@ mx_get_sized_local_datatype( long mx_datatype )
 		sized_datatype = mx_datatype;
 		break;
 	default:
+		sized_datatype = -1L;
+
 		MX_DEBUG(-2,("%s: Unsupported MX datatype %ld passed.",
 			fname, mx_datatype));
+		break;
 	}
 
 	return sized_datatype;
@@ -4980,8 +4983,11 @@ mx_get_sized_network_datatype( long mx_datatype,
 		sized_datatype = mx_datatype;
 		break;
 	default:
+		sized_datatype = -1L;
+
 		MX_DEBUG(-2,("%s: Unsupported MX datatype %ld passed.",
 			fname, mx_datatype));
+		break;
 	}
 
 	return sized_datatype;
