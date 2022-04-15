@@ -647,6 +647,10 @@ motor_main( int argc, char *argv[] )
 #endif
 
 	for (;;) {
+		/* Clear any saved user interrupt flag. */
+
+		mx_set_user_requested_interrupt( MXF_USER_INT_NONE );
+
 		/* Read a command line. */
 
 		command_line = cmd_read_next_command_line( prompt );

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -843,6 +843,7 @@ MX_API int  mx_user_requested_interrupt( void );
 MX_API int  mx_user_requested_interrupt_or_pause( void );
 MX_API void mx_set_user_interrupt_function( int (*)( void ) );
 MX_API int  mx_default_user_interrupt_function( void );
+MX_API void mx_set_user_requested_interrupt( int interrupt_flag );
 
 /* === Informational messages. === */
 

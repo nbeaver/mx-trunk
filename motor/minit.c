@@ -17,10 +17,33 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "motor.h"
 #include "mx_log.h"
 #include "mx_multi.h"
+#include "mx_unistd.h"
+
+/*--------------------------------------------------------------------------*/
+
+/* FIXME: The following simple signal handler may not be enough
+ * to handle SIGINT correctly for some build targets.  However,
+ * for now we assume that it works and hope for the best.
+ */
+
+static void
+motor_sigint_handler( int signum )
+{
+	mx_set_user_requested_interrupt( MXF_USER_INT_ABORT );
+}
+
+static void
+motor_install_sigint_handler( void )
+{
+	signal( SIGINT, motor_sigint_handler );
+}
+
+/*--------------------------------------------------------------------------*/
 
 int
 motor_init( char *motor_savefile_name,
@@ -55,14 +78,9 @@ motor_init( char *motor_savefile_name,
 
 #endif /* ! defined( OS_WIN32 ) */
 
-		/* Trap ctrl-C interrupts. */
+		/* Trap SIGINT interrupts (like ctrl-C). */
 
-#if defined(OS_SOLARIS)
-		signal( SIGINT, (void(*)(int))1 );
-#else
-		signal( SIGINT, SIG_IGN );
-#endif
-
+		motor_install_sigint_handler();
 	}
 
 	/* Set some global flags. */

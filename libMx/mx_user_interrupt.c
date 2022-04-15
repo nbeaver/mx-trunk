@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2008-2009, 2012 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2008-2009, 2012, 2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +21,8 @@
 
 #include "mx_util.h"
 #include "mx_key.h"
+
+static int static_user_requested_interrupt_flag = MXF_USER_INT_NONE;
 
 static int ( *mx_user_interrupt_function )( void )
 			= mx_default_user_interrupt_function;
@@ -47,6 +50,14 @@ mx_user_requested_interrupt_or_pause( void )
 	static const char fname[] = "mx_user_requested_interrupt_or_pause()";
 
 	int user_interrupt;
+
+	if ( static_user_requested_interrupt_flag != MXF_USER_INT_NONE ) {
+		int temp_flag = static_user_requested_interrupt_flag;
+
+		static_user_requested_interrupt_flag = MXF_USER_INT_NONE;
+
+		return temp_flag;
+	}
 
 	if ( mx_user_interrupt_function != NULL ) {
 
@@ -104,5 +115,11 @@ mx_set_user_interrupt_function( int (*user_interrupt_function)(void) )
 		mx_user_interrupt_function = user_interrupt_function;
 	}
 	return;
+}
+
+MX_EXPORT void
+mx_set_user_requested_interrupt( int interrupt_flag )
+{
+	static_user_requested_interrupt_flag = interrupt_flag;
 }
 
