@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2018, 2021 Illinois Institute of Technology
+ * Copyright 2015-2018, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,9 +19,10 @@
 
 #include "mx_pulse_generator.h"
 
-#define MXF_GITTELSOHN_PULSER_DEBUG			0x1
-#define MXF_GITTELSOHN_PULSER_AUTO_RESYNC_ON_ERROR	0x2
-#define MXF_GITTELSOHN_PULSER_PULSE_DTR_ON_STOP		0x4
+#define MXF_GITTELSOHN_PULSER_DEBUG				0x1
+#define MXF_GITTELSOHN_PULSER_AUTO_RESYNC_ON_ERROR		0x2
+#define MXF_GITTELSOHN_PULSER_PULSE_DTR_ON_STOP			0x4
+#define MXF_GITTELSOHN_PULSER_DETECT_STATUS_WITH_DUMMY_COMMAND	0x8
 
 typedef struct {
 	MX_RECORD *record;
@@ -34,6 +35,8 @@ typedef struct {
 	double firmware_version;
 
 	struct timespec last_internal_start_time;
+
+	mx_bool_type dummy_status_command_in_progress;
 } MX_GITTELSOHN_PULSER;
 
 /* Define all of the interface functions. */

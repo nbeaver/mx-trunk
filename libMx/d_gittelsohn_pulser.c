@@ -395,6 +395,23 @@ mxd_gittelsohn_pulser_pulse_dtr( MX_GITTELSOHN_PULSER *gittelsohn_pulser )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxd_gittelsohn_pulser_dummy_status_command(
+		MX_GITTELSOHN_PULSER *gittelsohn_pulser )
+{
+	mx_status_type mx_status;
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+						"cycles", NULL, 0, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	gittelsohn_pulser->dummy_status_command_in_progress = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
@@ -461,6 +478,8 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	gittelsohn_pulser->dummy_status_command_in_progress = FALSE;
 
 	memset( &(gittelsohn_pulser->last_internal_start_time),
 			0, sizeof(struct timespec) );
@@ -730,6 +749,7 @@ mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_gittelsohn_pulser_is_busy()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -737,6 +757,62 @@ mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If requested, see if the pulser has responded to a dummy status
+	 * command.  If the pulser has responded, then the pulser is not busy.
+	 */
+
+	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
+
+	if ( flags & MXF_GITTELSOHN_PULSER_DETECT_STATUS_WITH_DUMMY_COMMAND ) {
+
+		if ( gittelsohn_pulser->dummy_status_command_in_progress ) {
+			MX_RECORD *rs232_record
+				= gittelsohn_pulser->rs232_record;
+			unsigned long num_input_bytes_available = 0;
+			char response[80];
+
+			mx_status = mx_rs232_num_input_bytes_available(
+				rs232_record, &num_input_bytes_available );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* The Gittelsohn pulser only responds to the
+			 * dummy status command after it has completed
+			 * the current pulse.
+			 */
+
+			if ( num_input_bytes_available == 0 ) {
+				pulser->busy = TRUE;
+
+				return MX_SUCCESSFUL_RESULT;
+			}
+
+			/* The pulser has responded, so we must throw
+			 * away the response line.
+			 */
+
+			mx_status = mx_rs232_getline_with_timeout( rs232_record,
+						response, sizeof(response),
+						NULL, 0, 5.0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* We have read the pulser's response, so we now
+			 * mark the dummy status command as no longer
+			 * in progress.
+			 */
+
+			gittelsohn_pulser->dummy_status_command_in_progress 
+				= FALSE;
+
+			/* We continue on to do the test for whether 
+			 * the pulse train is supposed to be over.
+			 */
+		}
+	}
 
 	/* Get the number of pulses generated so far to the total number of
 	 * pulses expected to be generated.
@@ -767,6 +843,21 @@ mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 		pulser->busy = FALSE;
 	}
 
+	/* If the pulse sequence is not yet supposed to be over, then
+	 * we send another dummy status command for our next attempt
+	 * to see if the pulser is currently pulsing.
+	 */
+
+	if ( flags & MXF_GITTELSOHN_PULSER_DETECT_STATUS_WITH_DUMMY_COMMAND ) {
+		if ( pulser->busy ) {
+			mx_status = mxd_gittelsohn_pulser_dummy_status_command(
+							  gittelsohn_pulser );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
 #if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: pulser '%s', busy = %d",
 		fname, pulser->record->name, (int) pulser->busy));
@@ -783,6 +874,7 @@ mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
 	long on_milliseconds, off_milliseconds;
 	char command[80];
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -875,6 +967,21 @@ mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If requested, send a dummy status command to the pulser.  
+	 * When the pulser sends a response, we will know that the
+	 * pulser has stopped pulsing.
+	 */
+
+	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
+
+	if ( flags & MXF_GITTELSOHN_PULSER_DETECT_STATUS_WITH_DUMMY_COMMAND ) {
+		mx_status =
+		  mxd_gittelsohn_pulser_dummy_status_command(gittelsohn_pulser);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/* Mark the pulse generator as busy. */
 
 	pulser->busy = TRUE;
@@ -888,6 +995,7 @@ mxd_gittelsohn_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_gittelsohn_pulser_arm()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -920,6 +1028,21 @@ mxd_gittelsohn_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	/* Save the start time. */
 
 	gittelsohn_pulser->last_internal_start_time = mx_high_resolution_time();
+
+	/* If requested, send a dummy status command to the pulser.  
+	 * When the pulser sends a response, we will know that the
+	 * pulser has stopped pulsing.
+	 */
+
+	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
+
+	if ( flags & MXF_GITTELSOHN_PULSER_DETECT_STATUS_WITH_DUMMY_COMMAND ) {
+		mx_status =
+		  mxd_gittelsohn_pulser_dummy_status_command(gittelsohn_pulser);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Mark the pulse generator as busy. */
 
