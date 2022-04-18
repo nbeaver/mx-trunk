@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013, 2021 Illinois Institute of Technology
+ * Copyright 2013, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,6 +56,7 @@ MX_API mx_status_type mx_vm_set_protection( void *address,
 					unsigned long protection_flags );
 
 MX_API mx_status_type mx_vm_show_os_info( FILE *file,
+					char *id_string,
 					void *address,
 					size_t range_size_in_bytes );
 

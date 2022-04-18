@@ -41,6 +41,7 @@
 #include "mx_util.h"
 #include "mx_inttypes.h"
 #include "mx_array.h"
+#include "mx_vm_alloc.h"
 #include "mx_bit.h"
 #include "mx_record.h"
 #include "mx_socket.h"
@@ -5022,12 +5023,16 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 	/*--------*/
 
+	unsigned long i, mx_num_elements;
+
 	void *local_vector = NULL;
 	long local_mx_datatype;
+	size_t local_mx_element_size;
 	size_t local_max_bytes;
 
 	void *network_vector = NULL;
 	long network_mx_datatype;
+	size_t network_mx_element_size;
 	size_t network_max_bytes;
 
 	size_t num_bytes_copied;
@@ -5102,32 +5107,58 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 			fname, server->record->name,
 			server->use_64bit_network_longs));
 
+		mx_num_elements = 1;
+
+		for ( i = 0; i < local_field->num_dimensions; i++ ) {
+			mx_num_elements *= local_field->dimension[i];
+		}
+
 		local_vector = value_ptr;
 		local_mx_datatype =
 			mx_get_sized_local_datatype( local_field->datatype );
 
-		local_max_bytes = 500L;
+		if ( MX_WORDSIZE > 32 ) {
+		    local_mx_element_size =
+			mx_get_scalar_element_size( local_mx_datatype, TRUE );
+		} else {
+		    local_mx_element_size =
+			mx_get_scalar_element_size( local_mx_datatype, FALSE );
+		}
+
+		local_max_bytes = local_mx_element_size * mx_num_elements;
 
 		network_vector = message;
 		network_mx_datatype =
 			mx_get_sized_network_datatype( datatype,
 					server->use_64bit_network_longs );
+		network_mx_element_size =
+			mx_get_scalar_element_size( network_mx_datatype,
+					server->use_64bit_network_longs );
 
-		network_max_bytes = 400L;
+		network_max_bytes = network_mx_element_size * mx_num_elements;
 
 		MX_DEBUG(-2,
 			("%s: name = '%s'", fname, remote_record_field_name));
-		MX_DEBUG(-2,
-			("    local_vector = %p, local_mx_datatype = %ld (%ld), local_max_bytes = %lu",
-			local_vector, local_mx_datatype,
-			local_field->datatype,
-			(unsigned long) local_max_bytes));
+
+		MX_DEBUG(-2,("%s: mx_num_elements = %lu",
+				fname, mx_num_elements ));
+
+		MX_DEBUG(-2,("%s: local_vector = %p, local_mx_datatype = %ld, "
+			"local_mx_element_size = %lu, local_max_bytes = %lu",
+			fname, local_vector, local_mx_datatype,
+			local_mx_element_size, local_max_bytes ));
 
 		MX_DEBUG(-2,
-			("    network_vector = %p, network_mx_datatype = %ld (%ld), network_max_bytes = %lu",
-			network_vector, network_mx_datatype,
-			datatype,
-			(unsigned long) network_max_bytes));
+		    ("%s: network_vector = %p, network_mx_datatype = %ld, "
+		    "network_mx_element_size = %lu, network_max_bytes = %lu",
+			fname, network_vector, network_mx_datatype,
+			network_mx_element_size, network_max_bytes ));
+
+		mx_vm_show_os_info( stderr, "local_vector",
+				local_vector, sizeof(void *) );
+
+		mx_vm_show_os_info( stderr, "network_vector",
+				network_vector, sizeof(void *) );
 
 		MX_DEBUG(-2,
 		("%s: ******** BEFORE mx_array_copy_vector() *******", fname));

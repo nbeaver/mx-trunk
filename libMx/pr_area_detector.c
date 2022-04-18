@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2015, 2017-2019, 2021
+ * Copyright 2006-2009, 2011-2015, 2017-2019, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -19,7 +19,7 @@
 
 #define PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		FALSE
 
-#define PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION	FALSE
+#define PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION	TRUE
 
 #define PR_AREA_DETECTOR_DEBUG_PROCESS			FALSE
 
@@ -113,7 +113,7 @@ mxp_area_detector_measure_correction_callback_function(
 #if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
 	MX_DEBUG(-2,("%s: corr = %p, global[1] = %p",
 		fname, corr, mx_global_debug_pointer[1]));
-	mx_vm_show_os_info( stderr, corr, sizeof(corr) );
+	mx_vm_show_os_info( stderr, "corr", corr, sizeof(corr) );
 #endif
 
 	ad = corr->area_detector;
@@ -122,10 +122,11 @@ mxp_area_detector_measure_correction_callback_function(
 	MX_DEBUG(-2,("%s: ad = %p, global[0] = %p",
 		fname, ad, mx_global_debug_pointer[0]));
 
-	mx_vm_show_os_info( stderr, ad, sizeof(ad) );
-	mx_heap_check();
+	mx_vm_show_os_info( stderr, "ad", ad, sizeof(ad) );
+	mx_heap_check( 0 );
 	MX_DEBUG(-2,("%s: ad->record = %p", fname, ad->record));
-	mx_vm_show_os_info( stderr, ad->record, sizeof(MX_RECORD *) );
+	mx_vm_show_os_info( stderr,
+			"ad->record", ad->record, sizeof(MX_RECORD *) );
 	MX_DEBUG(-2,("%s: ad->record->name = '%s'", fname, ad->record->name));
 #endif
 
@@ -143,9 +144,10 @@ mxp_area_detector_measure_correction_callback_function(
 							&ad_status );
 #if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
 	MX_DEBUG(-2,("%s: MARKER #2", fname));
-	mx_heap_check();
+	mx_heap_check( 0 );
 	MX_DEBUG(-2,("%s: ad->record = %p", fname, ad->record));
-	mx_vm_show_os_info( stderr, ad->record, sizeof(MX_RECORD *) );
+	mx_vm_show_os_info( stderr,
+			"ad->record", ad->record, sizeof(MX_RECORD *) );
 	MX_DEBUG(-2,("%s: ad->record->name = '%s'", fname, ad->record->name));
 #endif
 
@@ -331,7 +333,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 #if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
 		MX_DEBUG(-2,("%s: MARKER #900, ad = %p", fname, ad));
-		mx_vm_show_os_info( stderr, ad, sizeof(ad) );
+		mx_vm_show_os_info( stderr, "a", ad, sizeof(ad) );
 #endif
 
 #if PR_AREA_DETECTOR_DEBUG_CORRECTION
@@ -354,7 +356,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 #if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
 	MX_DEBUG(-2,("%s: MARKER #990, ad = %p", fname, ad));
-	mx_vm_show_os_info( stderr, ad, sizeof(ad) );
+	mx_vm_show_os_info( stderr, "ad", ad, sizeof(ad) );
 #endif
 
 	mx_status = mx_area_detector_finish_correction_calculation( ad, corr );
@@ -380,7 +382,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 #if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
 	MX_DEBUG(-2,("%s: MARKER #999, ad = %p", fname, ad));
-	mx_vm_show_os_info( stderr, ad, sizeof(ad) );
+	mx_vm_show_os_info( stderr, "ad", ad, sizeof(ad) );
 #endif
 
 	return mx_status;
@@ -1211,6 +1213,7 @@ mx_area_detector_process_function( void *record_ptr,
 					sizeof(uint16_t), R_OK | W_OK ) ));
 
 			mx_vm_show_os_info( stderr,
+					"ad->image_frame_data",
 					ad->image_frame_data,
 					sizeof(uint16_t) );
 #endif

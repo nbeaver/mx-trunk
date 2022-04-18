@@ -188,6 +188,7 @@ motor_test_fn( int argc, char *argv[] )
 				= mx_hex_string_to_unsigned_long( argv[4] );
 
 			mx_status = mx_vm_show_os_info( stderr,
+							"address",
 							address,
 							region_size_in_bytes );
 
@@ -492,7 +493,7 @@ motor_test_fn( int argc, char *argv[] )
 
 		else
 		if ( strcmp( argv[2], "mxget" ) == 0 ) {
-#if 0
+#if 1
 			static const char cname[] = "mxget";
 #endif
 
@@ -517,17 +518,6 @@ motor_test_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-#if 0
-			MX_DEBUG(-2,("%s: server_name = '%s'",
-				cname, server_name));
-			MX_DEBUG(-2,("%s: server_arguments = '%s'",
-				cname, server_arguments));
-			MX_DEBUG(-2,("%s: record_name = '%s'",
-				cname, record_name));
-			MX_DEBUG(-2,("%s: field_name = '%s'",
-				cname, field_name));
-#endif
-
 			server_record = motor_record_list;
 
 			mx_status = mx_connect_to_mx_server(
@@ -539,11 +529,6 @@ motor_test_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-#if 0
-			MX_DEBUG(-2,("%s: server_record = '%s'",
-				cname, server_record->name));
-#endif
-
 			mx_status = mx_create_network_field(
 					&nf, server_record,
 					record_name, field_name, NULL );
@@ -551,10 +536,47 @@ motor_test_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-#if 0
-			MX_DEBUG(-2,("%s: nf->nfname = '%s'",
-				cname, nf->nfname));
+			/* Get the value pointer for the local
+			 * MX_RECORD_FIELD.
+			 */
+
+			local_field = nf->local_field;
+
+#if 1
+			{
+				void *data_pointer;
+				unsigned long varargs_flag;
+
+				mx_vm_show_os_info( output, "local_field",
+					local_field, sizeof(MX_RECORD_FIELD) );
+
+				data_pointer = local_field->data_pointer;
+
+				mx_vm_show_os_info( output,
+				  "data_pointer = local_field->data_pointer",
+					data_pointer, sizeof(void *) );
+
+				varargs_flag =
+					local_field->flags & MXFF_VARARGS;
+
+				MX_DEBUG(-2,("%s: varargs_flag = %#lx",
+					cname, varargs_flag));
+
+				if ( varargs_flag ) {
+					mx_vm_show_os_info( output,
+						"*(local_field->data_pointer)",
+		mx_read_void_pointer_from_memory_location( data_pointer ),
+						sizeof(void *) );
+				}
+			}
 #endif
+
+			value_ptr = mx_get_field_value_pointer( local_field );
+
+			mx_vm_show_os_info( output, "value_ptr",
+					value_ptr, sizeof(void *) );
+
+			/* Enable the new array copy functionality. */
 
 			nf->nf_flags |= MXF_NF_USE_NEW_ARRAY_COPY;
 
@@ -568,14 +590,6 @@ motor_test_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
-
-			/* Get the value pointer for the local
-			 * MX_RECORD_FIELD.
-			 */
-
-			local_field = nf->local_field;
-
-			value_ptr = mx_get_field_value_pointer( local_field );
 
 			/* Get the field value from the remote MX SERVER. */
 

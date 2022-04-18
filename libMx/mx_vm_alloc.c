@@ -363,6 +363,7 @@ mx_vm_set_protection( void *address,
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
+		char *id_string,
 		void *address,
 		size_t range_size_in_bytes )
 {
@@ -378,6 +379,10 @@ mx_vm_show_os_info( FILE *file,
 	if ( address == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The address pointer passed was NULL." );
+	}
+
+	if ( id_string != (char *) NULL ) {
+		fprintf( file, "  Description '%s'\n", id_string );
 	}
 
 	fprintf( file, "    Address =           %p\n", address );
@@ -401,6 +406,9 @@ mx_vm_show_os_info( FILE *file,
 	fprintf( file, "    RegionSize =        %lu\n",
 						memory_info.RegionSize );
 #endif
+	fprintf( file  "    End of region =     %p\n",
+	  (void *) ( memory_info.BaseAddress + memory_info.RegionSize - 1L ) );
+
 	fprintf( file, "    State =             %#lx\n", memory_info.State );
 	fprintf( file, "    Protect =           %#lx\n", memory_info.Protect );
 	fprintf( file, "    Type =              %#lx\n", memory_info.Type );
@@ -821,6 +829,7 @@ mx_vm_get_region( void *address,
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
+		char *id_string,
 		void *address,
 		size_t range_size_in_bytes )
 {
@@ -881,20 +890,25 @@ mx_vm_show_os_info( FILE *file,
 
 	vm_region_size = vm_end_address - vm_base_address;
 
-	fprintf( stderr, "    Address      = %p\n", address );
-	fprintf( stderr, "    Base Address = %p\n", (void *) vm_base_address );
-	fprintf( stderr, "    Region_Size  = %lu\n",
+	if ( id_string != (char *) NULL ) {
+		fprintf( file, "  Description '%s'\n", id_string );
+	}
+
+	fprintf( file, "    Address       = %p\n", address );
+	fprintf( file, "    Base Address  = %p\n", (void *) vm_base_address );
+	fprintf( file, "    Region_Size   = %lu\n",
 					(unsigned long) vm_region_size );
-	fprintf( stderr, "    Permissions  = %s\n", argv[1] );
-	fprintf( stderr, "    Offset       = %lu\n",
+	fprintf( file, "    End of region = %p\n", (void *) vm_end_address );
+	fprintf( file, "    Permissions   = %s\n", argv[1] );
+	fprintf( file, "    Offset        = %lu\n",
 				mx_hex_string_to_unsigned_long( argv[2] ) );
-	fprintf( stderr, "    Device       = '%s'\n", argv[3] );
-	fprintf( stderr, "    Inode        = %lu\n", atol( argv[4] ) );
+	fprintf( file, "    Device        = '%s'\n", argv[3] );
+	fprintf( file, "    Inode         = %lu\n", atol( argv[4] ) );
 
 	if ( argc == 5 ) {
-		fprintf( stderr, " <No pathname>\n" );
+		fprintf( file, "    Pathname      = <No pathname>\n" );
 	} else {
-		fprintf( stderr, "    Pathname     = '%s'\n", argv[5] );
+		fprintf( file, "    Pathname      = '%s'\n", argv[5] );
 	}
 
 	mx_free( dup_entry_buffer );
@@ -1019,6 +1033,7 @@ mx_vm_get_region( void *address,
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
+		char *id_string,
 		void *address,
 		size_t range_size_in_bytes )
 {
@@ -1052,6 +1067,7 @@ mx_vm_get_region( void *address,
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
+		char *id_string,
 		void *address,
 		size_t range_size_in_bytes )
 {
@@ -1177,6 +1193,7 @@ mx_vm_get_region( void *address,
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
+		char *id_string,
 		void *address,
 		size_t range_size_in_bytes )
 {
@@ -1614,6 +1631,7 @@ mx_vm_get_region( void *address,
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
+		char *id_string,
 		void *address,
 		size_t range_size_in_bytes )
 {
@@ -1631,6 +1649,7 @@ mx_vm_show_os_info( FILE *file,
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
+		char *id_string,
 		void *address,
 		size_t range_size_in_bytes )
 {
@@ -1762,6 +1781,7 @@ mx_vm_get_region( void *address,
 
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
+		char *id_string,
 		void *address,
 		size_t range_size_in_bytes )
 {
