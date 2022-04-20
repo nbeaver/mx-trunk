@@ -576,6 +576,45 @@ motor_test_fn( int argc, char *argv[] )
 			mx_vm_show_os_info( output, "value_ptr",
 					value_ptr, sizeof(void *) );
 
+			fprintf( output,
+		"Calling mx_show_array_info() for field '%s', value_ptr = %p\n",
+				local_field->name, value_ptr );
+
+			mx_show_array_info( value_ptr );
+
+			/* If this is a 2 dimensional array, then print out
+			 * the addresses and values for this array.
+			 */
+
+			if ( ( local_field->num_dimensions == 2 )
+			  && ( local_field->datatype == MXFT_LONG ) )
+			{
+			    long **value = value_ptr;
+			    int i, j;
+
+			    fflush( output );
+			    fflush( stdout );
+			    fflush( stderr );
+
+			    fprintf( stderr, "   (long before)\n" );
+			    fprintf( stderr, "value = %p\n", value );
+
+			    for ( i = 0; i < local_field->dimension[0]; i++ ) {
+				fprintf( stderr, "  &value[%d] = %p, ",
+					i, &value[i] );
+				fprintf( stderr, "value[%d] = %p\n",
+					i, value[i] );
+
+				for ( j = 0; j < local_field->dimension[1]; j++)
+				{
+				    fprintf( stderr,"    &value[%d][%d] = %p, ",
+					i, j, &value[i][j] );
+				    fprintf( stderr, "value[%d][%d] = %ld\n",
+					i, j, value[i][j] );
+				}
+			    }
+			}	
+
 			/* Enable the new array copy functionality. */
 
 			nf->nf_flags |= MXF_NF_USE_NEW_ARRAY_COPY;
@@ -595,6 +634,59 @@ motor_test_fn( int argc, char *argv[] )
 
 			mx_status = mx_get_field_array( NULL, NULL,
 						nf, local_field, value_ptr );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			/* If this is a 2 dimensional array, then print out
+			 * the addresses and values for this array again.
+			 */
+
+			if ( ( local_field->num_dimensions == 2 )
+			  && ( local_field->datatype == MXFT_LONG ) )
+			{
+			    long **value = value_ptr;
+			    int i, j;
+
+			    fflush( output );
+			    fflush( stdout );
+			    fflush( stderr );
+
+			    fprintf( stderr, "   (long after)\n" );
+			    fprintf( stderr, "value = %p\n", value );
+
+			    for ( i = 0; i < local_field->dimension[0]; i++ ) {
+				fprintf( stderr, "  &value[%d] = %p, ",
+					i, &value[i] );
+				fprintf( stderr, "value[%d] = %p\n",
+					i, value[i] );
+
+				for ( j = 0; j < local_field->dimension[1]; j++)
+				{
+				    fprintf( stderr,"    &value[%d][%d] = %p, ",
+					i, j, &value[i][j] );
+				    fprintf( stderr, "value[%d][%d] = %ld\n",
+					i, j, value[i][j] );
+				}
+			    }
+			}	
+
+			/* Print out the field value. */
+
+			fprintf( output, "Printing value for field '%s'.\n",
+					local_field->name );
+
+			if ( local_field->num_dimensions > 1 ) {
+				mx_breakpoint();
+			}
+
+			mx_status = mx_print_field( output,
+						NULL, local_field, TRUE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output, "\n" );
 
 			return SUCCESS;
 		}

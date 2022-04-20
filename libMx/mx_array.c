@@ -1757,6 +1757,13 @@ mx_array_copy_vector( void *dest_vector,
 	 * is to set all of the bytes in dest_vector to zero at the start.
 	 */
 
+	MX_DEBUG(-2,("%s: MARKER 1", fname ));
+
+	memset( dest_vector, 0, 1 );
+
+	MX_DEBUG(-2,("%s: MARKER 2, dest_max_bytes = %lu",
+			fname, (unsigned long) dest_max_bytes ));
+
 	memset( dest_vector, 0, dest_max_bytes );
 
 	if ( dest_max_bytes >= src_max_bytes ) {

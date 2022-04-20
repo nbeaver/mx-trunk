@@ -5113,7 +5113,15 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 			mx_num_elements *= local_field->dimension[i];
 		}
 
-		local_vector = value_ptr;
+		if ( local_field->num_dimensions > 1 ) {
+			local_vector = mx_array_get_vector( value_ptr );
+		} else {
+			local_vector = value_ptr;
+		}
+
+		MX_DEBUG(-2,("%s value_ptr = %p, local_vector = %p",
+				fname, value_ptr, local_vector));
+
 		local_mx_datatype =
 			mx_get_sized_local_datatype( local_field->datatype );
 

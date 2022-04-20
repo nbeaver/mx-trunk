@@ -2580,10 +2580,6 @@ mx_print_field_value( FILE *file,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The FILE pointer passed was NULL." );
 	}
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
 	if ( field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD_FIELD pointer passed was NULL." );
@@ -2653,12 +2649,20 @@ mx_print_field_value( FILE *file,
 		fprintf( file, "%" PRIu64, *((uint64_t *) value_ptr) );
 		break;
 	case MXFT_FLOAT:
-		fprintf( file, "%.*g", record->precision,
+		if ( record == (MX_RECORD *) NULL ) {
+			fprintf( file, "%g", *((float *) value_ptr) );
+		} else {
+			fprintf( file, "%.*g", record->precision,
 						*((float *) value_ptr) );
+		}
 		break;
 	case MXFT_DOUBLE:
-		fprintf( file, "%.*g", record->precision,
+		if ( record == (MX_RECORD *) NULL ) {
+			fprintf( file, "%g", *((double *) value_ptr) );
+		} else {
+			fprintf( file, "%.*g", record->precision,
 						*((double *) value_ptr) );
+		}
 		break;
 	case MXFT_HEX:
 		fprintf( file, "%#lx", *((unsigned long *) value_ptr) );
@@ -2779,6 +2783,9 @@ mx_print_field_array( FILE *file,
 	} else {
 		array_ptr = data_ptr;
 	}
+
+	MX_DEBUG(-2,("mx_print_field_array(): data_ptr = %p, array_ptr = %p",
+			data_ptr, array_ptr));
 
 	/* The following is not necessarily an error.  For example, an
 	 * input_scan will have a NULL motor array.
