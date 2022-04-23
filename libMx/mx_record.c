@@ -2884,7 +2884,6 @@ mx_print_field_array( FILE *file,
 	long num_dimensions;
 	long *dimension = NULL;
 	size_t *data_element_size = NULL;
-	long field_type;
 	void *data_ptr = NULL;
 	void *array_ptr = NULL;
 	mx_status_type mx_status;
@@ -2893,7 +2892,6 @@ mx_print_field_array( FILE *file,
 	dimension = field->dimension;
 	data_element_size = field->data_element_size;
 
-	field_type = field->datatype;
 	data_ptr = field->data_pointer;
 
 	if ( num_dimensions < 1 ) {
