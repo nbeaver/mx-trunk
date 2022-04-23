@@ -15,7 +15,10 @@
  */
 
 #define DEBUG_DATABASE_BUFFERS	FALSE
+
 #define DEBUG_RECORD_IS_VALID	FALSE
+
+#define DEBUG_PRINT_FIELD_ARRAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2561,40 +2564,24 @@ mx_print_field_definition( FILE *output, MX_RECORD_FIELD *field )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mx_print_field_value( FILE *file,
-			MX_RECORD *record,
-			MX_RECORD_FIELD *field,
-			void *value_ptr,
-			mx_bool_type verbose )
+static mx_status_type
+mx_print_field_value_level( FILE *file,
+				MX_RECORD_FIELD *field,
+				int precision,
+				void *value_ptr,
+				mx_bool_type verbose )
 {
-	static const char fname[] = "mx_print_field_value()";
+	static const char fname[] = "mx_print_field_value_level()";
 
-	MX_RECORD *other_record;
-	MX_INTERFACE *mx_interface;
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD *referenced_field;
+	MX_RECORD *other_record = NULL;
+	MX_INTERFACE *mx_interface = NULL;
+	MX_DRIVER *driver = NULL;
+	MX_RECORD_FIELD *referenced_field = NULL;
 	long field_type;
 
-	if ( file == (FILE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The FILE pointer passed was NULL." );
-	}
 	if ( field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD_FIELD pointer passed was NULL." );
-	}
-	if ( value_ptr == NULL ) {
-		mx_stack_traceback();
-		mx_breakpoint();
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The value pointer passed was NULL." );
-	}
-
-	if ( field->flags & MXFF_NO_ACCESS ) {
-		fprintf( file, "<no access>" );
-
-		return MX_SUCCESSFUL_RESULT;
 	}
 
 	field_type = field->datatype;
@@ -2649,18 +2636,18 @@ mx_print_field_value( FILE *file,
 		fprintf( file, "%" PRIu64, *((uint64_t *) value_ptr) );
 		break;
 	case MXFT_FLOAT:
-		if ( record == (MX_RECORD *) NULL ) {
+		if ( precision < 0 ) {
 			fprintf( file, "%g", *((float *) value_ptr) );
 		} else {
-			fprintf( file, "%.*g", record->precision,
+			fprintf( file, "%.*g", precision,
 						*((float *) value_ptr) );
 		}
 		break;
 	case MXFT_DOUBLE:
-		if ( record == (MX_RECORD *) NULL ) {
+		if ( precision < 0 ) {
 			fprintf( file, "%g", *((double *) value_ptr) );
 		} else {
-			fprintf( file, "%.*g", record->precision,
+			fprintf( file, "%.*g", precision,
 						*((double *) value_ptr) );
 		}
 		break;
@@ -2744,7 +2731,210 @@ mx_print_field_value( FILE *file,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_print_field_value( FILE *file,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *field,
+			void *value_ptr,
+			mx_bool_type verbose )
+{
+	static const char fname[] = "mx_print_field_value()";
+
+	mx_status_type mx_status;
+
+	if ( file == (FILE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The FILE pointer passed was NULL." );
+	}
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+	if ( value_ptr == NULL ) {
+		mx_stack_traceback();
+		mx_breakpoint();
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The value pointer passed was NULL." );
+	}
+
+	if ( field->flags & MXFF_NO_ACCESS ) {
+		fprintf( file, "<no access>" );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = mx_print_field_value_level( file, field,
+				record->precision, value_ptr, verbose );
+
+	return mx_status;
+}
+
 #define MAX_ELEMENTS_SHOWN	8
+
+#if 1
+
+static mx_status_type
+mx_print_field_array_level( FILE *file,
+			MX_RECORD_FIELD *field,
+			int precision,
+			long num_dimensions,
+			long *dimension,
+			size_t *data_element_size,
+			void *array_ptr,
+			mx_bool_type verbose )
+{
+#if DEBUG_PRINT_FIELD_ARRAY
+	static const char fname[] = "mx_print_field_array_level()";
+#endif
+
+	long i, i_max;
+	char *row_ptr = NULL;
+	void *row = NULL;
+	mx_bool_type bottom_level = FALSE;
+	mx_bool_type show_dots = FALSE;
+	mx_status_type mx_status;
+
+	if (( field->datatype == MXFT_STRING ) && ( num_dimensions == 1 )) {
+		bottom_level = TRUE;
+	} else
+	if ( num_dimensions == 0 ) {
+		bottom_level = TRUE;
+	}
+
+	if ( bottom_level ) {
+		mx_status = mx_print_field_value_level( file,
+							field,
+							precision,
+							array_ptr,
+							verbose );
+		return mx_status;
+	}
+
+	/*---*/
+
+#if DEBUG_PRINT_FIELD_ARRAY
+	MX_DEBUG(-2,("%s: array_ptr = %p", fname, array_ptr));
+#endif
+
+	i_max = dimension[0];
+
+	if ( i_max >= MAX_ELEMENTS_SHOWN ) {
+		i_max = MAX_ELEMENTS_SHOWN - 1;
+
+		show_dots = TRUE;
+	}
+
+	row_ptr = array_ptr;
+
+	for ( i = 0; i < i_max; i++ ) {
+
+		if ( i_max > 1 ) {
+			if ( i == 0 ) {
+				fprintf( file, "( " );
+			} else {
+				fprintf( file, ", " );
+			}
+		}
+
+		if ( num_dimensions == 1 ) {
+			mx_status = mx_print_field_value_level( file,
+							field,
+							precision,
+							row_ptr,
+							verbose );
+		} else {
+			row =
+			  mx_read_void_pointer_from_memory_location( row_ptr );
+
+			mx_status = mx_print_field_array_level( file,
+							field,
+							precision,
+							num_dimensions - 1L,
+							&dimension[1],
+							data_element_size,
+							row,
+							verbose );
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		row_ptr += data_element_size[ num_dimensions - 1L ];
+	}
+
+	if ( i_max > 1 ) {
+		if ( show_dots ) {
+			fprintf( file, " ... )" );
+		} else {
+			fprintf( file, " )" );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_print_field_array( FILE *file,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *field,
+			mx_bool_type verbose )
+{
+	long num_dimensions;
+	long *dimension = NULL;
+	size_t *data_element_size = NULL;
+	long field_type;
+	void *data_ptr = NULL;
+	void *array_ptr = NULL;
+	mx_status_type mx_status;
+
+	num_dimensions = field->num_dimensions;
+	dimension = field->dimension;
+	data_element_size = field->data_element_size;
+
+	field_type = field->datatype;
+	data_ptr = field->data_pointer;
+
+	if ( num_dimensions < 1 ) {
+		fprintf( file, "_not_an_array_" );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( field->flags & MXFF_VARARGS ) {
+		array_ptr = mx_read_void_pointer_from_memory_location(
+				data_ptr );
+	} else {
+		array_ptr = data_ptr;
+	}
+
+#if DEBUG_PRINT_FIELD_ARRAY
+	MX_DEBUG(-2,("mx_print_field_array(): data_ptr = %p, array_ptr = %p",
+			data_ptr, array_ptr));
+#endif
+
+	/* The following is not necessarily an error.  For example, an
+	 * input_scan will have a NULL motor array.
+	 */
+
+	if ( array_ptr == NULL ) {
+		fprintf( file, "NULL" );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = mx_print_field_array_level( file,
+						field,
+						record->precision,
+						num_dimensions,
+						dimension,
+						data_element_size,
+						array_ptr,
+						verbose );
+
+	return mx_status;
+}
+
+#else
 
 MX_EXPORT mx_status_type
 mx_print_field_array( FILE *file,
@@ -3067,6 +3257,8 @@ mx_print_field_array( FILE *file,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif
 
 MX_EXPORT mx_status_type
 mx_print_field( FILE *file,
