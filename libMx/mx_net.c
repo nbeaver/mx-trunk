@@ -4930,9 +4930,22 @@ mx_get_sized_local_datatype( long mx_datatype )
 	return sized_datatype;
 }
 
+/* MX 2.1.17 and before incorrectly placed MXFT_LONG, MXFT_ULONG, and MXFT_HEX
+ * into the network buffers for network fields with two dimensions or more.
+ * But this bug on the transmit side was hidden by an equivalent bug on the
+ * receive side.  In addition, arrays of longs with 2 dimensions or more are
+ * not often used.  So the bug was not user visible.
+ *
+ * This was OK as long as a client libMx talked to a server libMx.  But it
+ * causes problems when non-MX programs try to use the network buffers, so we
+ * fix it in MX 2.1.19.
+ *
+ */
+
 static long
 mx_get_sized_network_datatype( long mx_datatype,
-	       		mx_bool_type use_64bit_network_long )
+			MX_NETWORK_SERVER *server,
+			long num_dimensions )
 {
 	static const char fname[] = "mx_get_sized_network_datatype()";
 
@@ -4964,18 +4977,38 @@ mx_get_sized_network_datatype( long mx_datatype,
 		sized_datatype = MXFT_UINT32;
 		break;
 	case MXFT_LONG:
-		if ( use_64bit_network_long ) {
-			sized_datatype = MXFT_INT64;
+		if ( server->remote_mx_version >= 2001019 ) {
+			if ( server->use_64bit_network_longs ) {
+				sized_datatype = MXFT_INT64;
+			} else {
+				sized_datatype = MXFT_INT32;
+			}
 		} else {
-			sized_datatype = MXFT_INT32;
+			/* Bug compatibility for old versions of MX */
+
+			if ( MX_WORDSIZE >= 64 ) {
+				sized_datatype = MXFT_INT64;
+			} else {
+				sized_datatype = MXFT_INT32;
+			}
 		}
 		break;
 	case MXFT_ULONG:
 	case MXFT_HEX:
-		if ( use_64bit_network_long ) {
-			sized_datatype = MXFT_UINT64;
+		if ( server->remote_mx_version >= 2001019 ) {
+			if ( server->use_64bit_network_longs ) {
+				sized_datatype = MXFT_UINT64;
+			} else {
+				sized_datatype = MXFT_UINT32;
+			}
 		} else {
-			sized_datatype = MXFT_UINT32;
+			/* Bug compatibility for old versions of MX */
+
+			if ( MX_WORDSIZE >= 64 ) {
+				sized_datatype = MXFT_UINT64;
+			} else {
+				sized_datatype = MXFT_UINT32;
+			}
 		}
 		break;
 	case MXFT_STRING:
@@ -5113,6 +5146,8 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 			mx_num_elements *= local_field->dimension[i];
 		}
 
+		/*----*/
+
 		if ( local_field->num_dimensions > 1 ) {
 			local_vector = mx_array_get_vector( value_ptr );
 		} else {
@@ -5135,15 +5170,21 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 		local_max_bytes = local_mx_element_size * mx_num_elements;
 
+		/*----*/
+
 		network_vector = message;
+
 		network_mx_datatype =
-			mx_get_sized_network_datatype( datatype,
-					server->use_64bit_network_longs );
+			mx_get_sized_network_datatype( datatype, server,
+							num_dimensions );
+
 		network_mx_element_size =
 			mx_get_scalar_element_size( network_mx_datatype,
 					server->use_64bit_network_longs );
 
 		network_max_bytes = network_mx_element_size * mx_num_elements;
+
+		/*----*/
 
 		MX_DEBUG(-2,
 			("%s: name = '%s'", fname, remote_record_field_name));
