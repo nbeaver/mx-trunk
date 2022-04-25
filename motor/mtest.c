@@ -676,9 +676,11 @@ motor_test_fn( int argc, char *argv[] )
 			fprintf( output, "Printing value for field '%s'.\n",
 					local_field->name );
 
+#if 0
 			if ( local_field->num_dimensions > 1 ) {
 				mx_breakpoint();
 			}
+#endif
 
 			mx_status = mx_print_field( output,
 						NULL, local_field, TRUE );

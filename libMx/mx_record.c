@@ -2881,6 +2881,7 @@ mx_print_field_array( FILE *file,
 			MX_RECORD_FIELD *field,
 			mx_bool_type verbose )
 {
+	int precision;
 	long num_dimensions;
 	long *dimension = NULL;
 	size_t *data_element_size = NULL;
@@ -2920,9 +2921,15 @@ mx_print_field_array( FILE *file,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	if ( record == (MX_RECORD *) NULL ) {
+		precision = -1;
+	} else {
+		precision = record->precision;
+	}
+
 	mx_status = mx_print_field_array_level( file,
 						field,
-						record->precision,
+						precision,
 						num_dimensions,
 						dimension,
 						data_element_size,
