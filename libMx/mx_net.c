@@ -4944,6 +4944,8 @@ mx_get_sized_local_datatype( long mx_datatype )
  * causes problems when non-MX programs try to use the network buffers, so we
  * fix it in MX 2.1.19.
  *
+ * mx_get_sized_network_datatype() also converts between local and XDR
+ * datatypes if this is an XDR network connection.
  */
 
 static long
@@ -4954,23 +4956,46 @@ mx_get_sized_network_datatype( long mx_datatype,
 	static const char fname[] = "mx_get_sized_network_datatype()";
 
 	long sized_datatype;
+	mx_bool_type use_xdr;
+
+	if ( server->data_format == MX_NETWORK_DATAFMT_XDR ) {
+		use_xdr = TRUE;
+	} else {
+		use_xdr = FALSE;
+	}
 
 	switch( mx_datatype ) {
 	case MXFT_CHAR:
 	case MXFT_INT8:
-		sized_datatype = MXFT_INT8;
+		if ( use_xdr ) {
+			sized_datatype = MXFT_INT32;
+		} else {
+			sized_datatype = MXFT_INT8;
+		}
 		break;
 	case MXFT_UCHAR:
 	case MXFT_UINT8:
-		sized_datatype = MXFT_UINT8;
+		if ( use_xdr ) {
+			sized_datatype = MXFT_UINT32;
+		} else {
+			sized_datatype = MXFT_UINT8;
+		}
 		break;
 	case MXFT_SHORT:
 	case MXFT_INT16:
-		sized_datatype = MXFT_INT16;
+		if ( use_xdr ) {
+			sized_datatype = MXFT_INT32;
+		} else {
+			sized_datatype = MXFT_INT16;
+		}
 		break;
 	case MXFT_USHORT:
 	case MXFT_UINT16:
-		sized_datatype = MXFT_UINT16;
+		if ( use_xdr ) {
+			sized_datatype = MXFT_UINT32;
+		} else {
+			sized_datatype = MXFT_UINT16;
+		}
 		break;
 	case MXFT_BOOL:
 	case MXFT_INT32:
