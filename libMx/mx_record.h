@@ -219,21 +219,71 @@ typedef struct {
 
 /* The following is the current list of record field types. */
 
-#define MXFT_STRING		1
-#define MXFT_CHAR		2
-#define MXFT_UCHAR		3
-#define MXFT_SHORT		4
-#define MXFT_USHORT		5
-#define MXFT_BOOL		6
+#define MXFT_STRING		1	/* C-style null terminated string */
+#define MXFT_CHAR		2	/* 8-bit signed integer */
+#define MXFT_UCHAR		3	/* 8-bit unsigned integer */
+#define MXFT_SHORT		4	/* 16-bit signed integer */
+#define MXFT_USHORT		5	/* 16-bit unsigned integer */
+#define MXFT_BOOL		6	/* Boolean.  32-bit unsigned integer */
+
+/* When finally implemented, MXFT_ENUM will use a 32-bit unsigned integer
+ * to represent the enum value on the network.  However, MX clients will
+ * be able to fetch the string representations of the enum values from
+ * the server if they want.  This will use an as-yet unspecified type of
+ * network message.  The string representations will _not_ be read from
+ * a file on the client, since there would be no good way to guarantee
+ * that the client file was using the same string names as the server.
+ */
 
 #define MXFT_ENUM		7	/* NOT YET IMPLEMENTED! */
 
-#define MXFT_LONG		8
-#define MXFT_ULONG		9
-#define MXFT_FLOAT		10
-#define MXFT_DOUBLE		11
+/* For local variables on the host, in principle, MXFT_LONG and MXFT_ULONG
+ * use the native C size of a long integer.  However, MX has only been
+ * implemented on 32-bit and 64-bit computers, so those are the only sizes
+ * that have been tested.  But a compiled version of libMx would not fit into
+ * the maximum address space of an 8-bit or 16-bit computer anyway, so this
+ * is a distinction that does not really matter.
+ *
+ * For network messages in transit between a client and a server, the
+ * MXFT_LONG and MXFT_ULONG data types default to 32-bit integers.  However,
+ * if the client and the server are both 64-bit computers that have the
+ * same integer endianness, then it is possible to request that MXFT_LONG
+ * and MXFT_ULONG use 64-bit integers.  But that feature has not been
+ * heavily tested.
+ */
 
-#define MXFT_HEX		12	/* Stored as an unsigned long. */
+#define MXFT_LONG		8	/* 32 or 64-bit signed integer */
+#define MXFT_ULONG		9	/* 32 or 64-bit unsigned integer */
+
+/* MX network communication always uses IEEE 754 floating point numbers.
+ *
+ * A few ancient MX build targets (VAX, etc.) used non-IEEE floating point
+ * on the host.  But all modern MX build targets use IEEE floating point 
+ * on the host.
+ */
+
+#define MXFT_FLOAT		10	/* 32-bit IEEE 754 format */
+#define MXFT_DOUBLE		11	/* 64-bit IEEE 754 format */
+
+/* MXFT_HEX is internally the same as an MXFT_ULONG.  But when displayed
+ * on the screen, their values are displayed in hexadecimal.
+ */
+
+#define MXFT_HEX		12	/* Stored as an MXFT_ULONG. */
+
+/* The following datatypes are used when one needs to directly specify
+ * the numerical bits in an integer field.  Mostly used in MX network
+ * communication (since MX 2.1.19).  The 64-bit integer types have been
+ * available since MX 1.2.0, but the 8, 16, and 32-bit types were only
+ * added in MX 2.1.19.
+ *
+ * Note that for user displays, MXFT_CHAR and MXFT_UCHAR are displayed
+ * as ASCII bytes, while MXFT_INT8 and MXFT_UINT8 are displayed as
+ * 8-bit integer numbers.  If you want/need UTF-8, then you need to use
+ * either an MXFT_STRING or an MXFT_STRING32 (for XDR) instead.  Note
+ * that Unicode variants other than UTF-8 are not supported by MX,
+ * even on Microsoft Windows.
+ */
 
 #define MXFT_INT64		14
 #define MXFT_UINT64		15
@@ -244,6 +294,21 @@ typedef struct {
 #define MXFT_INT32		20
 #define MXFT_UINT32		21
 
+/* MXFT_STRING32 is a counted byte string as used by XDR.  The first 4 bytes
+ * are a 32-bit length field followed by the bytes of the string.  The
+ * string field is not required by the XDR standard to be null terminated.
+ * However when MX 2.1.19 and above receives an MXFT_STRING32 field, it
+ * adds a null terminator after the specified end of the string data for
+ * convenience in manipulating the data in C-code.
+ */
+
+#define MXFT_STRING32		22
+
+/* The following datatypes are mainly for internal use by MX.  However, if
+ * a network client reads one of these fields, the client will be sent an
+ * appropriate MXFT_STRING or MXFT_STRING32 instead over the network.
+ */
+
 #define MXFT_RECORD		31
 #define MXFT_RECORDTYPE		32
 #define MXFT_INTERFACE		33
@@ -251,7 +316,7 @@ typedef struct {
 
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify
- * the record type.  For example,  "testmotor device motor e500".
+ * the record type.  For example,  "testmotor device motor pmac_motor".
  */
 
 #define MX_NUM_RECORD_ID_FIELDS	4
