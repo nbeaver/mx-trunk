@@ -28,6 +28,8 @@
 
 #define NETWORK_DEBUG_SHOW_VALUE		FALSE
 
+#define NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY	FALSE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -4915,6 +4917,8 @@ mx_get_sized_local_datatype( long mx_datatype )
 		}
 		break;
 	case MXFT_STRING:
+	case MXFT_INT64:
+	case MXFT_UINT64:
 	case MXFT_FLOAT:
 	case MXFT_DOUBLE:
 		sized_datatype = mx_datatype;
@@ -5012,6 +5016,8 @@ mx_get_sized_network_datatype( long mx_datatype,
 		}
 		break;
 	case MXFT_STRING:
+	case MXFT_INT64:
+	case MXFT_UINT64:
 	case MXFT_FLOAT:
 	case MXFT_DOUBLE:
 		sized_datatype = mx_datatype;
@@ -5136,9 +5142,11 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 	case MX_NETWORK_DATAFMT_RAW:
 	case MX_NETWORK_DATAFMT_XDR:
 
+#if NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY
 		MX_DEBUG(-2,("%s: server '%s', use 64 bit network longs = %d",
 			fname, server->record->name,
 			server->use_64bit_network_longs));
+#endif
 
 		mx_num_elements = 1;
 
@@ -5154,8 +5162,10 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 			local_vector = value_ptr;
 		}
 
+#if NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY
 		MX_DEBUG(-2,("%s value_ptr = %p, local_vector = %p",
 				fname, value_ptr, local_vector));
+#endif
 
 		local_mx_datatype =
 			mx_get_sized_local_datatype( local_field->datatype );
@@ -5186,6 +5196,7 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 		/*----*/
 
+#if NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY
 		MX_DEBUG(-2,
 			("%s: name = '%s'", fname, remote_record_field_name));
 
@@ -5211,6 +5222,7 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 		MX_DEBUG(-2,
 		("%s: ******** BEFORE mx_array_copy_vector() *******", fname));
+#endif
 
 		mx_status = mx_array_copy_vector( local_vector,
 						local_mx_datatype,
@@ -5220,8 +5232,10 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 						network_max_bytes,
 						&num_bytes_copied, FALSE );
 
+#if NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY
 		MX_DEBUG(-2,
 		("%s: ******** AFTER mx_array_copy_vector() *******", fname));
+#endif
 		break;
 
 	default:
