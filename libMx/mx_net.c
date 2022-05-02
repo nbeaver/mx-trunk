@@ -5836,176 +5836,62 @@ mx_get_field_array( MX_RECORD *server_record,
 
 /* ====================================================================== */
 
-MX_EXPORT mx_status_type
-mx_put_field_array( MX_RECORD *server_record,
+/* ---------------------------------------------------------------------- */
+
+static mx_status_type
+mx_old_copy_put_field_array( MX_RECORD *server_record,
+			MX_NETWORK_SERVER *server,
 			char *remote_record_field_name,
 			MX_NETWORK_FIELD *nf,
 			MX_RECORD_FIELD *local_field,
-			void *value_ptr )
+			mx_bool_type array_is_dynamically_allocated,
+			void *value_ptr,
+			long datatype,
+			long num_dimensions,
+			long *dimension_array,
+			size_t *data_element_size_array,
+			uint32_t field_id_length )
 {
-	static const char fname[] = "mx_put_field_array()";
+	static const char fname[] = "mx_old_copy_put_field_array()";
 
-	MX_NETWORK_SERVER *server;
-	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
-	MX_LIST_HEAD *list_head;
-	char nf_label[80];
 	mx_status_type ( *token_constructor )
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
-	long datatype, num_dimensions, *dimension_array;
-	size_t *data_element_size_array;
-	mx_bool_type array_is_dynamically_allocated;
-	mx_bool_type use_network_handles;
 
-	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
-	uint32_t *header, *uint32_message;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer = NULL;
+	uint32_t *header;
 	char *message, *ptr, *name_ptr;
-	unsigned long i, j, max_attempts;
-	unsigned long network_debug_flags;
 
 #if defined(_WIN64)
 	uint64_t xdr_ptr_address, xdr_remainder_value, xdr_gap_size;
 #else
 	unsigned long xdr_ptr_address, xdr_remainder_value, xdr_gap_size;
 #endif
-	uint32_t header_length, field_id_length;
+
+	uint32_t header_length;
 	uint32_t message_length, saved_message_length, max_message_length;
-	uint32_t send_message_type, receive_message_type;
-	uint32_t status_code;
+
 	size_t buffer_left, num_network_bytes;
+	unsigned long i, j, max_attempts;
 	size_t current_length, new_length;
-	mx_bool_type net_debug_summary;
 	mx_status_type mx_status;
 
-#if NETWORK_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
+#if 0
+	mx_breakpoint();
 #endif
-
-	server = NULL;
-	datatype = -1;
-	num_dimensions = -1;
-	dimension_array = NULL;
-	data_element_size_array = NULL;
-
-	use_network_handles = TRUE;
-
-	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
-		use_network_handles = FALSE;
-
-		/* We are not using a network handle. */
-
-		if ( (server_record == (MX_RECORD *) NULL)
-		  || (remote_record_field_name == (char *) NULL) )
-		{
-			return mx_error( MXE_NULL_ARGUMENT, fname,
-			"If the MX_NETWORK_FIELD argument is NULL, "
-			"the server_record and remote_record_field_name "
-			"arguments must both not be NULL." );
-		}
-	} else {
-		/* In this case, we ignore the values that were passed
-		 * in the server_record and remote_record_field_name
-		 * arguments and use the values from the nf structure
-		 * instead, since we always prefer to use the values
-		 * from MX_NETWORK_FIELD structures.
-		 */
-
-		server_record = nf->server_record;
-		remote_record_field_name = nf->nfname;
-	}
-
-	mx_status = mx_network_field_get_parameters(
-			server_record, local_field,
-			&datatype, &num_dimensions,
-			&dimension_array, &data_element_size_array,
-			&server, &function_list, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( server->server_supports_network_handles == FALSE ) {
-		use_network_handles = FALSE;
-	}
-
-	list_head = mx_get_record_list_head_struct( server_record );
-
-	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
-		MX_DEBUG(-2,("\n*** PUT ARRAY to '%s'",
-			mx_network_get_nf_label(
-				server_record,
-				remote_record_field_name,
-				nf_label, sizeof(nf_label) )
-			));
-	}
-
-	if ( local_field->flags & MXFF_VARARGS ) {
-		array_is_dynamically_allocated = TRUE;
-	} else {
-		array_is_dynamically_allocated = FALSE;
-	}
-
-	mx_status = mx_network_reconnect_if_down( server_record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/************ Construct a 'put array' command. *************/
 
 	aligned_buffer = server->message_buffer;
 
-	header  = aligned_buffer->u.uint32_buffer;
+	header = aligned_buffer->u.uint32_buffer;
 
-	header_length = mx_remote_header_length(server);
+	header_length = mx_remote_header_length( server );
 
 	message = aligned_buffer->u.char_buffer + header_length;
 
 	max_message_length = aligned_buffer->buffer_length - header_length;
 
-	uint32_message = header + (header_length / sizeof(uint32_t));
-
-	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
-	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
-	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
-
-	if ( mx_server_supports_message_ids(server) ) {
-
-		header[MX_NETWORK_DATA_TYPE] =
-				mx_htonl( local_field->datatype );
-
-		mx_network_update_message_id( &(server->last_rpc_message_id) );
-
-		header[MX_NETWORK_MESSAGE_ID] =
-				mx_htonl( server->last_rpc_message_id );
-	}
-
-	if ( use_network_handles == FALSE ) {
-
-		/* Use ASCII record field name */
-
-		send_message_type = MX_NETMSG_PUT_ARRAY_BY_NAME;
-
-		snprintf( message, max_message_length,
-				"%*s", -MXU_RECORD_FIELD_NAME_LENGTH,
-				remote_record_field_name );
-
-		field_id_length = MXU_RECORD_FIELD_NAME_LENGTH;
-	} else {
-
-		/* Use binary network handle */
-
-		send_message_type = MX_NETMSG_PUT_ARRAY_BY_HANDLE;
-
-		uint32_message[0] = mx_htonl( nf->record_handle );
-		uint32_message[1] = mx_htonl( nf->field_handle );
-
-		field_id_length = 2 * sizeof( uint32_t );
-	}
-
-	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( send_message_type );
-
 	ptr = message + field_id_length;
 
-	MX_DEBUG( 2,("%s: message = %p, ptr = %p, field_id_length = %lu",
-		fname, message, ptr, (unsigned long) field_id_length));
+	/*---*/
 
 	buffer_left = aligned_buffer->buffer_length
 			- header_length - field_id_length;
@@ -6224,6 +6110,197 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+MX_EXPORT mx_status_type
+mx_put_field_array( MX_RECORD *server_record,
+			char *remote_record_field_name,
+			MX_NETWORK_FIELD *nf,
+			MX_RECORD_FIELD *local_field,
+			void *value_ptr )
+{
+	static const char fname[] = "mx_put_field_array()";
+
+	MX_NETWORK_SERVER *server;
+	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
+	MX_LIST_HEAD *list_head;
+	char nf_label[80];
+	long datatype, num_dimensions, *dimension_array;
+	size_t *data_element_size_array;
+	mx_bool_type array_is_dynamically_allocated;
+	mx_bool_type use_network_handles;
+
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	uint32_t *header, *uint32_message;
+	char *message, *ptr;
+	unsigned long network_debug_flags;
+
+	uint32_t header_length, field_id_length;
+	uint32_t message_length, max_message_length;
+	uint32_t send_message_type, receive_message_type;
+	uint32_t status_code;
+	mx_bool_type net_debug_summary;
+	mx_status_type mx_status;
+
+#if 0
+	mx_warning("%s nas not been fully tested in this MX revision.  Please use revision 5037 or before.", fname);
+#endif
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+#endif
+
+	server = NULL;
+	datatype = -1;
+	num_dimensions = -1;
+	dimension_array = NULL;
+	data_element_size_array = NULL;
+
+	use_network_handles = TRUE;
+
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		use_network_handles = FALSE;
+
+		/* We are not using a network handle. */
+
+		if ( (server_record == (MX_RECORD *) NULL)
+		  || (remote_record_field_name == (char *) NULL) )
+		{
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"If the MX_NETWORK_FIELD argument is NULL, "
+			"the server_record and remote_record_field_name "
+			"arguments must both not be NULL." );
+		}
+	} else {
+		/* In this case, we ignore the values that were passed
+		 * in the server_record and remote_record_field_name
+		 * arguments and use the values from the nf structure
+		 * instead, since we always prefer to use the values
+		 * from MX_NETWORK_FIELD structures.
+		 */
+
+		server_record = nf->server_record;
+		remote_record_field_name = nf->nfname;
+	}
+
+	mx_status = mx_network_field_get_parameters(
+			server_record, local_field,
+			&datatype, &num_dimensions,
+			&dimension_array, &data_element_size_array,
+			&server, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( server->server_supports_network_handles == FALSE ) {
+		use_network_handles = FALSE;
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
+		MX_DEBUG(-2,("\n*** PUT ARRAY to '%s'",
+			mx_network_get_nf_label(
+				server_record,
+				remote_record_field_name,
+				nf_label, sizeof(nf_label) )
+			));
+	}
+
+	if ( local_field->flags & MXFF_VARARGS ) {
+		array_is_dynamically_allocated = TRUE;
+	} else {
+		array_is_dynamically_allocated = FALSE;
+	}
+
+	mx_status = mx_network_reconnect_if_down( server_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/************ Construct a 'put array' command. *************/
+
+	aligned_buffer = server->message_buffer;
+
+	header  = aligned_buffer->u.uint32_buffer;
+
+	header_length = mx_remote_header_length(server);
+
+	message = aligned_buffer->u.char_buffer + header_length;
+
+	max_message_length = aligned_buffer->buffer_length - header_length;
+
+	uint32_message = header + (header_length / sizeof(uint32_t));
+
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
+
+	if ( mx_server_supports_message_ids(server) ) {
+
+		header[MX_NETWORK_DATA_TYPE] =
+				mx_htonl( local_field->datatype );
+
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
+
+	if ( use_network_handles == FALSE ) {
+
+		/* Use ASCII record field name */
+
+		send_message_type = MX_NETMSG_PUT_ARRAY_BY_NAME;
+
+		snprintf( message, max_message_length,
+				"%*s", -MXU_RECORD_FIELD_NAME_LENGTH,
+				remote_record_field_name );
+
+		field_id_length = MXU_RECORD_FIELD_NAME_LENGTH;
+	} else {
+
+		/* Use binary network handle */
+
+		send_message_type = MX_NETMSG_PUT_ARRAY_BY_HANDLE;
+
+		uint32_message[0] = mx_htonl( nf->record_handle );
+		uint32_message[1] = mx_htonl( nf->field_handle );
+
+		field_id_length = 2 * sizeof( uint32_t );
+	}
+
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( send_message_type );
+
+	/************ Copy the data to be sent. ***************/
+
+	ptr = message + field_id_length;
+
+	MX_DEBUG( 2,("%s: message = %p, ptr = %p, field_id_length = %lu",
+		fname, message, ptr, (unsigned long) field_id_length));
+
+	mx_status = mx_old_copy_put_field_array( server_record,
+						server,
+						remote_record_field_name,
+						nf,
+						local_field,
+						array_is_dynamically_allocated,
+						value_ptr,
+						datatype,
+						num_dimensions,
+						dimension_array,
+						data_element_size_array,
+						field_id_length );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*************************************************************/
+
 	network_debug_flags = list_head->network_debug_flags;
 
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
@@ -6250,6 +6327,8 @@ mx_put_field_array( MX_RECORD *server_record,
 		fprintf( stderr, "MX PUT_ARRAY('%s') = ", nf_label );
 
 		handle_length = 2 * sizeof(uint32_t);
+
+		message_length = mx_htonl( header[MX_NETWORK_MESSAGE_LENGTH] );
 
 		mx_network_buffer_show_value( message + handle_length,
 					server->data_format,
