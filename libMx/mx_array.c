@@ -2486,6 +2486,10 @@ mx_array_copy_vector( void *dest_vector,
 	    break;
 	}
 
+	if ( num_bytes_copied != (size_t *) NULL ) {
+		*num_bytes_copied = num_elements * dest_element_size;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -3155,10 +3159,6 @@ mx_copy_array_to_network_buffer( void *array_pointer,
 		break;
 	}
 
-#if 0
-	mx_breakpoint();
-#endif
-
 	/*----*/
 
 	num_subarray_elements = 1;
@@ -3563,10 +3563,6 @@ mx_copy_network_buffer_to_array( void *source_buffer,
 		network_vector_element_size = data_element_size_array[0];
 		break;
 	}
-
-#if 0
-	mx_breakpoint();
-#endif
 
 	/*----*/
 
