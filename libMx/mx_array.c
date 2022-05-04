@@ -1706,13 +1706,8 @@ mx_array_dump( void *array_pointer )
  * like MXFT_INT8, ... , MXFT_UINT64.  Float types MXFT_FLOAT and MXFT_DOUBLE
  * are expected to use the IEEE 754 floating point format.
  *
- * NOTE: Twos complement integer arithmetic is expected
- *       (for sign extension purposes).
- *
- * FIXME: Need to figure out what to do with XDR string types.  XDR strings
- *        are _counted_ string types that have an integer that contains the
- *        number of characters in the string at the beginning of the string.
- *        Probably need to include the integer size in its definition.
+ * NOTE: Twos complement integer arithmetic is expected for the sake
+ *       of sign extension).
  */
 
 MX_EXPORT mx_status_type

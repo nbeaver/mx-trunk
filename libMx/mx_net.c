@@ -30,7 +30,7 @@
 
 #define NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY	FALSE
 
-#define NETWORK_DEBUG_NEW_COPY_PUT_FIELD_ARRAY	FALSE
+#define NETWORK_DEBUG_NEW_COPY_PUT_FIELD_ARRAY	TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -6012,11 +6012,20 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 			fname, server->record->name,
 			server->use_64bit_network_longs));
 #endif
+#if 0
+		mx_breakpoint();
+#endif
+
 		mx_num_elements = 1;
 
 		for ( i = 0; i < local_field->num_dimensions; i++ ) {
 			mx_num_elements += local_field->dimension[i];
 		}
+
+#if NETWORK_DEBUG_NEW_COPY_PUT_FIELD_ARRAY
+		MX_DEBUG(-2,("%s: mx_num_elements = %lu",
+			fname, mx_num_elements));
+#endif
 
 		/*----*/
 
