@@ -280,7 +280,7 @@ typedef struct {
  * Note that for user displays, MXFT_CHAR and MXFT_UCHAR are displayed
  * as ASCII bytes, while MXFT_INT8 and MXFT_UINT8 are displayed as
  * 8-bit integer numbers.  If you want/need UTF-8, then you need to use
- * either an MXFT_STRING or an MXFT_STRING32 (for XDR) instead.  Note
+ * either an MXFT_STRING or an MXFT_STRING_XDR (for XDR) instead.  Note
  * that Unicode variants other than UTF-8 are not supported by MX,
  * even on Microsoft Windows.
  */
@@ -294,19 +294,20 @@ typedef struct {
 #define MXFT_INT32		20
 #define MXFT_UINT32		21
 
-/* MXFT_STRING32 is a counted byte string as used by XDR.  The first 4 bytes
- * are a 32-bit length field followed by the bytes of the string.  The
- * string field is not required by the XDR standard to be null terminated.
- * However when MX 2.1.19 and above receives an MXFT_STRING32 field, it
- * adds a null terminator after the specified end of the string data for
- * convenience in manipulating the data in C-code.
+/* MXFT_STRING_XDR is a counted byte string as used by XDR.  The first
+ * 4 bytes are a 32-bit length field expressed as a big-endian unsigned
+ * integer followed by the bytes of the string.  The string field is not
+ * required by the XDR standard to be null terminated.  However when
+ * MX 2.1.19 and above receives an MXFT_STRING_XDR field, it adds a null
+ * terminator after the specified end of the string data for convenience
+ * in manipulating the data in C-code.
  */
 
-#define MXFT_STRING32		22
+#define MXFT_STRING_XDR		22
 
 /* The following datatypes are mainly for internal use by MX.  However, if
  * a network client reads one of these fields, the client will be sent an
- * appropriate MXFT_STRING or MXFT_STRING32 instead over the network.
+ * appropriate MXFT_STRING or MXFT_STRING_XDR instead over the network.
  */
 
 #define MXFT_RECORD		31

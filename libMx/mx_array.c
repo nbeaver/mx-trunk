@@ -1706,8 +1706,8 @@ mx_array_dump( void *array_pointer )
  * like MXFT_INT8, ... , MXFT_UINT64.  Float types MXFT_FLOAT and MXFT_DOUBLE
  * are expected to use the IEEE 754 floating point format.
  *
- * NOTE: Twos complement integer arithmetic is expected for the sake
- *       of sign extension).
+ * NOTE: Twos complement integer arithmetic is expected for use in
+ *       sign extension calculations.
  */
 
 MX_EXPORT mx_status_type
@@ -1725,6 +1725,11 @@ mx_array_copy_vector( void *dest_vector,
 	size_t bytes_to_copy;
 	size_t i, num_elements, num_dest_elements, num_src_elements;
 	size_t dest_element_size, src_element_size;
+
+	uint32_t xdr_string_length;
+
+	char *string_dest_vector, *string_src_vector;
+	char *xdr_string_dest_vector, *xdr_string_src_vector;
 
 	int8_t *int8_dest_vector, *int8_src_vector;
 	int16_t *int16_dest_vector, *int16_src_vector;
@@ -1798,6 +1803,91 @@ mx_array_copy_vector( void *dest_vector,
 	/* NOTE: Don't forget that two's complement arithmetic is assumed. */
 
 	switch( dest_mx_datatype ) {
+	case MXFT_STRING:
+	    string_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_STRING:
+		string_src_vector = src_vector;
+
+		bytes_to_copy = strlen( string_src_vector ) + 1;
+
+		memmove( string_dest_vector, string_src_vector, bytes_to_copy );
+		break;
+	    case MXFT_STRING_XDR:
+		xdr_string_src_vector = src_vector;
+
+		/* For XDR style strings, the first four bytes are the length
+		 * of the string, expressed as a 32-bit big-endian unsigned
+		 * integer.
+		 */
+
+		bytes_to_copy = htonl( *((uint32_t *) xdr_string_src_vector ) );
+
+		xdr_string_src_vector += sizeof(uint32_t);
+
+		memmove( string_dest_vector, xdr_string_src_vector,
+						bytes_to_copy );
+
+		/* Make sure the copied MXFT_STRING is null terminated. */
+
+		string_dest_vector[ bytes_to_copy ] = '\0';
+		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
+	    }
+	    break;
+
+	case MXFT_STRING_XDR:
+	    xdr_string_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_STRING:
+		string_src_vector = src_vector;
+
+		xdr_string_length = strlen( string_src_vector );
+
+		*((uint32_t *) xdr_string_dest_vector ) = xdr_string_length;
+
+		xdr_string_dest_vector += sizeof(uint32_t);
+
+		memmove( xdr_string_dest_vector, string_src_vector,
+						xdr_string_length );
+		break;
+	    case MXFT_STRING_XDR:
+		xdr_string_src_vector = src_vector;
+
+		/* For XDR style strings, the first four bytes are the length
+		 * of the string, expressed as a 32-bit big-endian unsigned
+		 * integer.
+		 */
+
+		bytes_to_copy = htonl( *((uint32_t *) xdr_string_src_vector ) );
+
+		bytes_to_copy += sizeof(uint32_t);
+
+		memmove( xdr_string_dest_vector, xdr_string_src_vector,
+							bytes_to_copy );
+		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
+	    }
+	    break;
+
 	case MXFT_INT8:
 	    int8_dest_vector = dest_vector;
 
@@ -1861,6 +1951,15 @@ mx_array_copy_vector( void *dest_vector,
 		for ( i = 0; i < num_elements; i++ ) {
 		    int8_dest_vector[i] = (int8_t) double_src_vector[i];
 		}
+		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
 		break;
 	    }
 	    break;
@@ -1929,6 +2028,15 @@ mx_array_copy_vector( void *dest_vector,
 		    uint8_dest_vector[i] = (uint8_t) double_src_vector[i];
 		}
 		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
 	    }
 	    break;
 
@@ -1995,6 +2103,15 @@ mx_array_copy_vector( void *dest_vector,
 		for ( i = 0; i < num_elements; i++ ) {
 		    int16_dest_vector[i] = (int16_t) double_src_vector[i];
 		}
+		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
 		break;
 	    }
 	    break;
@@ -2063,6 +2180,15 @@ mx_array_copy_vector( void *dest_vector,
 		    uint16_dest_vector[i] = (uint16_t) double_src_vector[i];
 		}
 		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
 	    }
 	    break;
 
@@ -2129,6 +2255,15 @@ mx_array_copy_vector( void *dest_vector,
 		for ( i = 0; i < num_elements; i++ ) {
 		    int32_dest_vector[i] = (int32_t) double_src_vector[i];
 		}
+		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
 		break;
 	    }
 	    break;
@@ -2197,6 +2332,15 @@ mx_array_copy_vector( void *dest_vector,
 		    uint32_dest_vector[i] = (uint32_t) double_src_vector[i];
 		}
 		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
 	    }
 	    break;
 
@@ -2264,6 +2408,15 @@ mx_array_copy_vector( void *dest_vector,
 		    int64_dest_vector[i] = (int64_t) double_src_vector[i];
 		}
 		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
 	    }
 	    break;
 
@@ -2330,6 +2483,15 @@ mx_array_copy_vector( void *dest_vector,
 		for ( i = 0; i < num_elements; i++ ) {
 		    uint64_dest_vector[i] = (uint64_t) double_src_vector[i];
 		}
+		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
 		break;
 	    }
 	    break;
@@ -2404,6 +2566,15 @@ mx_array_copy_vector( void *dest_vector,
 		    float_dest_vector[i] = double_src_vector[i];
 		}
 		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
 	    }
 	    break;
 
@@ -2477,7 +2648,26 @@ mx_array_copy_vector( void *dest_vector,
 	    case MXFT_DOUBLE:
 		memmove( dest_vector, src_vector, bytes_to_copy );
 		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
 	    }
+	    break;
+
+	default:
+	    return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
 	    break;
 	}
 
