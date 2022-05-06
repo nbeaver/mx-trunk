@@ -5889,6 +5889,9 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 	size_t num_bytes_copied;
 
+	MXW_UNUSED( max_message_length );
+	MXW_UNUSED( buffer_left );
+
 	/******** Copy the data to be sent to the network buffer ********/
 
 	aligned_buffer = server->message_buffer;
@@ -6231,6 +6234,8 @@ mx_old_copy_put_field_array( MX_RECORD *server_record,
 	unsigned long i, j, max_attempts;
 	size_t current_length, new_length;
 	mx_status_type mx_status;
+
+	MXW_UNUSED( max_message_length );
 
 	aligned_buffer = server->message_buffer;
 

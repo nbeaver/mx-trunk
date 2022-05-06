@@ -1743,6 +1743,8 @@ mx_array_copy_vector( void *dest_vector,
 
 	char *string_dest_vector, *string_src_vector;
 	char *xdr_string_dest_vector, *xdr_string_src_vector;
+	uint32_t *xdr_string_dest_aligned_pointer;
+	uint32_t *xdr_string_src_aligned_pointer;
 
 	int8_t *int8_dest_vector, *int8_src_vector;
 	int16_t *int16_dest_vector, *int16_src_vector;
@@ -1828,16 +1830,17 @@ mx_array_copy_vector( void *dest_vector,
 		memmove( string_dest_vector, string_src_vector, bytes_to_copy );
 		break;
 	    case MXFT_STRING_XDR:
-		xdr_string_src_vector = src_vector;
+		xdr_string_src_aligned_pointer = src_vector;
 
 		/* For XDR style strings, the first four bytes are the length
 		 * of the string, expressed as a 32-bit big-endian unsigned
 		 * integer.
 		 */
 
-		bytes_to_copy = htonl( *((uint32_t *) xdr_string_src_vector ) );
+		bytes_to_copy = htonl( *xdr_string_src_aligned_pointer );
 
-		xdr_string_src_vector += sizeof(uint32_t);
+		xdr_string_src_vector = ( char * )
+				( xdr_string_src_aligned_pointer + 1 );
 
 		memmove( string_dest_vector, xdr_string_src_vector,
 						bytes_to_copy );
@@ -1859,7 +1862,7 @@ mx_array_copy_vector( void *dest_vector,
 	    break;
 
 	case MXFT_STRING_XDR:
-	    xdr_string_dest_vector = dest_vector;
+	    xdr_string_dest_aligned_pointer = dest_vector;
 
 	    switch( src_mx_datatype ) {
 	    case MXFT_STRING:
@@ -1867,27 +1870,27 @@ mx_array_copy_vector( void *dest_vector,
 
 		xdr_string_length = strlen( string_src_vector );
 
-		*((uint32_t *) xdr_string_dest_vector ) = xdr_string_length;
+		*xdr_string_dest_aligned_pointer = xdr_string_length;
 
-		xdr_string_dest_vector += sizeof(uint32_t);
+		xdr_string_dest_vector = ( char * )
+				( xdr_string_dest_aligned_pointer + 1 );
 
 		memmove( xdr_string_dest_vector, string_src_vector,
 						xdr_string_length );
 		break;
 	    case MXFT_STRING_XDR:
-		xdr_string_src_vector = src_vector;
+		xdr_string_src_aligned_pointer = src_vector;
 
 		/* For XDR style strings, the first four bytes are the length
 		 * of the string, expressed as a 32-bit big-endian unsigned
 		 * integer.
 		 */
 
-		bytes_to_copy = htonl( *((uint32_t *) xdr_string_src_vector ) );
+		bytes_to_copy = htonl( *xdr_string_src_aligned_pointer );
 
 		bytes_to_copy += sizeof(uint32_t);
 
-		memmove( xdr_string_dest_vector, xdr_string_src_vector,
-							bytes_to_copy );
+		memmove( dest_vector, src_vector, bytes_to_copy );
 		break;
 	    default:
 		return mx_error( MXE_UNSUPPORTED, fname,
