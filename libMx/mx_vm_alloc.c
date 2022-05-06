@@ -371,6 +371,7 @@ mx_vm_show_os_info( FILE *file,
 
 	MEMORY_BASIC_INFORMATION memory_info;
 	SIZE_T bytes_returned;
+	char *base_address = NULL;
 
 	if ( file == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -406,8 +407,10 @@ mx_vm_show_os_info( FILE *file,
 	fprintf( file, "    RegionSize =        %lu\n",
 						memory_info.RegionSize );
 #endif
-	fprintf( file  "    End of region =     %p\n",
-	  (void *) ( memory_info.BaseAddress + memory_info.RegionSize - 1L ) );
+	base_address = memory_info.BaseAddress;
+
+	fprintf( file, "    End of region =     %p\n",
+			( base_address + memory_info.RegionSize - 1L ) );
 
 	fprintf( file, "    State =             %#lx\n", memory_info.State );
 	fprintf( file, "    Protect =           %#lx\n", memory_info.Protect );
