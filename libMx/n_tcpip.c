@@ -254,8 +254,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 	if ( flags & MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY ) {
 		mx_warning( "Network server '%s' is using the experimental "
-		"MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY (0x100000) flag.  "
-		"This is not recommended for general use at this time.",
+		"MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY (0x100000) flag.",
 			record->name );
 	}
 

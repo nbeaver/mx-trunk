@@ -18,6 +18,8 @@
 
 #define MX_ARRAY_DEBUG_OVERLAY		FALSE
 
+#define MX_ARRAY_DEBUG_FREE_OVERLAY	FALSE
+
 #define MX_ARRAY_DEBUG_TOP_LEVEL_ROW	FALSE
 
 #define MX_ARRAY_DEBUG_64BIT		FALSE
@@ -941,6 +943,11 @@ mx_array_free_overlay( void *array_pointer )
 		"The array_pointer argument passed was NULL." );
 	}
 
+#if MX_ARRAY_DEBUG_FREE_OVERLAY
+	MX_DEBUG(-2,("%s invoked for array %p", fname, array_pointer));
+	mx_breakpoint();
+#endif
+
 	/* Verify that this is an MX array overlay. */
 
 	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
@@ -1006,6 +1013,12 @@ mx_array_free_overlay( void *array_pointer )
 	if ( num_dimensions == 2 ) {
 		mx_free( raw_array_pointer );
 
+		array_pointer = NULL;
+
+		/* We only are freeing the overlay and not the 1-D vector.
+		 * So we stop here.
+		 */
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -1016,18 +1029,18 @@ mx_array_free_overlay( void *array_pointer )
 
 	mx_free( raw_array_pointer );
 
+	array_pointer = NULL;
+
 	/* Do _not_ free the 1-D vector at the bottom of the array!
 	 * It may be in use by other code such as an MX_IMAGE_FRAME.
 	 * This means that we must stop at dim == 2.
 	 */
 
-	level_pointer = array_pointer;
-
 	for ( dim = num_dimensions-1; dim >= 2; dim-- ) {
 		next_level_pointer =
 		    mx_read_void_pointer_from_memory_location( level_pointer );
 
-		free(level_pointer);
+		mx_free( level_pointer );
 
 		level_pointer = next_level_pointer;
 	}
