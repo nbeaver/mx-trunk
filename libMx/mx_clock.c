@@ -101,8 +101,8 @@ mx_clock_finish_record_initialization( MX_RECORD *clock_record )
 	clock->timespec_offset[0] = 0;
 	clock->timespec_offset[1] = 0;
 
-	clock->seconds = 0.0;
-	clock->offset = 0.0;
+	clock->time = 0.0;
+	clock->time_offset = 0.0;
 
 	clock->timespec_offset_struct.tv_sec = 0;
 	clock->timespec_offset_struct.tv_nsec = 0;
@@ -151,7 +151,7 @@ mx_clock_get_timespec( MX_RECORD *clock_record, uint64_t *timespec )
 		timespec[1] = clock->timespec[1];
 	}
 
-	clock->seconds = clock->timespec[0] + 1.0e-9 * clock->timespec[1];
+	clock->time = clock->timespec[0] + 1.0e-9 * clock->timespec[1];
 
 	return mx_status;
 }
@@ -182,14 +182,14 @@ mx_clock_set_timespec_offset( MX_RECORD *clock_record,
 	clock->timespec_offset_struct.tv_sec = timespec_offset[0];
 	clock->timespec_offset_struct.tv_nsec = timespec_offset[1];
 
-	clock->offset = mx_convert_timespec_time_to_seconds(
+	clock->time_offset = mx_convert_timespec_time_to_seconds(
 						clock->timespec_offset_struct );
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mx_clock_get_seconds( MX_RECORD *clock_record, double *seconds )
+mx_clock_get_time( MX_RECORD *clock_record, double *time_in_seconds )
 {
 	static const char fname[] = "mx_clock_get_seconds()";
 
@@ -207,17 +207,17 @@ mx_clock_get_seconds( MX_RECORD *clock_record, double *seconds )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( seconds != (double *) NULL ) {
-		*seconds = clock->seconds;
+	if ( time_in_seconds != (double *) NULL ) {
+		*time_in_seconds = clock->time;
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_clock_set_offset( MX_RECORD *clock_record, double offset )
+mx_clock_set_time_offset( MX_RECORD *clock_record, double offset )
 {
-	static const char fname[] = "mx_clock_set_offset()";
+	static const char fname[] = "mx_clock_set_time_offset()";
 
 	MX_CLOCK *clock = NULL;
 	mx_status_type mx_status;
@@ -230,10 +230,10 @@ mx_clock_set_offset( MX_RECORD *clock_record, double offset )
 	if ( offset < 0.0 ) {
 		clock->timespec_offset_struct = mx_current_os_time();
 
-		clock->offset = mx_convert_timespec_time_to_seconds(
+		clock->time_offset = mx_convert_timespec_time_to_seconds(
 						clock->timespec_offset_struct );
 	} else {
-		clock->offset = offset;
+		clock->time_offset = offset;
 
 		clock->timespec_offset_struct =
 			mx_convert_seconds_to_timespec_time( offset );

@@ -31,6 +31,7 @@ typedef struct {
 	unsigned long gittelsohn_pulser_flags;
 	double timeout;
 	unsigned long max_retries;
+	MX_RECORD *clock_record;
 
 	double firmware_version;
 
@@ -79,6 +80,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_gittelsohn_pulser_rfield_def_ptr;
   \
   {-1, -1, "max_retries", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, max_retries), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
+  \
+  {-1, -1, "clock_record", MXFT_RECORD, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, clock_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
   \
   {-1, -1, "firmware_version", MXFT_DOUBLE, NULL, 0, {0}, \

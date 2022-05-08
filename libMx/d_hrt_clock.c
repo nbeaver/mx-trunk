@@ -157,7 +157,7 @@ mxd_hrt_clock_get_timespec( MX_CLOCK *clock )
 	clock->timespec[0] = os_timespec.tv_sec;
 	clock->timespec[1] = os_timespec.tv_nsec;
 
-	clock->seconds = mx_convert_clock_time_to_seconds( os_timespec );
+	clock->time = mx_convert_clock_time_to_seconds( os_timespec );
 
 	return MX_SUCCESSFUL_RESULT;
 }

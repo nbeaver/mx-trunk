@@ -36,6 +36,7 @@
 #include "mx_ascii.h"
 #include "mx_cfn.h"
 #include "mx_rs232.h"
+#include "mx_clock.h"
 #include "mx_pulse_generator.h"
 #include "d_gittelsohn_pulser.h"
 
@@ -957,12 +958,22 @@ mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* We are in external trigger mode. */
+	/****** We are in external trigger mode. ******/
 
 	/* Start the pulse generator. */
 
 	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
 						"start", NULL, 0, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the current clock time offset to the current time, so that
+	 * we can predict when pulses have been sent.
+	 */
+
+	mx_status = mx_clock_set_time_offset(
+			gittelsohn_pulser->clock_record, -1.0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1028,6 +1039,16 @@ mxd_gittelsohn_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	/* Save the start time. */
 
 	gittelsohn_pulser->last_internal_start_time = mx_high_resolution_time();
+
+	/* Set the current clock time offset to the current time, so that
+	 * we can predict when pulses have been sent.
+	 */
+
+	mx_status = mx_clock_set_time_offset(
+			gittelsohn_pulser->clock_record, -1.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* If requested, send a dummy status command to the pulser.  
 	 * When the pulser sends a response, we will know that the
@@ -1289,6 +1310,42 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
+		if ( pulser->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
+			struct timespec last_start_time;
+			double time_of_day_clock_in_seconds;
+			double last_pulse_number_as_double;
+
+			last_start_time =
+			    gittelsohn_pulser->last_internal_start_time;
+
+			if ( ( last_start_time.tv_sec == 0 )
+			  && ( last_start_time.tv_nsec == 0 ) )
+			{
+				pulser->busy = FALSE;
+				pulser->last_pulse_number = -1;
+
+				return MX_SUCCESSFUL_RESULT;
+			}
+
+			mx_status = mx_clock_get_time(
+				gittelsohn_pulser->clock_record,
+				&time_of_day_clock_in_seconds );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			last_pulse_number_as_double = mx_divide_safely(
+						time_of_day_clock_in_seconds,
+						pulser->pulse_period );
+
+			pulser->last_pulse_number =
+				mx_round_down( last_pulse_number_as_double );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/***** We are not in internal trigger mode. *****/
+
 		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
 				"cycles", response, sizeof(response), 0 );
 
