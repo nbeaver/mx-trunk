@@ -102,6 +102,8 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 INCLUDES  = $(MX_INCLUDES)
 LIBRARIES = $(WIN32_LIBS)
 
+MX_DRIVER_SRCS += d_win32_system_clock.c
+
 #
 # 3.  Specify the architecture of the computer you are compiling on.  This is
 #     used mostly to find the directories where platform-specific .LIB files

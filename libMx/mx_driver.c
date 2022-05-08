@@ -518,6 +518,7 @@
 
 #include "d_os_clock.h"
 #include "d_hrt_clock.h"
+#include "d_win32_system_clock.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -3771,6 +3772,15 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_hrt_clock_clock_function_list,
 			&mxd_hrt_clock_num_record_fields,
 			&mxd_hrt_clock_rfield_def_ptr},
+
+#if defined(OS_WIN32)
+{"win32_system_clock",   MXT_CLK_WIN32_SYSTEM_CLOCK, MXC_CLOCK, MXR_DEVICE,
+			&mxd_win32_system_clock_record_function_list,
+			NULL,
+			&mxd_win32_system_clock_clock_function_list,
+			&mxd_win32_system_clock_num_record_fields,
+			&mxd_win32_system_clock_rfield_def_ptr},
+#endif
 
   /* ===================== Scan types ===================== */
 

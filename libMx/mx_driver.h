@@ -791,6 +791,7 @@ extern "C" {
 
 #define MXT_CLK_OS_CLOCK		270001
 #define MXT_CLK_HRT_CLOCK		270002
+#define MXT_CLK_WIN32_SYSTEM_CLOCK	270003
 
 /* --- Scan types --- */
 
