@@ -8782,6 +8782,7 @@ mx_network_request_data_format( MX_RECORD *server_record,
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
+		server->remote_native_data_format = remote_native_data_format;
 		break;
 	case MXE_NOT_YET_IMPLEMENTED:
 
@@ -8822,6 +8823,7 @@ mx_network_request_data_format( MX_RECORD *server_record,
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
+		server->remote_wordsize = remote_wordsize;
 		break;
 	case MXE_ILLEGAL_ARGUMENT:
 		/* MX 1.5.0 and before do not support the option

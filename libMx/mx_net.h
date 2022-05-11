@@ -131,6 +131,9 @@ typedef struct mx_network_server_type {
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	unsigned long remote_mx_version;
 	uint64_t      remote_mx_version_time;
+	unsigned long remote_native_data_format;
+	unsigned long remote_wordsize;
+
 	unsigned long data_format;
 
 	mx_bool_type server_supports_network_handles;
@@ -195,6 +198,15 @@ typedef struct {
   {-1, -1, "remote_mx_version_time", MXFT_UINT64, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, remote_mx_version_time), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "remote_native_data_format", MXFT_HEX, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+	  	offsetof(MX_NETWORK_SERVER, remote_native_data_format), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "remote_wordsize", MXFT_ULONG, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, remote_wordsize), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "data_format", MXFT_HEX, NULL, 0, {0}, \

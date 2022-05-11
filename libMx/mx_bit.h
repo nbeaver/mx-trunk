@@ -33,7 +33,7 @@ extern "C" {
 #define MX_DATAFMT_FLOAT_VAX_D		0x4000
 #define MX_DATAFMT_FLOAT_VAX_G		0x8000
 
-#define MX_DATAFMT_FLOAT_DEPRECATED	0xF00
+#define MX_DATAFMT_FLOAT_DEPRECATED	0xF00	/* Not used after MX 2.1.9 */
 
 /*---*/
 
