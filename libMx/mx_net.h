@@ -216,6 +216,10 @@ typedef struct {
 		offsetof(MX_NETWORK_SERVER, use_64bit_network_longs), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
+  {-1, -1, "connection_status", MXFT_HEX, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, connection_status), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
   {-1, -1, "callback_in_progress", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, callback_in_progress),\

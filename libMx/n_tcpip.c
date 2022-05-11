@@ -26,6 +26,7 @@
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_record.h"
+#include "mx_process.h"
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_net_socket.h"
@@ -40,7 +41,8 @@ MX_RECORD_FUNCTION_LIST mxn_tcpip_server_record_function_list = {
 	mxn_tcpip_server_open,
 	mxn_tcpip_server_close,
 	NULL,
-	mxn_tcpip_server_resynchronize
+	mxn_tcpip_server_resynchronize,
+	mxn_tcpip_server_special_processing_setup
 };
 
 MX_NETWORK_SERVER_FUNCTION_LIST
@@ -547,6 +549,93 @@ mxn_tcpip_server_resynchronize( MX_RECORD *record )
 
 	return mx_status;
 }
+
+/*--------*/
+
+static mx_status_type
+mxn_tcpip_server_process_function( void *record_ptr,
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
+{
+	static const char fname[] = "mxn_tcpip_server_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_NETWORK_SERVER *server;
+	MX_TCPIP_SERVER *tcpip_server;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	server = (MX_NETWORK_SERVER *) record->record_class_struct;
+	tcpip_server = (MX_TCPIP_SERVER *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_TCPIP_SERVER_SOCKET_FD:
+			if ( tcpip_server->socket == (MX_SOCKET *) NULL ) {
+				tcpip_server->socket_fd = -1L;
+			} else {
+				tcpip_server->socket_fd
+					= tcpip_server->socket->socket_fd;
+			}
+			break;
+
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxn_tcpip_server_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_TCPIP_SERVER_SOCKET_FD:
+			record_field->process_function
+					= mxn_tcpip_server_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------*/
 
 MX_EXPORT mx_status_type
 mxn_tcpip_server_receive_message( MX_NETWORK_SERVER *network_server,
