@@ -4916,11 +4916,18 @@ mx_get_sized_local_datatype( long mx_datatype )
 			sized_datatype = MXFT_UINT32;
 		}
 		break;
+	case MXFT_STRING_XDR:
+		sized_datatype = MXFT_STRING;
+		break;
 	case MXFT_STRING:
 	case MXFT_INT64:
 	case MXFT_UINT64:
 	case MXFT_FLOAT:
 	case MXFT_DOUBLE:
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
 		sized_datatype = mx_datatype;
 		break;
 	default:
