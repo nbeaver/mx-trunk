@@ -211,7 +211,7 @@ typedef struct {
   \
   {-1, -1, "data_format", MXFT_HEX, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, data_format), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+	{0}, NULL, ( MXFF_READ_ONLY | MXFF_IN_SUMMARY ) }, \
   \
   {-1, -1, "server_supports_network_handles", MXFT_BOOL, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \
@@ -230,7 +230,7 @@ typedef struct {
   \
   {-1, -1, "connection_status", MXFT_HEX, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, connection_status), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+	{0}, NULL, ( MXFF_READ_ONLY | MXFF_IN_SUMMARY ) }, \
   \
   {-1, -1, "callback_in_progress", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \

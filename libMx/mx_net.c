@@ -1976,14 +1976,21 @@ mx_network_buffer_show_value( void *buffer,
 		}
 	}
 
-	if ( data_type == MXFT_STRING ) {
+	switch( data_type ) {
+	case MXFT_STRING:
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
 		max_display_values = raw_display_values;
-	} else {
+		break;
+	default:
 		if ( raw_display_values > MXP_MAX_DISPLAY_VALUES ) {
 			max_display_values = MXP_MAX_DISPLAY_VALUES;
 		} else {
 			max_display_values = raw_display_values;
 		}
+		break;
 	}
 
 	i = -1;
@@ -2128,6 +2135,10 @@ mx_network_buffer_show_value( void *buffer,
 
 		switch( data_type ) {
 		case MXFT_STRING:
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
 			fprintf( stderr, "'%s' ", ((char *) raw_buffer) );
 			break;
 		case MXFT_CHAR:
@@ -2303,19 +2314,6 @@ mx_network_buffer_show_value( void *buffer,
 				fprintf( stderr, "%" PRIu64 " ",
 					((uint64_t *) raw_buffer)[i] );
 			}
-			break;
-		case MXFT_RECORD:
-		case MXFT_RECORDTYPE:
-		case MXFT_INTERFACE:
-		case MXFT_RECORD_FIELD:
-#if 0
-			(void) mx_error( MXE_UNSUPPORTED, fname,
-				"Unsupported data type %lu requested.",
-				(unsigned long) data_type );
-			return;
-#else
-			fprintf( stderr, "'%s' ", ((char *) raw_buffer) );
-#endif
 			break;
 		default:
 			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
