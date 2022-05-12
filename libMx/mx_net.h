@@ -100,7 +100,7 @@ typedef struct mx_network_message_buffer {
 
 /* nf_flags bit definitions */
 
-#define MXF_NF_USE_NEW_ARRAY_COPY	0x100000
+#define MXF_NF_USE_OLD_ARRAY_COPY	0x100000
 
 /*
  * MX network server data structures.
@@ -263,7 +263,7 @@ typedef struct {
 
 #define MXF_NETWORK_SERVER_USE_64BIT_LONGS	0x10000
 
-#define MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY	0x100000
+#define MXF_NETWORK_SERVER_USE_OLD_ARRAY_COPY	0x100000
 
 #define MXF_NETWORK_SERVER_DEBUG_MESSAGE_IDS	0x8000000
 

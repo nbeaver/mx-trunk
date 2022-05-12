@@ -4504,9 +4504,9 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 			nf->nfname ));
 
 		if ( network_server->server_flags 
-			& MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY )
+			& MXF_NETWORK_SERVER_USE_OLD_ARRAY_COPY )
 		{
-			nf->nf_flags |= MXF_NF_USE_NEW_ARRAY_COPY;
+			nf->nf_flags |= MXF_NF_USE_OLD_ARRAY_COPY;
 		}
 	}
 
@@ -5502,7 +5502,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	unsigned long network_debug_flags;
 	mx_bool_type net_debug_summary = FALSE;
 
-	mx_bool_type use_new_array_copy = FALSE;
+	mx_bool_type use_old_array_copy = FALSE;
 
 	mx_status_type mx_status;
 
@@ -5797,19 +5797,19 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	/************ Copy the data that was returned. ***************/
 
-	use_new_array_copy = FALSE;
+	use_old_array_copy = FALSE;
 
 	if ( nf != (MX_NETWORK_FIELD *) NULL ) {
-		if ( nf->nf_flags & MXF_NF_USE_NEW_ARRAY_COPY ) {
-			use_new_array_copy = TRUE;
+		if ( nf->nf_flags & MXF_NF_USE_OLD_ARRAY_COPY ) {
+			use_old_array_copy = TRUE;
 		}
 	} else
-	if ( server->server_flags & MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY ) {
-		use_new_array_copy = TRUE;
+	if ( server->server_flags & MXF_NETWORK_SERVER_USE_OLD_ARRAY_COPY ) {
+		use_old_array_copy = TRUE;
 	}
 
-	if ( use_new_array_copy ) {
-		mx_status = mx_new_copy_get_field_array(
+	if ( use_old_array_copy ) {
+		mx_status = mx_old_copy_get_field_array(
 						server_record,
 						server,
 						remote_record_field_name,
@@ -5823,7 +5823,7 @@ mx_get_field_array( MX_RECORD *server_record,
 						dimension_array,
 						data_element_size_array );
 	} else {
-		mx_status = mx_old_copy_get_field_array(
+		mx_status = mx_new_copy_get_field_array(
 						server_record,
 						server,
 						remote_record_field_name,
@@ -6496,7 +6496,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	size_t *data_element_size_array;
 	mx_bool_type array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
-	mx_bool_type use_new_array_copy;
+	mx_bool_type use_old_array_copy;
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
@@ -6642,19 +6642,19 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	/************ Copy the data to be sent. ***************/
 
-	use_new_array_copy = FALSE;
+	use_old_array_copy = FALSE;
 
 	if ( nf != (MX_NETWORK_FIELD *) NULL ) {
-		if ( nf->nf_flags & MXF_NF_USE_NEW_ARRAY_COPY ) {
-			use_new_array_copy = TRUE;
+		if ( nf->nf_flags & MXF_NF_USE_OLD_ARRAY_COPY ) {
+			use_old_array_copy = TRUE;
 		}
 	} else
-	if ( server->server_flags & MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY ) {
-		use_new_array_copy = TRUE;
+	if ( server->server_flags & MXF_NETWORK_SERVER_USE_OLD_ARRAY_COPY ) {
+		use_old_array_copy = TRUE;
 	}
 
-	if ( use_new_array_copy ) {
-		mx_status = mx_new_copy_put_field_array(
+	if ( use_old_array_copy ) {
+		mx_status = mx_old_copy_put_field_array(
 						server_record,
 						server,
 						remote_record_field_name,
@@ -6668,7 +6668,7 @@ mx_put_field_array( MX_RECORD *server_record,
 						data_element_size_array,
 						field_id_length );
 	} else {
-		mx_status = mx_old_copy_put_field_array(
+		mx_status = mx_new_copy_put_field_array(
 						server_record,
 						server,
 						remote_record_field_name,

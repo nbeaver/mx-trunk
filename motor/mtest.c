@@ -615,6 +615,7 @@ motor_test_fn( int argc, char *argv[] )
 			    }
 			}	
 
+#if 0
 			/* Enable the new array copy functionality. */
 
 			nf->nf_flags |= MXF_NF_USE_NEW_ARRAY_COPY;
@@ -622,6 +623,7 @@ motor_test_fn( int argc, char *argv[] )
 			fprintf( output,
 	"Turned on MXF_NF_USE_NEW_ARRAY_COPY for network field '%s:%s\n",
 				server_record->name, nf->nfname );
+#endif
 
 			/* Connect to the network field. */
 

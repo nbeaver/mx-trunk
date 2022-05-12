@@ -254,12 +254,6 @@ mxn_tcpip_server_open( MX_RECORD *record )
 		quiet_open = FALSE;
 	}
 
-	if ( flags & MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY ) {
-		mx_warning( "Network server '%s' is using the experimental "
-		"MXF_NETWORK_SERVER_USE_NEW_ARRAY_COPY (0x100000) flag.",
-			record->name );
-	}
-
 	network_debug_flags = list_head->network_debug_flags;
 
 	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
