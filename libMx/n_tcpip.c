@@ -200,6 +200,8 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	mx_bool_type net_debug_summary = FALSE;
 	mx_status_type mx_status;
 
+	mx_breakpoint();
+
 	list_head = mx_get_record_list_head_struct( record );
 
 	if ( list_head == (MX_LIST_HEAD *) NULL ) {

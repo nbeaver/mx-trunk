@@ -4963,12 +4963,18 @@ mx_get_sized_network_datatype( long mx_datatype,
 	static const char fname[] = "mx_get_sized_network_datatype()";
 
 	long sized_datatype;
-	mx_bool_type use_xdr;
+	mx_bool_type use_xdr, use_64bit_longs;
 
 	if ( server->data_format == MX_NETWORK_DATAFMT_XDR ) {
 		use_xdr = TRUE;
 	} else {
 		use_xdr = FALSE;
+	}
+
+	if ( server->use_64bit_network_longs ) {
+		use_64bit_longs = TRUE;
+	} else {
+		use_64bit_longs = FALSE;
 	}
 
 	switch( mx_datatype ) {
