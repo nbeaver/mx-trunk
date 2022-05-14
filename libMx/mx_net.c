@@ -4631,6 +4631,19 @@ mx_internal_get_array( MX_RECORD *server_record,
 
 	data_element_size[0] = 0L;
 
+	/* For special 'typeinfo' fields, we treat them as MXFT_STRINGS. */
+
+	switch( datatype ) {
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
+		mx_breakpoint();
+
+		datatype = MXFT_STRING;
+		break;
+	}
+
 	/* Setup a temporary record field to be used by
 	 * mx_get_field_array().
 	 */
