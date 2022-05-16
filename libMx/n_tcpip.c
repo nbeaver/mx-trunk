@@ -101,6 +101,7 @@ mxn_tcpip_server_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list
 			= &mxn_tcpip_server_network_server_function_list;
 
+	network_server->data_format = 0;
 	network_server->server_supports_network_handles = TRUE;
 	network_server->network_handles_are_valid = TRUE;
 

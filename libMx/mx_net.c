@@ -5127,6 +5127,9 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 	size_t num_bytes_copied;
 
+	unsigned long native_byteorder;
+	mx_bool_type do_byteswap = FALSE;
+
 	/************ Parse the data that was returned. ***************/
 
 	switch( datatype ) {
@@ -5270,10 +5273,48 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 		mx_vm_show_os_info( stderr, "network_vector",
 				network_vector, sizeof(void *) );
+#endif
 
+		/* If needed, byteswap the incoming bytes. */
+
+		switch( server->data_format ) {
+		case MX_NETWORK_DATAFMT_RAW:
+			do_byteswap = FALSE;
+			break;
+		case MX_NETWORK_DATAFMT_XDR:
+			native_byteorder = mx_native_byteorder();
+
+			switch( native_byteorder ) {
+			case MX_DATAFMT_BIG_ENDIAN:
+				do_byteswap = FALSE;
+				break;
+			case MX_DATAFMT_LITTLE_ENDIAN:
+				do_byteswap = TRUE;
+				break;
+			default:
+				do_byteswap = FALSE;
+				break;
+			}
+			break;
+		default:
+			do_byteswap = FALSE;
+			break;
+		}
+
+		if ( do_byteswap ) {
+			mx_status = mx_byteswap_1d_array( network_vector,
+							network_mx_element_size,
+							mx_num_elements );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+#if NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY
 		MX_DEBUG(-2,
 		("%s: ******** BEFORE mx_array_copy_vector() *******", fname));
 #endif
+		/* Copy the incoming bytes to the local vector. */
 
 		mx_status = mx_array_copy_vector( local_vector,
 						local_mx_datatype,
@@ -5913,6 +5954,9 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 	size_t num_bytes_copied;
 
+	unsigned long native_byteorder;
+	mx_bool_type do_byteswap = FALSE;
+
 	MXW_UNUSED( max_message_length );
 	MXW_UNUSED( buffer_left );
 
@@ -6129,7 +6173,7 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 						local_max_bytes,
 						&num_bytes_copied, FALSE );
 
-#if NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY
+#if NETWORK_DEBUG_NEW_COPY_PUT_FIELD_ARRAY
 		MX_DEBUG(-2,
 		("%s: ******** AFTER mx_array_copy_vector() *******", fname));
 #endif
@@ -6151,6 +6195,42 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 		}
 
 		message_length += num_bytes_copied;
+
+		/* If needed, byteswap the outgoing bytes. */
+
+		switch( server->data_format ) {
+		case MX_NETWORK_DATAFMT_RAW:
+			do_byteswap = FALSE;
+			break;
+		case MX_NETWORK_DATAFMT_XDR:
+			native_byteorder = mx_native_byteorder();
+
+			switch( native_byteorder ) {
+			case MX_DATAFMT_BIG_ENDIAN:
+				do_byteswap = FALSE;
+				break;
+			case MX_DATAFMT_LITTLE_ENDIAN:
+				do_byteswap = TRUE;
+				break;
+			default:
+				do_byteswap = FALSE;
+				break;
+			}
+			break;
+		default:
+			do_byteswap = FALSE;
+			break;
+		}
+
+		if ( do_byteswap ) {
+			mx_status = mx_byteswap_1d_array( network_vector,
+							network_mx_element_size,
+							mx_num_elements );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
 		break;
 
 	    default:
