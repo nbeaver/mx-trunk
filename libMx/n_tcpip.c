@@ -566,6 +566,8 @@ mxn_tcpip_server_process_function( void *record_ptr,
 	server = (MX_NETWORK_SERVER *) record->record_class_struct;
 	tcpip_server = (MX_TCPIP_SERVER *) record->record_type_struct;
 
+	MXW_UNUSED( server );
+
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
