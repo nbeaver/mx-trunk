@@ -53,6 +53,12 @@ MX_API uint64_t mx_uint64_byteswap( uint64_t original_value );
 
 /*---*/
 
+MX_API mx_status_type mx_byteswap_1d_array( void *array_ptr,
+					size_t element_size,
+					unsigned long num_elements );
+
+/*---*/
+
 MX_API mx_bool_type mx_is_power_of_two( unsigned long value );
 
 #ifdef __cplusplus

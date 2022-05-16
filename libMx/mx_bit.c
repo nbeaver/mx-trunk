@@ -380,3 +380,60 @@ mx_uint64_byteswap( uint64_t original_value )
 
 #endif
 
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_byteswap_1d_array( void *array_ptr,
+			size_t element_size,
+			unsigned long num_elements )
+{
+	static const char fname[] = "mx_byteswap_1d_array()";
+
+	uint16_t *uint16_array;
+	uint32_t *uint32_array;
+	uint64_t *uint64_array;
+	unsigned long i;
+
+	if ( array_ptr == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array pointer passed was NULL." );
+	}
+
+	switch( element_size ) {
+	case sizeof(uint8_t):
+		/* You cannot byteswap a single byte, so there is nothing
+		 * to do for this case.
+		 */
+		break;
+	case sizeof(uint16_t):
+		uint16_array = array_ptr;
+
+		for ( i = 0; i < num_elements; i++ ) {
+			uint16_array[i] = mx_uint16_byteswap( uint16_array[i] );
+		}
+		break;
+	case sizeof(uint32_t):
+		uint32_array = array_ptr;
+
+		for ( i = 0; i < num_elements; i++ ) {
+			uint32_array[i] = mx_uint32_byteswap( uint32_array[i] );
+		}
+		break;
+	case sizeof(uint64_t):
+		uint64_array = array_ptr;
+
+		for ( i = 0; i < num_elements; i++ ) {
+			uint64_array[i] = mx_uint64_byteswap( uint64_array[i] );
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Only 8, 16, 32, and 64 bit arrays can be passed "
+		"to this function.  You passed a %lu bit array.",
+			(unsigned long) (8 * element_size) );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
