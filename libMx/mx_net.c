@@ -3001,6 +3001,12 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		"*** MX command value body *** (fmt = '%s')\n",
 			network_data_format_name );
 
+#if 1
+		if ( network_data_format == MX_NETWORK_DATAFMT_XDR ) {
+			mx_breakpoint();
+		}
+#endif
+
 		switch( native_message_type ) {
 		case MX_NETMSG_GET_ARRAY_BY_NAME:
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
@@ -3121,6 +3127,12 @@ mx_network_dump_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		fprintf( stderr,
 		"*** MX response value body *** (fmt = '%s')\n",
 			network_data_format_name );
+
+#if 1
+		if ( network_data_format == MX_NETWORK_DATAFMT_XDR ) {
+			mx_breakpoint();
+		}
+#endif
 
 		switch( native_message_type ) {
 		case MX_NETMSG_GET_FIELD_TYPE:
