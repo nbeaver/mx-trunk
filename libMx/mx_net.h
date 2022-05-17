@@ -50,6 +50,10 @@ extern "C" {
 #define MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH \
 	(MXU_NETWORK_HEADER_LENGTH + 1)
 
+/* Maximum length of a remote MX version string. */
+
+#define MXU_NETWORK_REMOTE_MX_VERSION_NAME_LENGTH	20
+
 /* Bitmasks used with network message ids.  Message ids are always 32-bits. */
 
 #define MX_NETWORK_MESSAGE_ID_MASK	0x7fffffff
@@ -130,10 +134,11 @@ typedef struct mx_network_server_type {
 
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	unsigned long remote_mx_version;
+	char          remote_mx_version_name
+				[MXU_NETWORK_REMOTE_MX_VERSION_NAME_LENGTH+1];
 	uint64_t      remote_mx_version_time;
 	unsigned long remote_native_data_format;
 	unsigned long remote_wordsize;
-
 	unsigned long data_format;
 
 	mx_bool_type server_supports_network_handles;
@@ -194,6 +199,11 @@ typedef struct {
   {-1, -1, "remote_mx_version", MXFT_ULONG, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, remote_mx_version), \
 	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "remote_mx_version_name", MXFT_STRING, NULL, 1, \
+	  		{ MXU_NETWORK_REMOTE_MX_VERSION_NAME_LENGTH }, \
+        MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, remote_mx_version), \
+	{sizeof(char)}, NULL, ( MXFF_READ_ONLY | MXFF_IN_SUMMARY ) }, \
   \
   {-1, -1, "remote_mx_version_time", MXFT_UINT64, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \

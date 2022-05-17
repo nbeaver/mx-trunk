@@ -100,6 +100,8 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list
 			= &mxn_unix_server_network_server_function_list;
 
+	network_server->remote_mx_version = 0L;
+	network_server->remote_mx_version_name[0] = '\0';
 	network_server->data_format = 0;
 	network_server->server_supports_network_handles = TRUE;
 	network_server->network_handles_are_valid = TRUE;
@@ -388,6 +390,9 @@ mxn_unix_server_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: record '%s', remote_mx_version = %lu (%lx)",
+		fname, record->name, version, version));
 
 	/* SERCAT at the Advanced Photon Source has a forked copy of MX
 	 * that they call MX 1.6.  We remap all such version numbers to
