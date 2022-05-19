@@ -5038,37 +5038,45 @@ mx_get_sized_network_datatype( long mx_datatype,
 		sized_datatype = MXFT_UINT32;
 		break;
 	case MXFT_LONG:
-		if ( server->remote_mx_version >= 2001019 ) {
-			if ( server->use_64bit_network_longs ) {
-				sized_datatype = MXFT_INT64;
-			} else {
-				sized_datatype = MXFT_INT32;
-			}
+		if ( use_xdr ) {
+			sized_datatype = MXFT_INT32;
 		} else {
-			/* Bug compatibility for old versions of MX */
-
-			if ( MX_WORDSIZE >= 64 ) {
-				sized_datatype = MXFT_INT64;
+			if ( server->remote_mx_version >= 2001019 ) {
+				if ( server->use_64bit_network_longs ) {
+					sized_datatype = MXFT_INT64;
+				} else {
+					sized_datatype = MXFT_INT32;
+				}
 			} else {
-				sized_datatype = MXFT_INT32;
+				/* Bug compatibility for old versions of MX */
+	
+				if ( MX_WORDSIZE >= 64 ) {
+					sized_datatype = MXFT_INT64;
+				} else {
+					sized_datatype = MXFT_INT32;
+				}
 			}
 		}
 		break;
 	case MXFT_ULONG:
 	case MXFT_HEX:
-		if ( server->remote_mx_version >= 2001019 ) {
-			if ( server->use_64bit_network_longs ) {
-				sized_datatype = MXFT_UINT64;
-			} else {
-				sized_datatype = MXFT_UINT32;
-			}
+		if ( use_xdr ) {
+			sized_datatype = MXFT_UINT32;
 		} else {
-			/* Bug compatibility for old versions of MX */
-
-			if ( MX_WORDSIZE >= 64 ) {
-				sized_datatype = MXFT_UINT64;
+			if ( server->remote_mx_version >= 2001019 ) {
+				if ( server->use_64bit_network_longs ) {
+					sized_datatype = MXFT_UINT64;
+				} else {
+					sized_datatype = MXFT_UINT32;
+				}
 			} else {
-				sized_datatype = MXFT_UINT32;
+				/* Bug compatibility for old versions of MX */
+	
+				if ( MX_WORDSIZE >= 64 ) {
+					sized_datatype = MXFT_UINT64;
+				} else {
+					sized_datatype = MXFT_UINT32;
+				}
 			}
 		}
 		break;
@@ -5088,6 +5096,77 @@ mx_get_sized_network_datatype( long mx_datatype,
 	}
 
 	return sized_datatype;
+}
+
+static mx_status_type
+mxp_net_initialize_remote_mx_version( MX_NETWORK_SERVER *server,
+					char *remote_record_field_name,
+					long returned_message_length,
+					char *returned_message )
+{
+	static const char fname[] = "mxp_net_initialize_remote_mx_version)(";
+
+	uint32_t xdr_style_version_number;
+
+	if ( strcmp( remote_record_field_name, "mx_database.mx_version" ) != 0 )
+	{
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The very _first_ MX get from a remote server _must_ be "
+		"for the field 'mx_database.mx_version'.  However, this "
+		"program has asked for '%s'.  If you see this message,, "
+		"then this is a bug in the libMx library.  Report this to "
+		"the MX developers.", remote_record_field_name );
+	}
+
+	/* If we get here, then higher level code has requested an MX GET
+	 * for mx_database.mx_version at a time when it does not already
+	 * know the remote MX server's MX version number.  We work around
+	 * this by fetching the MX version number directly from the
+	 * returned message buffer.  Don't try this at home kids!
+	 */
+
+	switch ( server->data_format ) {
+	case MX_NETWORK_DATAFMT_XDR:
+		if ( returned_message_length != 4 ) {
+			return mx_error( MXE_PROTOCOL_ERROR, fname,
+			"An MX GET of 'mx_database.mx_version' using XDR "
+			"format did not return 4 bytes, which is the "
+			"expected length.  Instead, it returned %lu bytes.",
+				returned_message_length );
+		}
+
+		xdr_style_version_number = *((uint32_t *) returned_message );
+
+		server->remote_mx_version = ntohl( xdr_style_version_number );
+		break;
+	case MX_NETWORK_DATAFMT_RAW:
+		switch( returned_message_length ) {
+		case 4:
+		   server->remote_mx_version = *((uint32_t *) returned_message);
+		   break;
+		case 8:
+		   server->remote_mx_version = *((uint64_t *) returned_message);
+		   break;
+		default:
+		   return mx_error( MXE_PROTOCOL_ERROR, fname,
+			"An MX GET of 'mx_database.mx_version' using XDR "
+			"format did not return 4 or 8 bytes, which are the "
+			"expected lengths.  Instead, it returned %lu bytes.",
+				returned_message_length );
+		   break;
+		}
+		break;
+	default:
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"This function was invoked for MX server '%s', when the "
+		"MX network data format was set to %lu which is a mistake. "
+		"It should only be invoked for MX_NETWORK_DATAFMT_RAW (2) "
+		"or MX_NETWORK_DATAFMT_XDR (3).  This is a bug in MX.",
+			server->record->name, server->data_format );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 
@@ -5243,6 +5322,23 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 		/*----*/
 
 		network_vector = message;
+
+		if ( server->remote_mx_version
+				== MXT_REMOTE_MX_VERSION_UNKNOWN )
+		{
+			/* The following is a workaround to deal with
+			 * the starting situation where one needs to
+			 * already _know_ the remote MX version in
+			 * order to _read_ the remote MX version.
+			 */
+
+			mx_status = mxp_net_initialize_remote_mx_version(
+					server, remote_record_field_name,
+					message_length, message );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 		network_mx_datatype =
 			mx_get_sized_network_datatype( datatype, server,

@@ -194,7 +194,8 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	MX_NETWORK_SERVER *network_server;
 	MX_TCPIP_SERVER *tcpip_server;
 	MX_SOCKET *server_socket;
-	unsigned long version;
+	unsigned long version, version_temp;
+	unsigned long version_major, version_minor, version_update;
 	uint64_t      version_time;
 	unsigned long flags, requested_data_format, socket_flags;
 	long mx_status_code;
@@ -371,7 +372,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 	/* Get the MX version number for the remote server. */
 
-	network_server->remote_mx_version = 0UL;
+	network_server->remote_mx_version = MXT_REMOTE_MX_VERSION_UNKNOWN;
 	network_server->remote_mx_version_time = 0UL;
 
 	mx_status = mx_get_by_name( record, "mx_database.mx_version",
@@ -380,7 +381,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: record '%s', remote_mx_version = %lu (%lx)",
+	MX_DEBUG(-2,("%s: record '%s', remote_mx_version = %lu (%#lx)",
 		fname, record->name, version, version));
 
 	/* SERCAT at the Advanced Photon Source has a forked copy of MX
@@ -395,6 +396,23 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	/* Save the remote MX version. */
 
 	network_server->remote_mx_version = version;
+
+	/* Create the ASCII text version of the remote MX version. */
+
+	version_temp = version;
+
+	version_major = version_temp / 1000000L;
+
+	version_temp = version_temp % 1000000L;
+
+	version_minor = version_temp / 1000L;
+
+	version_update = version_temp % 1000L;
+
+	snprintf( network_server->remote_mx_version_name,
+		sizeof( network_server->remote_mx_version_name ),
+		"%lu.%lu.%lu",
+		version_major, version_minor, version_update );
 
 	/* If the remote MX server is version 1.5.5 or newer, then tell
 	 * it what our version is.

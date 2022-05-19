@@ -126,6 +126,17 @@ struct mx_network_field_type {
 	void *application_ptr;
 };
 
+/*---*/
+
+/* We initially set the value of the remote MX server version to 
+ * MXT_REMOTE_MX_VERSION_UNKNOWN until we have determined the
+ * actual remote version number.
+ */
+
+#define MXT_REMOTE_MX_VERSION_UNKNOWN	ULONG_MAX
+
+/*---*/
+
 typedef struct mx_network_server_type {
 	MX_RECORD *record;
 
@@ -202,7 +213,8 @@ typedef struct {
   \
   {-1, -1, "remote_mx_version_name", MXFT_STRING, NULL, 1, \
 	  		{ MXU_NETWORK_REMOTE_MX_VERSION_NAME_LENGTH }, \
-        MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, remote_mx_version), \
+        MXF_REC_CLASS_STRUCT, \
+	  		offsetof(MX_NETWORK_SERVER, remote_mx_version_name), \
 	{sizeof(char)}, NULL, ( MXFF_READ_ONLY | MXFF_IN_SUMMARY ) }, \
   \
   {-1, -1, "remote_mx_version_time", MXFT_UINT64, NULL, 0, {0}, \
