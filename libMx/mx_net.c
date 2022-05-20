@@ -941,6 +941,8 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 * must invoke the callback.
 			 */
 
+			server->num_callbacks_received++;
+
 #if NETWORK_DEBUG_MESSAGE_IDS
 			MX_DEBUG(-2,
 			("%s: Handling callback for message ID %#lx",
@@ -1062,6 +1064,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 			server->callback_in_progress = TRUE;
 			server->currently_running_callback = callback;
+			server->num_callbacks_invoked++;
 
 			mx_status = mx_invoke_callback( callback,
 						MXCBT_VALUE_CHANGED, FALSE ); 

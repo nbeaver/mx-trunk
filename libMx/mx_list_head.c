@@ -283,6 +283,10 @@ mxr_list_head_open( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+	record->acl_description[0] = '\0';
+	record->precision = 8;
+	record->long_precision = 8;
+
 	list_head_struct = mx_get_record_list_head_struct( record );
 
 	if ( list_head_struct == (MX_LIST_HEAD *) NULL ) {

@@ -280,6 +280,9 @@ mxn_tcpip_server_open( MX_RECORD *record )
 		socket_flags = 0;
 	}
 
+	network_server->num_callbacks_received = 0L;
+	network_server->num_callbacks_invoked = 0L;
+
 	tcpip_server->socket = NULL;
 	tcpip_server->socket_fd = 0;
 

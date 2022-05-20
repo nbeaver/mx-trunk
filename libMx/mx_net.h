@@ -167,6 +167,9 @@ typedef struct mx_network_server_type {
 	mx_bool_type callback_in_progress;
 	void *currently_running_callback;
 
+	unsigned long num_callbacks_received;
+	unsigned long num_callbacks_invoked;
+
 	unsigned long last_rpc_message_id;
 
 	unsigned long remote_header_length;
@@ -257,6 +260,16 @@ typedef struct {
   {-1, -1, "callback_in_progress", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, callback_in_progress),\
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "num_callbacks_received", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, num_callbacks_received), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "num_callbacks_invoked", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, num_callbacks_invoked), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "last_rpc_message_id", MXFT_HEX, NULL, 0, {0}, \
