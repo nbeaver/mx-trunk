@@ -5072,11 +5072,15 @@ mx_get_sized_network_datatype( long mx_datatype,
 			} else {
 				/* Bug compatibility for old versions of MX */
 	
+#if 1
+				sized_datatype = MXFT_UINT32;
+#else
 				if ( MX_WORDSIZE >= 64 ) {
 					sized_datatype = MXFT_UINT64;
 				} else {
 					sized_datatype = MXFT_UINT32;
 				}
+#endif
 			}
 		}
 		break;

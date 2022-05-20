@@ -229,7 +229,7 @@ typedef struct {
   \
   {-1, -1, "remote_wordsize", MXFT_ULONG, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, remote_wordsize), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+	{0}, NULL, (MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "data_format", MXFT_HEX, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, data_format), \

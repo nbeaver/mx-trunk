@@ -280,6 +280,9 @@ mxn_tcpip_server_open( MX_RECORD *record )
 		socket_flags = 0;
 	}
 
+	tcpip_server->socket = NULL;
+	tcpip_server->socket_fd = 0;
+
 	mx_status = mx_tcp_socket_open_as_client( &server_socket,
 			tcpip_server->hostname, tcpip_server->port,
 			socket_flags, MX_SOCKET_DEFAULT_BUFFER_SIZE );
@@ -287,6 +290,8 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
 		tcpip_server->socket = server_socket;
+		tcpip_server->socket_fd = server_socket->socket_fd;
+
 		network_server->connection_status |= MXCS_CONNECTED;
 
 		if ( network_server->connection_status & MXCS_CONNECTION_LOST )
@@ -374,6 +379,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 	network_server->remote_mx_version = MXT_REMOTE_MX_VERSION_UNKNOWN;
 	network_server->remote_mx_version_time = 0UL;
+	version = 0UL;
 
 	mx_status = mx_get_by_name( record, "mx_database.mx_version",
 					MXFT_ULONG, &version );
@@ -381,8 +387,10 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: record '%s', remote_mx_version = %lu (%#lx)",
 		fname, record->name, version, version));
+#endif
 
 	/* SERCAT at the Advanced Photon Source has a forked copy of MX
 	 * that they call MX 1.6.  We remap all such version numbers to

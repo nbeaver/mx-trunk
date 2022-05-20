@@ -83,7 +83,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxn_tcpip_server_rfield_def_ptr;
   \
   {MXLV_TCPIP_SERVER_SOCKET_FD, -1, "socket_fd", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCPIP_SERVER, socket_fd), \
-	{0}, NULL, MXFF_READ_ONLY }
+	{0}, NULL, (MXFF_IN_SUMMARY | MXFF_READ_ONLY) }
 
 
 #endif /* __N_TCPIP_H__ */
