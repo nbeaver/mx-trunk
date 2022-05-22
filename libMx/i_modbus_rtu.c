@@ -8,18 +8,21 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008, 2010, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
+#define MXI_MODBUS_RTU_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_stdint.h"
+#include "mx_time.h"
 #include "mx_rs232.h"
 #include "mx_modbus.h"
 #include "i_modbus_rtu.h"
@@ -191,10 +194,9 @@ mxi_modbus_rtu_compute_crc( uint8_t *message_ptr,
 MX_EXPORT mx_status_type
 mxi_modbus_rtu_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxi_modbus_rtu_create_record_structures()";
+	static const char fname[] = "mxi_modbus_rtu_create_record_structures()";
 
-	MX_MODBUS *modbus;
+	MX_MODBUS *modbus = NULL;
 	MX_MODBUS_RTU *modbus_rtu = NULL;
 
 	/* Allocate memory for the necessary structures. */
@@ -206,8 +208,7 @@ mxi_modbus_rtu_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_MODBUS structure." );
 	}
 
-	modbus_rtu = (MX_MODBUS_RTU *)
-				malloc( sizeof(MX_MODBUS_RTU) );
+	modbus_rtu = (MX_MODBUS_RTU *) malloc( sizeof(MX_MODBUS_RTU) );
 
 	if ( modbus_rtu == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -232,8 +233,11 @@ mxi_modbus_rtu_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_modbus_rtu_open()";
 
-	MX_MODBUS *modbus;
+	MX_MODBUS *modbus = NULL;
 	MX_MODBUS_RTU *modbus_rtu = NULL;
+	MX_RS232 *rs232 = NULL;
+	double bit_time, character_time;          /* in seconds */
+	double padded_silent_time, silent_time;   /* in seconds */
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -243,8 +247,7 @@ mxi_modbus_rtu_open( MX_RECORD *record )
 
 	modbus = (MX_MODBUS *) record->record_class_struct;
 
-	mx_status = mxi_modbus_rtu_get_pointers( modbus,
-						&modbus_rtu, fname );
+	mx_status = mxi_modbus_rtu_get_pointers( modbus, &modbus_rtu, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -256,6 +259,54 @@ mxi_modbus_rtu_open( MX_RECORD *record )
 			record->name, modbus_rtu->address );
 	}
 
+	rs232 = (MX_RS232 *) modbus_rtu->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for RS232 record '%s' used by "
+		"Modbus RTU record '%s' is NULL.",
+			modbus_rtu->rs232_record->name,
+			record->name );
+	}
+	
+	/* Compute the Modbus 'silent time', which defines the minimum
+	 * time interval between consecutive Modbus commands.
+	 */
+
+	bit_time = mx_divide_safely( 1.0, rs232->speed );
+
+	character_time = 8 * bit_time;
+
+	silent_time = 3.5 * character_time;
+
+#if MXI_MODBUS_RTU_DEBUG
+	MX_DEBUG(-2,("%s: bit_time = %g, character_time = %g, silent_time = %g",
+			fname, bit_time, character_time, silent_time ));
+#endif
+
+	modbus_rtu->silent_time_us = mx_round_up( 1000000.0 * silent_time );
+
+	modbus_rtu->character_timespec.tv_sec = 0;
+	modbus_rtu->character_timespec.tv_nsec =
+		mx_round_up( 1.0e9 * character_time );
+
+	modbus_rtu->silent_timespec.tv_sec = 0;
+	modbus_rtu->silent_timespec.tv_nsec =
+		mx_round_up( 1.0e9 * silent_time );
+
+	padded_silent_time = silent_time
+				+ 1.0e-6 * MXI_MODBUS_RTU_SILENT_TIME_PAD_US;
+
+	modbus_rtu->padded_silent_timespec.tv_sec = 0;
+	modbus_rtu->padded_silent_timespec.tv_nsec =
+		mx_round_up( 1.0e9 * silent_time );
+
+	/* Initialize the time at which the next Modbus command
+	 * can be sent to "now".
+	 */
+
+	modbus_rtu->next_send_timespec = mx_current_os_time();
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -266,11 +317,11 @@ mxi_modbus_rtu_send_request( MX_MODBUS *modbus )
 
 	MX_MODBUS_RTU *modbus_rtu = NULL;
 	uint8_t crc_low_byte, crc_high_byte;
-	uint8_t *ptr;
+	uint8_t *ptr = NULL;
+	size_t bytes_to_write;
 	mx_status_type mx_status;
 
-	mx_status = mxi_modbus_rtu_get_pointers( modbus,
-						&modbus_rtu, fname );
+	mx_status = mxi_modbus_rtu_get_pointers( modbus, &modbus_rtu, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -304,10 +355,12 @@ mxi_modbus_rtu_send_request( MX_MODBUS *modbus )
 
 	/* Send the message. */
 
+	bytes_to_write = modbus->request_length + 3;
+
 	mx_status = mx_rs232_write( modbus_rtu->rs232_record,
 				(char *) modbus_rtu->send_buffer,
-				modbus->request_length + 3,
-				NULL, 0 );
+				bytes_to_write, NULL, 0 );
+
 	return mx_status;
 }
 

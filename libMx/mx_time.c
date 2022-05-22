@@ -554,13 +554,14 @@ mx_compare_timespec_times( struct timespec time1, struct timespec time2 )
 }
 
 MX_EXPORT struct timespec
-mx_rescale_timespec_time( double scale_factor, struct timespec original_time )
+mx_multiply_timespec_time( double multiplier,
+			struct timespec original_time )
 {
 	struct timespec new_time;
 	double new_seconds, new_nanoseconds, extra_seconds;
 
-	new_seconds = scale_factor * original_time.tv_sec;
-	new_nanoseconds = scale_factor * original_time.tv_nsec;
+	new_seconds = multiplier * original_time.tv_sec;
+	new_nanoseconds = multiplier * original_time.tv_nsec;
 
 	if ( new_nanoseconds >= 1.0e9 ) {
 		extra_seconds = (long) (new_nanoseconds / 1.0e9);

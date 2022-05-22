@@ -79,7 +79,7 @@ MX_API struct timespec mx_subtract_timespec_times( struct timespec time1,
 MX_API int mx_compare_timespec_times( struct timespec time1,
 						struct timespec time2 );
 
-MX_API struct timespec mx_rescale_timespec_time( double scale_factor,
+MX_API struct timespec mx_multiply_timespec_time( double multiplier,
 						struct timespec original_time );
 
 MX_API struct timespec mx_convert_seconds_to_timespec_time( double seconds );
