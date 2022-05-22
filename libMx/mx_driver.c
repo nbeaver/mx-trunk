@@ -155,7 +155,7 @@
 #include "i_mmap_vme.h"
 #include "i_rtems_vme.h"
 
-#include "i_modbus_serial_rtu.h"
+#include "i_modbus_rtu.h"
 
 #include "i_soft_camera_link.h"
 #include "i_camera_link_api.h"
@@ -1267,12 +1267,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_modbus_tcp_rfield_def_ptr},
 #endif /* HAVE_TCPIP */
 
-{"modbus_serial_rtu", MXI_MOD_SERIAL_RTU, MXI_MODBUS, MXR_INTERFACE,
-				&mxi_modbus_serial_rtu_record_function_list,
+{"modbus_rtu",     MXI_MOD_RTU,       MXI_MODBUS,     MXR_INTERFACE,
+				&mxi_modbus_rtu_record_function_list,
 				NULL,
-				&mxi_modbus_serial_rtu_modbus_function_list,
-				&mxi_modbus_serial_rtu_num_record_fields,
-				&mxi_modbus_serial_rtu_rfield_def_ptr},
+				&mxi_modbus_rtu_modbus_function_list,
+				&mxi_modbus_rtu_num_record_fields,
+				&mxi_modbus_rtu_rfield_def_ptr},
 
 {"soft_camera_link", MXI_CL_SOFTWARE, MXI_CAMERA_LINK,  MXR_INTERFACE,
 				&mxi_soft_camera_link_record_function_list,

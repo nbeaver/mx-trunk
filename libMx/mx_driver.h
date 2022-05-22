@@ -286,7 +286,7 @@ extern "C" {
 #define MXI_VME_RTEMS			702
 
 #define MXI_MOD_TCP			800
-#define MXI_MOD_SERIAL_RTU		801
+#define MXI_MOD_RTU			801
 
 #define MXI_CL_SOFTWARE			900
 #define MXI_CL_NETWORK			901

@@ -1,5 +1,5 @@
 /*
- * Name:    i_modbus_serial_rtu.c
+ * Name:    i_modbus_rtu.c
  *
  * Purpose: MX driver for MODBUS serial fieldbus communication using
  *          the RTU format.
@@ -22,46 +22,46 @@
 #include "mx_stdint.h"
 #include "mx_rs232.h"
 #include "mx_modbus.h"
-#include "i_modbus_serial_rtu.h"
+#include "i_modbus_rtu.h"
 
-MX_RECORD_FUNCTION_LIST mxi_modbus_serial_rtu_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxi_modbus_rtu_record_function_list = {
 	NULL,
-	mxi_modbus_serial_rtu_create_record_structures,
+	mxi_modbus_rtu_create_record_structures,
 	NULL,
 	NULL,
 	NULL,
-	mxi_modbus_serial_rtu_open
+	mxi_modbus_rtu_open
 };
 
-MX_MODBUS_FUNCTION_LIST mxi_modbus_serial_rtu_modbus_function_list = {
-	mxi_modbus_serial_rtu_command
+MX_MODBUS_FUNCTION_LIST mxi_modbus_rtu_modbus_function_list = {
+	mxi_modbus_rtu_command
 };
 
-MX_RECORD_FIELD_DEFAULTS mxi_modbus_serial_rtu_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxi_modbus_rtu_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_MODBUS_STANDARD_FIELDS,
-	MXI_MODBUS_SERIAL_RTU_STANDARD_FIELDS
+	MXI_MODBUS_RTU_STANDARD_FIELDS
 };
 
-long mxi_modbus_serial_rtu_num_record_fields
-	= sizeof( mxi_modbus_serial_rtu_record_field_defaults )
-	/ sizeof( mxi_modbus_serial_rtu_record_field_defaults[0] );
+long mxi_modbus_rtu_num_record_fields
+	= sizeof( mxi_modbus_rtu_record_field_defaults )
+	/ sizeof( mxi_modbus_rtu_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxi_modbus_serial_rtu_rfield_def_ptr
-			= &mxi_modbus_serial_rtu_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxi_modbus_rtu_rfield_def_ptr
+			= &mxi_modbus_rtu_record_field_defaults[0];
 
 /* ---- */
 
 /* Private functions for the use of the driver. */
 
 static mx_status_type
-mxi_modbus_serial_rtu_get_pointers( MX_MODBUS *modbus,
-			MX_MODBUS_SERIAL_RTU **modbus_serial_rtu,
+mxi_modbus_rtu_get_pointers( MX_MODBUS *modbus,
+			MX_MODBUS_RTU **modbus_rtu,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxi_modbus_serial_rtu_get_pointers()";
+	static const char fname[] = "mxi_modbus_rtu_get_pointers()";
 
-	MX_RECORD *modbus_serial_rtu_record;
+	MX_RECORD *modbus_rtu_record;
 
 	if ( modbus == (MX_MODBUS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -69,28 +69,28 @@ mxi_modbus_serial_rtu_get_pointers( MX_MODBUS *modbus,
 			calling_fname );
 	}
 
-	if ( modbus_serial_rtu == (MX_MODBUS_SERIAL_RTU **) NULL ) {
+	if ( modbus_rtu == (MX_MODBUS_RTU **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_MODBUS_SERIAL_RTU pointer passed by '%s' was NULL.",
+		"The MX_MODBUS_RTU pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 
-	modbus_serial_rtu_record = modbus->record;
+	modbus_rtu_record = modbus->record;
 
-	if ( modbus_serial_rtu_record == (MX_RECORD *) NULL ) {
+	if ( modbus_rtu_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The modbus_serial_rtu_record pointer for the "
+			"The modbus_rtu_record pointer for the "
 			"MX_MODBUS pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
 
-	*modbus_serial_rtu = (MX_MODBUS_SERIAL_RTU *)
-			modbus_serial_rtu_record->record_type_struct;
+	*modbus_rtu = (MX_MODBUS_RTU *)
+			modbus_rtu_record->record_type_struct;
 
-	if ( *modbus_serial_rtu == (MX_MODBUS_SERIAL_RTU *) NULL ) {
+	if ( *modbus_rtu == (MX_MODBUS_RTU *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_MODBUS_SERIAL_RTU pointer for record '%s' is NULL.",
-			modbus_serial_rtu_record->name );
+		"The MX_MODBUS_RTU pointer for record '%s' is NULL.",
+			modbus_rtu_record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -102,7 +102,7 @@ mxi_modbus_serial_rtu_get_pointers( MX_MODBUS *modbus,
  */
 
 static void
-mxi_modbus_serial_rtu_compute_crc( uint8_t *message_ptr,
+mxi_modbus_rtu_compute_crc( uint8_t *message_ptr,
 				unsigned long data_length,
 				uint8_t *crc_low_byte,
 				uint8_t *crc_high_byte )
@@ -189,13 +189,13 @@ mxi_modbus_serial_rtu_compute_crc( uint8_t *message_ptr,
 /*==========================*/
 
 MX_EXPORT mx_status_type
-mxi_modbus_serial_rtu_create_record_structures( MX_RECORD *record )
+mxi_modbus_rtu_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxi_modbus_serial_rtu_create_record_structures()";
+		"mxi_modbus_rtu_create_record_structures()";
 
 	MX_MODBUS *modbus;
-	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu = NULL;
+	MX_MODBUS_RTU *modbus_rtu = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -206,34 +206,34 @@ mxi_modbus_serial_rtu_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_MODBUS structure." );
 	}
 
-	modbus_serial_rtu = (MX_MODBUS_SERIAL_RTU *)
-				malloc( sizeof(MX_MODBUS_SERIAL_RTU) );
+	modbus_rtu = (MX_MODBUS_RTU *)
+				malloc( sizeof(MX_MODBUS_RTU) );
 
-	if ( modbus_serial_rtu == NULL ) {
+	if ( modbus_rtu == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_MODBUS_SERIAL_RTU structure." );
+		"Can't allocate memory for MX_MODBUS_RTU structure." );
 	}
 
 	/* Now set up the necessary pointers. */
 
 	record->record_class_struct = modbus;
-	record->record_type_struct = modbus_serial_rtu;
+	record->record_type_struct = modbus_rtu;
 	record->class_specific_function_list
-			= &mxi_modbus_serial_rtu_modbus_function_list;
+			= &mxi_modbus_rtu_modbus_function_list;
 
 	modbus->record = record;
-	modbus_serial_rtu->record = record;
+	modbus_rtu->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_modbus_serial_rtu_open( MX_RECORD *record )
+mxi_modbus_rtu_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_modbus_serial_rtu_open()";
+	static const char fname[] = "mxi_modbus_rtu_open()";
 
 	MX_MODBUS *modbus;
-	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu = NULL;
+	MX_MODBUS_RTU *modbus_rtu = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -243,92 +243,92 @@ mxi_modbus_serial_rtu_open( MX_RECORD *record )
 
 	modbus = (MX_MODBUS *) record->record_class_struct;
 
-	mx_status = mxi_modbus_serial_rtu_get_pointers( modbus,
-						&modbus_serial_rtu, fname );
+	mx_status = mxi_modbus_rtu_get_pointers( modbus,
+						&modbus_rtu, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( modbus_serial_rtu->address > 247 ) {
+	if ( modbus_rtu->address > 247 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"MODBUS interface record '%s' is using illegal MODBUS serial "
 		"address %lu.  The allowed values are from 0 to 247.",
-			record->name, modbus_serial_rtu->address );
+			record->name, modbus_rtu->address );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
-mxi_modbus_serial_rtu_send_request( MX_MODBUS *modbus )
+mxi_modbus_rtu_send_request( MX_MODBUS *modbus )
 {
-	static const char fname[] = "mxi_modbus_serial_rtu_send_request()";
+	static const char fname[] = "mxi_modbus_rtu_send_request()";
 
-	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu = NULL;
+	MX_MODBUS_RTU *modbus_rtu = NULL;
 	uint8_t crc_low_byte, crc_high_byte;
 	uint8_t *ptr;
 	mx_status_type mx_status;
 
-	mx_status = mxi_modbus_serial_rtu_get_pointers( modbus,
-						&modbus_serial_rtu, fname );
+	mx_status = mxi_modbus_rtu_get_pointers( modbus,
+						&modbus_rtu, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Construct the MODBUS serial message.  The RTU format requires
+	/* Construct the MODBUS RTU message.  The RTU format requires
 	 * that the transmission be uninterrupted, so we must consolidate
 	 * all of the data into one buffer before transmission.
 	 */
 
 	/* First, set the address field. */
 
-	modbus_serial_rtu->send_buffer[0] = (uint8_t )
-				(( modbus_serial_rtu->address ) & 0xff);
+	modbus_rtu->send_buffer[0] = (uint8_t )
+				(( modbus_rtu->address ) & 0xff);
 
 	/* Copy the MODBUS message body. */
 
-	ptr = &(modbus_serial_rtu->send_buffer[1]);
+	ptr = &(modbus_rtu->send_buffer[1]);
 
 	memcpy( ptr, modbus->request_pointer, modbus->request_length );
 
 	/* Append the CRC value. */
 
-	mxi_modbus_serial_rtu_compute_crc( modbus_serial_rtu->send_buffer,
+	mxi_modbus_rtu_compute_crc( modbus_rtu->send_buffer,
 					modbus->request_length + 1,
 					&crc_low_byte, &crc_high_byte );
 
-	ptr = &(modbus_serial_rtu->send_buffer[modbus->request_length + 1]);
+	ptr = &(modbus_rtu->send_buffer[modbus->request_length + 1]);
 
 	ptr[0] = crc_low_byte;
 	ptr[1] = crc_high_byte;
 
 	/* Send the message. */
 
-	mx_status = mx_rs232_write( modbus_serial_rtu->rs232_record,
-				(char *) modbus_serial_rtu->send_buffer,
+	mx_status = mx_rs232_write( modbus_rtu->rs232_record,
+				(char *) modbus_rtu->send_buffer,
 				modbus->request_length + 3,
 				NULL, 0 );
 	return mx_status;
 }
 
 static mx_status_type
-mxi_modbus_serial_rtu_receive_response( MX_MODBUS *modbus )
+mxi_modbus_rtu_receive_response( MX_MODBUS *modbus )
 {
-	static const char fname[] = "mxi_modbus_serial_rtu_receive_response()";
+	static const char fname[] = "mxi_modbus_rtu_receive_response()";
 
-	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu = NULL;
+	MX_MODBUS_RTU *modbus_rtu = NULL;
 	size_t response_length, bytes_to_read;
 	uint8_t response_address;
 	uint8_t *message_ptr;
 	mx_status_type mx_status;
 
-	mx_status = mxi_modbus_serial_rtu_get_pointers( modbus,
-						&modbus_serial_rtu, fname );
+	mx_status = mxi_modbus_rtu_get_pointers( modbus,
+						&modbus_rtu, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( modbus_serial_rtu->address == 0 ) {
+	if ( modbus_rtu->address == 0 ) {
 
 		/* Messages sent to the broadcast address (0) will not
 		 * have a response.
@@ -345,15 +345,15 @@ mxi_modbus_serial_rtu_receive_response( MX_MODBUS *modbus )
 	 * the rest of the message is.
 	 */
 
-	mx_status = mx_rs232_read( modbus_serial_rtu->rs232_record,
-				(char *) modbus_serial_rtu->receive_buffer,
+	mx_status = mx_rs232_read( modbus_rtu->rs232_record,
+				(char *) modbus_rtu->receive_buffer,
 				3, NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_modbus_compute_response_length( modbus->record,
-					modbus_serial_rtu->receive_buffer + 1,
+					modbus_rtu->receive_buffer + 1,
 					&response_length );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -378,10 +378,10 @@ mxi_modbus_serial_rtu_receive_response( MX_MODBUS *modbus )
 			MXU_MODBUS_SERIAL_ADU_LENGTH );
 	}
 
-	message_ptr = modbus_serial_rtu->receive_buffer + 3;
+	message_ptr = modbus_rtu->receive_buffer + 3;
 	
 	if ( bytes_to_read > 0 ) {
-		mx_status = mx_rs232_read( modbus_serial_rtu->rs232_record,
+		mx_status = mx_rs232_read( modbus_rtu->rs232_record,
 					(char *) message_ptr, bytes_to_read,
 					NULL, 0 );
 
@@ -394,16 +394,16 @@ mxi_modbus_serial_rtu_receive_response( MX_MODBUS *modbus )
 	 * namely, the function code value.
 	 */
 
-	modbus->response_pointer = modbus_serial_rtu->receive_buffer + 1;
+	modbus->response_pointer = modbus_rtu->receive_buffer + 1;
 
 	/* Did the response come from the address that it was supposed to? */
 
-	response_address = modbus_serial_rtu->receive_buffer[0];
+	response_address = modbus_rtu->receive_buffer[0];
 
-	if ( response_address != modbus_serial_rtu->address ) {
+	if ( response_address != modbus_rtu->address ) {
 		mx_warning( "Response to MODBUS serial RTU command came from "
 			"address %#x rather than the expected address %#lx.",
-			response_address, modbus_serial_rtu->address );
+			response_address, modbus_rtu->address );
 	}
 
 	/* We are now done, so return. */
@@ -414,16 +414,16 @@ mxi_modbus_serial_rtu_receive_response( MX_MODBUS *modbus )
 }
 
 MX_EXPORT mx_status_type
-mxi_modbus_serial_rtu_command( MX_MODBUS *modbus )
+mxi_modbus_rtu_command( MX_MODBUS *modbus )
 {
 	mx_status_type mx_status;
 
-	mx_status = mxi_modbus_serial_rtu_send_request( modbus );
+	mx_status = mxi_modbus_rtu_send_request( modbus );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_modbus_serial_rtu_receive_response( modbus );
+	mx_status = mxi_modbus_rtu_receive_response( modbus );
 
 	return mx_status;
 }
