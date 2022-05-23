@@ -469,15 +469,74 @@ mxi_modbus_rtu_receive_response( MX_MODBUS *modbus )
 MX_EXPORT mx_status_type
 mxi_modbus_rtu_command( MX_MODBUS *modbus )
 {
+	static const char fname[] = "mxi_modbus_rtu_command()";
+
+	MX_MODBUS_RTU *modbus_rtu = NULL;
+	struct timespec current_timespec, before_send_timespec;
+	struct timespec after_send_timespec, expected_after_send_timespec;
+	int comparison;
 	mx_status_type mx_status;
+
+	mx_status = mxi_modbus_rtu_get_pointers( modbus,
+						&modbus_rtu, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Consecutive Modbus commands must be separated by the
+	 * "silent time".  We must first check to see if the 
+	 * "silent time" is over.
+	 */
+
+	while ( TRUE ) {
+		before_send_timespec = mx_current_os_time();
+
+		comparison = mx_compare_timespec_times(
+			before_send_timespec, modbus_rtu->next_send_timespec );
+
+		if ( comparison >= 0 ) {
+			break;		/* Exit the while(TRUE) loop. */
+		}
+	}
+
+	/* Now we can send the request. */
 
 	mx_status = mxi_modbus_rtu_send_request( modbus );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* See if we took too long sending the command. */
+
+	after_send_timespec = mx_current_os_time();
+
+	expected_after_send_timespec = mx_add_timespec_times(
+			before_send_timespec, modbus_rtu->silent_timespec );
+
+	comparison = mx_compare_timespec_times( after_send_timespec,
+						expected_after_send_timespec );
+
+	if ( comparison > 0 ) {
+		return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
+		"Modbus RTU interface '%s' took too long sending a command.",
+			modbus->record->name );
+	}
+
+	/* Wait for the response. */
+
 	mx_status = mxi_modbus_rtu_receive_response( modbus );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Compute the next time when it will be OK to send a new command. */
+
+	current_timespec = mx_current_os_time();
+
+	modbus_rtu->next_send_timespec = mx_add_timespec_times(
+				current_timespec,
+				modbus_rtu->padded_silent_timespec );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
