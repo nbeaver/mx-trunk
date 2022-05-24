@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011, 2014-2016, 2018-2021
+ * Copyright 1999-2006, 2008-2011, 2014-2016, 2018-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -222,6 +222,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	double version_number;
 	long i, allowed_maximum;
 	int32_t nmax;
+	unsigned long flags;
 	mx_bool_type  do_not_skip, long_is_32bits;
 	mx_status_type mx_status;
 
@@ -236,6 +237,8 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	flags = epics_mcs->epics_mcs_flags;
 
 	epics_mcs->epics_readall_invoked_already = FALSE;
 
@@ -388,9 +391,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	 * the first measurement or not.
 	 */
 
-	if ( epics_mcs->epics_mcs_flags
-		& MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT )
-	{
+	if ( flags & MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT ) {
 		do_not_skip = TRUE;
 	} else {
 		do_not_skip = FALSE;
@@ -495,10 +496,12 @@ mxd_epics_mcs_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mcs->stop_pv),
 				"%sStopAll.VAL", epics_mcs->common_prefix );
 
-		mx_epics_pvname_init( &(epics_mcs->software_channel_advance_pv),
+		if ( ( flags & MXF_EPICS_MCS_10BM_ANOMALY ) == 0 ) {
+			mx_epics_pvname_init(
+				&(epics_mcs->software_channel_advance_pv),
 				"%sSoftwareChannelAdvance.PROC",
 						epics_mcs->common_prefix );
-
+		}
 	} else {
 
 		mx_epics_pvname_init(&(epics_mcs->acquiring_pv),
@@ -524,18 +527,24 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 	}
 
-	if ( epics_mcs->epics_record_version >= 6.0 ) {
-		mx_epics_pvname_init( &(epics_mcs->count_on_start_pv),
-			"%sCountOnStart.VAL", epics_mcs->common_prefix );
-	} else {
-		mx_epics_pvname_init( &(epics_mcs->count_on_start_pv),
-			"%sInitialChannelAdvance.VAL",
+	if ( ( flags & MXF_EPICS_MCS_10BM_ANOMALY ) == 0 ) {
+
+		if ( epics_mcs->epics_record_version >= 6.0 ) {
+			mx_epics_pvname_init( &(epics_mcs->count_on_start_pv),
+			    "%sCountOnStart.VAL", epics_mcs->common_prefix );
+		} else {
+			mx_epics_pvname_init( &(epics_mcs->count_on_start_pv),
+			    "%sInitialChannelAdvance.VAL",
 					epics_mcs->common_prefix );
+		}
 	}
 
 	if ( epics_mcs->epics_record_version >= 5.0 ) {
-		mx_epics_pvname_init( &(epics_mcs->current_channel_pv),
-			"%sCurrentChannel.VAL", epics_mcs->common_prefix );
+
+		if ( ( flags & MXF_EPICS_MCS_10BM_ANOMALY ) == 0 ) {
+			mx_epics_pvname_init( &(epics_mcs->current_channel_pv),
+			    "%sCurrentChannel.VAL", epics_mcs->common_prefix );
+		}
 
 		mx_epics_pvname_init( &(epics_mcs->readall_pv),
 			"%sReadAll.VAL", epics_mcs->common_prefix );
@@ -544,7 +553,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 				"versions of EPICS." );
 	}
 
-	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_USE_SNL_PROGRAM ) {
+	if ( flags & MXF_EPICS_MCS_USE_SNL_PROGRAM ) {
 		mx_epics_pvname_init(
 			&(epics_mcs->latch_measurements_in_range_pv),
 			"%sLatchMeasurementInRange.VAL",
@@ -1353,6 +1362,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	double dark_current;
+	unsigned long flags;
 	int32_t external_channel_advance, count_on_start;
 	mx_status_type mx_status;
 
@@ -1365,6 +1375,8 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 		fname, mcs->record->name,
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
 		mcs->parameter_type));
+
+	flags = epics_mcs->epics_mcs_flags;
 
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_DARK_CURRENT:
@@ -1398,14 +1410,17 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 			mcs->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		}
 
-		mx_status = mx_caget( &(epics_mcs->count_on_start_pv),
-				MX_CA_LONG, 1, &count_on_start );
+		if ( ( flags & MXF_EPICS_MCS_10BM_ANOMALY ) == 0 ) {
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			mx_status = mx_caget( &(epics_mcs->count_on_start_pv),
+					MX_CA_LONG, 1, &count_on_start );
 
-		if ( count_on_start ) {
-			mcs->trigger_mode |= MXF_DEV_AUTO_TRIGGER;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( count_on_start ) {
+				mcs->trigger_mode |= MXF_DEV_AUTO_TRIGGER;
+			}
 		}
 		break;
 	default:
@@ -1430,6 +1445,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	int32_t stop, current_num_epics_measurements, external_channel_advance;
 	int32_t count_on_start, software_channel_advance;
 	float preset_real_time;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -1442,12 +1458,20 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
 		mcs->parameter_type));
 
+	flags = epics_mcs->epics_mcs_flags;
+
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_MANUAL_NEXT_MEASUREMENT:
 		software_channel_advance = 1;
 
-		mx_status = mx_caput( &(epics_mcs->software_channel_advance_pv),
+		if ( ( flags & MXF_EPICS_MCS_10BM_ANOMALY ) == 0 ) {
+			mx_status = mx_caput(
+				&(epics_mcs->software_channel_advance_pv),
 				MX_CA_LONG, 1, &software_channel_advance );
+		} else {
+			mx_warning( "'manual_next_measurement' does not "
+				"work at APS 10-BM." );
+		}
 
 		mcs->manual_next_measurement = FALSE;
 		break;
@@ -1671,11 +1695,14 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 			count_on_start = 0;
 		}
 
-		mx_status = mx_caput( &(epics_mcs->count_on_start_pv),
-				MX_CA_LONG, 1, &count_on_start );
+		if ( ( flags & MXF_EPICS_MCS_10BM_ANOMALY ) == 0 ) {
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			mx_status = mx_caput( &(epics_mcs->count_on_start_pv),
+					MX_CA_LONG, 1, &count_on_start );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 		break;
 
 	default:
@@ -1694,6 +1721,7 @@ mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	int32_t current_channel, number_of_channels_read;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -1701,8 +1729,12 @@ mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_caget( &(epics_mcs->current_channel_pv),
-				MX_CA_LONG, 1, &current_channel );
+	flags = epics_mcs->epics_mcs_flags;
+
+	if ( ( flags & MXF_EPICS_MCS_10BM_ANOMALY ) == 0 ) {
+		mx_status = mx_caget( &(epics_mcs->current_channel_pv),
+					MX_CA_LONG, 1, &current_channel );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1717,8 +1749,10 @@ mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs )
 	 * dependent to me. (2020-11-13 WML)
 	 */
 
-	if ( current_channel <= 0 ) {
-		number_of_channels_read = 0;
+	if ( ( flags & MXF_EPICS_MCS_10BM_ANOMALY ) == 0 ) {
+		if ( current_channel <= 0 ) {
+			number_of_channels_read = 0;
+		}
 	}
 
 	if ( mcs->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
