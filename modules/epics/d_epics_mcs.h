@@ -23,6 +23,7 @@
 #define MXF_EPICS_MCS_USE_REFERENCE_PULSER		0x2 /*not implemented*/
 #define MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT	0x4
 #define MXF_EPICS_MCS_IGNORE_CLEARS			0x8
+#define MXF_EPICS_MCS_WAIT_FOR_FIRST_DATA		0x10
 
 #define MXF_EPICS_MCS_10BM_ANOMALY			0x1000
 
@@ -45,6 +46,7 @@ typedef struct {
 
 	double epics_record_version;
 	long num_measurements_to_read;
+	mx_bool_type wait_for_first_data;
 
 	mx_bool_type epics_readall_invoked_already;
 
@@ -144,6 +146,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_mcs_rfield_def_ptr;
   \
   {-1, -1, "num_measurements_to_read", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, num_measurements_to_read), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "wait_for_first_data", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, wait_for_first_data), \
 	{0}, NULL, 0}
 
 #endif /* __D_EPICS_MCS_H__ */

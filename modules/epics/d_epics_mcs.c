@@ -397,6 +397,12 @@ mxd_epics_mcs_open( MX_RECORD *record )
 		do_not_skip = FALSE;
 	}
 
+	if ( flags & MXF_EPICS_MCS_WAIT_FOR_FIRST_DATA ) {
+		epics_mcs->wait_for_first_data = TRUE;
+	} else {
+		epics_mcs->wait_for_first_data = FALSE;
+	}
+
 	if ( sizeof(int32_t) == sizeof(long) ) {
 		long_is_32bits = TRUE;
 	} else {
@@ -819,7 +825,7 @@ mxd_epics_mcs_read_all( MX_MCS *mcs )
 		 * at least one count there.
 		 */
 
-		if ( i == 0 ) {
+		if (( i == 0 ) && ( epics_mcs->wait_for_first_data )) {
 			if ( mcs->data_array[0][0] == 0 ) {
 				first_read_retries++;
 				i--;
