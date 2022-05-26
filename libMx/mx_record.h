@@ -461,6 +461,10 @@ typedef struct {
  * or level triggers (0x2000).  Typically this will be (|) OR-ed with
  * the other trigger values above.  Trigger low (0x4000) and trigger
  * high (0x8000) refer either to edges or levels.
+ *
+ * One-shot (0x10000) tells the device to do a single acquisition or trigger.
+ * For some devices, the one-shot mode may do something different from what
+ * happens for an ordinary internal/external trigger with one pulse.
  */
 
 #define MXF_DEV_NO_TRIGGER		0x0
@@ -475,6 +479,7 @@ typedef struct {
 #define MXF_DEV_LEVEL_TRIGGER		0x2000
 #define MXF_DEV_TRIGGER_LOW		0x4000
 #define MXF_DEV_TRIGGER_HIGH		0x8000
+#define MXF_DEV_ONE_SHOT_TRIGGER	0x10000
 
 /* An MX_RECORD_FUNCTION_LIST structure contains a list of the functions
  * that are the same for all record types.

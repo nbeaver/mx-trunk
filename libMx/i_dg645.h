@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017-2018 Illinois Institute of Technology
+ * Copyright 2017-2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,14 +28,6 @@
 
 #define MXU_DG645_NUM_OUTPUTS		5
 
-/* FIXME: The trigger settings in mx_image.h should be moved into a
- * different header so that we don't end up defining them again here.
- */
-
-#define MXF_DG645_INTERNAL_TRIGGER	0x1
-#define MXF_DG645_EXTERNAL_TRIGGER	0x2
-#define MXF_DG645_LINE_TRIGGER		0x10
-
 typedef struct {
 	MX_RECORD *record;
 
@@ -50,13 +42,8 @@ typedef struct {
 	mx_bool_type save_settings;
 	mx_bool_type recall_settings;
 
+	/* FIXME: Move the following line to MX_PULSE_GENERATOR */
 	double trigger_level;
-	double trigger_rate;
-	unsigned long trigger_source;
-
-	unsigned long trigger_type;
-	long trigger_direction;
-	mx_bool_type single_shot;
 
 	unsigned long last_error;
 
@@ -77,8 +64,7 @@ typedef struct {
 #define MXLV_DG645_SAVE_SETTINGS		83001
 #define MXLV_DG645_RECALL_SETTINGS		83002
 #define MXLV_DG645_TRIGGER_LEVEL		83003
-#define MXLV_DG645_TRIGGER_RATE			83004
-#define MXLV_DG645_TRIGGER_SOURCE		83005
+
 #define MXLV_DG645_STATUS			83006
 
 #define MXI_DG645_STANDARD_FIELDS \
@@ -118,26 +104,6 @@ typedef struct {
   {MXLV_DG645_TRIGGER_LEVEL, -1, "trigger_level", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_level), \
 	{0}, NULL, 0}, \
-  \
-  {MXLV_DG645_TRIGGER_RATE, -1, "trigger_rate", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_rate), \
-	{0}, NULL, 0}, \
-  \
-  {MXLV_DG645_TRIGGER_SOURCE, -1, "trigger_source", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_source), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
-  \
-  {-1, -1, "trigger_type", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_type), \
-	{0}, NULL, MXFF_READ_ONLY}, \
-  \
-  {-1, -1, "trigger_direction", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_direction), \
-	{0}, NULL, MXFF_READ_ONLY}, \
-  \
-  {-1, -1, "single_shot", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, single_shot), \
-	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "last_error", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, last_error), \
@@ -195,11 +161,6 @@ MX_API mx_status_type mxi_dg645_compute_delay_between_channels(
 					double *adjacent_delay );
 
 MX_API mx_status_type mxi_dg645_get_status( MX_DG645 *dg645 );
-
-MX_API mx_status_type mxi_dg645_setup_pulser_trigger_mode( MX_DG645 *dg645,
-							long new_trigger_mode );
-
-MX_API mx_status_type mxi_dg645_interpret_trigger_source( MX_DG645 *dg645 );
 
 extern MX_RECORD_FUNCTION_LIST mxi_dg645_record_function_list;
 

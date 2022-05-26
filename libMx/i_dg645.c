@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017-2019 Illinois Institute of Technology
+ * Copyright 2017-2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -234,8 +234,6 @@ mxi_dg645_special_processing_setup( MX_RECORD *record )
 		case MXLV_DG645_RECALL_SETTINGS:
 		case MXLV_DG645_SAVE_SETTINGS:
 		case MXLV_DG645_TRIGGER_LEVEL:
-		case MXLV_DG645_TRIGGER_RATE:
-		case MXLV_DG645_TRIGGER_SOURCE:
 		case MXLV_DG645_STATUS:
 			record_field->process_function
 					= mxi_dg645_process_function;
@@ -581,51 +579,6 @@ mxi_dg645_get_status( MX_DG645 *dg645 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxi_dg645_setup_pulser_trigger_mode( MX_DG645 *dg645, long new_trigger_mode )
-{
-	static const char fname[] = "mxi_dg645_setup_pulser_trigger_mode()";
-
-	switch( new_trigger_mode ) {
-	case MXF_DEV_INTERNAL_TRIGGER:
-		dg645->trigger_type = MXF_DG645_INTERNAL_TRIGGER;
-		dg645->trigger_direction = 0;
-
-		if ( dg645->single_shot == FALSE ) {
-			dg645->trigger_source = 0;
-		} else {
-			dg645->trigger_source = 5;
-		}
-		break;
-
-	case MXF_DEV_EXTERNAL_TRIGGER:
-		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
-		
-		if ( dg645->trigger_direction >= 0 ) {
-			if ( dg645->single_shot == FALSE ) {
-				dg645->trigger_source = 1;
-			} else {
-				dg645->trigger_source = 3;
-			}
-		} else {
-			if ( dg645->single_shot == FALSE ) {
-				dg645->trigger_source = 2;
-			} else {
-				dg645->trigger_source = 4;
-			}
-		}
-		break;
-
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Trigger source %ld is not supported for pulse generator '%s'.",
-			new_trigger_mode, dg645->record->name );
-		break;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
 /*==================================================================*/
 
 static mx_status_type
@@ -672,46 +625,6 @@ mxi_dg645_process_function( void *record_ptr,
 				"DG645 controller '%s'.",
 					response, record->name );
 			}
-			break;
-		case MXLV_DG645_TRIGGER_RATE:
-			mx_status = mxi_dg645_command( dg645, "TRAT?",
-						response, sizeof(response),
-						MXI_DG645_DEBUG );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			num_items = sscanf( response, "%lg",
-						&(dg645->trigger_rate) );
-
-			if ( num_items != 1 ) {
-				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-				"Did not find a trigger rate value in "
-				"the response '%s' to command 'TRAT?' for "
-				"DG645 controller '%s'.",
-					response, record->name );
-			}
-			break;
-		case MXLV_DG645_TRIGGER_SOURCE:
-			mx_status = mxi_dg645_command( dg645, "TSRC?",
-						response, sizeof(response),
-						MXI_DG645_DEBUG );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			num_items = sscanf( response, "%lu",
-						&(dg645->trigger_source) );
-
-			if ( num_items != 1 ) {
-				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-				"Did not find a trigger source value in "
-				"the response '%s' to command 'TSRC?' for "
-				"DG645 controller '%s'.",
-					response, record->name );
-			}
-
-			mx_status = mxi_dg645_interpret_trigger_source( dg645 );
 			break;
 		case MXLV_DG645_STATUS:
 			mx_status = mxi_dg645_get_status( dg645 );
@@ -829,27 +742,6 @@ mxi_dg645_process_function( void *record_ptr,
 							NULL, 0,
 							MXI_DG645_DEBUG );
 			break;
-		case MXLV_DG645_TRIGGER_RATE:
-			snprintf( command, sizeof(command),
-				"TRAT %g", dg645->trigger_rate );
-
-			mx_status = mxi_dg645_command( dg645, command,
-							NULL, 0,
-							MXI_DG645_DEBUG );
-			break;
-		case MXLV_DG645_TRIGGER_SOURCE:
-			snprintf( command, sizeof(command),
-				"TSRC %lu", dg645->trigger_source );
-
-			mx_status = mxi_dg645_command( dg645, command,
-							NULL, 0,
-							MXI_DG645_DEBUG );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			mx_status = mxi_dg645_interpret_trigger_source( dg645 );
-			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
@@ -865,57 +757,4 @@ mxi_dg645_process_function( void *record_ptr,
 	return mx_status;
 }
 
-MX_EXPORT mx_status_type
-mxi_dg645_interpret_trigger_source( MX_DG645 *dg645 )
-{
-	static const char fname[] = "mxi_dg645_interpret_trigger_source()";
-
-	switch( dg645->trigger_source ) {
-	case 0:
-		dg645->trigger_type = MXF_DG645_INTERNAL_TRIGGER;
-		dg645->trigger_direction = 0;
-		dg645->single_shot = FALSE;
-		break;
-	case 1:
-		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
-		dg645->trigger_direction = 1;
-		dg645->single_shot = FALSE;
-		break;
-	case 2:
-		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
-		dg645->trigger_direction = -1;
-		dg645->single_shot = FALSE;
-		break;
-	case 3:
-		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
-		dg645->trigger_direction = 1;
-		dg645->single_shot = TRUE;
-		break;
-	case 4:
-		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
-		dg645->trigger_direction = -1;
-		dg645->single_shot = TRUE;
-		break;
-	case 5:
-		dg645->trigger_type = MXF_DG645_INTERNAL_TRIGGER;
-		dg645->trigger_direction = 0;
-		dg645->single_shot = TRUE;
-		break;
-	case 6:
-		dg645->trigger_type = MXF_DG645_LINE_TRIGGER;
-		dg645->trigger_direction = 0;
-		dg645->single_shot = FALSE;
-		break;
-	default:
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"The trigger source for DG645 controller '%s' has "
-		"an illegal value of %lu.  The allowed values are "
-		"from 0 to 6.",
-			dg645->record->name,
-			dg645->trigger_source );
-		break;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
 

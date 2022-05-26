@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2017-2019 Illinois Institute of Technology
+ * Copyright 2017-2019, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -291,7 +291,7 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	 * actual triggering takes place in the trigger() method.
 	 */
 
-	if ( pulser->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
+	if ( pulser->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 		dg645->armed = TRUE;
 
 		return MX_SUCCESSFUL_RESULT;
@@ -311,7 +311,8 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 
 	/* For single shot modes, enable the external trigger. */
 
-	if ( dg645->single_shot ) {
+	if ( pulser->trigger_mode & MXF_DEV_ONE_SHOT_TRIGGER ) {
+
 		mx_status = mxi_dg645_command( dg645, "*TRG",
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
 
@@ -359,18 +360,11 @@ mxd_dg645_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 		dg645->burst_mode_on = TRUE;
 	}
 
-	/* If we are in single shot mode (trigger source 5) then
-	 * send the internal trigger.
-	 */
+	/* Send the trigger signal. */
 
-	if ( dg645->single_shot ) {
-		mx_status = mxi_dg645_command( dg645, "*TRG",
-						NULL, 0, 
-						MXD_DG645_PULSER_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	mx_status = mxi_dg645_command( dg645, "*TRG",
+					NULL, 0, 
+					MXD_DG645_PULSER_DEBUG );
 
 	return mx_status;
 }
@@ -420,6 +414,7 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	char response[80];
 	int num_items;
 	double trigger_rate;
+	unsigned long trigger_source;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dg645_pulser_get_pointers( pulser,
@@ -462,13 +457,13 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 			/* Single pulse pulser. */
 
 			mx_status = mx_process_record_field_by_name(
-						dg645->record, "trigger_source",
+						dg645->record, "trigger_mode",
 						NULL, MX_PROCESS_GET, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( dg645->single_shot ) {
+			if ( pulser->trigger_mode & MXF_DEV_ONE_SHOT_TRIGGER ) {
 				pulser->num_pulses = 1;
 			} else {
 				pulser->num_pulses = 0;
@@ -583,7 +578,7 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "%ld", &(dg645->trigger_source) );
+		num_items = sscanf( response, "%lu", &trigger_source );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -592,26 +587,51 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 				response, dg645->record->name );
 		}
 
-		mx_status = mxi_dg645_interpret_trigger_source( dg645 );
+		switch( trigger_source ) {
+		case 0:		/* Internal */
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		switch( dg645->trigger_source ) {
-		case 0: case 5:
 			pulser->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 			break;
-		case 1: case 2: case 3: case 4:
-			pulser->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
+		case 1:		/* External rising edges */
+
+			pulser->trigger_mode = ( MXF_DEV_EXTERNAL_TRIGGER
+					| MXF_DEV_EDGE_TRIGGER
+					| MXF_DEV_TRIGGER_HIGH );
 			break;
-		case 6:
+		case 2:		/* External falling edges */
+
+			pulser->trigger_mode = ( MXF_DEV_EXTERNAL_TRIGGER
+					| MXF_DEV_EDGE_TRIGGER
+					| MXF_DEV_TRIGGER_LOW );
+			break;
+		case 3:		/* Single shot external rising edges */
+
+			pulser->trigger_mode = ( MXF_DEV_EXTERNAL_TRIGGER
+					| MXF_DEV_EDGE_TRIGGER
+					| MXF_DEV_TRIGGER_HIGH
+					| MXF_DEV_ONE_SHOT_TRIGGER );
+			break;
+		case 4:		/* Single shot external falling edges */
+
+			pulser->trigger_mode = ( MXF_DEV_EXTERNAL_TRIGGER
+					| MXF_DEV_EDGE_TRIGGER
+					| MXF_DEV_TRIGGER_LOW
+					| MXF_DEV_ONE_SHOT_TRIGGER );
+			break;
+		case 5:		/* Single shot */
+
+			pulser->trigger_mode = ( MXF_DEV_INTERNAL_TRIGGER
+					| MXF_DEV_ONE_SHOT_TRIGGER );
+			break;
+		case 6:		/* Line */
+
 			pulser->trigger_mode = MXF_DEV_LINE_TRIGGER;
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Pulse generator '%s' is configured for illegal "
-			"trigger source of %ld.",
-				dg645->record->name, dg645->trigger_source );
+			"trigger source of %lu.",
+				dg645->record->name, trigger_source );
 			break;
 		}
 		break;
@@ -636,13 +656,14 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_DG645_PULSER *dg645_pulser = NULL;
 	MX_DG645 *dg645 = NULL;
 	char command[80];
-	int new_trigger_source;
 	unsigned long starting_channel, ending_channel;
 	unsigned long adjacent_channel;
 	double adjacent_delay, new_adjacent_delay;
 	double delay_difference;
 	double existing_width;
 	double trigger_rate;
+	long trigger_mode;
+	unsigned long new_trigger_source;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dg645_pulser_get_pointers( pulser,
@@ -693,92 +714,6 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		case MXT_PGN_DG645:
 			/* Single pulse pulser. */
 
-			/* First, get the existing trigger source, so that we
-			 * can modify it to match what we want here.
-			 */
-
-			mx_status = mx_process_record_field_by_name(
-						dg645->record, "trigger_source",
-						NULL, MX_PROCESS_GET, NULL );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* Now construct the new trigger source value. */
-
-			switch( dg645->trigger_type ) {
-			case MXF_DG645_INTERNAL_TRIGGER:
-				pulser->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
-
-				if ( pulser->num_pulses == 1 ) {
-					/* Single shot */
-					new_trigger_source = 5;
-				} else {
-					/* Internal */
-					new_trigger_source = 0;
-					pulser->num_pulses = 0;
-				}
-				break;
-			case MXF_DG645_EXTERNAL_TRIGGER:
-				pulser->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
-
-				if ( pulser->num_pulses == 1 ) {
-					/* Single shot */
-
-					if ( dg645->trigger_direction < 0 ) {
-						/* Ext falling edges */
-						new_trigger_source = 4;
-						dg645->trigger_direction = -1;
-					} else {
-						/* Ext rising edges */
-						new_trigger_source = 3;
-						dg645->trigger_direction = 1;
-					}
-				} else {
-					if ( dg645->trigger_direction < 0 ) {
-						/* External falling edges */
-						new_trigger_source = 2;
-						dg645->trigger_direction = -1;
-					} else {
-						/* External rising edges */
-						new_trigger_source = 1;
-						dg645->trigger_direction = 1;
-					}
-					pulser->num_pulses = 0;
-				}
-				break;
-			case MXF_DG645_LINE_TRIGGER:
-				/* For 'line trigger', the number of pulses
-				 * is always "infinite", so we can't change
-				 * anything and should not send a command
-				 * to the DG645.
-				 */
-
-				pulser->trigger_mode = 0;
-				pulser->num_pulses = 0;
-				dg645->trigger_direction = 0;
-				dg645->single_shot = FALSE;
-
-				return MX_SUCCESSFUL_RESULT;
-				break;
-			default:
-				return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-				"DG645 controller '%s' used by pulser '%s' is "
-				"somehow configured for an illegal trigger "
-				"type %lu.  This should never happen.",
-					dg645->record->name,
-					pulser->record->name,
-					dg645->trigger_type );
-				break;
-			}
-
-			/* Now set the new trigger source. */
-
-			snprintf( command, sizeof(command),
-				"TSRC %d", new_trigger_source );
-
-			mx_status = mxi_dg645_command( dg645, command,
-					NULL, 0, MXD_DG645_PULSER_DEBUG );
 			break;
 
 		default:
@@ -868,37 +803,65 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_TRIGGER_MODE:
-		switch( pulser->trigger_mode ) {
-		case MXF_DEV_INTERNAL_TRIGGER:
-		case MXF_DEV_EXTERNAL_TRIGGER:
-		case MXF_DEV_LINE_TRIGGER:
-			/* These are valid trigger modes, so we reprogram
-			 * the pulse generator using them.
-			 */
+		trigger_mode = pulser->trigger_mode;
 
-			mx_status = mxi_dg645_setup_pulser_trigger_mode(
-						dg645, pulser->trigger_mode );
+		if ( trigger_mode & MXF_DEV_MANUAL_TRIGGER ) {
+		    new_trigger_source = 5;	/* Simple one-shot */
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+		} else
+		if ( trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
+		    new_trigger_source = 0;	/* Internal */
 
-			snprintf( command, sizeof(command),
-				"TSRC %lu", dg645->trigger_source );
-
-			mx_status = mxi_dg645_command( dg645, command,
-					NULL, 0, MXD_DG645_PULSER_DEBUG );
-			break;
-		default:
-			mx_warning( "The requested trigger mode (%lu) for "
-			"pulse generator '%s' is illegal.  We are restoring "
-			"the trigger mode from the trigger source (%lu).",
-				pulser->trigger_mode,
-				pulser->record->name,
-				dg645->trigger_source );
-
-			mx_status = mxi_dg645_interpret_trigger_source( dg645 );
-			break;
+		} else
+		if ( trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
+		    if ( trigger_mode & MXF_DEV_EDGE_TRIGGER ) {
+			if ( trigger_mode & MXF_DEV_TRIGGER_HIGH ) {
+			    if ( trigger_mode & MXF_DEV_ONE_SHOT_TRIGGER ) {
+				new_trigger_source = 3;
+			    } else {
+				new_trigger_source = 1;
+			    }
+			} else
+			if ( trigger_mode & MXF_DEV_TRIGGER_LOW ) {
+			    if ( trigger_mode & MXF_DEV_ONE_SHOT_TRIGGER ) {
+				new_trigger_source = 4;
+			    } else {
+				new_trigger_source = 2;
+			    }
+			} else {
+			    return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			    "The trigger mode (%#lx) for DG645 '%s' is "
+			    "incorrectly configured.  Neither rising edge "
+			    "triggering (%#x) nor falling edge triggering "
+			    "(%#x) is requested.",
+				trigger_mode, dg645->record->name,
+				MXF_DEV_TRIGGER_HIGH, MXF_DEV_TRIGGER_LOW );
+			}
+		    } else
+		    if ( trigger_mode & MXF_DEV_LEVEL_TRIGGER ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Level mode triggering (%#x) is not available "
+			"for the DG645 pulse generator '%s'.",
+				MXF_DEV_LEVEL_TRIGGER,
+				dg645->record->name );
+		    } else {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal external trigger mode (%#lx) was requested "
+			"for pulse generator '%s'.",
+				trigger_mode, dg645->record->name );
+		    }
+		} else {
+		    return mx_error( MXE_UNSUPPORTED, fname,
+		    "Unsupported trigger mode (%#lx) was requested for "
+		    "DG645 pulse generator '%s'.",
+			trigger_mode, dg645->record->name );
 		}
+
+		snprintf( command, sizeof(command),
+				"TSRC %lu", new_trigger_source );
+
+		mx_status = mxi_dg645_command( dg645, command,
+				NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
 	default:
