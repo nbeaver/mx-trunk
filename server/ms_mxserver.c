@@ -3458,6 +3458,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	long i, send_buffer_header_length;
 	long record_handle;
 	long field_handle;
+	unsigned long num_message_values;
 	mx_status_type mx_status;
 
 	record_handle = MX_ILLEGAL_HANDLE;
@@ -3577,8 +3578,10 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
 		= mx_htonl( send_buffer_header_length );
 
+	num_message_values = 4 + record_field->num_dimensions;
+
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-		= mx_htonl( 2 * sizeof( uint32_t ) );
+		= mx_htonl( num_message_values * sizeof( uint32_t ) );
 
 	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( MXE_SUCCESS );
 
@@ -3595,6 +3598,15 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 
 	send_buffer_message[0] = mx_htonl( record_handle );
 	send_buffer_message[1] = mx_htonl( field_handle );
+	send_buffer_message[2] = mx_htonl( record_field->datatype );
+	send_buffer_message[3] = mx_htonl( record_field->num_dimensions );
+
+	for ( i = 0; i < record_field->num_dimensions; i++ ) {
+		send_buffer_message[ 4 + i ]
+			= mx_htonl( record_field->dimension[i] );
+	}
+
+	/*-----*/
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_DUMP ) {
 		MX_LIST_HEAD *list_head;
@@ -3638,7 +3650,9 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 			field_handle );
 	}
 
-	/* Send the record field handle back to the client. */
+	/* Send the record field handle and field parameters
+	 * back to the client.
+	 */
 
 	mx_status = mx_network_socket_send_message(
 		socket_handler->mx_socket, -1.0, network_message );

@@ -62,6 +62,14 @@ MX_DRIVER_MVME162_SRCS = i_tty.c i_mmap_vme.c \
 
 #--------------------------------------------------------------------------
 
+# To use the GCC version of AddressSanitizer,
+# uncomment the following statements
+
+#CFLAGS += -fsanitize=address
+#LIBRARIES += -fsanitize=address
+
+#--------------------------------------------------------------------------
+
 # If you want to use the dmalloc debugging package from http://dmalloc.com/,
 # uncomment the following statements.
 

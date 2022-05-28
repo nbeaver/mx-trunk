@@ -116,6 +116,11 @@ struct mx_network_field_type {
 	long record_handle;
 	long field_handle;
 
+	long datatype;
+	long num_dimensions;
+	long *dimension;
+	size_t network_max_bytes;
+
 	unsigned long nf_flags;
 
 	MX_RECORD_FIELD *local_field;

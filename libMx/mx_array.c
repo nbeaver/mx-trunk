@@ -1767,18 +1767,18 @@ mx_array_copy_vector( void *dest_vector,
 		"The source vector pointer was NULL." );
 	}
 
+	if ( dest_max_bytes >= src_max_bytes ) {
+		bytes_to_copy = src_max_bytes;
+	} else {
+		bytes_to_copy = dest_max_bytes;
+	}
+
 	/* If 'dest_max_bytes' is bigger than 'src_max_bytes', then we want
 	 * the trailing bytes to all be zeros.  The easiest way to ensure this
 	 * is to set all of the bytes in dest_vector to zero at the start.
 	 */
 
 	memset( dest_vector, 0, dest_max_bytes );
-
-	if ( dest_max_bytes >= src_max_bytes ) {
-		bytes_to_copy = src_max_bytes;
-	} else {
-		bytes_to_copy = dest_max_bytes;
-	}
 
 	/* The easiest case is if the destination MX datatype and the
 	 * source MX datatype are the same.  If so, then we can do the

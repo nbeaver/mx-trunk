@@ -32,6 +32,8 @@
 
 #define NETWORK_DEBUG_NEW_COPY_PUT_FIELD_ARRAY	FALSE
 
+#define NETWORK_DEBUG_PARAMETERS_WITH_HANDLE	FALSE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -5096,6 +5098,12 @@ mx_get_sized_network_datatype( long mx_datatype,
 	case MXFT_DOUBLE:
 		sized_datatype = mx_datatype;
 		break;
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
+		sized_datatype = MXFT_CHAR;
+		break;
 	default:
 		sized_datatype = -1L;
 
@@ -7073,11 +7081,15 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	uint32_t *header;
 	char *buffer, *message;
 	uint32_t *message_uint32_array;
-	uint32_t header_length, message_length;
+	uint32_t header_length, message_length, expected_length;
 	uint32_t message_type, status_code;
 	uint32_t header_length_in_32bit_words;
 	unsigned long network_debug_flags;
+	unsigned long i, mx_num_elements;
+	long network_mx_datatype;
+	size_t network_mx_element_size;
 	mx_bool_type net_debug_summary = FALSE;
+	mx_bool_type server_response_has_field_parameters = FALSE;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -7264,6 +7276,102 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		fname, nf->server_record->name, nf->nfname,
 		nf->record_handle, nf->field_handle ));
 #endif
+	/*** If the server response contains field parameters, save them ***/
+
+	server_response_has_field_parameters = FALSE;
+
+	if ( message_length > (4 * sizeof(uint32_t)) ) {
+
+		nf->datatype =
+		    (long) mx_ntohl( (unsigned long) message_uint32_array[2] );
+
+		nf->num_dimensions =
+		    (long) mx_ntohl( (unsigned long) message_uint32_array[3] );
+
+		expected_length = 4 + nf->num_dimensions;
+
+		if ( message_length < (expected_length * sizeof(uint32_t)) ) {
+			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+			"The message length for network field '%s' is %d words "
+			"rather than the expected length of %d words.",
+			nf->nfname, message_length, (int) expected_length );
+		}
+
+		nf->dimension = calloc( nf->num_dimensions, sizeof(uint32_t) );
+
+		if ( nf->dimension == (long *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"array of array dimensions for network field '%s'.",
+				nf->num_dimensions, nf->nfname );
+		}
+
+		for ( i = 0; i < nf->num_dimensions; i++ ) {
+			nf->dimension[i] = (long) mx_ntohl( (unsigned long)
+				message_uint32_array[ 4 + i ] );
+		}
+
+		server_response_has_field_parameters = TRUE;
+	}
+
+	if ( server_response_has_field_parameters == FALSE ) {
+		long max_dimensions = 4;
+
+		nf->dimension = calloc( max_dimensions, sizeof(long) );
+
+		if ( nf->dimension == (long *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"array of dimension parameters for network field '%s'.",
+				max_dimensions, nf->nfname );
+		}
+
+		mx_status = mx_get_field_type( server->record,
+						nf->nfname,
+						max_dimensions,
+						&(nf->datatype),
+						&(nf->num_dimensions),
+						nf->dimension,
+						FALSE );
+		
+	}
+
+#if NETWORK_DEBUG_PARAMETERS_WITH_HANDLE
+	MX_DEBUG(-2,("%s: NF '%s' server_response_has_field_parameters = %d",
+		fname, nf->nfname, (int) server_response_has_field_parameters));
+
+	MX_DEBUG(-2,("%s: NF '%s' datatype = %ld",
+		fname, nf->nfname, nf->datatype));
+
+	MX_DEBUG(-2,("%s: NF '%s' num_dimensions = %ld",
+		fname, nf->nfname, nf->num_dimensions));
+
+	for ( i = 0; i < nf->num_dimensions; i++ ) {
+		MX_DEBUG(-2,("%s: NF '%s' dimension[%lu] = %ld",
+			fname, nf->nfname, i, nf->dimension[i] ));
+	}
+#endif
+
+	mx_num_elements = 1;
+
+	for ( i = 0; i < nf->num_dimensions; i++ ) {
+		mx_num_elements *= nf->dimension[i];
+	}
+
+	network_mx_datatype = mx_get_sized_network_datatype(
+				nf->datatype, server, nf->num_dimensions );
+
+	network_mx_element_size = mx_get_scalar_element_size(
+			network_mx_datatype, server->use_64bit_network_longs );
+
+	nf->network_max_bytes = network_mx_element_size * mx_num_elements;
+
+#if NETWORK_DEBUG_PARAMETERS_WITH_HANDLE
+	MX_DEBUG(-2,("%s: NF '%s' network_max_bytes = %ld",
+		fname, nf->nfname, nf->network_max_bytes));
+#endif
+
+	/*** Show debugging information ***/
 
 	network_debug_flags = list_head->network_debug_flags;
 
