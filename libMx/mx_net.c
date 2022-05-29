@@ -5215,7 +5215,7 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 	/*--------*/
 
-	unsigned long i, mx_num_elements;
+	unsigned long i;
 
 	void *local_vector = NULL;
 	long local_mx_datatype;
@@ -5223,9 +5223,6 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 	size_t local_max_bytes;
 
 	void *network_vector = NULL;
-	long network_mx_datatype;
-	size_t network_mx_element_size;
-	size_t network_max_bytes;
 
 	size_t num_bytes_copied;
 
@@ -5303,13 +5300,6 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 			fname, server->record->name,
 			server->use_64bit_network_longs));
 #endif
-
-		mx_num_elements = 1;
-
-		for ( i = 0; i < local_field->num_dimensions; i++ ) {
-			mx_num_elements *= local_field->dimension[i];
-		}
-
 		/*----*/
 
 		if ( local_field->num_dimensions > 1 ) {
@@ -5334,7 +5324,7 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 			mx_get_scalar_element_size( local_mx_datatype, FALSE );
 		}
 
-		local_max_bytes = local_mx_element_size * mx_num_elements;
+		local_max_bytes = local_mx_element_size * nf->num_elements;
 
 		/*----*/
 
@@ -5357,15 +5347,17 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 				return mx_status;
 		}
 
+#if 0
 		network_mx_datatype =
-			mx_get_sized_network_datatype( datatype, server,
-							num_dimensions );
+			mx_get_sized_network_datatype( nf->remote_datatype,
+						server, num_dimensions );
 
 		network_mx_element_size =
 			mx_get_scalar_element_size( network_mx_datatype,
 					server->use_64bit_network_longs );
 
 		network_max_bytes = network_mx_element_size * mx_num_elements;
+#endif
 
 		/*----*/
 
@@ -6067,9 +6059,6 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 	size_t local_max_bytes;
 
 	void *network_vector = NULL;
-	long network_mx_datatype;
-	size_t network_mx_element_size;
-	size_t network_max_bytes;
 
 	size_t num_bytes_copied;
 
@@ -7085,9 +7074,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	uint32_t message_type, status_code;
 	uint32_t header_length_in_32bit_words;
 	unsigned long network_debug_flags;
-	unsigned long i, mx_num_elements;
-	long network_mx_datatype;
-	size_t network_mx_element_size;
+	unsigned long i;
 	mx_bool_type net_debug_summary = FALSE;
 	mx_bool_type server_response_has_field_parameters = FALSE;
 	mx_status_type mx_status;
@@ -7282,7 +7269,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	if ( message_length > (4 * sizeof(uint32_t)) ) {
 
-		nf->datatype =
+		nf->remote_datatype =
 		    (long) mx_ntohl( (unsigned long) message_uint32_array[2] );
 
 		nf->num_dimensions =
@@ -7329,7 +7316,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		mx_status = mx_get_field_type( server->record,
 						nf->nfname,
 						max_dimensions,
-						&(nf->datatype),
+						&(nf->remote_datatype),
 						&(nf->num_dimensions),
 						nf->dimension,
 						FALSE );
@@ -7352,19 +7339,19 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	}
 #endif
 
-	mx_num_elements = 1;
+	nf->num_elements = 1;
 
 	for ( i = 0; i < nf->num_dimensions; i++ ) {
-		mx_num_elements *= nf->dimension[i];
+		nf->num_elements *= nf->dimension[i];
 	}
 
-	network_mx_datatype = mx_get_sized_network_datatype(
-				nf->datatype, server, nf->num_dimensions );
+	nf->network_datatype = mx_get_sized_network_datatype(
+			nf->remote_datatype, server, nf->num_dimensions );
 
-	network_mx_element_size = mx_get_scalar_element_size(
-			network_mx_datatype, server->use_64bit_network_longs );
+	nf->network_element_size = mx_get_scalar_element_size(
+			nf->network_datatype, server->use_64bit_network_longs );
 
-	nf->network_max_bytes = network_mx_element_size * mx_num_elements;
+	nf->network_max_bytes = nf->network_element_size * nf->num_elements;
 
 #if NETWORK_DEBUG_PARAMETERS_WITH_HANDLE
 	MX_DEBUG(-2,("%s: NF '%s' network_max_bytes = %ld",
