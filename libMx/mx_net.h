@@ -106,9 +106,7 @@ typedef struct mx_network_message_buffer {
 
 #define MXF_NF_USE_OLD_ARRAY_COPY	0x100000
 
-/*
- * MX network server data structures.
- */
+/**** Structure used by MX_NETWORK_FIELD typedef further down. ****/
 
 struct mx_network_field_type {
 	char nfname[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];

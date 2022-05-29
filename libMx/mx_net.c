@@ -4279,17 +4279,17 @@ mx_network_display_message_binary( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 /* ====================================================================== */
 
 static mx_status_type
-mx_network_field_get_parameters( MX_RECORD *server_record,
+mx_local_field_get_parameters( MX_RECORD *server_record,
 			MX_RECORD_FIELD *local_field,
-			long *datatype,
-			long *num_dimensions,
-			long **dimension_array,
-			size_t **data_element_size_array,
+			long *local_datatype,
+			long *local_num_dimensions,
+			long **local_dimension_array,
+			size_t **local_data_element_size_array,
 			MX_NETWORK_SERVER **server,
 			MX_NETWORK_SERVER_FUNCTION_LIST **function_list,
 			const char *calling_fname )
 {
-	static const char fname[] = "mx_network_field_get_parameters()";
+	static const char fname[] = "mx_local_field_get_parameters()";
 
 	if ( server_record == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -4301,9 +4301,9 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 		"local_field pointer passed to '%s' is NULL.",
 			calling_fname );
 	}
-	*datatype = local_field->datatype;
+	*local_datatype = local_field->datatype;
 
-	switch( *datatype ) {
+	switch( *local_datatype ) {
 	case MXFT_STRING:
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
@@ -4331,12 +4331,12 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Data type %ld passed to '%s' is not a legal network datatype.",
-			*datatype, calling_fname );
+			*local_datatype, calling_fname );
 	}
 
-	*num_dimensions = local_field->num_dimensions;
-	*dimension_array = local_field->dimension;
-	*data_element_size_array = local_field->data_element_size;
+	*local_num_dimensions = local_field->num_dimensions;
+	*local_dimension_array = local_field->dimension;
+	*local_data_element_size_array = local_field->data_element_size;
 
 	*server = (MX_NETWORK_SERVER *) (server_record->record_class_struct);
 	*function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
@@ -5190,7 +5190,7 @@ mxp_net_initialize_remote_mx_version( MX_NETWORK_SERVER *server,
 static mx_status_type
 mx_new_copy_get_field_array( MX_RECORD *server_record,
 			MX_NETWORK_SERVER *server,
-			char *remote_record_field_name,
+			MX_NETWORK_FIELD *nf,
 			MX_RECORD_FIELD *local_field,
 			mx_bool_type array_is_dynamically_allocated,
 			void *value_ptr,
@@ -5214,8 +5214,6 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 	mx_status_type mx_status;
 
 	/*--------*/
-
-	unsigned long i;
 
 	void *local_vector = NULL;
 	long local_mx_datatype;
@@ -5340,24 +5338,12 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 			 */
 
 			mx_status = mxp_net_initialize_remote_mx_version(
-					server, remote_record_field_name,
+					server, nf->nfname,
 					message_length, message );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
-
-#if 0
-		network_mx_datatype =
-			mx_get_sized_network_datatype( nf->remote_datatype,
-						server, num_dimensions );
-
-		network_mx_element_size =
-			mx_get_scalar_element_size( network_mx_datatype,
-					server->use_64bit_network_longs );
-
-		network_max_bytes = network_mx_element_size * mx_num_elements;
-#endif
 
 		/*----*/
 
@@ -5414,8 +5400,7 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 		if ( do_byteswap ) {
 			mx_status = mx_byteswap_1d_array( network_vector,
-							network_mx_element_size,
-							mx_num_elements );
+				nf->network_element_size, nf->num_elements );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -5431,8 +5416,8 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 						local_mx_datatype,
 						local_max_bytes,
 						network_vector,
-						network_mx_datatype,
-						network_max_bytes,
+						nf->network_datatype,
+						nf->network_max_bytes,
 						&num_bytes_copied, FALSE );
 
 #if NETWORK_DEBUG_NEW_COPY_GET_FIELD_ARRAY
@@ -5451,6 +5436,13 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 }
 
 /* ---------------------------------------------------------------------- */
+
+/* WARNING: mx_old_copy_get_field_array() is REQUIRED to still exist because
+ * it is capable of copying in the remote MX version number even before the
+ * variable server->remote_mx_version has been set.  In order to get rid of
+ * mx_old_copy_get_field_array(), you must find an alternative way to set
+ * the initial value of server->remote_mx_version.
+ */
 
 static mx_status_type
 mx_old_copy_get_field_array( MX_RECORD *server_record,
@@ -5658,9 +5650,9 @@ mx_get_field_array( MX_RECORD *server_record,
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	MX_LIST_HEAD *list_head;
 	char nf_label[NF_LABEL_LENGTH];
-	long datatype, num_dimensions, *dimension_array;
-	size_t *data_element_size_array;
-	mx_bool_type array_is_dynamically_allocated;
+	long local_datatype, local_num_dimensions, *local_dimension_array;
+	size_t *local_data_element_size_array;
+	mx_bool_type local_array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
@@ -5682,10 +5674,10 @@ mx_get_field_array( MX_RECORD *server_record,
 #endif
 
 	server = NULL;
-	datatype = -1;
-	num_dimensions = -1;
-	dimension_array = NULL;
-	data_element_size_array = NULL;
+	local_datatype = -1;
+	local_num_dimensions = -1;
+	local_dimension_array = NULL;
+	local_data_element_size_array = NULL;
 
 	use_network_handles = TRUE;
 
@@ -5714,10 +5706,12 @@ mx_get_field_array( MX_RECORD *server_record,
 		remote_record_field_name = nf->nfname;
 	}
 
-	mx_status = mx_network_field_get_parameters(
+	mx_status = mx_local_field_get_parameters(
 			server_record, local_field,
-			&datatype, &num_dimensions,
-			&dimension_array, &data_element_size_array,
+			&local_datatype,
+			&local_num_dimensions,
+			&local_dimension_array,
+			&local_data_element_size_array,
 			&server, &function_list, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -5739,9 +5733,9 @@ mx_get_field_array( MX_RECORD *server_record,
 	}
 
 	if ( local_field->flags & MXFF_VARARGS ) {
-		array_is_dynamically_allocated = TRUE;
+		local_array_is_dynamically_allocated = TRUE;
 	} else {
-		array_is_dynamically_allocated = FALSE;
+		local_array_is_dynamically_allocated = FALSE;
 	}
 
 	mx_status = mx_network_reconnect_if_down( server_record );
@@ -5960,7 +5954,7 @@ mx_get_field_array( MX_RECORD *server_record,
 		fprintf( stderr, "MX GET_ARRAY('%s') = ", nf_label );
 
 		mx_network_buffer_show_value( message, server->data_format,
-					datatype, receive_message_type,
+					local_datatype, receive_message_type,
 					message_length,
 					server->use_64bit_network_longs );
 		fprintf( stderr, "\n" );
@@ -5968,45 +5962,46 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	/************ Copy the data that was returned. ***************/
 
-	use_old_array_copy = FALSE;
-
-	if ( nf != (MX_NETWORK_FIELD *) NULL ) {
-		if ( nf->nf_flags & MXF_NF_USE_OLD_ARRAY_COPY ) {
-			use_old_array_copy = TRUE;
-		}
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		use_old_array_copy = TRUE;
+	} else
+	if ( nf->nf_flags & MXF_NF_USE_OLD_ARRAY_COPY ) {
+		use_old_array_copy = TRUE;
 	} else
 	if ( server->server_flags & MXF_NETWORK_SERVER_USE_OLD_ARRAY_COPY ) {
 		use_old_array_copy = TRUE;
+	} else {
+		use_old_array_copy = FALSE;
 	}
 
 	if ( use_old_array_copy ) {
 		mx_status = mx_old_copy_get_field_array(
-						server_record,
-						server,
-						remote_record_field_name,
-						local_field,
-						array_is_dynamically_allocated,
-						value_ptr,
-						message_length,
-						message,
-						datatype,
-						num_dimensions,
-						dimension_array,
-						data_element_size_array );
+					server_record,
+					server,
+					remote_record_field_name,
+					local_field,
+					local_array_is_dynamically_allocated,
+					value_ptr,
+					message_length,
+					message,
+					local_datatype,
+					local_num_dimensions,
+					local_dimension_array,
+					local_data_element_size_array );
 	} else {
 		mx_status = mx_new_copy_get_field_array(
-						server_record,
-						server,
-						remote_record_field_name,
-						local_field,
-						array_is_dynamically_allocated,
-						value_ptr,
-						message_length,
-						message,
-						datatype,
-						num_dimensions,
-						dimension_array,
-						data_element_size_array );
+					server_record,
+					server,
+					nf,
+					local_field,
+					local_array_is_dynamically_allocated,
+					value_ptr,
+					message_length,
+					message,
+					local_datatype,
+					local_num_dimensions,
+					local_dimension_array,
+					local_data_element_size_array );
 	}
 
 	return mx_status;
@@ -6017,15 +6012,14 @@ mx_get_field_array( MX_RECORD *server_record,
 static mx_status_type
 mx_new_copy_put_field_array( MX_RECORD *server_record,
 			MX_NETWORK_SERVER *server,
-			char *remote_record_field_name,
 			MX_NETWORK_FIELD *nf,
 			MX_RECORD_FIELD *local_field,
-			mx_bool_type array_is_dynamically_allocated,
+			mx_bool_type local_array_is_dynamically_allocated,
 			void *value_ptr,
-			long datatype,
-			long num_dimensions,
-			long *dimension_array,
-			size_t *data_element_size_array,
+			long local_datatype,
+			long local_num_dimensions,
+			long *local_dimension_array,
+			size_t *local_data_element_size_array,
 			uint32_t field_id_length )
 {
 	static const char fname[] = "mx_new_copy_put_field_array()";
@@ -6035,7 +6029,7 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer = NULL;
 	uint32_t *header;
-	char *message, *ptr, *name_ptr;
+	char *message, *ptr;
 
 #if defined(_WIN64)
 	uint64_t xdr_ptr_address, xdr_remainder_value, xdr_gap_size;
@@ -6105,14 +6099,14 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 		/* Send the data using the ASCII MX database format. */
 
-		mx_status = mx_get_token_constructor( datatype,
+		mx_status = mx_get_token_constructor( local_datatype,
 						&token_constructor );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( (num_dimensions == 0)
-		  || ((datatype == MXFT_STRING) && (num_dimensions == 1)) )
+		if ( (local_num_dimensions == 0)
+		  || ((local_datatype == MXFT_STRING) && (local_num_dimensions == 1)) )
 		{
 			mx_status = (*token_constructor) ( value_ptr, ptr,
 			    aligned_buffer->buffer_length -
@@ -6233,16 +6227,6 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 		network_vector = ptr;
 
-		network_mx_datatype =
-			mx_get_sized_network_datatype( datatype, server,
-							num_dimensions );
-
-		network_mx_element_size =
-			mx_get_scalar_element_size( network_mx_datatype,
-					server->use_64bit_network_longs );
-
-		network_max_bytes = network_mx_element_size * mx_num_elements;
-
 		/*----*/
 
 #if NETWORK_DEBUG_NEW_COPY_PUT_FIELD_ARRAY
@@ -6274,8 +6258,8 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 #endif
 
 		mx_status = mx_array_copy_vector( network_vector,
-						network_mx_datatype,
-						network_max_bytes,
+						nf->network_datatype,
+						nf->network_max_bytes,
 						local_vector,
 						local_mx_datatype,
 						local_max_bytes,
@@ -6299,7 +6283,7 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 			(void) mx_error( mx_status.code, fname,
 	"Buffer copy for MX_PUT of parameter '%s' in server '%s' failed.",
-				remote_record_field_name, server_record->name );
+				nf->nfname, server_record->name );
 		}
 
 		message_length += num_bytes_copied;
@@ -6332,8 +6316,7 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 		if ( do_byteswap ) {
 			mx_status = mx_byteswap_1d_array( network_vector,
-							network_mx_element_size,
-							mx_num_elements );
+				nf->network_element_size, nf->num_elements );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -6389,16 +6372,11 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 	}
 
 	if ( i >= max_attempts ) {
-		if ( nf == NULL ) {
-			name_ptr = remote_record_field_name;
-		} else {
-			name_ptr = nf->nfname;
-		}
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"%lu attempts to increase the network buffer size for "
 		"record field '%s' failed.  "
 		"You should never see this error.",
-			max_attempts, name_ptr );
+			max_attempts, nf->nfname );
 	}
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
@@ -6699,8 +6677,8 @@ mx_put_field_array( MX_RECORD *server_record,
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	MX_LIST_HEAD *list_head;
 	char nf_label[80];
-	long datatype, num_dimensions, *dimension_array;
-	size_t *data_element_size_array;
+	long local_datatype, local_num_dimensions, *local_dimension_array;
+	size_t *local_data_element_size_array;
 	mx_bool_type array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
 	mx_bool_type use_old_array_copy;
@@ -6726,10 +6704,10 @@ mx_put_field_array( MX_RECORD *server_record,
 #endif
 
 	server = NULL;
-	datatype = -1;
-	num_dimensions = -1;
-	dimension_array = NULL;
-	data_element_size_array = NULL;
+	local_datatype = -1;
+	local_num_dimensions = -1;
+	local_dimension_array = NULL;
+	local_data_element_size_array = NULL;
 
 	use_network_handles = TRUE;
 
@@ -6758,10 +6736,11 @@ mx_put_field_array( MX_RECORD *server_record,
 		remote_record_field_name = nf->nfname;
 	}
 
-	mx_status = mx_network_field_get_parameters(
+	mx_status = mx_local_field_get_parameters(
 			server_record, local_field,
-			&datatype, &num_dimensions,
-			&dimension_array, &data_element_size_array,
+			&local_datatype, &local_num_dimensions,
+			&local_dimension_array,
+			&local_data_element_size_array,
 			&server, &function_list, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -6869,24 +6848,23 @@ mx_put_field_array( MX_RECORD *server_record,
 						local_field,
 						array_is_dynamically_allocated,
 						value_ptr,
-						datatype,
-						num_dimensions,
-						dimension_array,
-						data_element_size_array,
+						local_datatype,
+						local_num_dimensions,
+						local_dimension_array,
+						local_data_element_size_array,
 						field_id_length );
 	} else {
 		mx_status = mx_new_copy_put_field_array(
 						server_record,
 						server,
-						remote_record_field_name,
 						nf,
 						local_field,
 						array_is_dynamically_allocated,
 						value_ptr,
-						datatype,
-						num_dimensions,
-						dimension_array,
-						data_element_size_array,
+						local_datatype,
+						local_num_dimensions,
+						local_dimension_array,
+						local_data_element_size_array,
 						field_id_length );
 	}
 
@@ -6926,7 +6904,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 		mx_network_buffer_show_value( message + handle_length,
 					server->data_format,
-					datatype, send_message_type,
+					local_datatype, send_message_type,
 					message_length - handle_length,
 					server->use_64bit_network_longs );
 		fprintf( stderr, ")\n" );

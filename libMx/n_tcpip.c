@@ -384,6 +384,13 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	network_server->remote_mx_version_time = 0UL;
 	version = 0UL;
 
+	/* Warning: You _MUST_ use mx_get_by_name() to get the remote
+	 * MX version number, since mx_get_by_name() uses the function
+	 * mx_old_copy_get_field_array(), which is capable of copying
+	 * in the remote version number correctly, even though 
+	 * network_server->remote_mx_version has not yet been set.
+	 */
+
 	mx_status = mx_get_by_name( record, "mx_database.mx_version",
 					MXFT_ULONG, &version );
 
