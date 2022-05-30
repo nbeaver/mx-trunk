@@ -1986,13 +1986,18 @@ mx_construct_recordtype_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
+#if 0
 	static const char fname[] = "mx_construct_recordtype_field()";
+#endif
 
 	MX_DRIVER *driver;
 
 	driver = (MX_DRIVER *)(record_field->typeinfo);
 
 	if ( driver == NULL ) {
+#if 1
+		strlcpy( token_buffer, dataptr, token_buffer_length );
+#else
 		if ( record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"Field '%s' has a NULL typeinfo entry.",
@@ -2002,10 +2007,11 @@ mx_construct_recordtype_field( void *dataptr,
 			"Field '%s' in record '%s' has a NULL typeinfo entry.",
 				record_field->name, record->name );
 		}
+#endif
+	} else {
+		snprintf( token_buffer, token_buffer_length,
+				"%s", driver->name );
 	}
-
-	snprintf( token_buffer, token_buffer_length,
-			"%s", driver->name );
 
 	return MX_SUCCESSFUL_RESULT;
 }

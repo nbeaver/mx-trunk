@@ -5102,7 +5102,7 @@ mx_get_sized_network_datatype( long mx_datatype,
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
 	case MXFT_RECORD_FIELD:
-		sized_datatype = MXFT_CHAR;
+		sized_datatype = MXFT_STRING;
 		break;
 	default:
 		sized_datatype = -1L;

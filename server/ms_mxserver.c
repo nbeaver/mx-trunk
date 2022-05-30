@@ -3578,7 +3578,11 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
 		= mx_htonl( send_buffer_header_length );
 
-	num_message_values = 4 + record_field->num_dimensions;
+	if ( record_field->num_dimensions == 0 ) {
+		num_message_values = 5;
+	} else {
+		num_message_values = 4 + record_field->num_dimensions;
+	}
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 		= mx_htonl( num_message_values * sizeof( uint32_t ) );
@@ -3599,11 +3603,29 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_message[0] = mx_htonl( record_handle );
 	send_buffer_message[1] = mx_htonl( field_handle );
 	send_buffer_message[2] = mx_htonl( record_field->datatype );
-	send_buffer_message[3] = mx_htonl( record_field->num_dimensions );
 
-	for ( i = 0; i < record_field->num_dimensions; i++ ) {
-		send_buffer_message[ 4 + i ]
-			= mx_htonl( record_field->dimension[i] );
+	/* Note that 0-dimensional objects are treated here as 
+	 * 1-dimensional objects with 1 element.
+	 *
+	 * Also, MXFT_RECORDTYPE objects are a special case of
+	 * their own, since they describe the record's driver.
+	 */
+
+	if ( record_field->datatype == MXFT_RECORDTYPE ) {
+		send_buffer_message[3] = mx_htonl( 1 );
+		send_buffer_message[4] = mx_htonl( MXU_DRIVER_NAME_LENGTH + 1 );
+	} else
+	if ( record_field->num_dimensions == 0 ) {
+		send_buffer_message[3] = mx_htonl( 1 );
+		send_buffer_message[4] = mx_htonl( 1 );
+	} else {
+		send_buffer_message[3]
+			= mx_htonl( record_field->num_dimensions );
+
+		for ( i = 0; i < record_field->num_dimensions; i++ ) {
+			send_buffer_message[ 4 + i ]
+				= mx_htonl( record_field->dimension[i] );
+		}
 	}
 
 	/*-----*/

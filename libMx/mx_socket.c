@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <float.h>
 #include <errno.h>
 #include <sys/types.h>
 
@@ -2887,6 +2888,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	MX_CLOCK_TICK starting_clock_tick, current_clock_tick;
 	double elapsed_time_in_seconds = 0.0;
 	double timeout_left_in_seconds = -1.0;
+	mx_bool_type first_time;
 	mx_status_type mx_status;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
@@ -2920,6 +2922,14 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	total_bytes_in_callers_buffer = 0;
 	num_terminators_seen = 0;
 
+	/* Treat a negative timeout as "forever". */
+
+	if ( timeout_in_seconds < 0.0 ) {
+		timeout_in_seconds = DBL_MAX;
+	}
+
+	first_time = TRUE;
+
 	starting_clock_tick = mx_current_clock_tick();
 
 	while( bytes_left > 0 ) {
@@ -2951,6 +2961,10 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 				bytes_left );
 		}
 
+		/* Mark the bytes as read. */
+
+		/* FIXME: Why aren't we using mx_circular_buffer_read() here? */
+
 		write_ptr += bytes_peeked_from_buffer;
 
 		bytes_left -= bytes_peeked_from_buffer;
@@ -2964,7 +2978,10 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 
 		/* Have we timed out yet? */
 
-		if ( timeout_in_seconds > 0.0 ) {
+		if ( first_time || ( timeout_in_seconds > 0.0 ) ) {
+
+			first_time = FALSE;
+
 			current_clock_tick = mx_current_clock_tick();
 
 			elapsed_time_in_seconds =
@@ -2974,7 +2991,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			timeout_left_in_seconds = timeout_in_seconds
 						- elapsed_time_in_seconds;
 
-			if ( timeout_left_in_seconds > 0.0 ) {
+			if ( timeout_left_in_seconds < 0.0 ) {
 				return mx_error( MXE_TIMED_OUT, fname,
 				"Timed out after waiting %g seconds for "
 				"input from socket %d.",

@@ -1758,6 +1758,8 @@ mx_array_copy_vector( void *dest_vector,
 	float *float_dest_vector, *float_src_vector;
 	double *double_dest_vector, *double_src_vector;
 
+	char *recordtype_dest_vector;
+
 	if ( dest_vector == (void *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The destination vector pointer was NULL." );
@@ -2663,6 +2665,50 @@ mx_array_copy_vector( void *dest_vector,
 		break;
 	    case MXFT_DOUBLE:
 		memmove( dest_vector, src_vector, bytes_to_copy );
+		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX destination data type '%s' (%lu) is not supported "
+		"for MX source data type '%s'' (%lu).",
+			mx_get_datatype_name_from_datatype( dest_mx_datatype ),
+			dest_mx_datatype,
+			mx_get_datatype_name_from_datatype( src_mx_datatype ),
+			src_mx_datatype );
+		break;
+	    }
+	    break;
+
+	case MXFT_RECORDTYPE:
+	    recordtype_dest_vector = dest_vector;
+
+	    switch( src_mx_datatype ) {
+	    case MXFT_STRING:
+		string_src_vector = src_vector;
+
+		bytes_to_copy = strlen( string_src_vector ) + 1;
+
+		memmove( recordtype_dest_vector, string_src_vector,
+						bytes_to_copy );
+		break;
+	    case MXFT_STRING_XDR:
+		xdr_string_src_aligned_pointer = src_vector;
+
+		/* For XDR style strings, the first four bytes are the length
+		 * of the string, expressed as a 32-bit big-endian unsigned
+		 * integer.
+		 */
+
+		bytes_to_copy = htonl( *xdr_string_src_aligned_pointer );
+
+		xdr_string_src_vector = ( char * )
+				( xdr_string_src_aligned_pointer + 1 );
+
+		memmove( recordtype_dest_vector, xdr_string_src_vector,
+						bytes_to_copy );
+
+		/* Make sure the copied MXFT_STRING is null terminated. */
+
+		recordtype_dest_vector[ bytes_to_copy ] = '\0';
 		break;
 	    default:
 		return mx_error( MXE_UNSUPPORTED, fname,
