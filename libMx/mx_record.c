@@ -2460,9 +2460,9 @@ mx_print_summary( FILE *output, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_print_all_field_definitions( FILE *output, MX_RECORD *record )
+mx_print_all_field_attributes( FILE *output, MX_RECORD *record )
 {
-	static const char fname[] = "mx_print_all_field_definitions()";
+	static const char fname[] = "mx_print_all_field_attributes()";
 
 	MX_RECORD_FIELD *field_array, *field;
 	char name_format[40];
@@ -2487,10 +2487,10 @@ mx_print_all_field_definitions( FILE *output, MX_RECORD *record )
 			record->name, num_fields );
 
 	fprintf(output,
-"Field name                                  label  num  type  #dim dim[0] siz[0]\n");
+"Field name                    label  num  type  #dim dim[0] siz[0] #elem  bytes\n");
 
 	snprintf( name_format, sizeof(name_format),
-		"  %%-%ds ", MXU_FIELD_NAME_LENGTH );
+		"  %%-%ds ", MXU_FIELD_NAME_LENGTH - 15 );
 
 	for ( i = 0; i < num_fields; i++ ) {
 		field = &(field_array[i]);
@@ -2507,11 +2507,7 @@ mx_print_all_field_definitions( FILE *output, MX_RECORD *record )
 			} else {
 				fprintf(output, "%5ld ", field->dimension[0]);
 			}
-		} else {
-			fprintf(output,"      ");
-		}
 
-		if ( field->num_dimensions > 0 ) {
 			if ( field->data_element_size  == NULL ) {
 				fprintf(output, "NULL  ");
 			} else {
@@ -2519,8 +2515,11 @@ mx_print_all_field_definitions( FILE *output, MX_RECORD *record )
 					(long) field->data_element_size[0]);
 			}
 		} else {
-			fprintf(output,"      ");
+			fprintf(output, "            ");
 		}
+
+		fprintf(output, "%7ld ", field->num_elements);
+		fprintf(output, "%7ld ", field->max_bytes);
 
 		fprintf(output, "\n");
 	}
@@ -2529,9 +2528,9 @@ mx_print_all_field_definitions( FILE *output, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_print_field_definition( FILE *output, MX_RECORD_FIELD *field )
+mx_print_field_attributes( FILE *output, MX_RECORD_FIELD *field )
 {
-	static const char fname[] = "mx_print_field_definition()";
+	static const char fname[] = "mx_print_field_attributes()";
 
 	unsigned long i;
 

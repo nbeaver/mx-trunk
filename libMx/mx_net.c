@@ -7252,7 +7252,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	server_response_has_field_parameters = FALSE;
 
 #if 1
-	if ( 0 ) {	/* I meant to do this.  Really! */
+	if ( 0 ) {	/* For now we use mx_get_field_type() for everything. */
 #else
 	if ( message_length > (4 * sizeof(uint32_t)) ) {
 #endif

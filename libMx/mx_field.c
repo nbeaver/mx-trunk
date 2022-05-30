@@ -4285,6 +4285,13 @@ mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 	temp_record_field->active = FALSE;
 	temp_record_field->data_pointer = value_ptr;
 
+	/* The following two items are just indicators that the actual values
+	 * have not yet been computed or are simply not available.
+	 */
+
+	temp_record_field->num_elements = 0;
+	temp_record_field->max_bytes = 0;
+
 	if ( num_dimensions <= 0L ) {
 		temp_record_field->data_element_size[0] = 0L;
 
@@ -4298,10 +4305,19 @@ mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		temp_record_field->num_elements = 1;
+
 		for ( i = 0; i < num_dimensions; i++ ) {
+			temp_record_field->num_elements
+				*= temp_record_field->dimension[i];
+
 			temp_record_field->data_element_size[i]
 				= local_sizeof_array[i];
 		}
+
+		temp_record_field->max_bytes =
+			temp_record_field->data_element_size[0]
+				* temp_record_field->num_elements;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

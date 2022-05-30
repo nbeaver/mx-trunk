@@ -791,10 +791,10 @@ MX_API mx_status_type  mx_print_structure( FILE *file,
 MX_API mx_status_type  mx_print_summary( FILE *file,
 					MX_RECORD *record );
 
-MX_API mx_status_type  mx_print_all_field_definitions( FILE *file,
+MX_API mx_status_type  mx_print_all_field_attributes( FILE *file,
 					MX_RECORD *record );
 
-MX_API mx_status_type  mx_print_field_definition( FILE *file,
+MX_API mx_status_type  mx_print_field_attributes( FILE *file,
 					MX_RECORD_FIELD *field );
 
 MX_API mx_status_type  mx_print_field_array( FILE *file,

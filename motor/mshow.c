@@ -61,7 +61,7 @@ motor_showall_fn( int argc, char *argv[] )
 	char usage[] = 
 		"Usage:  showall record 'record_name'\n"
 		"        showall update 'record_name'\n"
-		"        showall fielddef 'record_name'\n";
+		"        showall fieldattributes 'record_name'\n";
 
 	if ( argc != 4 ) {
 		fprintf(output, "%s", usage);
@@ -81,7 +81,7 @@ motor_showall_fn( int argc, char *argv[] )
 		status = motor_show_record(
 		    MXR_ANY, MXC_ANY, MXT_ANY, argv[2], argv[3], TRUE, TRUE );
 	} else
-	if ( strncmp( "fielddef", argv[2], 6 ) == 0 ) {
+	if ( strncmp( "fieldattributes", argv[2], 6 ) == 0 ) {
 		record = mx_get_record( motor_record_list, argv[3] );
 
 		if ( record == (MX_RECORD *) NULL ) {
@@ -90,7 +90,7 @@ motor_showall_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		mx_status = mx_print_all_field_definitions( output, record );
+		mx_status = mx_print_all_field_attributes( output, record );
 
 		if ( mx_status.code == MXE_SUCCESS ) {
 			return SUCCESS;
