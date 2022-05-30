@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2011, 2013-2016, 2020
+ * Copyright 1999-2006, 2009-2011, 2013-2016, 2020, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -120,6 +120,14 @@ mxd_network_motor_get_remote_record_information( MX_MOTOR *motor,
 	MX_DRIVER *driver;
 	long dimension[1];
 	mx_status_type mx_status;
+
+	if ( strcmp( motor->record->name, "bl_angle" ) == 0 ) {
+#if 0
+		mx_breakpoint();
+#else
+		MX_DEBUG(-2,("%s: BREAKPOINT WOULD GO HERE!", fname));
+#endif
+	}
 
 	network_motor->need_to_get_remote_record_information = FALSE;
 

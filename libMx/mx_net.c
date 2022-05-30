@@ -34,6 +34,8 @@
 
 #define NETWORK_DEBUG_PARAMETERS_WITH_HANDLE	FALSE
 
+#define NETWORK_DEBUG_XYZZY_BUG			TRUE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -7066,7 +7068,11 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
 	}
 
-	MX_DEBUG( 2,("%s invoked, nf->nfname = '%s'", fname, nf->nfname));
+#if 0
+	MX_DEBUG(-2,("%s invoked, nf->nfname = '%s'", fname, nf->nfname));
+
+	mx_vm_show_os_info( stderr, "nf", nf, sizeof(nf) );
+#endif
 
 	if ( nf->server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -7245,8 +7251,11 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	server_response_has_field_parameters = FALSE;
 
+#if 1
+	if ( 0 ) {	/* I meant to do this.  Really! */
+#else
 	if ( message_length > (4 * sizeof(uint32_t)) ) {
-
+#endif
 		nf->remote_datatype =
 		    (long) mx_ntohl( (unsigned long) message_uint32_array[2] );
 
@@ -7261,6 +7270,9 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 			"rather than the expected length of %d words.",
 			nf->nfname, message_length, (int) expected_length );
 		}
+
+		MX_DEBUG( 2,("%s: nf->nfname = '%s', nf->num_dimensions = %lu",
+			fname, nf->nfname, nf->num_dimensions));
 
 		nf->dimension = calloc( nf->num_dimensions, sizeof(uint32_t) );
 
