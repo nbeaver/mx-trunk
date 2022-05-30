@@ -2563,6 +2563,44 @@ mx_print_field_attributes( FILE *output, MX_RECORD_FIELD *field )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_compute_field_size( MX_RECORD_FIELD *field )
+{
+	static const char fname[] = "mx_compute_field_size()";
+
+	long i;
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+	if ( field->dimension == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dimension pointer for record field '%s' is NULL.",
+			field->name );
+	}
+	if ( field->data_element_size == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The data_element_size pointer for record field '%s' is NULL.",
+			field->name );
+	}
+
+
+	if ( field->num_elements > 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	field->num_elements = 1;
+
+	for ( i = 0; i < field->num_dimensions; i++ ) {
+		field->num_elements *= field->dimension[i];
+	}
+
+	field->max_bytes = field->num_elements * field->data_element_size[0];
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 static mx_status_type
 mx_print_field_value_level( FILE *file,
 				MX_RECORD_FIELD *field,

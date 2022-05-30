@@ -100,13 +100,15 @@ typedef struct mx_record_field_type {
 	long label_value;
 	long field_number;
 	char *name;
-	long datatype;
 	void *typeinfo;
+	long datatype;
 	long num_dimensions;
 	long *dimension;
-	unsigned long num_elements;
 	size_t *data_element_size;
+
+	unsigned long num_elements;
 	size_t max_bytes;
+
 	void *data_pointer;
 	mx_status_type (*process_function) (void *, void *, void *, int);
 	long flags;
@@ -796,6 +798,10 @@ MX_API mx_status_type  mx_print_all_field_attributes( FILE *file,
 
 MX_API mx_status_type  mx_print_field_attributes( FILE *file,
 					MX_RECORD_FIELD *field );
+
+MX_API long mx_get_sized_local_datatype( long mx_datatype );
+
+MX_API mx_status_type  mx_compute_field_size( MX_RECORD_FIELD *field );
 
 MX_API mx_status_type  mx_print_field_array( FILE *file,
 					MX_RECORD *record,

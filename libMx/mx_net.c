@@ -4901,7 +4901,7 @@ mx_put_array_ascii_error_message( uint32_t status_code,
 
 /* ====================================================================== */
 
-static long
+MX_EXPORT long
 mx_get_sized_local_datatype( long mx_datatype )
 {
 	static const char fname[] = "mx_get_sized_local_datatype()";
