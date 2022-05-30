@@ -104,6 +104,7 @@ typedef struct mx_record_field_type {
 	void *typeinfo;
 	long num_dimensions;
 	long *dimension;
+	unsigned long num_elements;
 	size_t *data_element_size;
 	size_t max_bytes;
 	void *data_pointer;
