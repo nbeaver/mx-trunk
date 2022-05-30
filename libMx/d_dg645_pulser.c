@@ -845,10 +845,7 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 				MXF_DEV_LEVEL_TRIGGER,
 				dg645->record->name );
 		    } else {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal external trigger mode (%#lx) was requested "
-			"for pulse generator '%s'.",
-				trigger_mode, dg645->record->name );
+			new_trigger_source = 1;
 		    }
 		} else {
 		    return mx_error( MXE_UNSUPPORTED, fname,
