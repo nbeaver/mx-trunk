@@ -5117,6 +5117,7 @@ mx_get_sized_network_datatype( long mx_datatype,
 	return sized_datatype;
 }
 
+#if 0
 static mx_status_type
 mxp_net_initialize_remote_mx_version( MX_NETWORK_SERVER *server,
 					char *remote_record_field_name,
@@ -5187,7 +5188,7 @@ mxp_net_initialize_remote_mx_version( MX_NETWORK_SERVER *server,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
+#endif
 
 static mx_status_type
 mx_new_copy_get_field_array( MX_RECORD *server_record,
@@ -5330,6 +5331,7 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 
 		network_vector = message;
 
+#if 0
 		if ( server->remote_mx_version
 				== MXT_REMOTE_MX_VERSION_UNKNOWN )
 		{
@@ -5346,6 +5348,7 @@ mx_new_copy_get_field_array( MX_RECORD *server_record,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
+#endif
 
 		/*----*/
 

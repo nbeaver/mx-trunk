@@ -240,6 +240,8 @@ mxi_modbus_rtu_open( MX_RECORD *record )
 	double padded_silent_time, silent_time;   /* in seconds */
 	mx_status_type mx_status;
 
+	MXW_UNUSED( padded_silent_time );
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
