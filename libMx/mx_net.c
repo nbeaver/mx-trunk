@@ -6835,13 +6835,16 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	use_old_array_copy = FALSE;
 
-	if ( nf != (MX_NETWORK_FIELD *) NULL ) {
-		if ( nf->nf_flags & MXF_NF_USE_OLD_ARRAY_COPY ) {
-			use_old_array_copy = TRUE;
-		}
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		use_old_array_copy = TRUE;
+	} else
+	if ( nf->nf_flags & MXF_NF_USE_OLD_ARRAY_COPY ) {
+		use_old_array_copy = TRUE;
 	} else
 	if ( server->server_flags & MXF_NETWORK_SERVER_USE_OLD_ARRAY_COPY ) {
 		use_old_array_copy = TRUE;
+	} else {
+		use_old_array_copy = FALSE;
 	}
 
 	if ( use_old_array_copy ) {
