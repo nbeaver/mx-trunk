@@ -1780,7 +1780,9 @@ mx_array_copy_vector( void *dest_vector,
 	 * is to set all of the bytes in dest_vector to zero at the start.
 	 */
 
+#if 0
 	memset( dest_vector, 0, dest_max_bytes );
+#endif
 
 	/* The easiest case is if the destination MX datatype and the
 	 * source MX datatype are the same.  If so, then we can do the
