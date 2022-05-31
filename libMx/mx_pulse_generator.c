@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2015-2016, 2018, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1100,7 +1100,7 @@ mx_pulse_generator_default_get_parameter_handler(
 		 * we read the pulser status from pulser->busy.
 		 */
 
-		if ( busy_fn == NULL ) {
+		if ( busy_fn != NULL ) {
 			mx_status = (*busy_fn)( pulse_generator );
 
 			if ( mx_status.code != MXE_SUCCESS )
