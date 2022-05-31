@@ -643,6 +643,19 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 1
+	{
+	    /* It did not used to be necessary to do this. (2022-05-31 WML) */
+
+	    double erase = 1.0;
+
+	    mx_status = mx_caput( &(epics_mcs->erase_pv),
+					MX_CA_DOUBLE, 1, &erase );
+
+	    mx_msleep(1000);  /* A sacrifice to the magical pixies of doom. */
+	}
+#endif
+
 	mx_status = mxd_epics_mcs_stop( mcs );
 
 	if ( mx_status.code != MXE_SUCCESS )
