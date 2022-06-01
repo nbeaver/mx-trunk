@@ -620,8 +620,7 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 			break;
 		case 5:		/* Single shot */
 
-			pulser->trigger_mode = ( MXF_DEV_INTERNAL_TRIGGER
-					| MXF_DEV_ONE_SHOT_TRIGGER );
+			pulser->trigger_mode = MXF_DEV_MANUAL_TRIGGER;
 			break;
 		case 6:		/* Line */
 
