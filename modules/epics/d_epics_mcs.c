@@ -636,6 +636,8 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	int32_t start;
+	double erase;
+	unsigned long arm_delay_ms;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -643,18 +645,23 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
-	{
-	    /* It did not used to be necessary to do this. (2022-05-31 WML) */
+	/* It did not used to be necessary to do this. (2022-05-31 WML) */
 
-	    double erase = 1.0;
+	erase = 1.0;
 
-	    mx_status = mx_caput( &(epics_mcs->erase_pv),
-					MX_CA_DOUBLE, 1, &erase );
+	mx_status = mx_caput( &(epics_mcs->erase_pv), MX_CA_DOUBLE, 1, &erase );
 
-	    mx_msleep(1000);  /* A sacrifice to the magical pixies of doom. */
+	/* If there needs to be a delay after the erase operation,
+	 * then we can provide that here.
+	 */
+
+	arm_delay_ms = mx_round( 1000.0 * epics_mcs->arm_delay );
+
+	if ( arm_delay_ms > 0 ) {
+		mx_msleep( arm_delay_ms );
 	}
-#endif
+
+	/*---*/
 
 	mx_status = mxd_epics_mcs_stop( mcs );
 
@@ -1335,6 +1342,7 @@ mxd_epics_mcs_read_measurement_range( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_read_measurement_range()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
+	unsigned long rm_delay_ms;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -1349,7 +1357,11 @@ mxd_epics_mcs_read_measurement_range( MX_MCS *mcs )
 		epics_mcs->delay_ms));
 #endif
 
-	mx_msleep( epics_mcs->delay_ms );
+	rm_delay_ms = mx_round( 1000.0 * epics_mcs->read_measurement_delay );
+
+	if ( rm_delay_ms > 0 ) {
+		mx_msleep( rm_delay_ms );
+	}
 
 	switch( epics_mcs->measurement_method ) {
 	case MXF_EPICS_MCS_USE_READ_ALL:
