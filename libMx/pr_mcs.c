@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2009, 2012, 2015, 2018-2020
+ * Copyright 2000-2004, 2006, 2009, 2012, 2015, 2018-2020, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -48,7 +48,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_BUSY:
 		case MXLV_MCS_BUSY_START_INTERVAL:
 		case MXLV_MCS_CLEAR:
-		case MXLV_MCS_CLEAR_DEADBAND:
+		case MXLV_MCS_CLEAR_DELAY:
 		case MXLV_MCS_COUNTING_MODE:
 		case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 		case MXLV_MCS_CURRENT_NUM_SCALERS:
@@ -234,9 +234,9 @@ mx_mcs_process_function( void *record_ptr,
 						mcs->scaler_index,
 						mcs->dark_current );
 			break;
-		case MXLV_MCS_CLEAR_DEADBAND:
+		case MXLV_MCS_CLEAR_DELAY:
 			mx_status = mx_mcs_set_parameter( record,
-						MXLV_MCS_CLEAR_DEADBAND );
+						MXLV_MCS_CLEAR_DELAY );
 			break;
 		case MXLV_MCS_BUSY_START_INTERVAL:
 			mx_status = mx_mcs_set_busy_start_interval( record,

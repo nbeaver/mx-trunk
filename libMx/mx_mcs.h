@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018-2021
+ * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -116,8 +116,8 @@ typedef struct {
 	double *timer_data;
 
 	mx_bool_type new_data_available;
-	double clear_deadband;				/* in seconds */
-	MX_CLOCK_TICK clear_deadband_ticks;
+	double clear_delay;				/* in seconds */
+	MX_CLOCK_TICK clear_delay_ticks;
 	MX_CLOCK_TICK next_clear_tick;
 } MX_MCS;
 
@@ -173,7 +173,7 @@ typedef struct {
 #define MXLV_MCS_MEASUREMENT_RANGE_DATA		1037
 #define MXLV_MCS_SCALER_MEASUREMENT		1038
 #define MXLV_MCS_TIMER_DATA			1039
-#define MXLV_MCS_CLEAR_DEADBAND			1040
+#define MXLV_MCS_CLEAR_DELAY			1040
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -375,9 +375,15 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, timer_data), \
 	{sizeof(double)}, NULL, MXFF_VARARGS}, \
   \
-  {MXLV_MCS_CLEAR_DEADBAND, -1, "clear_deadband", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, clear_deadband), \
+  {MXLV_MCS_CLEAR_DELAY, -1, "clear_delay", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, clear_delay), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_CLEAR_DELAY, -1, "clear_deadband", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, clear_delay), \
 	{0}, NULL, 0}
+
+/* The 'clear_deadband' field above is the old name of 'clear_delay'. */
 
 /* Note that the 'scaler_data' field is special, since it has the MXFF_VARARGS
  * flag set, but the length of the first dimension is 0.  This means that

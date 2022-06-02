@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018-2021
+ * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -19,9 +19,9 @@
 
 #define MX_MCS_DEBUG_MEASUREMENT_RANGE	FALSE
 
-#define MX_MCS_ENABLE_CLEAR_DEADBAND	TRUE
+#define MX_MCS_ENABLE_CLEAR_DELAY	TRUE
 
-#define MX_MCS_DEBUG_CLEAR_DEADBAND	FALSE
+#define MX_MCS_DEBUG_CLEAR_DELAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -408,10 +408,10 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 
 	mcs->new_data_available = TRUE;
 
-	mcs->clear_deadband = 0;		/* in seconds */
+	mcs->clear_delay = 0;		/* in seconds */
 
 #if 0
-	mx_status = mx_mcs_set_parameter( mcs_record, MXLV_MCS_CLEAR_DEADBAND );
+	mx_status = mx_mcs_set_parameter( mcs_record, MXLV_MCS_CLEAR_DELAY );
 #endif
 
 	return mx_status;
@@ -568,7 +568,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
-#if ( MX_MCS_ENABLE_CLEAR_DEADBAND == FALSE )
+#if ( MX_MCS_ENABLE_CLEAR_DELAY == FALSE )
 	mx_status = (*clear_fn)( mcs );
 
 	return mx_status;
@@ -586,7 +586,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			comparison = mx_compare_clock_ticks( current_tick,
 							mcs->next_clear_tick );
 
-#if MX_MCS_DEBUG_CLEAR_DEADBAND
+#if MX_MCS_DEBUG_CLEAR_DELAY
 			MX_DEBUG(-2,
 	("%s: current tick = (%lu,%lu), next tick = (%lu,%lu), comparison = %d",
 				fname, current_tick.high_order,
@@ -603,7 +603,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			}
 		}
 
-#if MX_MCS_DEBUG_CLEAR_DEADBAND
+#if MX_MCS_DEBUG_CLEAR_DELAY
 		MX_DEBUG(-2,("%s: do_clear = %d", fname, (int) do_clear));
 #endif
 
@@ -617,13 +617,13 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 
 			mcs->next_clear_tick =
 				mx_add_clock_ticks( current_tick,
-					mcs->clear_deadband_ticks );
-#if MX_MCS_DEBUG_CLEAR_DEADBAND
-			MX_DEBUG(-2,("%s: clear_deadband = %g sec, "
-			"clear_deadband_ticks = (%lu,%lu)",
-			fname, mcs->clear_deadband,
-			mcs->clear_deadband_ticks.high_order,
-			mcs->clear_deadband_ticks.low_order));
+					mcs->clear_delay_ticks );
+#if MX_MCS_DEBUG_CLEAR_DELAY
+			MX_DEBUG(-2,("%s: clear_delay = %g sec, "
+			"clear_delay_ticks = (%lu,%lu)",
+			fname, mcs->clear_delay,
+			mcs->clear_delay_ticks.high_order,
+			mcs->clear_delay_ticks.low_order));
 
 			MX_DEBUG(-2,("%s: next_clear_tick = (%lu,%lu)",
 			fname, mcs->next_clear_tick.high_order,
@@ -2277,7 +2277,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 	case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
 	case MXLV_MCS_DARK_CURRENT:
 	case MXLV_MCS_DARK_CURRENT_ARRAY:
-	case MXLV_MCS_CLEAR_DEADBAND:
+	case MXLV_MCS_CLEAR_DELAY:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -2330,23 +2330,23 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 		mcs->manual_next_measurement = FALSE;
 		break;
 
-	case MXLV_MCS_CLEAR_DEADBAND:
+	case MXLV_MCS_CLEAR_DELAY:
 
-#if MX_MCS_DEBUG_CLEAR_DEADBAND
-		MX_DEBUG(-2,("%s invoked for clear_deadband = %g seconds.",
-			fname, mcs->clear_deadband));
+#if MX_MCS_DEBUG_CLEAR_DELAY
+		MX_DEBUG(-2,("%s invoked for clear_delay = %g seconds.",
+			fname, mcs->clear_delay));
 #endif
 
-		mcs->clear_deadband_ticks =
-		      mx_convert_seconds_to_clock_ticks( mcs->clear_deadband );
+		mcs->clear_delay_ticks =
+		      mx_convert_seconds_to_clock_ticks( mcs->clear_delay );
 
 		mcs->next_clear_tick = mx_current_clock_tick();
 
-#if MX_MCS_DEBUG_CLEAR_DEADBAND
+#if MX_MCS_DEBUG_CLEAR_DELAY
 		MX_DEBUG(-2,
-	("%s: clear_deadband_ticks = (%lu,%lu), next_clear_tick = (%lu,%lu)",
-			fname, mcs->clear_deadband_ticks.high_order,
-			mcs->clear_deadband_ticks.low_order,
+	("%s: clear_delay_ticks = (%lu,%lu), next_clear_tick = (%lu,%lu)",
+			fname, mcs->clear_delay_ticks.high_order,
+			mcs->clear_delay_ticks.low_order,
 			mcs->next_clear_tick.high_order,
 			mcs->next_clear_tick.low_order));
 #endif
