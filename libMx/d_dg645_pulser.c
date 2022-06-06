@@ -808,11 +808,17 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		    new_trigger_source = 5;	/* Simple one-shot */
 
 		} else
+		if ( trigger_mode & MXF_DEV_LINE_TRIGGER ) {
+		    new_trigger_source = 6;	/* Line trigger */
+
+		} else
 		if ( trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 		    new_trigger_source = 0;	/* Internal */
 
 		} else
 		if ( trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
+		    /* External trigger is the complicated one. */
+
 		    if ( trigger_mode & MXF_DEV_EDGE_TRIGGER ) {
 			if ( trigger_mode & MXF_DEV_TRIGGER_HIGH ) {
 			    if ( trigger_mode & MXF_DEV_ONE_SHOT_TRIGGER ) {

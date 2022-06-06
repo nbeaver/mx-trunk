@@ -7,7 +7,8 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2007, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2002, 2005-2007, 2015-2016, 2018, 2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -138,7 +139,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, function_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {MXLV_PGN_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
+  {MXLV_PGN_TRIGGER_MODE, -1, "trigger_mode", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, trigger_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
