@@ -234,6 +234,8 @@ mxi_dg645_special_processing_setup( MX_RECORD *record )
 		case MXLV_DG645_RECALL_SETTINGS:
 		case MXLV_DG645_SAVE_SETTINGS:
 		case MXLV_DG645_TRIGGER_LEVEL:
+		case MXLV_DG645_TRIGGER_RATE:
+		case MXLV_DG645_TRIGGER_SOURCE:
 		case MXLV_DG645_STATUS:
 			record_field->process_function
 					= mxi_dg645_process_function;
@@ -626,6 +628,44 @@ mxi_dg645_process_function( void *record_ptr,
 					response, record->name );
 			}
 			break;
+		case MXLV_DG645_TRIGGER_RATE:
+			mx_status = mxi_dg645_command( dg645, "TRAT?",
+						response, sizeof(response),
+						MXI_DG645_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response, "%lg",
+						&(dg645->trigger_rate) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Did not find a trigger rate value in "
+				"the response '%s' to command 'TRAT?' for "
+				"DG645 controller '%s'.",
+					response, record->name );
+			}
+			break;
+		case MXLV_DG645_TRIGGER_SOURCE:
+			mx_status = mxi_dg645_command( dg645, "TSRC?",
+						response, sizeof(response),
+						MXI_DG645_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response, "%lu",
+						&(dg645->trigger_source) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Did not find a trigger source value in "
+				"the response '%s' to command 'TSRC?' for "
+				"DG645 controller '%s'.",
+					response, record->name );
+			}
+			break;
 		case MXLV_DG645_STATUS:
 			mx_status = mxi_dg645_get_status( dg645 );
 			break;
@@ -737,6 +777,22 @@ mxi_dg645_process_function( void *record_ptr,
 		case MXLV_DG645_TRIGGER_LEVEL:
 			snprintf( command, sizeof(command),
 				"TLVL %g", dg645->trigger_level );
+
+			mx_status = mxi_dg645_command( dg645, command,
+							NULL, 0,
+							MXI_DG645_DEBUG );
+			break;
+		case MXLV_DG645_TRIGGER_RATE:
+			snprintf( command, sizeof(command),
+				"TRAT %g", dg645->trigger_rate );
+
+			mx_status = mxi_dg645_command( dg645, command,
+							NULL, 0,
+							MXI_DG645_DEBUG );
+			break;
+		case MXLV_DG645_TRIGGER_SOURCE:
+			snprintf( command, sizeof(command),
+				"TSRC %lu", dg645->trigger_source );
 
 			mx_status = mxi_dg645_command( dg645, command,
 							NULL, 0,

@@ -45,6 +45,9 @@ typedef struct {
 	/* FIXME: Move the following line to MX_PULSE_GENERATOR */
 	double trigger_level;
 
+	double trigger_rate;
+	unsigned long trigger_source;
+
 	unsigned long last_error;
 
 	unsigned long event_status_register;
@@ -64,7 +67,9 @@ typedef struct {
 #define MXLV_DG645_SAVE_SETTINGS		83001
 #define MXLV_DG645_RECALL_SETTINGS		83002
 #define MXLV_DG645_TRIGGER_LEVEL		83003
-
+#define MXLV_DG645_TRIGGER_LEVEL		83003
+#define MXLV_DG645_TRIGGER_RATE			83004
+#define MXLV_DG645_TRIGGER_SOURCE		83005
 #define MXLV_DG645_STATUS			83006
 
 #define MXI_DG645_STANDARD_FIELDS \
@@ -104,6 +109,14 @@ typedef struct {
   {MXLV_DG645_TRIGGER_LEVEL, -1, "trigger_level", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_level), \
 	{0}, NULL, 0}, \
+  \
+  {MXLV_DG645_TRIGGER_RATE, -1, "trigger_rate", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_rate), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_DG645_TRIGGER_SOURCE, -1, "trigger_source", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_source), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "last_error", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, last_error), \
