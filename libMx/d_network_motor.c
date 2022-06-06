@@ -121,14 +121,6 @@ mxd_network_motor_get_remote_record_information( MX_MOTOR *motor,
 	long dimension[1];
 	mx_status_type mx_status;
 
-	if ( strcmp( motor->record->name, "bl_angle" ) == 0 ) {
-#if 0
-		mx_breakpoint();
-#else
-		MX_DEBUG(-2,("%s: BREAKPOINT WOULD GO HERE!", fname));
-#endif
-	}
-
 	network_motor->need_to_get_remote_record_information = FALSE;
 
 	/* Get the 'motor_flags' value for the remote record. */
