@@ -241,7 +241,8 @@ mx_is_power_of_two( unsigned long value )
 
 /*------------------------------------------------------------------------*/
 
-#if defined(__GNUC__)
+#if ( defined(MX_GNUC_VERSION) && (MX_GNUC_VERSION >= 4008000L) )
+   || ( defined(MX_CLANG_VERSION) && __has_builtin(__builtin_bswap16) )
 
 /* GCC-style byteswap intrinsics */
 
@@ -308,10 +309,6 @@ mx_uint64_byteswap( uint64_t original_value )
 
 	return new_value;
 }
-
-#elif 1
-
-#error byteswap routines not yet defined for this build target.
 
 #else
 
