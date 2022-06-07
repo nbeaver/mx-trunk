@@ -2983,7 +2983,28 @@ mx_thread_set_name( MX_THREAD *thread,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) 
+
+#  if (MX_DARWIN_VERSION < 9000000L)
+
+MX_EXPORT mx_status_type
+mx_thread_get_name( MX_THREAD *thread,
+			char *thread_name,
+			size_t max_thread_name_length )
+{
+	strlcpy( thread_name, "mx", max_thread_name_length );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_thread_set_name( MX_THREAD *thread,
+			const char *thread_name )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#  else
 
 MX_EXPORT mx_status_type
 mx_thread_get_name( MX_THREAD *thread,
@@ -3051,6 +3072,8 @@ mx_thread_set_name( MX_THREAD *thread,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#  endif /* MX_DARWIN_VERSION */
 
 #elif defined(OS_CYGWIN)
 

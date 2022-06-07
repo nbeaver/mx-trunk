@@ -241,8 +241,13 @@ mx_is_power_of_two( unsigned long value )
 
 /*------------------------------------------------------------------------*/
 
-#if ( defined(MX_GNUC_VERSION) && (MX_GNUC_VERSION >= 4008000L) )
-   || ( defined(MX_CLANG_VERSION) && __has_builtin(__builtin_bswap16) )
+/* NOTE: I originally attempted to use __has_builtin(__builtin_bswap16) 
+ * below for Clang.  But some older versions of GCC preprocessors 
+ * complained mightily about it, so I had to stop using it.
+ */
+
+#if ( defined(MX_GNUC_VERSION) && (MX_GNUC_VERSION >= 4008000L) ) \
+   || ( defined(MX_CLANG_VERSION) && (MX_CLANG_VERSION >= 1008000L) )
 
 /* GCC-style byteswap intrinsics */
 
@@ -348,6 +353,8 @@ mx_uint32_byteswap( uint32_t original_value )
 	return new_value;
 }
 
+#if ( MX_WORDSIZE >= 64 )
+
 MX_EXPORT uint64_t
 mx_uint64_byteswap( uint64_t original_value )
 {
@@ -374,6 +381,38 @@ mx_uint64_byteswap( uint64_t original_value )
 
 	return new_value;
 }
+
+#else
+
+/* We alias a 32-bit pointer to the address of the original 64-bit value,
+ * which allows us to treat the 64-bit integer as a 2 element array
+ * of 32-bit integers.  We then byteswap the two 32-bit integer
+ * array elements and then overwrite the original 64-bit value
+ * with the 32-bit values in the opposite order.
+ *
+ * WARNING: This may not be fully portable.  If you find that to be
+ * the case, then an alternate solution would be welcomed.
+ */
+
+MX_EXPORT uint64_t
+mx_uint64_byteswap( uint64_t original_value )
+{
+	uint32_t low_dword, high_dword;
+	uint32_t *uint32_ptr;
+
+	uint32_ptr = (uint32_t *) (&original_value);
+
+	low_dword = (uint32_t) uint32_ptr[0];
+
+	high_dword = (uint32_t) uint32_ptr[1];
+
+	uint32_ptr[0] = mx_uint32_byteswap( high_dword );
+	uint32_ptr[1] = mx_uint32_byteswap( low_dword );
+	
+	return original_value;
+}
+
+#endif
 
 #endif
 

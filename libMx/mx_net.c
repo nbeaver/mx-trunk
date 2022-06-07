@@ -6059,7 +6059,7 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 	void *network_vector = NULL;
 
-	size_t num_bytes_copied;
+	size_t num_bytes_copied, num_bytes_that_would_not_fit;
 
 	unsigned long native_byteorder;
 	mx_bool_type do_byteswap = FALSE;
@@ -6095,7 +6095,17 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 	message_length = field_id_length;
 
+	/* Set num_bytes_that_would_not_fit here to 0,
+	 * just in case max_attempts == 0.
+	 */
+
+	num_bytes_that_would_not_fit = 0;
+
 	for ( i = 0; i < max_attempts; i++ ) {
+
+	    /* Reinitialize variables for this pass through the loop. */
+
+	    num_bytes_that_would_not_fit = 0;
 
 	    saved_message_length = message_length;
 
@@ -6277,7 +6287,17 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
+			break;
 		case MXE_WOULD_EXCEED_LIMIT:
+
+			/* If mx_array_copy_vector returned a status code of
+			 * MXE_WOULD_EXCEED_LIMIT, then the return variable
+			 * called 'num_bytes_copied' is repurposed as the
+			 * number of bytes that would not fit into the
+			 * outgoing buffer.
+			 */
+
+			num_bytes_that_would_not_fit = num_bytes_copied;
 			break;
 		default:
 			/* Only display an error message here if the returned
@@ -6346,15 +6366,11 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 	    /* The data does not fit into our existing buffer, so we must
 	     * try to make the buffer larger.
-	     *
-	     * NOTE: In this situation, the variable 'num_network_bytes'
-	     * _actually_ tells you how many bytes would not fit in the
-	     * existing buffer.
 	     */
 
 	    current_length = aligned_buffer->buffer_length;
 
-	    new_length = current_length + num_network_bytes;
+	    new_length = current_length + num_bytes_that_would_not_fit;
 
 	    mx_status = mx_reallocate_network_buffer(
 			    		aligned_buffer, new_length );
