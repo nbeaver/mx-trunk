@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018-2021
+ * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -881,7 +881,7 @@ mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 
 #if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD) \
 	|| defined(OS_SOLARIS) || defined(OS_MACOSX) || defined(OS_QNX) \
-	|| defined(OS_MINIX) || defined(OS_UNIXWARE)
+	|| defined(OS_MINIX) || defined(OS_UNIXWARE) || defined(OS_ANDROID)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_symbol_from_address( void *address,
@@ -1062,7 +1062,8 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 
 /*-----------------------------------------------------------------------*/
 
-#elif defined(OS_MACOSX) || defined(OS_QNX) || defined(OS_UNIXWARE)
+#elif defined(OS_MACOSX) || defined(OS_QNX) || defined(OS_UNIXWARE) \
+	|| defined(OS_ANDROID)
 
 #include <dlfcn.h>
 
@@ -1159,7 +1160,7 @@ mx_dynamic_library_show_list( FILE *file )
 /*--------*/
 
 #elif defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_QNX) \
-	|| defined(OS_UNIXWARE) || defined(OS_LINUX)
+	|| defined(OS_UNIXWARE) || defined(OS_LINUX) || defined(OS_ANDROID)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_show_list( FILE *file )

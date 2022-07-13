@@ -463,7 +463,7 @@ mx_force_immediate_exit( void )
 #elif defined( OS_LINUX ) || defined( OS_MACOSX ) || defined( OS_BSD ) \
 		|| defined( OS_SOLARIS ) || defined( OS_QNX ) \
 		|| defined( OS_MINIX ) || defined( OS_UNIXWARE ) \
-		|| defined( OS_HURD )
+		|| defined( OS_HURD ) || defined( OS_ANDROID )
 
 	kill( getpid(), SIGKILL );
 

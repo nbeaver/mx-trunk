@@ -1619,6 +1619,17 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 #  include "mx_atomic.h"
 #endif
 
+/* FIXME: Find a better way of getting the pthread_getname_np() definition. */
+
+#if defined(OS_ANDROID)
+int pthread_getname_np(pthread_t __pthread, char* __buf, size_t __n);
+
+#if 0
+  int pthread_getname_np(pthread_t __pthread, char* __buf, size_t __n) __INTRODUCED_IN(26);
+#endif
+
+#endif
+
 /* FIXME: On VAX VMS, we get a mysterious error about redefinition of
  *        'struct timespec' apparently involving <decc_rtldef/timers.h>
  *        The following kludge works around that.
@@ -1650,7 +1661,7 @@ typedef struct {
 	pthread_t posix_thread_id;
 	mx_bool_type kill_requested;
 
-#if defined(OS_LINUX)
+#if ( defined(OS_LINUX) || defined(OS_ANDROID) )
 	pid_t linux_thread_id;
 #endif
 #if ( defined(OS_MACOSX) || defined(OS_HURD) )
@@ -1758,6 +1769,9 @@ mx_thread_start_function( void *args_ptr )
 #  else
 	posix_thread_private->linux_thread_id = syscall(SYS_gettid);
 #  endif
+
+#elif defined(OS_ANDROID)
+	posix_thread_private->linux_thread_id = gettid();
 
 #elif defined(OS_MACOSX) || defined(OS_HURD)
 	posix_thread_private->mach_task = mach_task_self();
@@ -2618,7 +2632,7 @@ mx_get_current_thread( MX_THREAD **thread )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_ANDROID)
 
 MX_EXPORT void
 mx_show_thread_list( void )
@@ -2897,7 +2911,7 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_ANDROID)
 
 /* On Linux we can save a thread-specific name in /proc/self/task/[tid]/comm.
  * This is most easily done by invoking pthread_setname_np() to do it.

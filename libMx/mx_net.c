@@ -6066,6 +6066,7 @@ mx_new_copy_put_field_array( MX_RECORD *server_record,
 
 	MXW_UNUSED( max_message_length );
 	MXW_UNUSED( buffer_left );
+	MXW_UNUSED( num_network_bytes );
 
 	/******** Copy the data to be sent to the network buffer ********/
 

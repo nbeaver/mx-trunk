@@ -527,7 +527,8 @@ mx_high_resolution_time_init( void )
 
 /*==========================================================================*/
 
-#elif defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_MINIX)
+#elif defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_MINIX) \
+	|| defined(OS_ANDROID)
 
 #define MX_HRT_USE_GENERIC	TRUE
 
@@ -563,8 +564,11 @@ mx_high_resolution_time_init( void )
 	}
 
 	cpu_family = 0;
-	have_tsc = FALSE;
 	cpu_mhz = 0.0;
+
+	have_tsc = FALSE;
+
+	MXW_UNUSED(have_tsc);
 
 	mx_fgets( buffer, sizeof buffer, cpuinfo );
 

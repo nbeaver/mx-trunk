@@ -3552,7 +3552,7 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 /*----------------------------------------------------------------------*/
 
 #if defined( OS_LINUX ) || ( defined( OS_BSD ) && !defined( __OpenBSD__ ) ) \
-	|| defined( OS_QNX ) 
+	|| defined( OS_QNX ) || defined( OS_ANDROID )
 
 #if defined ( OS_BSD )
 #  include <sys/ioctl.h>
