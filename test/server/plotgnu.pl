@@ -1,1 +1,0 @@
-../../plotgnu/plotgnu.pl
