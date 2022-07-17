@@ -24,6 +24,18 @@
 
 #define MXI_MODBUS_RTU_SILENT_TIME_PAD_US	1000  /* in microseconds */
 
+/* The following are inspired by the third-party libmodbus package. */
+
+/* 'modbus_rts' controls the status of the RTS line during a write. */
+
+#define MXI_MODBUS_RTU_RTS_NONE		0
+#define MXI_MODBUS_RTU_RTS_UP		1
+#define MXI_MODBUS_RTU_RTS_DOWN		2
+
+/* 'modbus_rts_delay' sets the number of microseconds that separate
+ * changes to the RTS state before and after the call to mx_rs232_write().
+ */
+
 /* Define the data structures used by the MODBUS/TCP interface code. */
 
 typedef struct {
@@ -31,7 +43,8 @@ typedef struct {
 
 	MX_RECORD *rs232_record;
 	unsigned long address;
-	unsigned long modbus_rtu_flags;
+	unsigned long modbus_rts;
+	unsigned long modbus_rts_delay;		/* in microseconds */
 
 	uint8_t send_buffer[MXU_MODBUS_SERIAL_ADU_LENGTH];
 	uint8_t receive_buffer[MXU_MODBUS_SERIAL_ADU_LENGTH];
@@ -61,8 +74,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_modbus_rtu_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_RTU, address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "modbus_rtu_flags", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_RTU, modbus_rtu_flags), \
+  {-1, -1, "modbus_rts", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_RTU, modbus_rts), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "modbus_rts_delay", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_RTU, modbus_rts_delay), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "silent_time_us", MXFT_ULONG, NULL, 0, {0}, \

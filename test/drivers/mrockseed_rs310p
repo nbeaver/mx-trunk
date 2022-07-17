@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -i -F ./mrockseed_rs310p.dat -s ./srockseed_rs310p.dat $*
+

@@ -1,0 +1,8 @@
+rs310p_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0 0x0 0 0x0 /dev/ttyUSB0
+rs310p interface modbus modbus_rtu "" "" 0x0 rs310p_rs232 0 0 0
+#
+#temp1 device analog_input modbus_ainput "" "" 0 0.1 0 units 0x0 0 "" rs310p 0x2 16 0x4
+#temp2 device analog_input modbus_ainput "" "" 0 0.1 0 units 0x0 0 "" rs310p 0x3 16 0x4
+#din1 device digital_input modbus_dinput "" "" 0 rs310p 0x4 16 0x1
+#dout1 device digital_output wago750_modbus_doutput "" "" 0 rs310p 0x0 16 0xf
+#stat device analog_input modbus_ainput "" "" 0 1 0 units 0x0 0 "" rs310p 0x0 16 0x3

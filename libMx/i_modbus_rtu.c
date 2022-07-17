@@ -23,6 +23,7 @@
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_time.h"
+#include "mx_hrt.h"
 #include "mx_rs232.h"
 #include "mx_modbus.h"
 #include "i_modbus_rtu.h"
@@ -321,6 +322,8 @@ mxi_modbus_rtu_send_request( MX_MODBUS *modbus )
 	uint8_t crc_low_byte, crc_high_byte;
 	uint8_t *ptr = NULL;
 	size_t bytes_to_write;
+	unsigned long signal_state_old, signal_state_new;
+	mx_bool_type modify_rts;
 	mx_status_type mx_status;
 
 	mx_status = mxi_modbus_rtu_get_pointers( modbus, &modbus_rtu, fname );
@@ -355,13 +358,69 @@ mxi_modbus_rtu_send_request( MX_MODBUS *modbus )
 	ptr[0] = crc_low_byte;
 	ptr[1] = crc_high_byte;
 
-	/* Send the message. */
-
 	bytes_to_write = modbus->request_length + 3;
+
+	/* Prepare to send the message. */
+
+	switch( modbus_rtu->modbus_rts ) {
+	case MXI_MODBUS_RTU_RTS_NONE:
+		modify_rts = FALSE;
+		break;
+	case MXI_MODBUS_RTU_RTS_UP:
+	case MXI_MODBUS_RTU_RTS_DOWN:
+		mx_status = mx_rs232_get_signal_state( modbus_rtu->rs232_record,
+							&signal_state_old );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( modbus_rtu->modbus_rts == MXI_MODBUS_RTU_RTS_UP ) {
+			signal_state_new =
+				signal_state_old | MXF_232_REQUEST_TO_SEND;
+		} else {
+			signal_state_new =
+				signal_state_old & (~ MXF_232_REQUEST_TO_SEND);
+		}
+
+		modify_rts = TRUE;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal value (%lu) for 'modbus_rts' value used by '%s'.  "
+		"The legal values are 0 (none), 1 (RTS up), and 2 (RTS down).",
+			modbus_rtu->modbus_rts, modbus_rtu->record->name );
+		break;
+	}
+
+	/* If requested, change the state of the RTS pin. */
+
+	if ( modify_rts ) {
+		mx_status = mx_rs232_set_signal_state( modbus_rtu->rs232_record,
+							signal_state_new );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_udelay( modbus_rtu->modbus_rts_delay );
+	}
+
+	/* Send the message. */
 
 	mx_status = mx_rs232_write( modbus_rtu->rs232_record,
 				(char *) modbus_rtu->send_buffer,
 				bytes_to_write, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If modified, put RTS back to its original state. */
+
+	if ( modify_rts ) {
+		mx_udelay( modbus_rtu->modbus_rts_delay );
+
+		mx_status = mx_rs232_set_signal_state( modbus_rtu->rs232_record,
+							signal_state_old );
+	}
 
 	return mx_status;
 }
