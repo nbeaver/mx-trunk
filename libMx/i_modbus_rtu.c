@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_MODBUS_RTU_DEBUG	TRUE
+#define MXI_MODBUS_RTU_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

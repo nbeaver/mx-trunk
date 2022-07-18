@@ -83,6 +83,10 @@ extern "C" {
 #define MXF_MOD_PDU_FUNCTION_CODE			0
 #define MXF_MOD_PDU_DATA				1
 
+/*** Flag bits for 'modbus_flags'. ***/
+
+#define MXF_MOD_DEBUG		0x1
+
 typedef struct {
 	MX_RECORD *record;
 

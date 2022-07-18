@@ -132,6 +132,8 @@ mx_modbus_command( MX_RECORD *modbus_record,
 
 	MX_MODBUS *modbus;
 	MX_MODBUS_FUNCTION_LIST *fl_ptr;
+	size_t i;
+	mx_bool_type debug_flag;
 	mx_status_type (*fptr)( MX_MODBUS * );
 	mx_status_type mx_status;
 
@@ -140,6 +142,12 @@ mx_modbus_command( MX_RECORD *modbus_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( modbus->modbus_flags & MXF_MOD_DEBUG ) {
+		debug_flag = TRUE;
+	} else {
+		debug_flag = FALSE;
+	}
 
 	if ( request_buffer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -169,10 +177,34 @@ mx_modbus_command( MX_RECORD *modbus_record,
 
 	modbus->response_buffer_length = response_buffer_length;
 
+	if ( debug_flag ) {
+		fprintf( stderr, "Sent to '%s':", modbus_record->name );
+
+		for ( i = 0; i < request_length; i++ )
+		{
+			fprintf( stderr, " %#lx",
+				(unsigned long) request_buffer[i] );
+		}
+
+		fprintf( stderr, "\n" );
+	}
+
 	mx_status = (*fptr)( modbus );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( debug_flag ) {
+		fprintf( stderr, "Received from '%s':", modbus_record->name );
+
+		for ( i = 0; i < modbus->actual_response_length; i++ )
+		{
+			fprintf( stderr, " %#lx",
+				(unsigned long) response_buffer[i] );
+		}
+
+		fprintf( stderr, "\n" );
+	}
 
 	if ( actual_response_length != NULL ) {
 		*actual_response_length = modbus->actual_response_length;
