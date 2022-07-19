@@ -1041,7 +1041,7 @@ mx_get_hrt_counter_tick( void )
 	return x;
 }
 
-#elif ( defined(__GNUC__) && defined(__ppc__) )
+#elif ( defined(__GNUC__) && ( defined(__ppc__) || defined(__powerpc__) ) )
 
 /******* GCC on PowerPC *******/
 
@@ -1086,6 +1086,13 @@ mx_get_hrt_counter_tick( void )
 	asm volatile( "mrs %0, cntvct_el0" : "=r" (system_counter) );
 
 	return system_counter;
+}
+
+#elif 0
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
 }
 
 #else

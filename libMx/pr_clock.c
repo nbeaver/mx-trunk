@@ -67,12 +67,12 @@ mx_clock_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_CLOCK *clock;
+	MX_CLOCK *mx_clock;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
-	clock = (MX_CLOCK *) (record->record_class_struct);
+	mx_clock = (MX_CLOCK *) (record->record_class_struct);
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -94,11 +94,11 @@ mx_clock_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_CLK_TIME_OFFSET:
 			mx_status = mx_clock_set_time_offset( record,
-							clock->time_offset);
+						mx_clock->time_offset);
 			break;
 		case MXLV_CLK_TIMESPEC_OFFSET:
 			mx_status = mx_clock_set_timespec_offset( record,
-							clock->timespec_offset);
+						mx_clock->timespec_offset);
 			break;
 		default:
 			MX_DEBUG( 1,(

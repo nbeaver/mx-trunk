@@ -36,7 +36,7 @@
 
 MX_EXPORT mx_status_type
 mx_clock_get_pointers( MX_RECORD *clock_record,
-			MX_CLOCK **clock,
+			MX_CLOCK **mx_clock,
 			MX_CLOCK_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
@@ -54,10 +54,10 @@ mx_clock_get_pointers( MX_RECORD *clock_record,
 			clock_record->name, calling_fname );
 	}
 
-	if ( clock != (MX_CLOCK **) NULL ) {
-		*clock = (MX_CLOCK *) (clock_record->record_class_struct);
+	if ( mx_clock != (MX_CLOCK **) NULL ) {
+		*mx_clock = (MX_CLOCK *) (clock_record->record_class_struct);
 
-		if ( *clock == (MX_CLOCK *) NULL ) {
+		if ( *mx_clock == (MX_CLOCK *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_CLOCK pointer for record '%s' passed by '%s' is NULL",
 				clock_record->name, calling_fname );
@@ -85,27 +85,28 @@ mx_clock_finish_record_initialization( MX_RECORD *clock_record )
 {
 	static const char fname[] = "mx_clock_finish_record_initialization()";
 
-	MX_CLOCK *clock = NULL;
+	MX_CLOCK *mx_clock = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mx_clock_get_pointers( clock_record, &clock, NULL, fname );
+	mx_status = mx_clock_get_pointers( clock_record,
+					&mx_clock, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Zero out the various time fields. */
 
-	clock->timespec[0] = 0;
-	clock->timespec[1] = 0;
+	mx_clock->timespec[0] = 0;
+	mx_clock->timespec[1] = 0;
 
-	clock->timespec_offset[0] = 0;
-	clock->timespec_offset[1] = 0;
+	mx_clock->timespec_offset[0] = 0;
+	mx_clock->timespec_offset[1] = 0;
 
-	clock->time = 0.0;
-	clock->time_offset = 0.0;
+	mx_clock->time = 0.0;
+	mx_clock->time_offset = 0.0;
 
-	clock->timespec_offset_struct.tv_sec = 0;
-	clock->timespec_offset_struct.tv_nsec = 0;
+	mx_clock->timespec_offset_struct.tv_sec = 0;
+	mx_clock->timespec_offset_struct.tv_nsec = 0;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -115,14 +116,14 @@ mx_clock_get_timespec( MX_RECORD *clock_record, uint64_t *timespec )
 {
 	static const char fname[] = "mx_clock_get_timespec()";
 
-	MX_CLOCK *clock;
+	MX_CLOCK *mx_clock;
 	MX_CLOCK_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_timespec_fn )( MX_CLOCK * );
 	struct timespec timespec_struct, result_struct;
 	mx_status_type mx_status;
 
 	mx_status = mx_clock_get_pointers( clock_record,
-					&clock, &function_list, fname );
+					&mx_clock, &function_list, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -135,23 +136,23 @@ mx_clock_get_timespec( MX_RECORD *clock_record, uint64_t *timespec )
 			clock_record->name );
 	}
 
-	mx_status = (*get_timespec_fn)( clock );
+	mx_status = (*get_timespec_fn)( mx_clock );
 
-	timespec_struct.tv_sec = clock->timespec[0];
-	timespec_struct.tv_nsec = clock->timespec[0];
+	timespec_struct.tv_sec = mx_clock->timespec[0];
+	timespec_struct.tv_nsec = mx_clock->timespec[0];
 
 	result_struct = mx_subtract_timespec_times( timespec_struct,
-						clock->timespec_offset_struct );
+					mx_clock->timespec_offset_struct );
 
-	clock->timespec[0] = result_struct.tv_sec;
-	clock->timespec[1] = result_struct.tv_nsec;
+	mx_clock->timespec[0] = result_struct.tv_sec;
+	mx_clock->timespec[1] = result_struct.tv_nsec;
 
 	if ( timespec != (uint64_t *) NULL ) {
-		timespec[0] = clock->timespec[0];
-		timespec[1] = clock->timespec[1];
+		timespec[0] = mx_clock->timespec[0];
+		timespec[1] = mx_clock->timespec[1];
 	}
 
-	clock->time = clock->timespec[0] + 1.0e-9 * clock->timespec[1];
+	mx_clock->time = mx_clock->timespec[0] + 1.0e-9 * mx_clock->timespec[1];
 
 	return mx_status;
 }
@@ -162,10 +163,11 @@ mx_clock_set_timespec_offset( MX_RECORD *clock_record,
 {
 	static const char fname[] = "mx_clock_set_timespec_offset()";
 
-	MX_CLOCK *clock = NULL;
+	MX_CLOCK *mx_clock = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mx_clock_get_pointers( clock_record, &clock, NULL, fname );
+	mx_status = mx_clock_get_pointers( clock_record,
+						&mx_clock, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -176,14 +178,14 @@ mx_clock_set_timespec_offset( MX_RECORD *clock_record,
 			clock_record->name );
 	}
 
-	clock->timespec_offset[0] = timespec_offset[0];
-	clock->timespec_offset[1] = timespec_offset[1];
+	mx_clock->timespec_offset[0] = timespec_offset[0];
+	mx_clock->timespec_offset[1] = timespec_offset[1];
 
-	clock->timespec_offset_struct.tv_sec = timespec_offset[0];
-	clock->timespec_offset_struct.tv_nsec = timespec_offset[1];
+	mx_clock->timespec_offset_struct.tv_sec = timespec_offset[0];
+	mx_clock->timespec_offset_struct.tv_nsec = timespec_offset[1];
 
-	clock->time_offset = mx_convert_timespec_time_to_seconds(
-						clock->timespec_offset_struct );
+	mx_clock->time_offset = mx_convert_timespec_time_to_seconds(
+					mx_clock->timespec_offset_struct );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -193,11 +195,12 @@ mx_clock_get_time( MX_RECORD *clock_record, double *time_in_seconds )
 {
 	static const char fname[] = "mx_clock_get_seconds()";
 
-	MX_CLOCK *clock;
+	MX_CLOCK *mx_clock;
 	uint64_t timespec[2];
 	mx_status_type mx_status;
 
-	mx_status = mx_clock_get_pointers( clock_record, &clock, NULL, fname );
+	mx_status = mx_clock_get_pointers( clock_record,
+						&mx_clock, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -208,7 +211,7 @@ mx_clock_get_time( MX_RECORD *clock_record, double *time_in_seconds )
 		return mx_status;
 
 	if ( time_in_seconds != (double *) NULL ) {
-		*time_in_seconds = clock->time;
+		*time_in_seconds = mx_clock->time;
 	}
 
 	return mx_status;
@@ -219,28 +222,29 @@ mx_clock_set_time_offset( MX_RECORD *clock_record, double offset )
 {
 	static const char fname[] = "mx_clock_set_time_offset()";
 
-	MX_CLOCK *clock = NULL;
+	MX_CLOCK *mx_clock = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mx_clock_get_pointers( clock_record, &clock, NULL, fname );
+	mx_status = mx_clock_get_pointers( clock_record,
+						&mx_clock, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	if ( offset < 0.0 ) {
-		clock->timespec_offset_struct = mx_current_os_time();
+		mx_clock->timespec_offset_struct = mx_current_os_time();
 
-		clock->time_offset = mx_convert_timespec_time_to_seconds(
-						clock->timespec_offset_struct );
+		mx_clock->time_offset = mx_convert_timespec_time_to_seconds(
+					mx_clock->timespec_offset_struct );
 	} else {
-		clock->time_offset = offset;
+		mx_clock->time_offset = offset;
 
-		clock->timespec_offset_struct =
+		mx_clock->timespec_offset_struct =
 			mx_convert_seconds_to_timespec_time( offset );
 	}
 
-	clock->timespec_offset[0] = clock->timespec_offset_struct.tv_sec;
-	clock->timespec_offset[1] = clock->timespec_offset_struct.tv_nsec;
+	mx_clock->timespec_offset[0] = mx_clock->timespec_offset_struct.tv_sec;
+	mx_clock->timespec_offset[1] = mx_clock->timespec_offset_struct.tv_nsec;
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -2519,7 +2519,7 @@ mx_print_all_field_attributes( FILE *output, MX_RECORD *record )
 		}
 
 		fprintf(output, "%7ld ", field->num_elements);
-		fprintf(output, "%7ld ", field->max_bytes);
+		fprintf(output, "%7ld ", (long) field->max_bytes);
 
 		fprintf(output, "\n");
 	}

@@ -2911,10 +2911,12 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-#if defined(OS_LINUX) || defined(OS_ANDROID)
+#if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2012000L) ) \
+	|| defined(OS_ANDROID)
 
 /* On Linux we can save a thread-specific name in /proc/self/task/[tid]/comm.
- * This is most easily done by invoking pthread_setname_np() to do it.
+ * This is most easily done by invoking pthread_setname_np() to do it.  
+ * Note that pthread_setname_np() was added for Glibc 2.12.
  *
  * There is documentation on the net that says that if you use a name that
  * is longer than 16 bytes, then the name will be truncated to 16 bytes.
@@ -3089,7 +3091,7 @@ mx_thread_set_name( MX_THREAD *thread,
 
 #  endif /* MX_DARWIN_VERSION */
 
-#elif defined(OS_CYGWIN)
+#elif defined(OS_CYGWIN) || defined(OS_LINUX)
 
 MX_EXPORT mx_status_type
 mx_thread_get_name( MX_THREAD *thread,
