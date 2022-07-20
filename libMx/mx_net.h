@@ -52,7 +52,7 @@ extern "C" {
 
 /* Maximum length of a remote MX version string. */
 
-#define MXU_NETWORK_REMOTE_MX_VERSION_NAME_LENGTH	20
+#define MXU_NETWORK_REMOTE_MX_VERSION_NAME_LENGTH	80
 
 /* Bitmasks used with network message ids.  Message ids are always 32-bits. */
 

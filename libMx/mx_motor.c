@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -7235,7 +7235,7 @@ mx_is_stepper_motor_position_between_software_limits(
 	    "mx_is_stepper_motor_position_between_software_limits()";
 
 	MX_MOTOR *motor;
-	char message_buffer[120];
+	char message_buffer[200];
 	long positive_limit, negative_limit;
 	mx_status_type status;
 

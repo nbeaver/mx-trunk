@@ -1050,7 +1050,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		char host_temp_buffer[MXU_HOSTNAME_LENGTH+1];
 		struct hostent *host_entry;
 		const char *dns_name;
-		char os_temp_buffer[100];
+		char os_temp_buffer[80];
 
 		/* First, get the hostname of the computer. */
 
