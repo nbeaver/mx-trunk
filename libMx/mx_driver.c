@@ -467,6 +467,7 @@
 #include "i_synaccess_netbooter.h"
 #include "i_wti_nps.h"
 
+#include "d_soft_pulser.h"
 #include "d_network_pulser.h"
 #include "d_sis3807.h"
 #include "d_sis3801_pulser.h"
@@ -3343,6 +3344,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_auto_filter_amp_autoscale_function_list,
 				&mxd_auto_filter_amp_num_record_fields,
 				&mxd_auto_filter_amp_rfield_def_ptr},
+
+{"soft_pulser",   MXT_PGN_NETWORK,   MXC_PULSE_GENERATOR, MXR_DEVICE,
+				&mxd_soft_pulser_record_function_list,
+				NULL,
+				&mxd_soft_pulser_pulse_generator_function_list,
+				&mxd_soft_pulser_num_record_fields,
+				&mxd_soft_pulser_rfield_def_ptr},
 
 {"network_pulser", MXT_PGN_NETWORK,   MXC_PULSE_GENERATOR, MXR_DEVICE,
 				&mxd_network_pulser_record_function_list,
