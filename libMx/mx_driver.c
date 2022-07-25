@@ -3345,7 +3345,7 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_auto_filter_amp_num_record_fields,
 				&mxd_auto_filter_amp_rfield_def_ptr},
 
-{"soft_pulser",   MXT_PGN_NETWORK,   MXC_PULSE_GENERATOR, MXR_DEVICE,
+{"soft_pulser",   MXT_PGN_SOFTWARE,   MXC_PULSE_GENERATOR, MXR_DEVICE,
 				&mxd_soft_pulser_record_function_list,
 				NULL,
 				&mxd_soft_pulser_pulse_generator_function_list,
