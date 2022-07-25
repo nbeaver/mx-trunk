@@ -57,28 +57,28 @@ typedef struct {
 	{sizeof(double)}, NULL, 0 }
 
 typedef struct {
-	mx_status_type ( *get_timespec )( MX_CLOCK *clock );
+	mx_status_type ( *get_timespec )( MX_CLOCK *mx_clock );
 } MX_CLOCK_FUNCTION_LIST;
 
 extern MX_RECORD_FUNCTION_LIST mx_clock_record_function_list;
 
-MX_API_PRIVATE mx_status_type mx_clock_get_pointers( MX_RECORD *clock_record,
-	MX_CLOCK **clock, MX_CLOCK_FUNCTION_LIST **function_list_ptr,
+MX_API_PRIVATE mx_status_type mx_clock_get_pointers( MX_RECORD *mx_clock_record,
+	MX_CLOCK **mx_clock, MX_CLOCK_FUNCTION_LIST **function_list_ptr,
 	const char *calling_fname );
 
 MX_API mx_status_type mx_clock_finish_record_initialization(
-						MX_RECORD *clock_record );
+						MX_RECORD *mx_clock_record );
 
-MX_API mx_status_type mx_clock_get_timespec( MX_RECORD *clock_record,
+MX_API mx_status_type mx_clock_get_timespec( MX_RECORD *mx_clock_record,
 						uint64_t *timespec );
 
-MX_API mx_status_type mx_clock_set_timespec_offset( MX_RECORD *clock_record,
+MX_API mx_status_type mx_clock_set_timespec_offset( MX_RECORD *mx_clock_record,
 						uint64_t *timespec_offset );
 
-MX_API mx_status_type mx_clock_get_time( MX_RECORD *clock_record,
+MX_API mx_status_type mx_clock_get_time( MX_RECORD *mx_clock_record,
 						double *time_in_seconds );
 
-MX_API mx_status_type mx_clock_set_time_offset( MX_RECORD *clock_record,
+MX_API mx_status_type mx_clock_set_time_offset( MX_RECORD *mx_clock_record,
 						double offset_in_seconds );
 
 #define mx_convert_clock_time_to_seconds( value ) \

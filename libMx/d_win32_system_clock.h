@@ -31,7 +31,7 @@ typedef struct {
 MX_API mx_status_type mxd_win32_system_clock_create_record_structures(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_win32_system_clock_get_timespec( MX_CLOCK *clock );
+MX_API mx_status_type mxd_win32_system_clock_get_timespec( MX_CLOCK *mx_clock );
 
 extern MX_RECORD_FUNCTION_LIST mxd_win32_system_clock_record_function_list;
 extern MX_CLOCK_FUNCTION_LIST mxd_win32_system_clock_clock_function_list;
