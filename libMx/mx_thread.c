@@ -2991,7 +2991,7 @@ mx_thread_set_name( MX_THREAD *thread,
 
 /*---*/
 
-#elif ( defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_BSD)
+#elif ( defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_BSD) )
 
 /* On Linux we can save a thread-specific name in /proc/self/task/[tid]/comm.
  * This is most easily done by invoking pthread_setname_np() to do it.  
