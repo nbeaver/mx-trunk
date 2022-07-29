@@ -1668,6 +1668,11 @@ typedef struct {
 	mach_port_t mach_task;
 #endif
 
+#if ( defined(__OpenBSD__) \
+    || ( defined(OS_MACOSX) && (MX_DARWIN_VERSION < 9000000L) ) )
+	char thread_name_shadow[80];
+#endif
+
 #if defined(OS_ANDROID)
 	int32_t cancel_requested;
 #endif
@@ -2928,8 +2933,65 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-#if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2012000L) ) \
-	|| defined(OS_ANDROID) || defined(OS_BSD)
+#if ( defined(__OpenBSD__) || defined(OS_CYGWIN) \
+    || ( defined(OS_LINUX) && (MX_GLIBC_VERSION < 2012000L) ) \
+    || ( defined(OS_MACOSX) && (MX_DARWIN_VERSION < 9000000L) ) )
+
+#if defined(__OpenBSD__)
+#include <pthread_np.h>
+#endif
+
+/* For these cases, the operating system itself does not provide a place to
+ * store the thread name, so we save the name in a shadow name string in the
+ * MX_POSIX_THREAD_PRIVATE structure.
+ */
+
+MX_EXPORT mx_status_type
+mx_thread_get_name( MX_THREAD *thread,
+			char *thread_name,
+			size_t max_thread_name_length )
+{
+	static const char fname[] = "mx_thread_get_name()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	strlcpy( thread_name,
+		thread_private->thread_name_shadow,
+		max_thread_name_length );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_thread_set_name( MX_THREAD *thread,
+			const char *thread_name )
+{
+	static const char fname[] = "mx_thread_set_name()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	strlcpy( thread_private->thread_name_shadow,
+		thread_name,
+		sizeof(thread_private->thread_name_shadow) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+#elif ( defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_BSD)
 
 /* On Linux we can save a thread-specific name in /proc/self/task/[tid]/comm.
  * This is most easily done by invoking pthread_setname_np() to do it.  
@@ -3033,27 +3095,6 @@ mx_thread_set_name( MX_THREAD *thread,
 
 #elif defined(OS_MACOSX) 
 
-#  if (MX_DARWIN_VERSION < 9000000L)
-
-MX_EXPORT mx_status_type
-mx_thread_get_name( MX_THREAD *thread,
-			char *thread_name,
-			size_t max_thread_name_length )
-{
-	strlcpy( thread_name, "mx", max_thread_name_length );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_thread_set_name( MX_THREAD *thread,
-			const char *thread_name )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#  else
-
 MX_EXPORT mx_status_type
 mx_thread_get_name( MX_THREAD *thread,
 			char *thread_name,
@@ -3118,28 +3159,6 @@ mx_thread_set_name( MX_THREAD *thread,
 			pthread_status, strerror( pthread_status ));
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#  endif /* MX_DARWIN_VERSION */
-
-#elif defined(OS_CYGWIN) || defined(OS_LINUX)
-
-MX_EXPORT mx_status_type
-mx_thread_get_name( MX_THREAD *thread,
-			char *thread_name,
-			size_t max_thread_name_length )
-{
-	if ( thread_name != NULL ) {
-		*thread_name = '\0';
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_thread_set_name( MX_THREAD *thread, const char *thread_name )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 
