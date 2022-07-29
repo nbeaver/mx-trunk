@@ -2772,6 +2772,21 @@ mx_show_thread_list( void )
 	}
 }
 
+#elif defined(OS_BSD)
+
+MX_EXPORT void
+mx_show_thread_list( void )
+{
+	static const char fname[] = "mx_show_thread_list()";
+
+	(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"This function is not yet implemented for BSD build targets.  "
+	"Apparently, the source code to the 'procstat' command may "
+	"give hints on how to implement this for BSD operationg systems." );
+
+	return;
+}
+
 #elif defined(OS_MACOSX) || defined(OS_CYGWIN)
 
 MX_EXPORT void
@@ -2912,7 +2927,7 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2012000L) ) \
-	|| defined(OS_ANDROID)
+	|| defined(OS_ANDROID) || defined(OS_BSD)
 
 /* On Linux we can save a thread-specific name in /proc/self/task/[tid]/comm.
  * This is most easily done by invoking pthread_setname_np() to do it.  
@@ -2973,7 +2988,7 @@ mx_thread_set_name( MX_THREAD *thread,
 
 	if ( thread_name == (const char *) NULL ) {
 		snprintf( thread_name_buffer, sizeof(thread_name_buffer),
-			"%#lx", thread_private->posix_thread_id );
+		    "%#lx", (unsigned long) thread_private->posix_thread_id );
 	} else {
 		strlcpy( thread_name_buffer, thread_name,
 					sizeof(thread_name_buffer) );
