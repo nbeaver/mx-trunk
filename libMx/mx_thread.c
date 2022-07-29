@@ -1775,6 +1775,8 @@ mx_thread_start_function( void *args_ptr )
 
 #elif defined(OS_MACOSX) || defined(OS_HURD)
 	posix_thread_private->mach_task = mach_task_self();
+#else
+	MXW_UNUSED( posix_thread_private );
 #endif
 
 	/* Invoke MX's thread function. */
@@ -2999,8 +3001,23 @@ mx_thread_set_name( MX_THREAD *thread,
 				fname, thread_name_buffer ));
 #endif
 
+#if defined(__NetBSD__)
+	{
+		static char name_fmt[40] = "";
+
+		if ( name_fmt[0] == '\0' ) {
+			snprintf( name_fmt, sizeof(name_fmt),
+			"%%%d%%s", PTHREAD_MAX_NAMELEN_NP - 1 );
+		}
+
+		pthread_status = pthread_setname_np(
+				thread_private->posix_thread_id,
+				name_fmt, thread_name_buffer );
+	}
+#else
 	pthread_status = pthread_setname_np( thread_private->posix_thread_id,
 							thread_name_buffer );
+#endif
 
 	if ( pthread_status != 0 ) {
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
