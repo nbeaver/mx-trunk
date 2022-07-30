@@ -1669,7 +1669,8 @@ typedef struct {
 #endif
 
 #if ( defined(__OpenBSD__) \
-    || ( defined(OS_MACOSX) && (MX_DARWIN_VERSION < 9000000L) ) )
+    || ( defined(OS_MACOSX) && (MX_DARWIN_VERSION < 9000000L) ) \
+    || ( defined(OS_LINUX) && defined(MX_MUSL_VERSION) ) )
 	char thread_name_shadow[80];
 #endif
 
@@ -2934,7 +2935,9 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 #if ( defined(__OpenBSD__) || defined(OS_CYGWIN) \
-    || ( defined(OS_LINUX) && (MX_GLIBC_VERSION < 2012000L) ) \
+    || ( defined(OS_LINUX) \
+	&& defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2012000L) ) \
+    || ( defined(OS_LINUX) && defined(MX_MUSL_VERSION) ) \
     || ( defined(OS_MACOSX) && (MX_DARWIN_VERSION < 9000000L) ) )
 
 #if defined(__OpenBSD__)
