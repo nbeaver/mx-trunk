@@ -795,72 +795,24 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
-/* Disabled the QNX code below.  It does not work. */
-
-#elif ( 0 && defined(OS_QNX) )
+#elif defined(OS_QNX)
 
 #define MX_HRT_USE_GENERIC	TRUE
 
-#include <sys/sched_aps.h>
-#include <sys/neutrino.h>
-#include <errno.h>
+#include <sys/syspage.h>
 
 MX_EXPORT void
 mx_high_resolution_time_init( void )
 {
-	static const char fname[] = "mx_high_resolution_time_init()";
-
-	sched_aps_info sched;
-	int status_code, saved_errno;
-
-	memset( &sched, 0, sizeof(sched) );
-
-	errno = 0;
-
-	status_code = SchedCtl( SCHED_APS_QUERY_PARMS, &sched, sizeof(sched) );
-
-	saved_errno = errno;
-
-	MX_DEBUG(-2,
-	("%s: status_code = %d, errno = %d, sched.cycles_per_ms = %lu",
-	 fname, status_code, saved_errno, (unsigned long) sched.cycles_per_ms));
-
-	if ( status_code == 0 ) {
-		mx_hrt_counter_ticks_per_microsecond =
-					1000.0 * sched.cycles_per_ms;
-
-		MX_DEBUG(-2,("MARKER 0"));
-		return;
-	}
-
-	saved_errno = errno;
-
-	switch( saved_errno ) {
-	case ENOSYS:
-		/* This means that the adaptive partitioning scheduler
-		 * is not installed, so we use the old fashioned way
-		 * and measure the clock frequency directly.
-		 */
-
-		MX_DEBUG(-2,("MARKER 1.1"));
-		break;
-	default:
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt to determine the CPU frequency using "
-		"SchedCtl_r() failed with error code %d.", saved_errno );
-
-		MX_DEBUG(-2,("MARKER 1.2"));
-		break;
-	}
-
-	MX_DEBUG(-2,("MARKER 2"));
+	mx_hrt_counter_ticks_per_microsecond =
+			1.0e-6 * SYSPAGE_ENTRY(qtime)->cycles_per_sec;
 
 	return;
 }
 
 /*--------------------------------------------------------------------------*/
 
-#elif TRUE
+#elif 0
 
 #define MX_HRT_USE_GENERIC	TRUE
 
@@ -968,6 +920,24 @@ mx_get_hrt_counter_tick( void )
 	return x;
 }
 
+/******/
+
+#elif defined(OS_QNX)
+
+#include <sys/neutrino.h>
+#include <inttypes.h>
+
+static inline uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t x;
+
+	x = ClockCycles();
+
+	return x;
+}
+
+#elif defined(OS_QNX)
 #elif ( defined(__GNUC__) && defined(__x86_64__) )
 
 /******* GCC on x86_64 *******/
