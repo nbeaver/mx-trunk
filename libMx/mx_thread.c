@@ -1668,7 +1668,7 @@ typedef struct {
 	mach_port_t mach_task;
 #endif
 
-#if ( defined(__OpenBSD__) \
+#if ( defined(__OpenBSD__) || defined(OS_HURD) \
     || ( defined(OS_MACOSX) && (MX_DARWIN_VERSION < 9000000L) ) \
     || ( defined(OS_LINUX) && defined(MX_MUSL_VERSION) ) )
 	char thread_name_shadow[80];
@@ -2795,7 +2795,8 @@ mx_show_thread_list( void )
 	return;
 }
 
-#elif defined(OS_MACOSX) || defined(OS_CYGWIN) || defined(OS_QNX)
+#elif defined(OS_MACOSX) || defined(OS_CYGWIN) || defined(OS_QNX) \
+	|| defined(OS_HURD)
 
 MX_EXPORT void
 mx_show_thread_list( void )
@@ -2934,7 +2935,7 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-#if ( defined(__OpenBSD__) || defined(OS_CYGWIN) \
+#if ( defined(__OpenBSD__) || defined(OS_CYGWIN) || defined(OS_HURD) \
     || ( defined(OS_LINUX) \
 	&& defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2012000L) ) \
     || ( defined(OS_LINUX) && defined(MX_MUSL_VERSION) ) \

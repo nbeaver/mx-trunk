@@ -175,6 +175,176 @@ mx_high_resolution_time_init_from_file( void )
 	return hrt_counter_ticks_per_microsecond;
 }
 
+/*==========================================================================*/
+
+/* The following section defines primitives for reading the hardware
+ * clock on various CPU architectures.
+ */
+
+#if defined(OS_WIN32)
+
+/* FIXME: This probably does not work on all versions of Windows
+ * and all compiler versions.  We will need to revisit this later.
+ */
+
+static inline uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t x;
+
+	x = __rdtsc();
+
+	return x;
+}
+
+/******/
+
+#elif defined(OS_QNX)
+
+#include <sys/neutrino.h>
+#include <inttypes.h>
+
+static inline uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t x;
+
+	x = ClockCycles();
+
+	return x;
+}
+
+#elif ( defined(__GNUC__) && defined(__x86_64__) )
+
+/******* GCC on x86_64 *******/
+
+/* Uses x86 RDTSC instruction */
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t x;
+
+	/* The following generates inline an RDTSC instruction
+	 * and puts the results in the variable "x".
+	 *
+	 * As it happens, the version of this code used on 32-bit
+         * machines will not put the value in the right place on
+	 * a 64-bit machine, so we must use this 64-bit specific
+	 * method instead.
+	 *
+	 * References:
+	 *    http://www.technovelty.org/code/c/reading-rdtsc.html
+	 *    http://lists.freedesktop.org/archives/cairo/2008-September/015029.html
+	 */
+
+	unsigned int a_register, d_register;
+
+	__asm__ volatile( "rdtsc" : "=a" (a_register), "=d" (d_register) );
+
+	x = ((unsigned long) a_register) | (((unsigned long) d_register) << 32);
+
+	return x;
+}
+
+#elif ( defined(__GNUC__) && defined(__i386__) )
+
+/******* GCC on x86 *******/
+
+/* Uses x86 RDTSC instruction */
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	MX_CLOCK_TICK current_clock_tick;
+	uint64_t x;
+
+#if ( defined(__i586__) || defined(__i686__) )
+	/* i586 or above */
+
+	mx_bool_type mx_hrt_use_clock_ticks = FALSE;
+#else
+	/* i386 or i486 */
+
+	mx_bool_type mx_hrt_use_clock_ticks = TRUE;
+#endif
+
+	if ( mx_hrt_use_clock_ticks ) {
+		current_clock_tick = mx_current_clock_tick();
+
+		x = ( ULONG_MAX * (uint64_t) current_clock_tick.high_order )
+			+ current_clock_tick.low_order;
+
+		return x;
+	}
+
+	/* The following generates inline an RDTSC instruction
+	 * and puts the results in the variable "x".
+	 */
+
+	__asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+
+	return x;
+}
+
+#elif ( defined(__GNUC__) && ( defined(__ppc__) || defined(__powerpc__) ) )
+
+/******* GCC on PowerPC *******/
+
+/* Uses PowerPC TimeBase register */
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t timebase;
+	unsigned long timebase_lower, timebase_upper, timebase_upper_2;
+
+	do {
+		__asm__ volatile("mftbu %0" : "=r" (timebase_upper));
+		__asm__ volatile("mftb %0" : "=r" (timebase_lower));
+		__asm__ volatile("mftbu %0" : "=r" (timebase_upper_2));
+	} while ( timebase_upper != timebase_upper_2 );
+
+	timebase =
+	    (((unsigned long long) timebase_upper) << 32) | timebase_lower;
+
+	return timebase;
+}
+
+#elif ( defined(__GNUC__) && defined(__aarch64__) )
+
+/* Uses ARM64 CNTVCT_EL0 system counter register */
+
+/* Based on this web page:
+ *    https://stackoverflow.com/questions/40454157/is-there-an-equivalent-instruction-to-rdtsc-in-arm
+ */
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	/* For Arm version 8.0 to 8.5, the system counter is at least
+	 * 56 bits wide.  For Arm version 8.6 and onward, the counter
+	 * must be 64 bits wide.
+	 */
+
+	uint64_t system_counter;
+
+	asm volatile( "mrs %0, cntvct_el0" : "=r" (system_counter) );
+
+	return system_counter;
+}
+
+#elif 0
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+}
+
+#else
+#error mx_get_hrt_counter_tick() not implemented for this platform.
+#endif
+
 /*--------------------------------------------------------------------------*/
 
 #if defined(OS_WIN32)
@@ -812,7 +982,7 @@ mx_high_resolution_time_init( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif 0
+#elif defined(OS_HURD)
 
 #define MX_HRT_USE_GENERIC	TRUE
 
@@ -848,11 +1018,11 @@ mx_high_resolution_time_init( void )
 "Calibration will fail on 386s and 486s and may cause the program to crash.");
 #endif
 
-	tsc_before = mx_rdtsc();
+	tsc_before = mx_get_hrt_counter_tick();
 
 	sleep(10);
 
-	tsc_after = mx_rdtsc();
+	tsc_after = mx_get_hrt_counter_tick();
 
 	mx_hrt_counter_ticks_per_microsecond =
 		1.0e-7 * (double) ( tsc_after - tsc_before );
@@ -865,7 +1035,7 @@ mx_high_resolution_time_init( void )
 
 #else
 
-#error No HRT defined.
+#error No mx_high_resolution_time_init() defined.
 
 /******* None of the above ********/
 
@@ -896,177 +1066,6 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
-#endif
-
-/*==========================================================================*/
-
-/* The following section defines primitives for reading the hardware
- * clock on various CPU architectures.
- */
-
-#if defined(OS_WIN32)
-
-/* FIXME: This probably does not work on all versions of Windows
- * and all compiler versions.  We will need to revisit this later.
- */
-
-static inline uint64_t
-mx_get_hrt_counter_tick( void )
-{
-	uint64_t x;
-
-	x = __rdtsc();
-
-	return x;
-}
-
-/******/
-
-#elif defined(OS_QNX)
-
-#include <sys/neutrino.h>
-#include <inttypes.h>
-
-static inline uint64_t
-mx_get_hrt_counter_tick( void )
-{
-	uint64_t x;
-
-	x = ClockCycles();
-
-	return x;
-}
-
-#elif defined(OS_QNX)
-#elif ( defined(__GNUC__) && defined(__x86_64__) )
-
-/******* GCC on x86_64 *******/
-
-/* Uses x86 RDTSC instruction */
-
-static __inline__ uint64_t
-mx_get_hrt_counter_tick( void )
-{
-	uint64_t x;
-
-	/* The following generates inline an RDTSC instruction
-	 * and puts the results in the variable "x".
-	 *
-	 * As it happens, the version of this code used on 32-bit
-         * machines will not put the value in the right place on
-	 * a 64-bit machine, so we must use this 64-bit specific
-	 * method instead.
-	 *
-	 * References:
-	 *    http://www.technovelty.org/code/c/reading-rdtsc.html
-	 *    http://lists.freedesktop.org/archives/cairo/2008-September/015029.html
-	 */
-
-	unsigned int a_register, d_register;
-
-	__asm__ volatile( "rdtsc" : "=a" (a_register), "=d" (d_register) );
-
-	x = ((unsigned long) a_register) | (((unsigned long) d_register) << 32);
-
-	return x;
-}
-
-#elif ( defined(__GNUC__) && defined(__i386__) )
-
-/******* GCC on x86 *******/
-
-/* Uses x86 RDTSC instruction */
-
-static __inline__ uint64_t
-mx_get_hrt_counter_tick( void )
-{
-	MX_CLOCK_TICK current_clock_tick;
-	uint64_t x;
-
-#if ( defined(__i586__) || defined(__i686__) )
-	/* i586 or above */
-
-	mx_bool_type mx_hrt_use_clock_ticks = FALSE;
-#else
-	/* i386 or i486 */
-
-	mx_bool_type mx_hrt_use_clock_ticks = TRUE;
-#endif
-
-	if ( mx_hrt_use_clock_ticks ) {
-		current_clock_tick = mx_current_clock_tick();
-
-		x = ( ULONG_MAX * (uint64_t) current_clock_tick.high_order )
-			+ current_clock_tick.low_order;
-
-		return x;
-	}
-
-	/* The following generates inline an RDTSC instruction
-	 * and puts the results in the variable "x".
-	 */
-
-	__asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-
-	return x;
-}
-
-#elif ( defined(__GNUC__) && ( defined(__ppc__) || defined(__powerpc__) ) )
-
-/******* GCC on PowerPC *******/
-
-/* Uses PowerPC TimeBase register */
-
-static __inline__ uint64_t
-mx_get_hrt_counter_tick( void )
-{
-	uint64_t timebase;
-	unsigned long timebase_lower, timebase_upper, timebase_upper_2;
-
-	do {
-		__asm__ volatile("mftbu %0" : "=r" (timebase_upper));
-		__asm__ volatile("mftb %0" : "=r" (timebase_lower));
-		__asm__ volatile("mftbu %0" : "=r" (timebase_upper_2));
-	} while ( timebase_upper != timebase_upper_2 );
-
-	timebase =
-	    (((unsigned long long) timebase_upper) << 32) | timebase_lower;
-
-	return timebase;
-}
-
-#elif ( defined(__GNUC__) && defined(__aarch64__) )
-
-/* Uses ARM64 CNTVCT_EL0 system counter register */
-
-/* Based on this web page:
- *    https://stackoverflow.com/questions/40454157/is-there-an-equivalent-instruction-to-rdtsc-in-arm
- */
-
-static __inline__ uint64_t
-mx_get_hrt_counter_tick( void )
-{
-	/* For Arm version 8.0 to 8.5, the system counter is at least
-	 * 56 bits wide.  For Arm version 8.6 and onward, the counter
-	 * must be 64 bits wide.
-	 */
-
-	uint64_t system_counter;
-
-	asm volatile( "mrs %0, cntvct_el0" : "=r" (system_counter) );
-
-	return system_counter;
-}
-
-#elif 0
-
-static __inline__ uint64_t
-mx_get_hrt_counter_tick( void )
-{
-}
-
-#else
-#error mx_get_hrt_counter_tick() not implemented for this platform.
 #endif
 
 /*--------------------------------------------------------------------------*/
