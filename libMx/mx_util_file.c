@@ -2202,6 +2202,13 @@ mx_verify_directory( char *directory_name, int create_flag )
 
 #if 1
 
+/* FIXME: 2022-07-30 The following should be modified to use
+ * realpath() on Posix, etc. and _fullpath() on Win32.  Also,
+ * backslashes on Win32 should be replaced by forward slashes
+ * for compatibility with what mx_normalize_filename() does.
+ * mx_normalize_filename() itself should be removed.
+ */
+
 MX_EXPORT mx_status_type
 mx_canonicalize_filename( char *original_filename,
 			char *canonical_filename,
