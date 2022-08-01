@@ -214,6 +214,24 @@ mx_get_hrt_counter_tick( void )
 	return x;
 }
 
+/******/
+
+#elif defined(OS_VXWORKS)
+
+#include <tickLib.h>
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint64_t x;
+
+	x = tick64Get();
+
+	return x;
+}
+
+/******/
+
 #elif ( defined(__GNUC__) && defined(__x86_64__) )
 
 /******* GCC on x86_64 *******/
@@ -691,6 +709,20 @@ mx_high_resolution_time_init( void )
 		  ((__psunsigned_t) mx_iotimer_32bit_addr
 			+ (phys_addr & poffmask));
 	}
+
+	return;
+}
+
+/*==========================================================================*/
+
+#elif defined(OS_VXWORKS)
+
+#include <drv/timer/timerDev.h>
+
+MX_EXPORT void
+mx_high_resolution_time_init( void )
+{
+	mx_hrt_counter_ticks_per_microsecond = 1.0e6 * sysClkRateGet();
 
 	return;
 }

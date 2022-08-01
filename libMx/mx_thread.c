@@ -3667,6 +3667,7 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 
 MX_EXPORT mx_status_type
 mx_thread_create( MX_THREAD **thread,
+		const char *thread_name,
 		MX_THREAD_FUNCTION *thread_function,
 		void *thread_arguments )
 {
@@ -3675,6 +3676,7 @@ mx_thread_create( MX_THREAD **thread,
 	MX_VXWORKS_THREAD_PRIVATE *thread_private;
 	MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE *thread_arg_struct;
 	int priority, stack_size, thread_arg, saved_errno;
+	char task_name[80];
 	mx_status_type mx_status;
 
 #if MX_THREAD_DEBUG
@@ -3717,7 +3719,15 @@ mx_thread_create( MX_THREAD **thread,
 	thread_arg_struct->thread_arguments = thread_arguments;
 
 	/**** Create the thread. ****/
-	 
+
+	/* thread_name was passed to us as a 'const char *', but the
+	 * first argument of taskSpawn() expects just 'char *'.
+	 * We get around this by copying the const 'thread_name' to
+	 * to a local non-const 'task_name'.
+	 */
+
+	strlcpy( task_name, thread_name, sizeof(task_name) );
+
 	/* FIXME: What priority should I use? */
 
 	priority = 0;
@@ -3737,7 +3747,8 @@ mx_thread_create( MX_THREAD **thread,
 	 * thread_private->task_id.
 	 */
 
-	thread_private->task_id = taskSpawn( NULL, priority, VX_FP_TASK,
+	thread_private->task_id = taskSpawn( task_name,
+			priority, VX_FP_TASK,
 			stack_size, mx_thread_start_function,
 			thread_arg, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
 
