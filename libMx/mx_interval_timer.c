@@ -1780,7 +1780,7 @@ mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 
 	/* Create a thread to service the signals. */
 
-	snprintf( thread_name, sizeof(thread_name), "ITSIG %p", *itimer );
+	snprintf( thread_name, sizeof(thread_name), "ITSIG %p", itimer );
 
 	mx_status = mx_thread_create( &(posix_itimer_private->thread),
 					"mx_interval_timer_signal_thread",
