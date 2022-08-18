@@ -2,7 +2,7 @@
 # This module is only for the 'linux' platform.
 #
 
-ARAVIS_VERSION = aravis-0.6
+ARAVIS_VERSION = aravis-0.8
 
 ifeq (,$(shell which pkg-config))
     $(error "Error: pkg-config is not installed.")
