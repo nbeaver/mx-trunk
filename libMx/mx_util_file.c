@@ -689,6 +689,7 @@ mx_skip_num_lines_in_file( FILE *file, size_t num_lines_to_skip )
 	char buffer[1000];
 	size_t num_lines, line_length;
 	mx_bool_type have_read_a_partial_line;
+	char *ptr = NULL;
 
 	if ( file == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -699,7 +700,9 @@ mx_skip_num_lines_in_file( FILE *file, size_t num_lines_to_skip )
 	have_read_a_partial_line = FALSE;
 
 	while (1) {
-		fgets( buffer, sizeof(buffer), file );
+		ptr = fgets( buffer, sizeof(buffer), file );
+
+		MXW_UNUSED(ptr);
 
 		if ( feof(file) ) {
 			if ( have_read_a_partial_line ) {

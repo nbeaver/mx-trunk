@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007, 2010, 2021 Illinois Institute of Technology
+ * Copyright 2007, 2010, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -206,10 +206,10 @@ mxd_polynomial_motor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_polynomial_motor_open()";
 
-	MX_MOTOR *motor;
-	MX_POLYNOMIAL_MOTOR *polynomial_motor;
-	MX_RECORD *dependent_motor_record;
-	MX_RECORD *polynomial_record;
+	MX_MOTOR *motor = NULL;
+	MX_POLYNOMIAL_MOTOR *polynomial_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
+	MX_RECORD *polynomial_record = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -252,9 +252,10 @@ mxd_polynomial_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_polynomial_motor_move_absolute()";
 
-	MX_POLYNOMIAL_MOTOR *polynomial_motor;
-	MX_RECORD *dependent_motor_record, *polynomial_record;
-	MX_RECORD_FIELD *value_field;
+	MX_POLYNOMIAL_MOTOR *polynomial_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
+	MX_RECORD *polynomial_record = NULL;
+	MX_RECORD_FIELD *value_field = NULL;
 	long i, num_parameters;
 	double *poly;
 	double x, y;
@@ -343,8 +344,8 @@ mxd_polynomial_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_polynomial_motor_soft_abort()";
 
-	MX_POLYNOMIAL_MOTOR *polynomial_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_POLYNOMIAL_MOTOR *polynomial_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_polynomial_motor_get_pointers( motor,
@@ -364,8 +365,8 @@ mxd_polynomial_motor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_polynomial_motor_immediate_abort()";
 
-	MX_POLYNOMIAL_MOTOR *polynomial_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_POLYNOMIAL_MOTOR *polynomial_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_polynomial_motor_get_pointers( motor,
@@ -385,8 +386,8 @@ mxd_polynomial_motor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_polynomial_motor_get_parameter()";
 
-	MX_POLYNOMIAL_MOTOR *polynomial_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_POLYNOMIAL_MOTOR *polynomial_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_polynomial_motor_get_pointers( motor,
@@ -433,8 +434,8 @@ mxd_polynomial_motor_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_polynomial_motor_set_parameter()";
 
-	MX_POLYNOMIAL_MOTOR *polynomial_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_POLYNOMIAL_MOTOR *polynomial_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_polynomial_motor_get_pointers( motor,
@@ -478,8 +479,8 @@ mxd_polynomial_motor_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_polynomial_motor_get_status()";
 
-	MX_POLYNOMIAL_MOTOR *polynomial_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_POLYNOMIAL_MOTOR *polynomial_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	unsigned long motor_status;
 	mx_status_type mx_status;
 
@@ -523,8 +524,8 @@ mxd_polynomial_motor_get_extended_status( MX_MOTOR *motor )
 	static const char fname[] =
 			"mxd_polynomial_motor_get_extended_status()";
 
-	MX_POLYNOMIAL_MOTOR *polynomial_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_POLYNOMIAL_MOTOR *polynomial_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;

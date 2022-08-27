@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007, 2010, 2013, 2016, 2021
+ * Copyright 2003-2004, 2006-2007, 2010, 2013, 2016, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -130,7 +130,7 @@ mxd_wavelength_motor_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_wavelength_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -172,7 +172,7 @@ mxd_wavelength_motor_finish_record_initialization( MX_RECORD *record )
 		"mxd_wavelength_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
 
 	mx_status_type mx_status;
 
@@ -210,9 +210,9 @@ mxd_wavelength_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_wavelength_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
-	MX_RECORD *theta_motor_record;
+	MX_RECORD *theta_motor_record = NULL;
 	MX_MOTOR *theta_motor;
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
 	double position, move_deadband;
 	mx_status_type mx_status;
 
@@ -304,8 +304,8 @@ mxd_wavelength_motor_open( MX_RECORD *record )
 	static const char fname[] = "mxd_wavelength_motor_open()";
 
 	MX_MOTOR *motor;
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double d_spacing;
 	mx_status_type mx_status;
 
@@ -436,8 +436,8 @@ mxd_wavelength_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_move_absolute()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double wavelength, theta;
 	mx_status_type mx_status;
 
@@ -469,8 +469,8 @@ mxd_wavelength_motor_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_get_position()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double wavelength, theta;
 	mx_status_type mx_status;
 
@@ -504,8 +504,8 @@ mxd_wavelength_motor_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_set_position()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double wavelength, theta;
 	mx_status_type mx_status;
 
@@ -535,8 +535,8 @@ mxd_wavelength_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_soft_abort()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
@@ -555,8 +555,8 @@ mxd_wavelength_motor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_immediate_abort()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
@@ -575,8 +575,8 @@ mxd_wavelength_motor_raw_home_command( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_raw_home_command()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	long direction;
 	mx_status_type mx_status;
 
@@ -599,8 +599,8 @@ mxd_wavelength_motor_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_constant_velocity_move()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	long direction;
 	mx_status_type mx_status;
 
@@ -623,8 +623,8 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_get_parameter()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double theta, wavelength;
 	double d_spacing, theta_in_radians;
 	double theta_acceleration_time, theta_acceleration_distance;
@@ -841,8 +841,8 @@ mxd_wavelength_motor_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_set_parameter()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double real_position1, real_position2, time_for_move;
 	mx_status_type mx_status;
 
@@ -910,8 +910,8 @@ mxd_wavelength_motor_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_wavelength_motor_get_status()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	unsigned long motor_status;
 	mx_status_type mx_status;
 
@@ -953,8 +953,8 @@ mxd_wavelength_motor_get_extended_status( MX_MOTOR *motor )
 	static const char fname[] =
 		"mxd_wavelength_motor_get_extended_status()";
 
-	MX_WAVELENGTH_MOTOR *wavelength_motor;
-	MX_RECORD *theta_motor_record;
+	MX_WAVELENGTH_MOTOR *wavelength_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;

@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015, 2018-2021 Illinois Institute of Technology
+ * Copyright 2014-2015, 2018-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -556,7 +556,7 @@ mxd_epics_scaler_mcs_arm( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_epics_scaler_mcs_arm()";
 
-	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
+	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
 	int32_t cnt;
 	double time_preset;
 	mx_status_type mx_status;
@@ -608,7 +608,7 @@ mxd_epics_scaler_mcs_stop( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_epics_scaler_mcs_stop()";
 
-	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
+	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
 	int32_t cnt;
 	mx_status_type mx_status;
 
@@ -631,7 +631,7 @@ mxd_epics_scaler_mcs_clear( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_epics_scaler_mcs_clear()";
 
-	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
+	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
 	long i, j;
 	mx_status_type mx_status;
 

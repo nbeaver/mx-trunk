@@ -12,7 +12,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2012, 2015-2016
+ * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2012, 2015-2016, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -162,7 +162,7 @@ mxi_newport_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_newport_create_record_structures()";
 
 	MX_GENERIC *generic;
-	MX_NEWPORT *newport;
+	MX_NEWPORT *newport = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -198,7 +198,7 @@ mxi_newport_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 			"mxi_newport_finish_record_initialization()";
 
-	MX_NEWPORT *newport;
+	MX_NEWPORT *newport = NULL;
 	MX_RECORD *interface_record;
 	int i;
 
@@ -255,8 +255,8 @@ mxi_newport_open( MX_RECORD *record )
 	static const char fname[] = "mxi_newport_open()";
 
 	MX_GENERIC *generic;
-	MX_NEWPORT *newport;
-	MX_INTERFACE *controller_interface;
+	MX_NEWPORT *newport = NULL;
+	MX_INTERFACE *controller_interface = NULL;
 	mx_status_type mx_status;
 
 	MX_DEBUG(2, ("mxi_newport_open() invoked."));
@@ -322,8 +322,8 @@ mxi_newport_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxi_newport_resynchronize()";
 
 	MX_GENERIC *generic;
-	MX_NEWPORT *newport;
-	MX_INTERFACE *controller_interface;
+	MX_NEWPORT *newport = NULL;
+	MX_INTERFACE *controller_interface = NULL;
 	char response[80], banner[40];
 	size_t length;
 	mx_status_type mx_status;
@@ -426,8 +426,8 @@ mxi_newport_discard_unread_input( MX_GENERIC *generic, int debug_flag )
 {
 	static const char fname[] = "mxi_newport_discard_unread_input()";
 
-	MX_NEWPORT *newport;
-	MX_INTERFACE *controller_interface;
+	MX_NEWPORT *newport = NULL;
+	MX_INTERFACE *controller_interface = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_newport_get_pointers( generic, &newport,
@@ -452,8 +452,8 @@ mxi_newport_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 {
 	static const char fname[] = "mxi_newport_discard_unwritten_output()";
 
-	MX_NEWPORT *newport;
-	MX_INTERFACE *controller_interface;
+	MX_NEWPORT *newport = NULL;
+	MX_INTERFACE *controller_interface = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_newport_get_pointers( generic, &newport,
@@ -707,7 +707,7 @@ mxi_newport_getline( MX_NEWPORT *newport,
 {
 	static const char fname[] = "mxi_newport_getline()";
 
-	MX_INTERFACE *controller_interface;
+	MX_INTERFACE *controller_interface = NULL;
 	mx_status_type mx_status;
 
 	if ( newport == (MX_NEWPORT *) NULL ) {
@@ -743,7 +743,7 @@ mxi_newport_putline( MX_NEWPORT *newport, char *buffer, int debug_flag )
 {
 	static const char fname[] = "mxi_newport_putline()";
 
-	MX_INTERFACE *controller_interface;
+	MX_INTERFACE *controller_interface = NULL;
 	mx_status_type mx_status;
 
 	if ( newport == (MX_NEWPORT *) NULL ) {

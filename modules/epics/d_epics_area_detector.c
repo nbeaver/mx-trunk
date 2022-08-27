@@ -1154,7 +1154,7 @@ mxd_epics_ad_readout_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_epics_ad_readout_frame()";
 
-	MX_EPICS_AREA_DETECTOR *epics_ad;
+	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
 	long epics_data_type;
 	unsigned long num_array_elements;
 	void *image_data;

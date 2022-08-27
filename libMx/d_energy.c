@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2013, 2016, 2021
+ * Copyright 1999-2004, 2006-2007, 2010, 2013, 2016, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -210,10 +210,10 @@ mxd_energy_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_energy_motor_print_motor_structure()";
 
-	MX_MOTOR *motor;
-	MX_RECORD *theta_motor_record;
-	MX_MOTOR *theta_motor;
-	MX_ENERGY_MOTOR *energy_motor;
+	MX_MOTOR *motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
+	MX_MOTOR *theta_motor = NULL;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
 	double position, move_deadband;
 	mx_status_type mx_status;
 
@@ -304,9 +304,9 @@ mxd_energy_motor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_energy_motor_open()";
 
-	MX_MOTOR *motor;
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_MOTOR *motor = NULL;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double d_spacing;
 	mx_status_type mx_status;
 
@@ -437,8 +437,8 @@ mxd_energy_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_move_absolute()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double energy, theta;
 	mx_status_type mx_status;
 
@@ -470,8 +470,8 @@ mxd_energy_motor_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_get_position()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double energy, theta;
 	mx_status_type mx_status;
 
@@ -505,8 +505,8 @@ mxd_energy_motor_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_set_position()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double energy, theta;
 	mx_status_type mx_status;
 
@@ -536,8 +536,8 @@ mxd_energy_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_soft_abort()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
@@ -556,8 +556,8 @@ mxd_energy_motor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_immediate_abort()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
@@ -576,8 +576,8 @@ mxd_energy_motor_raw_home_command( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_raw_home_command()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	long direction;
 	mx_status_type mx_status;
 
@@ -600,8 +600,8 @@ mxd_energy_motor_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_constant_velocity_move()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	long direction;
 	mx_status_type mx_status;
 
@@ -624,8 +624,8 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_get_parameter()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double theta, energy;
 	double d_spacing, theta_in_radians;
        	double theta_acceleration_time, theta_acceleration_distance;
@@ -853,8 +853,8 @@ mxd_energy_motor_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_set_parameter()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	double real_position1, real_position2, time_for_move;
 	double *theta_positions;
 	long i;
@@ -966,8 +966,8 @@ mxd_energy_motor_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_get_status()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	unsigned long motor_status;
 	mx_status_type mx_status;
 
@@ -1009,8 +1009,8 @@ mxd_energy_motor_get_extended_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_energy_motor_get_extended_status()";
 
-	MX_ENERGY_MOTOR *energy_motor;
-	MX_RECORD *theta_motor_record;
+	MX_ENERGY_MOTOR *energy_motor = NULL;
+	MX_RECORD *theta_motor_record = NULL;
 	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;

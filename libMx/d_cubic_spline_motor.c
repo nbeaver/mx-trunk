@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2010, 2020 Illinois Institute of Technology
+ * Copyright 2007-2008, 2010, 2020, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -233,15 +233,16 @@ mxd_cubic_spline_motor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_cubic_spline_motor_open()";
 
-	MX_MOTOR *motor;
-	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
-	MX_RECORD *dependent_motor_record;
-	MX_RECORD *x_array_record;
-	MX_RECORD *y_array_record;
-	MX_RECORD_FIELD *x_value_field;
-	MX_RECORD_FIELD *y_value_field;
+	MX_MOTOR *motor = NULL;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
+	MX_RECORD *x_array_record = NULL;
+	MX_RECORD *y_array_record = NULL;
+	MX_RECORD_FIELD *x_value_field = NULL;
+	MX_RECORD_FIELD *y_value_field = NULL;
+	double *x_value_ptr = NULL;
+	double *y_value_ptr = NULL;
 	long x_num_points, y_num_points;
-	double *x_value_ptr, *y_value_ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -381,13 +382,14 @@ mxd_cubic_spline_motor_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_cubic_spline_motor_resynchronize()";
 
-	MX_MOTOR *motor;
-	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
-	MX_RECORD *dependent_motor_record;
-	MX_RECORD_FIELD *x_value_field;
-	MX_RECORD_FIELD *y_value_field;
+	MX_MOTOR *motor = NULL;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
+	MX_RECORD_FIELD *x_value_field = NULL;
+	MX_RECORD_FIELD *y_value_field = NULL;
+	double *x_value_ptr = NULL;
+	double *y_value_ptr = NULL;
 	long x_num_points;
-	double *x_value_ptr, *y_value_ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -551,8 +553,8 @@ mxd_cubic_spline_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_cubic_spline_motor_soft_abort()";
 
-	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_cubic_spline_motor_get_pointers( motor,
@@ -572,8 +574,8 @@ mxd_cubic_spline_motor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_cubic_spline_motor_immediate_abort()";
 
-	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_cubic_spline_motor_get_pointers( motor,
@@ -593,8 +595,8 @@ mxd_cubic_spline_motor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_cubic_spline_motor_get_parameter()";
 
-	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_cubic_spline_motor_get_pointers( motor,
@@ -641,8 +643,8 @@ mxd_cubic_spline_motor_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_cubic_spline_motor_set_parameter()";
 
-	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_cubic_spline_motor_get_pointers( motor,
@@ -686,8 +688,8 @@ mxd_cubic_spline_motor_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_cubic_spline_motor_get_status()";
 
-	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	unsigned long motor_status;
 	mx_status_type mx_status;
 
@@ -731,8 +733,8 @@ mxd_cubic_spline_motor_get_extended_status( MX_MOTOR *motor )
 	static const char fname[] =
 			"mxd_cubic_spline_motor_get_extended_status()";
 
-	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
-	MX_RECORD *dependent_motor_record;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor = NULL;
+	MX_RECORD *dependent_motor_record = NULL;
 	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;

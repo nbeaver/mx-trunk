@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2021 Illinois Institute of Technology
+ * Copyright 2010-2011, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -178,7 +178,7 @@ mxi_sim900_port_create_record_structures( MX_RECORD *record )
 		"mxi_sim900_port_create_record_structures()";
 
 	MX_RS232 *rs232;
-	MX_SIM900_PORT *sim900_port;
+	MX_SIM900_PORT *sim900_port = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -216,7 +216,7 @@ mxi_sim900_port_finish_record_initialization( MX_RECORD *record )
 		"mxi_sim900_port_finish_record_initialization()";
 
 	MX_RS232 *rs232;
-	MX_SIM900_PORT *sim900_port;
+	MX_SIM900_PORT *sim900_port = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -284,8 +284,8 @@ mxi_sim900_port_open( MX_RECORD *record )
 	static const char fname[] = "mxi_sim900_port_open()";
 
 	MX_RS232 *rs232;
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[100];
 	mx_status_type mx_status;
 
@@ -391,8 +391,8 @@ mxi_sim900_port_close( MX_RECORD *record )
 	static const char fname[] = "mxi_sim900_port_close()";
 
 	MX_RS232 *rs232;
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -416,8 +416,8 @@ mxi_sim900_port_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_sim900_port_getchar()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -450,8 +450,8 @@ mxi_sim900_port_putchar( MX_RS232 *rs232, char c )
 {
 	static const char fname[] = "mxi_sim900_port_putchar()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -487,8 +487,8 @@ mxi_sim900_port_read( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_sim900_port_read()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -524,8 +524,8 @@ mxi_sim900_port_write( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_sim900_port_write()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[2500];
 	size_t bytes_to_write, initial_length, escaped_length;
 	mx_status_type mx_status;
@@ -775,8 +775,8 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_sim900_port_getline()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char *buffer_ptr, *terminators_ptr;
 	size_t bytes_left_in_buffer, bytes_read_so_far, bytes_read_by_getn;
 	mx_bool_type do_timeout;
@@ -902,8 +902,8 @@ mxi_sim900_port_putline( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_sim900_port_putline()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[2500];
 	size_t bytes_to_write, initial_length, escaped_length;
 	mx_status_type mx_status;
@@ -946,8 +946,8 @@ mxi_sim900_port_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 			"mxi_sim900_port_num_input_bytes_available()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[40];
 	char response[40];
 	mx_status_type mx_status;
@@ -1018,8 +1018,8 @@ mxi_sim900_port_get_configuration( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_sim900_port_get_configuration()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[100];
 	char response[100];
 	long parity_token, flow_token;
@@ -1149,8 +1149,8 @@ mxi_sim900_port_set_configuration( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_sim900_port_set_configuration()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[100];
 	mx_status_type mx_status;
 
@@ -1294,8 +1294,8 @@ mxi_sim900_port_send_break( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_sim900_port_set_configuration()";
 
-	MX_SIM900_PORT *sim900_port;
-	MX_SIM900 *sim900;
+	MX_SIM900_PORT *sim900_port = NULL;
+	MX_SIM900 *sim900 = NULL;
 	char command[100];
 	mx_status_type mx_status;
 

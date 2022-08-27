@@ -13,7 +13,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010, 2012, 2016
+ * Copyright 1999, 2001-2002, 2004-2006, 2010, 2012, 2016, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -133,7 +133,7 @@ mxd_am9513_timer_initialize_driver( MX_DRIVER *driver )
 {
 	static const char fname[] = "mxd_am9513_timer_initialize_driver()";
 
-	MX_RECORD_FIELD_DEFAULTS *field;
+	MX_RECORD_FIELD_DEFAULTS *field = NULL;
 	long num_counters_field_index;
 	long num_counters_varargs_cookie;
 	mx_status_type status;
@@ -171,7 +171,8 @@ mxd_am9513_timer_initialize_driver( MX_DRIVER *driver )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_am9513_timer_create_record_structures()";
+	static const char fname[] =
+			"mxd_am9513_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_AM9513_TIMER *am9513_timer;
@@ -212,15 +213,14 @@ mxd_am9513_timer_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_am9513_timer_open()";
 
-	MX_AM9513_TIMER *am9513_timer;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_TIMER *am9513_timer = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	uint16_t counter_mode_register;
-	long n, num_counters, high_order_counter;
+	long n, high_order_counter;
+	long num_counters = 0;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
 
 	if ( record == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -326,12 +326,10 @@ mxd_am9513_timer_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_am9513_timer_close()";
 
-	MX_AM9513_TIMER *am9513_timer;
-	MX_INTERFACE *am9513_interface_array;
-	long num_counters;
+	MX_AM9513_TIMER *am9513_timer = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	long num_counters = 0;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
 
 	if ( record == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -362,16 +360,14 @@ mxd_am9513_timer_is_busy( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_am9513_timer_is_busy()";
 
-	MX_AM9513_TIMER *am9513_timer;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_TIMER *am9513_timer = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	long num_counters;
 	uint8_t am9513_status;
 	int mask;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
 
 	mx_status = mxd_am9513_timer_get_pointers( timer, &am9513_timer,
 			&num_counters, &am9513_interface_array, fname );
@@ -394,8 +390,6 @@ mxd_am9513_timer_is_busy( MX_TIMER *timer )
 
 	am9513_status = this_am9513->status_register;
 
-	MX_DEBUG( 2,("%s: am9513_status = 0x%x", fname, am9513_status));
-
 	mask = 1 << am9513_interface_array[0].address;
 
 	if ( am9513_status & mask ) {
@@ -403,8 +397,6 @@ mxd_am9513_timer_is_busy( MX_TIMER *timer )
 	} else {
 		timer->busy = FALSE;
 	}
-
-	MX_DEBUG( 2,("%s: busy = %d", fname, (int) timer->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -414,12 +406,13 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_am9513_timer_start()";
 
-	MX_AM9513_TIMER *am9513_timer;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_TIMER *am9513_timer = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	uint16_t counter_mode_register;
-	long n, num_counters;
+	long num_counters = 0;
+	long n;
 	double seconds;
 	double clock_ticks_double;
 	double ulong_max_double;
@@ -435,8 +428,6 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 		return mx_status;
 
 	seconds = timer->value;
-
-	MX_DEBUG( 2,("%s invoked for %g seconds.", fname, seconds));
 
 	/* Treat any time less than zero as zero. */
 
@@ -462,9 +453,6 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 
 	clock_ticks_double = seconds * am9513_timer->clock_frequency;
 
-	MX_DEBUG( 2,("%s: seconds = %g, clock_ticks_double = %g",
-		fname, seconds, clock_ticks_double));
-
 	ulong_max_double = (double) ULONG_MAX;
 
 	if ( clock_ticks_double > ulong_max_double ) {
@@ -482,9 +470,6 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 	if ( clock_ticks_ulong < 3 ) {
 		clock_ticks_ulong = 3;
 	}
-
-	MX_DEBUG( 2,("%s: clock_ticks_ulong = %lu",
-		fname, clock_ticks_ulong));
 
 	if ( clock_ticks_ulong < 65536L ) {
 		frequency_scaler_ratio = 0x0b00;	/* source = F1 */
@@ -514,10 +499,6 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 65536L );
 	}
-
-	MX_DEBUG( 2,
-		("%s: frequency_scaler_ratio = %d, ticks_to_count_for = %hu", 
-		fname, frequency_scaler_ratio, ticks_to_count_for));
 
 	/* Set the timer preset value and the divisor
 	 * for the clock frequency.
@@ -575,12 +556,13 @@ mxd_am9513_timer_stop( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_am9513_timer_stop()";
 
-	MX_AM9513_TIMER *am9513_timer;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_TIMER *am9513_timer = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	uint16_t counter_mode_register;
-	long i, n, num_counters;
+	long num_counters = 0;
+	long i, n;
 	double multiplier, result;
 	mx_status_type mx_status;
 
@@ -673,8 +655,6 @@ mxd_am9513_timer_stop( MX_TIMER *timer )
 
 		timer->value = mx_divide_safely( result,
 					am9513_timer->clock_frequency );
-
-		MX_DEBUG( 2,("%s: seconds_left = %g", fname, timer->value ));
 	}
 
 	return MX_SUCCESSFUL_RESULT;

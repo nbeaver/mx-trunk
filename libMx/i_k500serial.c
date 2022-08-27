@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2007, 2010, 2015, 2021
+ * Copyright 1999, 2001, 2005-2007, 2010, 2015, 2021-2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -162,7 +162,7 @@ mxi_k500serial_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_k500serial_create_record_structures()";
 
 	MX_GPIB *gpib;
-	MX_K500SERIAL *k500serial;
+	MX_K500SERIAL *k500serial = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -202,7 +202,7 @@ MX_EXPORT mx_status_type
 mxi_k500serial_print_interface_structure( FILE *file, MX_RECORD *record )
 {
 	MX_GPIB *gpib;
-	MX_K500SERIAL *k500serial;
+	MX_K500SERIAL *k500serial = NULL;
 	char read_eos_char, write_eos_char;
 
 	gpib = (MX_GPIB *) (record->record_class_struct);
@@ -251,8 +251,8 @@ mxi_k500serial_open( MX_RECORD *record )
 	static const char fname[] = "mxi_k500serial_open()";
 
 	MX_GPIB *gpib;
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	MX_RS232 *rs232;
 	char command[40];
 	char response[40];
@@ -548,8 +548,8 @@ mxi_k500serial_read( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_k500serial_read()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
@@ -584,8 +584,8 @@ mxi_k500serial_write( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_k500serial_write()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char prefix[ MX_PREFIX_BUFFER_LENGTH + 1 ];
 	size_t device_bytes_written;
 	mx_status_type mx_status;
@@ -627,8 +627,8 @@ mxi_k500serial_interface_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_k500serial_interface_clear()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_k500serial_get_pointers( gpib,
@@ -648,8 +648,8 @@ mxi_k500serial_device_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_k500serial_device_clear()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_k500serial_get_pointers( gpib,
@@ -669,8 +669,8 @@ mxi_k500serial_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_k500serial_selective_device_clear()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
@@ -693,8 +693,8 @@ mxi_k500serial_local_lockout( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_k500serial_local_lockout()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_k500serial_get_pointers( gpib,
@@ -714,8 +714,8 @@ mxi_k500serial_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_k500serial_remote_enable()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
@@ -738,8 +738,8 @@ mxi_k500serial_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_k500serial_go_to_local()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
@@ -762,8 +762,8 @@ mxi_k500serial_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_k500serial_trigger_device()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -804,8 +804,8 @@ mxi_k500serial_serial_poll( MX_GPIB *gpib, long address,
 {
 	static const char fname[] = "mxi_k500serial_serial_poll()";
 
-	MX_K500SERIAL *k500serial;
-	MX_RECORD *rs232_record;
+	MX_K500SERIAL *k500serial = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char command[20];
 	char response[20];
 	unsigned short short_value;

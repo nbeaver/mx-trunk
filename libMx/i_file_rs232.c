@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -126,7 +126,7 @@ mxi_file_rs232_create_record_structures( MX_RECORD *record )
 		"mxi_file_rs232_create_record_structures()";
 
 	MX_RS232 *rs232;
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -167,7 +167,7 @@ mxi_file_rs232_finish_record_initialization( MX_RECORD *record )
 		"mxi_file_rs232_finish_record_initialization()";
 
 	MX_RS232 *rs232;
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -202,7 +202,7 @@ mxi_file_rs232_open( MX_RECORD *record )
 	static const char fname[] = "mxi_file_rs232_open()";
 
 	MX_RS232 *rs232;
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	int saved_errno;
 	mx_status_type mx_status;
 
@@ -273,7 +273,7 @@ mxi_file_rs232_close( MX_RECORD *record )
 	static const char fname[] = "mxi_file_rs232_close()";
 
 	MX_RS232 *rs232;
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -304,7 +304,7 @@ mxi_file_rs232_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_file_rs232_getchar()";
 
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	int fgetc_value, saved_errno;
 	mx_status_type mx_status;
 
@@ -372,7 +372,7 @@ mxi_file_rs232_putchar( MX_RS232 *rs232, char c )
 {
 	static const char fname[] = "mxi_file_rs232_putchar()";
 
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	int fputc_value, saved_errno;
 	mx_status_type mx_status;
 
@@ -428,7 +428,7 @@ mxi_file_rs232_read( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_file_rs232_read()";
 
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	size_t actual_bytes_read;
 	mx_status_type mx_status;
 
@@ -456,7 +456,7 @@ mxi_file_rs232_write( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_file_rs232_write()";
 
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	size_t actual_bytes_written;
 	mx_status_type mx_status;
 
@@ -482,7 +482,7 @@ mxi_file_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 			"mxi_file_rs232_num_input_bytes_available()";
 
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	int64_t file_size, file_offset, num_bytes_available;
 	int saved_errno;
 	mx_status_type mx_status;
@@ -537,7 +537,7 @@ mxi_file_rs232_discard_unread_input( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_file_rs232_discard_unread_input()";
 
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
@@ -559,7 +559,7 @@ mxi_file_rs232_flush( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_file_rs232_flush()";
 
-	MX_FILE_RS232 *file_rs232;
+	MX_FILE_RS232 *file_rs232 = NULL;
 	int fflush_status, saved_errno;
 	mx_status_type mx_status;
 

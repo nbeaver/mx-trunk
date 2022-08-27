@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2009-2010, 2013, 2015
+ * Copyright 2000-2001, 2003, 2006-2007, 2009-2010, 2013, 2015, 2022
  *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -185,9 +185,9 @@ mxd_ls330_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_ls330_motor_print_motor_structure()";
 
-	MX_MOTOR *motor;
-	MX_LS330_MOTOR *ls330_motor;
-	MX_INTERFACE *port_interface;
+	MX_MOTOR *motor = NULL;
+	MX_LS330_MOTOR *ls330_motor = NULL;
+	MX_INTERFACE *port_interface = NULL;
 	double position, move_deadband;
 	mx_status_type mx_status;
 
@@ -262,10 +262,10 @@ mxd_ls330_motor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_ls330_motor_open()";
 
-	MX_LS330_MOTOR *ls330_motor;
-	MX_INTERFACE *port_interface;
-	MX_RS232 *rs232;
-	MX_GPIB *gpib;
+	MX_LS330_MOTOR *ls330_motor = NULL;
+	MX_INTERFACE *port_interface = NULL;
+	MX_RS232 *rs232 = NULL;
+	MX_GPIB *gpib = NULL;
 	long gpib_address;
 	unsigned long read_terminator, write_terminator;
 	mx_status_type mx_status;
@@ -369,7 +369,7 @@ mxd_ls330_motor_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_ls330_motor_close()";
 
-	MX_LS330_MOTOR *ls330_motor;
+	MX_LS330_MOTOR *ls330_motor = NULL;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
@@ -401,8 +401,8 @@ mxd_ls330_motor_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_ls330_motor_resynchronize()";
 
-	MX_LS330_MOTOR *ls330_motor;
-	MX_INTERFACE *port_interface;
+	MX_LS330_MOTOR *ls330_motor = NULL;
+	MX_INTERFACE *port_interface = NULL;
 	char response[80], banner[40];
 	size_t length;
 	mx_status_type mx_status;
@@ -482,7 +482,7 @@ mxd_ls330_motor_motor_is_busy( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_ls330_motor_motor_is_busy()";
 
-	MX_LS330_MOTOR *ls330_motor;
+	MX_LS330_MOTOR *ls330_motor = NULL;
 	double position, difference;
 	mx_status_type mx_status;
 
@@ -523,7 +523,7 @@ mxd_ls330_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_ls330_motor_move_absolute()";
 
-	MX_LS330_MOTOR *ls330_motor;
+	MX_LS330_MOTOR *ls330_motor = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -549,8 +549,8 @@ mxd_ls330_motor_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_ls330_motor_get_position()";
 
-	MX_LS330_MOTOR *ls330_motor;
-	MX_INTERFACE *port_interface;
+	MX_LS330_MOTOR *ls330_motor = NULL;
+	MX_INTERFACE *port_interface = NULL;
 	char response[40];
 	int num_items;
 	double position;
@@ -596,7 +596,7 @@ mxd_ls330_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_ls330_motor_soft_abort()";
 
-	MX_LS330_MOTOR *ls330_motor;
+	MX_LS330_MOTOR *ls330_motor = NULL;
 	double position;
 	char command[40];
 	mx_status_type mx_status;
@@ -638,9 +638,9 @@ mxd_ls330_motor_command( MX_LS330_MOTOR *ls330_motor,
 {
 	static const char fname[] = "mxd_ls330_motor_command()";
 
-	MX_RECORD *port_record;
+	MX_RECORD *port_record = NULL;
 	long port_address;
-	char *error_code_ptr;
+	char *error_code_ptr = NULL;
 	int error_code, num_items;
 	mx_status_type mx_status;
 

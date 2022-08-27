@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006-2007, 2010, 2015
+ * Copyright 1999, 2001-2002, 2006-2007, 2010, 2015, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -159,8 +159,8 @@ mxd_ortec974_scaler_finish_record_initialization( MX_RECORD *record )
 	static const char fname[]
 		= "mxd_ortec974_scaler_finish_record_initialization()";
 
-	MX_ORTEC974_SCALER *ortec974_scaler;
-	MX_RECORD *ortec974_record;
+	MX_ORTEC974_SCALER *ortec974_scaler = NULL;
+	MX_RECORD *ortec974_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_scaler_finish_record_initialization( record );
@@ -205,8 +205,8 @@ mxd_ortec974_scaler_clear( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_ortec974_scaler_clear()";
 
-	MX_ORTEC974_SCALER *ortec974_scaler;
-	MX_ORTEC974 *ortec974;
+	MX_ORTEC974_SCALER *ortec974_scaler = NULL;
+	MX_ORTEC974 *ortec974 = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -233,8 +233,8 @@ mxd_ortec974_scaler_read( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_ortec974_scaler_read()";
 
-	MX_ORTEC974_SCALER *ortec974_scaler;
-	MX_ORTEC974 *ortec974;
+	MX_ORTEC974_SCALER *ortec974_scaler = NULL;
+	MX_ORTEC974 *ortec974 = NULL;
 	char command[40];
 	char response[40];
 	long data;

@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2007, 2014-2016, 2018, 2020 Illinois Institute of Technology
+ * Copyright 2002-2007, 2014-2016, 2018, 2020, 2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -146,8 +147,8 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxd_network_pulser_finish_record_initialization()";
 
-	MX_PULSE_GENERATOR *pulse_generator;
-	MX_NETWORK_PULSER *network_pulser;
+	MX_PULSE_GENERATOR *pulse_generator = NULL;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_status_type mx_status;
 
 	network_pulser = NULL;
@@ -235,10 +236,10 @@ mxd_network_pulser_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_network_pulser_open()";
 
-	MX_PULSE_GENERATOR *pulse_generator;
-	MX_NETWORK_PULSER *network_pulser;
-	MX_NETWORK_SERVER *network_server;
-	MX_PULSE_GENERATOR_FUNCTION_LIST *pg_flist;
+	MX_PULSE_GENERATOR *pulse_generator = NULL;
+	MX_NETWORK_PULSER *network_pulser = NULL;
+	MX_NETWORK_SERVER *network_server = NULL;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *pg_flist = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -315,7 +316,7 @@ mxd_network_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_busy()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
@@ -344,7 +345,7 @@ mxd_network_pulser_arm( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_arm()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_bool_type arm;
 	mx_status_type mx_status;
 
@@ -373,7 +374,7 @@ mxd_network_pulser_trigger( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_trigger()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_bool_type trigger;
 	mx_status_type mx_status;
 
@@ -403,7 +404,7 @@ mxd_network_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_start()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_bool_type start;
 	mx_status_type mx_status;
 
@@ -432,7 +433,7 @@ mxd_network_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_stop()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_bool_type stop;
 	mx_status_type mx_status;
 
@@ -461,7 +462,7 @@ mxd_network_pulser_abort( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_abort()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_bool_type abort_flag;
 	mx_status_type mx_status;
 
@@ -491,7 +492,7 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_get_parameter()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_status_type mx_status;
 
 	network_pulser = NULL;
@@ -563,7 +564,7 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_set_parameter()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	mx_status_type mx_status;
 
 	network_pulser = NULL;
@@ -631,7 +632,7 @@ mxd_network_pulser_setup( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_setup()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -661,7 +662,7 @@ mxd_network_pulser_get_status( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_get_status()";
 
-	MX_NETWORK_PULSER *network_pulser;
+	MX_NETWORK_PULSER *network_pulser = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 

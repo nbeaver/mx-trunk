@@ -21,7 +21,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2010, 2012-2013, 2016, 2020
+ * Copyright 1999, 2001-2006, 2010, 2012-2013, 2016, 2020, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -151,7 +151,7 @@ mxd_am9513_motor_initialize_driver( MX_DRIVER *driver )
 {
 	static const char fname[] = "mxd_am9513_motor_initialize_driver()";
 
-	MX_RECORD_FIELD_DEFAULTS *field;
+	MX_RECORD_FIELD_DEFAULTS *field = NULL;
 	long num_counters_field_index;
 	long num_counters_varargs_cookie;
 	mx_status_type mx_status;
@@ -231,9 +231,9 @@ mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_am9513_motor_print_structure()";
 
-	MX_MOTOR *motor;
-	MX_AM9513_MOTOR *am9513_motor;
-	MX_INTERFACE *am9513_interface_array;
+	MX_MOTOR *motor = NULL;
+	MX_AM9513_MOTOR *am9513_motor = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
 	long i, num_counters;
 	double position, move_deadband;
 	mx_status_type mx_status;
@@ -327,21 +327,21 @@ mxd_am9513_motor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_am9513_motor_open()";
 
-	MX_MOTOR *motor;
-	MX_AM9513_MOTOR *am9513_motor;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *low_record, *high_record;
-	MX_AM9513 *low_am9513, *high_am9513;
+	MX_MOTOR *motor = NULL;
+	MX_AM9513_MOTOR *am9513_motor = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *low_record  = NULL;
+	MX_RECORD *high_record = NULL;
+	MX_AM9513 *low_am9513  = NULL;
+	MX_AM9513 *high_am9513 = NULL;
 	uint16_t counter_mode_register;
-	long num_counters;
+	long num_counters = 0;
 	int m, n, frequency_scaler_ratio;
 	unsigned long clock_ticks_ulong;
 	uint16_t ticks_to_count_for;
 	double seconds_per_step, external_clock_ticks_per_step;
 	double ulong_max_double;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
 
 	if ( record == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -612,10 +612,10 @@ mxd_am9513_motor_motor_is_busy( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_am9513_motor_motor_is_busy()";
 
-	MX_AM9513_MOTOR *am9513_motor;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_MOTOR *am9513_motor = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	long num_counters;
 	uint8_t am9513_status;
 	int mask, busy;
@@ -776,10 +776,14 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_am9513_motor_move_absolute()";
 
-	MX_AM9513_MOTOR *am9513_motor;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *high_record, *low_record, *this_record;
-	MX_AM9513 *high_am9513, *low_am9513, *this_am9513;
+	MX_AM9513_MOTOR *am9513_motor = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *high_record = NULL;
+	MX_RECORD *low_record  = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *high_am9513 = NULL;
+	MX_AM9513 *low_am9513  = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	int i, j, m, n;
 	long num_counters, relative_steps;
 	unsigned long output_value, mask;
@@ -989,10 +993,10 @@ mxd_am9513_motor_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_am9513_motor_get_position()";
 
-	MX_AM9513_MOTOR *am9513_motor;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *high_record;
-	MX_AM9513 *high_am9513;
+	MX_AM9513_MOTOR *am9513_motor = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *high_record = NULL;
+	MX_AM9513 *high_am9513 = NULL;
 	long num_counters;
 	int n;
 	uint16_t hold_register, step_offset;
@@ -1065,10 +1069,10 @@ mxd_am9513_motor_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_am9513_motor_set_position()";
 
-	MX_AM9513_MOTOR *am9513_motor;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *high_record;
-	MX_AM9513 *high_am9513;
+	MX_AM9513_MOTOR *am9513_motor = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *high_record = NULL;
+	MX_AM9513 *high_am9513 = NULL;
 	long num_counters;
 	int n;
 	mx_status_type mx_status;
@@ -1110,10 +1114,10 @@ mxd_am9513_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_am9513_motor_soft_abort()";
 
-	MX_AM9513_MOTOR *am9513_motor;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_MOTOR *am9513_motor = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	int i, n;
 	long num_counters;
 	mx_status_type mx_status;

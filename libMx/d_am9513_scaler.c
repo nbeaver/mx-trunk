@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2010, 2012
+ * Copyright 1999, 2001-2002, 2004, 2006, 2010, 2012, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -131,7 +131,7 @@ mxd_am9513_scaler_initialize_driver( MX_DRIVER *driver )
 {
 	static const char fname[] = "mxd_am9513_scaler_initialize_driver()";
 
-	MX_RECORD_FIELD_DEFAULTS *field;
+	MX_RECORD_FIELD_DEFAULTS *field = NULL;
 	long num_counters_field_index;
 	long num_counters_varargs_cookie;
 	mx_status_type mx_status;
@@ -218,16 +218,14 @@ mxd_am9513_scaler_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_am9513_scaler_open()";
 
-	MX_AM9513_SCALER *am9513_scaler;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_SCALER *am9513_scaler = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	uint16_t counter_mode_register;
 	mx_bool_type same_chip, use_external;
 	long i, m, n,num_counters;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
 
 	if ( record == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -393,12 +391,10 @@ mxd_am9513_scaler_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_am9513_scaler_close()";
 
-	MX_AM9513_SCALER *am9513_scaler;
-	MX_INTERFACE *am9513_interface_array;
-	long num_counters;
+	MX_AM9513_SCALER *am9513_scaler = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	long num_counters = 0;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
 
 	if ( record == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -429,10 +425,10 @@ mxd_am9513_scaler_clear( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_am9513_scaler_clear()";
 
-	MX_AM9513_SCALER *am9513_scaler;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_SCALER *am9513_scaler = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	long i, n, num_counters;
 	mx_status_type mx_status;
 
@@ -442,12 +438,6 @@ mxd_am9513_scaler_clear( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Prevent GCC from generating warnings about possibly
-	 * uninitialized variables.
-	 */
-
-	this_record = NULL;
-	this_am9513 = NULL;
 	n = 0;
 
 	/* Disarm the counters. */
@@ -528,16 +518,14 @@ mxd_am9513_scaler_overflow_set( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_am9513_scaler_overflow_set()";
 
-	MX_AM9513_SCALER *am9513_scaler;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
-	long num_counters;
+	MX_AM9513_SCALER *am9513_scaler = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
+	long num_counters = 0;
 	uint8_t am9513_status;
 	int mask;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
 
 	mx_status = mxd_am9513_scaler_get_pointers( scaler, &am9513_scaler,
 			&num_counters, &am9513_interface_array, fname );
@@ -562,8 +550,6 @@ mxd_am9513_scaler_overflow_set( MX_SCALER *scaler )
 
 	am9513_status = this_am9513->status_register;
 
-	MX_DEBUG( 2,("%s: am9513_status = 0x%x", fname, am9513_status));
-
 	mask = 1 << am9513_interface_array[ num_counters - 1 ].address;
 
 	if ( am9513_status & mask ) {
@@ -580,10 +566,10 @@ mxd_am9513_scaler_read( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_am9513_scaler_read()";
 
-	MX_AM9513_SCALER *am9513_scaler;
-	MX_INTERFACE *am9513_interface_array;
-	MX_RECORD *this_record;
-	MX_AM9513 *this_am9513;
+	MX_AM9513_SCALER *am9513_scaler = NULL;
+	MX_INTERFACE *am9513_interface_array = NULL;
+	MX_RECORD *this_record = NULL;
+	MX_AM9513 *this_am9513 = NULL;
 	long i, n, num_counters;
 	uint16_t hold_register;
 	unsigned long scaler_value;
@@ -634,15 +620,10 @@ mxd_am9513_scaler_read( MX_SCALER *scaler )
 
 		hold_register = this_am9513->hold_register[n];
 
-		MX_DEBUG( 2,("%s: counter[%ld] hold_register = %hu",
-				fname, n, hold_register ));
-
 		scaler_value = 65536L * scaler_value + hold_register;
 	}
 
 	scaler->raw_value = (long) scaler_value;
-
-	MX_DEBUG( 2,("%s: scaler->raw_value = %ld", fname, scaler->raw_value));
 
 	return MX_SUCCESSFUL_RESULT;
 }

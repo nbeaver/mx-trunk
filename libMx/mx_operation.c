@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2014, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,9 +71,9 @@ mx_operation_get_status( MX_RECORD *op_record,
 {
 	static const char fname[] = "mx_operation_get_status()";
 
-	MX_OPERATION *operation;
-	MX_OPERATION_FUNCTION_LIST *flist;
-	mx_status_type ( *get_status_fn )( MX_OPERATION * );
+	MX_OPERATION *operation = NULL;
+	MX_OPERATION_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *get_status_fn )( MX_OPERATION * ) = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_operation_get_pointers( op_record,
@@ -104,9 +104,9 @@ mx_operation_start( MX_RECORD *op_record )
 {
 	static const char fname[] = "mx_operation_start()";
 
-	MX_OPERATION *operation;
-	MX_OPERATION_FUNCTION_LIST *flist;
-	mx_status_type ( *start_fn )( MX_OPERATION * );
+	MX_OPERATION *operation = NULL;
+	MX_OPERATION_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *start_fn )( MX_OPERATION * ) = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_operation_get_pointers( op_record,
@@ -135,9 +135,9 @@ mx_operation_stop( MX_RECORD *op_record )
 {
 	static const char fname[] = "mx_operation_stop()";
 
-	MX_OPERATION *operation;
-	MX_OPERATION_FUNCTION_LIST *flist;
-	mx_status_type ( *stop_fn )( MX_OPERATION * );
+	MX_OPERATION *operation = NULL;
+	MX_OPERATION_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *stop_fn )( MX_OPERATION * ) = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_operation_get_pointers( op_record,

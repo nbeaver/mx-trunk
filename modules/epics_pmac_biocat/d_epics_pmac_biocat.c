@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2015, 2021 Illinois Institute of Technology
+ * Copyright 2011-2015, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -111,7 +111,7 @@ mxd_epics_pmac_biocat_create_record_structures( MX_RECORD *record )
 		"mxd_epics_pmac_biocat_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -156,7 +156,7 @@ mxd_epics_pmac_biocat_finish_record_initialization( MX_RECORD *record )
 			"mxd_epics_pmac_biocat_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 	MX_CLOCK_TICK current_tick;
 	mx_status_type mx_status;
 
@@ -549,7 +549,7 @@ mxd_epics_pmac_biocat_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_pmac_biocat_move_absolute()";
 
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 	double rqspos_value;
 	MX_CLOCK_TICK current_tick;
 	mx_status_type mx_status;
@@ -585,7 +585,7 @@ mxd_epics_pmac_biocat_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_pmac_biocat_get_position()";
 
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 	double actpos_value;
 	mx_status_type mx_status;
 
@@ -613,7 +613,7 @@ mxd_epics_pmac_biocat_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_pmac_biocat_soft_abort()";
 
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 	int32_t abort_value;
 	mx_status_type mx_status;
 
@@ -641,7 +641,7 @@ mxd_epics_pmac_biocat_positive_limit_hit( MX_MOTOR *motor )
 	static const char fname[] =
 			"mxd_epics_pmac_biocat_positive_limit_hit()";
 
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 	double pslimset_value;
 	mx_status_type mx_status;
 
@@ -674,7 +674,7 @@ mxd_epics_pmac_biocat_negative_limit_hit( MX_MOTOR *motor )
 	static const char fname[] =
 			"mxd_epics_pmac_biocat_negative_limit_hit()";
 
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 	double nglimset_value;
 	mx_status_type mx_status;
 
@@ -707,7 +707,7 @@ mxd_epics_pmac_biocat_raw_home_command( MX_MOTOR *motor )
 	static const char fname[] =
 			"mxd_epics_pmac_biocat_raw_home_command()";
 
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 	long home_value;
 	mx_status_type mx_status;
 
@@ -1090,7 +1090,7 @@ mxd_epics_pmac_biocat_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_pmac_biocat_get_status()";
 
-	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
 	double ampena_value;
 	mx_status_type mx_status;
 

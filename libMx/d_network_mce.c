@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013-2016
+ * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013-2016, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -127,8 +127,8 @@ mxd_network_mce_create_record_structures( MX_RECORD *record )
 	static const char fname[]
 		= "mxd_network_mce_create_record_structures()";
 
-	MX_MCE *mce;
-	MX_NETWORK_MCE *network_mce;
+	MX_MCE *mce = NULL;
+	MX_NETWORK_MCE *network_mce = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -136,14 +136,14 @@ mxd_network_mce_create_record_structures( MX_RECORD *record )
 
 	if ( mce == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_MCE structure." );
+		"Cannot allocate memory for MX_MCE structure." );
 	}
 
 	network_mce = (MX_NETWORK_MCE *) malloc( sizeof(MX_NETWORK_MCE) );
 
 	if ( network_mce == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_NETWORK_MCE structure." );
+		"Cannot allocate memory for MX_NETWORK_MCE structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -165,8 +165,8 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 	static const char fname[]
 		= "mxd_network_mce_finish_record_initialization()";
 
-	MX_MCE *mce;
-	MX_NETWORK_MCE *network_mce;
+	MX_MCE *mce = NULL;
+	MX_NETWORK_MCE *network_mce = NULL;
 	mx_status_type mx_status;
 
 	network_mce = NULL;
@@ -266,7 +266,7 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_network_mce_delete_record( MX_RECORD *record )
 {
-	MX_MCE *mce;
+	MX_MCE *mce = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -293,8 +293,8 @@ mxd_network_mce_read( MX_MCE *mce )
 {
 	static const char fname[] = "mxd_network_mce_read()";
 
-	MX_NETWORK_MCE *network_mce;
-	MX_MOTOR *selected_motor;
+	MX_NETWORK_MCE *network_mce = NULL;
+	MX_MOTOR *selected_motor = NULL;
 	double motor_scale, scaled_encoder_value;
 	long dimension_array[1];
 	long i, num_values;
@@ -489,8 +489,9 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	char **motor_name_array;
 	long dimension_array[2];
 	size_t size_array[2];
-	MX_RECORD *list_head_record, *current_record;
-	MX_NETWORK_MOTOR *network_motor;
+	MX_RECORD *list_head_record = NULL;
+	MX_RECORD *current_record = NULL;
+	MX_NETWORK_MOTOR *network_motor = NULL;
 	char *remote_motor_name;
 	char *non_mx_motor_name;
 	mx_status_type mx_status;
@@ -723,7 +724,7 @@ mxd_network_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 {
 	static const char fname[] = "mxd_network_mce_connect_mce_to_motor()";
 
-	MX_NETWORK_MCE *network_mce;
+	MX_NETWORK_MCE *network_mce = NULL;
 	long dimension_array[1];
 	mx_status_type mx_status;
 
@@ -789,7 +790,7 @@ mxd_network_mce_get_parameter( MX_MCE *mce )
 {
 	static const char fname[] = "mxd_network_mce_get_parameter()";
 
-	MX_NETWORK_MCE *network_mce;
+	MX_NETWORK_MCE *network_mce = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -845,7 +846,7 @@ mxd_network_mce_set_parameter( MX_MCE *mce )
 {
 	static const char fname[] = "mxd_network_mce_set_parameter()";
 
-	MX_NETWORK_MCE *network_mce;
+	MX_NETWORK_MCE *network_mce = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
