@@ -1,7 +1,7 @@
 #
 # Test of RockSeed RS310P programmable 30V/10A DC Switching Power Supply.
 #
-rs310p_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0 0x0 0 0x0 /dev/tty.usbserial-14130
+rs310p_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0 0x0 0 0x0 /dev/ttyUSB0
 rs310p interface modbus modbus_rtu "" "" 0x1 rs310p_rs232 0 0 0
 #
 power_status device digital_input modbus_dinput "" "" 0 rs310p 0x1 1 0x3
