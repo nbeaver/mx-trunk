@@ -356,7 +356,7 @@
 
 #include "d_als_dewar_positioner.h"
 #include "d_coordinated_angle.h"
-#include "d_dtu_tilt.h"
+#include "d_dtu_stage.h"
 
 #include "d_compumotor_linear.h"
 
@@ -2602,12 +2602,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_coordinated_angle_num_record_fields,
 				&mxd_coordinated_angle_rfield_def_ptr},
 
-{"dtu_tilt",          MXT_MTR_DTU_TILT, MXC_MOTOR, MXR_DEVICE,
-				&mxd_dtu_tilt_record_function_list,
+{"dtu_stage",          MXT_MTR_DTU_STAGE, MXC_MOTOR, MXR_DEVICE,
+				&mxd_dtu_stage_record_function_list,
 				NULL,
-				&mxd_dtu_tilt_motor_function_list,
-				&mxd_dtu_tilt_num_record_fields,
-				&mxd_dtu_tilt_rfield_def_ptr},
+				&mxd_dtu_stage_motor_function_list,
+				&mxd_dtu_stage_num_record_fields,
+				&mxd_dtu_stage_rfield_def_ptr},
 
 {"compumotor_lin", MXT_MTR_COMPUMOTOR_LINEAR, MXC_MOTOR, MXR_DEVICE,
 				&mxd_compumotor_linear_record_function_list,
