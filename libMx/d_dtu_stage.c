@@ -211,6 +211,8 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mx_motor_soft_abort( dtu_stage->x_motor_record );
 
+		MXW_UNUSED(mx_status2);
+
 		return mx_status;
 	}
 
