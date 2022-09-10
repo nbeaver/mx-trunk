@@ -78,6 +78,7 @@
 #include "mx_area_detector.h"
 #include "mx_waveform_input.h"
 #include "mx_waveform_output.h"
+#include "mx_clock.h"
 
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
@@ -386,6 +387,7 @@
 #include "d_bluice_timer.h"
 #include "d_fg_scaler.h"
 #include "d_area_detector_timer.h"
+#include "d_clock_timer.h"
 
 #include "d_network_relay.h"
 #include "d_generic_relay.h"
@@ -2955,6 +2957,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_area_detector_timer_timer_function_list,
 				&mxd_area_detector_timer_num_record_fields,
 				&mxd_area_detector_timer_rfield_def_ptr},
+
+{"clock_timer",         MXT_TIM_CLOCK, MXC_TIMER,      MXR_DEVICE,
+				&mxd_clock_timer_record_function_list,
+				NULL,
+				&mxd_clock_timer_timer_function_list,
+				&mxd_clock_timer_num_record_fields,
+				&mxd_clock_timer_rfield_def_ptr},
 
 {"soft_amplifier", MXT_AMP_SOFTWARE,  MXC_AMPLIFIER,      MXR_DEVICE,
 				&mxd_soft_amplifier_record_function_list,

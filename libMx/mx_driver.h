@@ -623,7 +623,7 @@ extern "C" {
 #define MXT_TIM_BLUICE_DHS		80018
 
 #define MXT_TIM_AREA_DETECTOR		80022
-#define MXT_TIM_HIGH_RESOLUTION_TIME	80023
+#define MXT_TIM_CLOCK			80023
 
 /* --- Amplifier types --- */
 

@@ -1,1 +1,2 @@
 mxclock device clock win32_system_clock "" ""
+timer1  device timer clock_timer "" "" mxclock
