@@ -154,7 +154,7 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 
 	MX_DTU_STAGE *dtu_stage = NULL;
 	double alpha_destination, delta_l, phi, delta_x, delta_y;
-	mx_status_type mx_status, mx_status2;
+	mx_status_type mx_status;
 
 	mx_status = mxd_dtu_stage_get_pointers( motor, &dtu_stage, fname );
 
@@ -180,7 +180,7 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 	MX_DEBUG(-2,("%s: moving '%s' to %f",
 			fname, motor->record->name, alpha_destination));
 #endif
-	mx_status = mx_get_double_variable( dtu_stage->alpha_motor_record,
+	mx_status = mx_get_double_variable( dtu_stage->delta_l_record,
 								&delta_l );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -199,19 +199,29 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 	delta_y = delta_l - cos( MX_RADIANS_PER_DEGREE * alpha_destination )
 								* delta_l;
 
-	mx_status = mx_motor_move_relative( dtu_stage->x_motor_record,
-						delta_x, 0 );
+	/*----*/
+
+	mx_status = mx_motor_move_absolute( dtu_stage->alpha_motor_record,
+						alpha_destination, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_status = mx_motor_move_relative( dtu_stage->x_motor_record,
+						delta_x, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		(void) mx_motor_soft_abort( dtu_stage->alpha_motor_record );
+
+		return mx_status;
+	}
 
 	mx_status = mx_motor_move_relative( dtu_stage->y_motor_record,
 						delta_y, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_status2 = mx_motor_soft_abort( dtu_stage->x_motor_record );
-
-		MXW_UNUSED(mx_status2);
+		(void) mx_motor_soft_abort( dtu_stage->alpha_motor_record );
+		(void) mx_motor_soft_abort( dtu_stage->x_motor_record );
 
 		return mx_status;
 	}
