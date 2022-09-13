@@ -30,6 +30,9 @@ MX_RECORD_FUNCTION_LIST mxd_dtu_stage_record_function_list = {
 	NULL,
 	mxd_dtu_stage_create_record_structures,
 	mx_motor_finish_record_initialization,
+	NULL,
+	NULL,
+	mxd_dtu_stage_open
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_dtu_stage_motor_function_list = {
@@ -148,12 +151,52 @@ mxd_dtu_stage_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_dtu_stage_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_dtu_stage_open()";
+
+	MX_MOTOR *motor = NULL;
+	MX_DTU_STAGE *dtu_stage = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	mx_status = mxd_dtu_stage_get_pointers( motor, &dtu_stage, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mx_strcasecmp( "alpha", dtu_stage->pseudomotor_name ) == 0 ) {
+		dtu_stage->pseudomotor_type = MXT_DTU_STAGE_ALPHA;
+	} else
+	if ( mx_strcasecmp( "phi", dtu_stage->pseudomotor_name ) == 0 ) {
+		dtu_stage->pseudomotor_type = MXT_DTU_STAGE_PHI;
+	} else {
+		dtu_stage->pseudomotor_type = 0;
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The pseudomotor type '%s' for motor '%s' is illegal.  "
+		"The legal pseudomotor types are 'alpha' and 'phi'.",
+			dtu_stage->pseudomotor_name, record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_dtu_stage_move_absolute()";
 
 	MX_DTU_STAGE *dtu_stage = NULL;
-	double alpha_destination, delta_l, phi, delta_x, delta_y;
+	double delta_l, alpha, phi, delta_x, delta_y;
+	double alpha_destination, phi_destination;
+	double pseudomotor_destination;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dtu_stage_get_pointers( motor, &dtu_stage, fname );
@@ -186,6 +229,12 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mx_motor_get_position( dtu_stage->alpha_motor_record,
+								&alpha );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mx_motor_get_position( dtu_stage->phi_motor_record, &phi );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -193,16 +242,37 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 
 	/*----*/
 
+	pseudomotor_destination = motor->raw_destination.analog;
+
+	switch( dtu_stage->pseudomotor_type ) {
+	case MXT_DTU_STAGE_ALPHA:
+		alpha_destination = pseudomotor_destination;
+		phi_destination = phi;
+		break;
+	case MXT_DTU_STAGE_PHI:
+		alpha_destination = alpha;
+		phi_destination = pseudomotor_destination;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The pseudomotor type '%s' for motor '%s' is illegal.  "
+		"The legal pseudomotor types are 'alpha' and 'phi'.",
+			dtu_stage->pseudomotor_name, motor->record->name );
+		break;
+	}
+
+	/*----*/
+
 	delta_x = sin( MX_RADIANS_PER_DEGREE * alpha_destination )
-			* delta_l * cos( MX_RADIANS_PER_DEGREE * phi );
+		* delta_l * cos( MX_RADIANS_PER_DEGREE * phi_destination );
 
 	delta_y = delta_l - cos( MX_RADIANS_PER_DEGREE * alpha_destination )
 								* delta_l;
 
 	/*----*/
 
-	mx_status = mx_motor_move_absolute( dtu_stage->alpha_motor_record,
-						alpha_destination, 0 );
+	mx_status = mx_motor_move_absolute( motor->record,
+					pseudomotor_destination, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -211,7 +281,7 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 						delta_x, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		(void) mx_motor_soft_abort( dtu_stage->alpha_motor_record );
+		(void) mx_motor_soft_abort( motor->record );
 
 		return mx_status;
 	}
@@ -220,7 +290,7 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 						delta_y, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		(void) mx_motor_soft_abort( dtu_stage->alpha_motor_record );
+		(void) mx_motor_soft_abort( motor->record );
 		(void) mx_motor_soft_abort( dtu_stage->x_motor_record );
 
 		return mx_status;
@@ -235,6 +305,7 @@ mxd_dtu_stage_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_dtu_stage_get_position()";
 
 	MX_DTU_STAGE *dtu_stage = NULL;
+	MX_RECORD *raw_motor_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dtu_stage_get_pointers( motor, &dtu_stage, fname );
@@ -242,8 +313,23 @@ mxd_dtu_stage_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_position( dtu_stage->alpha_motor_record,
-						&(motor->raw_position.analog) );
+	switch( dtu_stage->pseudomotor_type ) {
+	case MXT_DTU_STAGE_ALPHA:
+		raw_motor_record = dtu_stage->alpha_motor_record;
+		break;
+	case MXT_DTU_STAGE_PHI:
+		raw_motor_record = dtu_stage->phi_motor_record;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The pseudomotor type '%s' for motor '%s' is illegal.  "
+		"The legal pseudomotor types are 'alpha' and 'phi'.",
+			dtu_stage->pseudomotor_name, motor->record->name );
+		break;
+	}
+
+	mx_status = mx_motor_get_position( raw_motor_record,
+					&(motor->raw_position.analog) );
 
 	return mx_status;
 }

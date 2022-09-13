@@ -311,14 +311,18 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 
 	/* For single shot modes, enable the external trigger. */
 
+#if 0
 	if ( pulser->trigger_mode & MXF_DEV_ONE_SHOT_TRIGGER ) {
+#endif
 
 		mx_status = mxi_dg645_command( dg645, "*TRG",
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+#if 0
 	}
+#endif
 
 	dg645->armed = TRUE;
 
