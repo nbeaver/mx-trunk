@@ -95,6 +95,7 @@ extern "C" {
 
 #define MXSF_MTR_ERROR				0x80000000
 
+/* MXSF_MTR_ERROR_BITMASK is a bitmask of status flags that reflect errors. */
 
 #define MXSF_MTR_ERROR_BITMASK	\
   ( MXSF_MTR_POSITIVE_LIMIT_HIT | MXSF_MTR_NEGATIVE_LIMIT_HIT \
@@ -106,6 +107,14 @@ extern "C" {
   | MXSF_MTR_DEVICE_ACTION_FAILED | MXSF_MTR_DISABLED_BY_MX \
   | MXSF_MTR_TIMED_OUT | MXSF_MTR_WOULD_EXCEED_LIMIT \
   | MXSF_MTR_ILLEGAL_ARGUMENT | MXSF_MTR_ERROR )
+
+/* MXSF_MTR_IDLE_BITMASK is a bitmask of status flags that may be on even
+ * if the motor is idle.
+ */
+
+#define MXSF_MTR_IDLE_BITMASK \
+  ( MXSF_MTR_HOME_SEARCH_SUCCEEDED | MXSF_MTR_AT_HOME_SWITCH \
+  | MXSF_MTR_ENCODER_AVAILABLE )
 
 /* Values for the 'home_search_type' field. */
 
@@ -1120,6 +1129,9 @@ MX_API mx_status_type mx_motor_get_extended_status( MX_RECORD *motor_record,
 MX_API mx_status_type mx_motor_get_traditional_status( MX_MOTOR *motor );
 
 MX_API void           mx_motor_set_traditional_status( MX_MOTOR *motor );
+
+MX_API mx_status_type mx_motor_is_idle( MX_RECORD *motor_record,
+					mx_bool_type *motor_is_idle );
 
 MX_API mx_status_type mx_motor_get_parameter( MX_RECORD *motor_record,
 						long parameter_type );

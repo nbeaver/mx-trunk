@@ -194,6 +194,8 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_dtu_stage_move_absolute()";
 
 	MX_DTU_STAGE *dtu_stage = NULL;
+	MX_RECORD *raw_motor_record = NULL;
+	mx_bool_type motors_are_idle;
 	double delta_l, alpha, phi, delta_x, delta_y;
 	double alpha_destination, phi_destination;
 	double pseudomotor_destination;
@@ -206,28 +208,31 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 
 	/* Verify that none of the motors are moving. */
 
-	mx_status = mxd_dtu_stage_get_status( motor );
+	mx_status = mx_motor_is_idle( motor->record, &motors_are_idle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->status != 0 ) {
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: motor '%s', motors_are_idle = %d",
+		fname, motor->record->name, motors_are_idle ));
+#endif
+
+	if ( motors_are_idle == FALSE ) {
 		return mx_error( MXE_NOT_READY, fname,
 		"One or more of the  motors used by tilt angle '%s' are "
 		"either moving or in an error state.", motor->record->name );
 	}
 
-	alpha_destination = motor->raw_destination.analog;
-
-#if MXD_DTU_STAGE_DEBUG
-	MX_DEBUG(-2,("%s: moving '%s' to %f",
-			fname, motor->record->name, alpha_destination));
-#endif
 	mx_status = mx_get_double_variable( dtu_stage->delta_l_record,
 								&delta_l );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: delta_l = %f", fname, delta_l));
+#endif
 
 	mx_status = mx_motor_get_position( dtu_stage->alpha_motor_record,
 								&alpha );
@@ -240,16 +245,28 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: motor type %lu, alpha = %f, phi = %f",
+		fname, dtu_stage->pseudomotor_type, alpha, phi ));
+#endif
+
 	/*----*/
 
 	pseudomotor_destination = motor->raw_destination.analog;
 
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: pseudomotor_destination = %f",
+		fname, pseudomotor_destination));
+#endif
+
 	switch( dtu_stage->pseudomotor_type ) {
 	case MXT_DTU_STAGE_ALPHA:
+		raw_motor_record = dtu_stage->alpha_motor_record;
 		alpha_destination = pseudomotor_destination;
 		phi_destination = phi;
 		break;
 	case MXT_DTU_STAGE_PHI:
+		raw_motor_record = dtu_stage->phi_motor_record;
 		alpha_destination = alpha;
 		phi_destination = pseudomotor_destination;
 		break;
@@ -261,6 +278,11 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 		break;
 	}
 
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: alpha_destination = %f, phi_destination = %f",
+		fname, alpha_destination, phi_destination));
+#endif
+
 	/*----*/
 
 	delta_x = sin( MX_RADIANS_PER_DEGREE * alpha_destination )
@@ -269,9 +291,20 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 	delta_y = delta_l - cos( MX_RADIANS_PER_DEGREE * alpha_destination )
 								* delta_l;
 
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: delta_x = %f, delta_y = %f",
+		fname, delta_x, delta_y));
+#endif
+
 	/*----*/
 
-	mx_status = mx_motor_move_absolute( motor->record,
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,
+	("%s: raw_motor_record = '%s', pseudomotor_destination = %f",
+		fname, raw_motor_record->name, pseudomotor_destination));
+#endif
+
+	mx_status = mx_motor_move_absolute( raw_motor_record,
 					pseudomotor_destination, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -295,6 +328,11 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 
 		return mx_status;
 	}
+
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s complete for motor '%s'",
+			fname, motor->record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -330,6 +368,11 @@ mxd_dtu_stage_get_position( MX_MOTOR *motor )
 
 	mx_status = mx_motor_get_position( raw_motor_record,
 					&(motor->raw_position.analog) );
+
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: raw motor '%s' position = %f",
+		fname, raw_motor_record->name, motor->raw_position.analog));
+#endif
 
 	return mx_status;
 }
@@ -369,6 +412,11 @@ mxd_dtu_stage_get_status( MX_MOTOR *motor )
 	unsigned long x_status, y_status, alpha_status, phi_status;
 	mx_status_type mx_status;
 
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s invoked for pseudomotor '%s'",
+		fname, motor->record->name ));
+#endif
+
 	mx_status = mxd_dtu_stage_get_pointers( motor, &dtu_stage, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -380,21 +428,41 @@ mxd_dtu_stage_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: alpha motor '%s' status = %#lx",
+		fname, dtu_stage->alpha_motor_record->name, alpha_status));
+#endif
+
 	mx_status = mx_motor_get_status( dtu_stage->x_motor_record, &x_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: x motor '%s' status = %#lx",
+		fname, dtu_stage->x_motor_record->name, x_status));
+#endif
 
 	mx_status = mx_motor_get_status( dtu_stage->y_motor_record, &y_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: y motor '%s' status = %#lx",
+		fname, dtu_stage->y_motor_record->name, y_status));
+#endif
+
 	mx_status = mx_motor_get_status( dtu_stage->phi_motor_record,
 							&phi_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_DTU_STAGE_DEBUG
+	MX_DEBUG(-2,("%s: phi motor '%s' status = %#lx",
+		fname, dtu_stage->phi_motor_record->name, phi_status));
+#endif
 
 	if ( (x_status & MXSF_MTR_IS_BUSY)
 		|| (y_status & MXSF_MTR_IS_BUSY)
@@ -415,7 +483,7 @@ mxd_dtu_stage_get_status( MX_MOTOR *motor )
 	}
 
 #if MXD_DTU_STAGE_DEBUG
-	MX_DEBUG(-2,("%s: tilt motor '%s' status = %#lx",
+	MX_DEBUG(-2,("%s: pseudomotor '%s' status = %#lx",
 		fname, motor->record->name, motor->status ));
 #endif
 

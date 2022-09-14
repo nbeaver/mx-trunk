@@ -1941,7 +1941,6 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 		use_same_limit_direction = FALSE;
 		use_two_moves = TRUE;
 		use_limit_switch_as_home_switch = FALSE;
-		break;
 	case MXHS_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 		use_same_limit_direction = TRUE;
 		use_two_moves = FALSE;
@@ -2125,7 +2124,7 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*----*/
+/*-----------------------------------------------------------------------*/
 
 static mx_status_type
 mxp_motor_home_halfway_between_limit_switches( MX_RECORD *motor_record,
@@ -2299,7 +2298,7 @@ mxp_motor_home_halfway_between_limit_switches( MX_RECORD *motor_record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*----*/
+/*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_motor_home_search( MX_RECORD *motor_record,
@@ -2383,7 +2382,7 @@ mx_motor_home_search( MX_RECORD *motor_record,
 	return mx_status;
 }
 
-/*----*/
+/*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_motor_get_limit_switch_as_home_switch( MX_RECORD *motor_record,
@@ -2414,7 +2413,7 @@ mx_motor_get_limit_switch_as_home_switch( MX_RECORD *motor_record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*----*/
+/*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_motor_set_limit_switch_as_home_switch( MX_RECORD *motor_record,
@@ -2450,6 +2449,8 @@ mx_motor_zero_position_value( MX_RECORD *motor_record )
 
 	return status;
 }
+
+/*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_motor_constant_velocity_move( MX_RECORD *motor_record, long direction )
@@ -2488,6 +2489,8 @@ mx_motor_constant_velocity_move( MX_RECORD *motor_record, long direction )
 
 	return status;
 }
+
+/*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_motor_get_traditional_status( MX_MOTOR *motor )
@@ -2603,6 +2606,8 @@ mx_motor_set_traditional_status( MX_MOTOR *motor )
 	return;
 }
 		
+/*-----------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_motor_get_status( MX_RECORD *motor_record,
 			unsigned long *motor_status )
@@ -2702,6 +2707,8 @@ mx_motor_get_status( MX_RECORD *motor_record,
 
 	return mx_status;
 }
+
+/*-----------------------------------------------------------------------*/
 
 #define MXP_MOTOR_EXTENDED_STATUS_FORMAT   "%.*e %lx"
 
@@ -2869,6 +2876,43 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 	}
 	if ( motor_status != NULL ) {
 		*motor_status = motor->status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_motor_is_idle( MX_RECORD *motor_record,
+		mx_bool_type *motor_is_idle )
+{
+	static const char fname[] = "mx_motor_is_idle()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *fl_ptr;
+	unsigned long motor_status, idle_status_test;
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record,
+						&motor, &fl_ptr, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for motor '%s'.", fname, motor_record->name));
+
+	mx_status = mx_motor_get_status( motor_record, &motor_status );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	idle_status_test = motor_status & ( ! MXSF_MTR_IDLE_BITMASK );
+
+	if ( idle_status_test == 0 ) {
+		*motor_is_idle = TRUE;
+	} else {
+		*motor_is_idle = FALSE;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
