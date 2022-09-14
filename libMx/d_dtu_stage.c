@@ -277,8 +277,8 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_move_relative( dtu_stage->x_motor_record,
-						delta_x, 0 );
+	mx_status = mx_motor_move_absolute( dtu_stage->x_motor_record,
+								delta_x, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_motor_soft_abort( motor->record );
@@ -286,8 +286,8 @@ mxd_dtu_stage_move_absolute( MX_MOTOR *motor )
 		return mx_status;
 	}
 
-	mx_status = mx_motor_move_relative( dtu_stage->y_motor_record,
-						delta_y, 0 );
+	mx_status = mx_motor_move_absolute( dtu_stage->y_motor_record,
+								delta_y, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_motor_soft_abort( motor->record );
