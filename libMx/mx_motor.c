@@ -3150,8 +3150,6 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 		motor->parameter_type));
 
 	switch( motor->parameter_type ) {
-	case MXLV_MTR_SPEED:
-	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_CURRENT_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
@@ -3195,6 +3193,14 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 
 	case MXLV_MTR_EXTRA_GAIN:
 		motor->extra_gain = 0.0;
+		break;
+
+	case MXLV_MTR_SPEED:
+		motor->raw_speed = 0.0;
+		break;
+
+	case MXLV_MTR_BASE_SPEED:
+		motor->raw_base_speed = 0.0;
 		break;
 
 	case MXLV_MTR_ACCELERATION_TYPE:
@@ -3702,51 +3708,11 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_SPEED:
-		if ( motor->raw_speed > motor->raw_maximum_speed ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Requested raw speed %g for motor '%s' is "
-				"greater than the raw maximum speed of %g.",
-				motor->raw_speed, motor->record->name,
-				motor->raw_maximum_speed );
-		}
-		if ( motor->raw_speed < motor->raw_base_speed ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Requested raw speed %g for motor '%s' is "
-				"less than the current raw base speed "
-				"of %g.",
-				motor->raw_speed, motor->record->name,
-				motor->raw_base_speed );
-		}
-		if ( motor->raw_speed < 0.0 ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Requested raw speed %g for motor '%s' is "
-				"less than zero.  Raw motor speeds must be"
-				"non-negative numbers.",
-				motor->raw_speed, motor->record->name );
-		}
+		motor->raw_speed = 0.0;
 		break;
+
 	case MXLV_MTR_BASE_SPEED:
-		if ( motor->raw_base_speed > motor->raw_maximum_speed ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Requested raw base speed %g for motor '%s' is "
-				"greater than the raw maximum speed of %g.",
-				motor->raw_base_speed, motor->record->name,
-				motor->raw_maximum_speed );
-		}
-		if ( motor->raw_base_speed > motor->raw_speed ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Requested raw base speed %g for motor '%s' is "
-				"less than the current raw speed of %g.",
-				motor->raw_base_speed, motor->record->name,
-				motor->raw_speed );
-		}
-		if ( motor->raw_base_speed < 0.0 ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Requested raw base speed %g for motor '%s' is "
-				"less than zero.  Raw motor speeds must be"
-				"non-negative numbers.",
-				motor->raw_base_speed, motor->record->name );
-		}
+		motor->raw_base_speed = 0.0;
 		break;
 
 	case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
