@@ -27,6 +27,7 @@
 extern "C" {
 #endif
 
+#include "mx_time.h"
 #include "mx_hrt.h"
 
 /* The following definitions are for general timing debugging. */
