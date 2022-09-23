@@ -363,7 +363,9 @@ mxi_dante_filter_thread_fn( MX_THREAD *filter_thread, void *args )
 	BOOL pipe_status;
 	mx_status_type mx_status;
 
+#if 0
 	mx_breakpoint();
+#endif
 
 	dante = (MX_DANTE *) args;
 

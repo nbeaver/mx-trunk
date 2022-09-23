@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2020-2021 Illinois Institute of Technology
+ * Copyright 2020-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,8 @@ extern "C" {
 /* The following flags are used by the 'dante_mca_flags' field. */
 
 #define MXF_DANTE_MCA_VALIDATE_CONFIGURATION	0x10
+
+#define MXF_DANTE_MCA_ALLOW_CALLID_ZERO		0x1000
 
 #define MXF_DANTE_MCA_TRACE_CALLS		0x10000
 

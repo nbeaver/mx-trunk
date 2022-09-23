@@ -296,6 +296,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 #if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -996,8 +997,10 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	unsigned long i;
 	mx_status_type mx_status;
 
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_TIMING configure_measurement;
 	MX_HRT_TIMING start_measurement;
+#endif
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
 						&dante_mca, &dante, fname );
@@ -1022,7 +1025,15 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	 * sequence has completed.
 	 */
 
+#if 1
+	MX_DEBUG(-2,("%s: before call to mxd_dante_mca_stop()", fname));
+#endif
+
 	mx_status = mxd_dante_mca_stop( mca );
+
+#if 1
+	MX_DEBUG(-2,("%s: after call to mxd_dante_mca_stop()", fname));
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1031,12 +1042,26 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	/* Configure the MCA for 'normal' mode. */
 
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_START( configure_measurement );
+#endif
+
+#if 1
+	MX_DEBUG(-2,
+	    ("%s: before call to mxd_dante_mca_configure()", fname));
+#endif
 
 	mx_status = mxd_dante_mca_configure( dante_mca, NULL );
 
+#if 1
+	MX_DEBUG(-2,
+	    ("%s: after call to mxd_dante_mca_configure()", fname));
+#endif
+
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_END( configure_measurement );
 	MX_HRT_RESULTS( configure_measurement, fname, "configure" );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1053,48 +1078,65 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 		dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
-#if MXD_DANTE_MCA_TRACE_CALLS
+#if 1 || MXD_DANTE_MCA_TRACE_CALLS
 		fprintf( stderr, "%s: start( '%s', %f, %ld ) = ",
 			fname, dante_mca->identifier,
 			mca->preset_real_time,
 			mca->current_num_channels );
 #endif
+
+#if MXD_DANTE_MCA_DEBUG_TIMING
 		MX_HRT_START( start_measurement );
+#endif
 
 		call_id = start( dante_mca->identifier,
 				mca->preset_real_time, 
 				mca->current_num_channels );
 
+#if MXD_DANTE_MCA_DEBUG_TIMING
 		MX_HRT_END( start_measurement );
 		MX_HRT_RESULTS( start_measurement, fname,
 				"start(), i = %lu", i );
+#endif
 
-#if MXD_DANTE_MCA_TRACE_CALLS
+#if 1 || MXD_DANTE_MCA_TRACE_CALLS
 		fprintf( stderr, "call_id %lu\n", call_id );
 #endif
 
 		if ( call_id != 0 )
 			break;
 
-		mx_msleep( dante_mca->attempt_delay_ms );
-	}
+		if ( dante_mca->dante_mca_flags
+				& MXF_DANTE_MCA_ALLOW_CALLID_ZERO ) {
+		    mx_warning(
+			"start( '%s', %f, %lu ) for MCA '%s'.  returned "
+			"a call_id of 0.  The Dante API manual says this "
+			"is an error, but we are continuing anyway.",
+				dante_mca->identifier,
+				mca->preset_real_time,
+				mca->current_num_channels,
+				mca->record->name );
 
-	if ( call_id == 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"start() returned a 'call_id == 0 ' error for MCA '%s'.  "
-		"We attempted to run start() %lu times.  "
-		"This means that 'something' is wrong with the parameters "
-		"passed to start().  Those parameters were\n"
-		"    dante_mca->identifier = '%s'\n"
-		"    mca->preset_real_time = %f\n"
-		"    mca->current_num_channels = %lu "
-		"    dante_mca->total_num_measurements = %lu",
+		    break;     /* Break out of the for( i ) loop. */
+		} else {
+		    return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		    "start() returned a 'call_id == 0 ' error for MCA '%s'.  "
+		    "We attempted to run start() %lu times.  "
+		    "This means that 'something' is wrong with the parameters "
+		    "passed to start().  Those parameters were\n"
+		    "    dante_mca->identifier = '%s'\n"
+		    "    mca->preset_real_time = %f\n"
+		    "    mca->current_num_channels = %lu "
+		    "    dante_mca->total_num_measurements = %lu",
 			mca->record->name,
 			dante_mca->max_attempts,
 			dante_mca->identifier,
 			mca->preset_real_time,
 			mca->current_num_channels,
 			dante_mca->total_num_measurements );
+		}
+
+		mx_msleep( dante_mca->attempt_delay_ms );
 	}
 
 	if ( i > 0 ) {
@@ -1195,7 +1237,9 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	bool dante_error_status;
 	mx_status_type mx_status;
 
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_TIMING stop_measurement;
+#endif
 
 #if 0
 	MX_HRT_TIMING wait_measurement;
@@ -1219,12 +1263,16 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	fprintf( stderr, "%s: stop( '%s' ) = ", fname, dante_mca->identifier );
 #endif
 
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_START( stop_measurement );
+#endif
 
 	call_id = stop( dante_mca->identifier );
 
+#if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_END( stop_measurement );
 	MX_HRT_RESULTS( stop_measurement, fname, "stop" );
+#endif
 
 #if MXD_DANTE_MCA_TRACE_CALLS
 	fprintf( stderr, "call_id %lu\n", call_id );
@@ -1400,7 +1448,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 		fname, stats.pup_notf1_value, stats.reset_counter_value );
 #endif
 
-#if 1
+#if 0
 	{
 		int i;
 		unsigned long data_value;
