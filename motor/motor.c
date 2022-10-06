@@ -124,6 +124,7 @@ int allow_scan_database_updates;
 int motor_has_unsaved_scans;
 int motor_exit_save_policy;
 int motor_install_signal_handlers;
+int motor_requested_interrupt_on;
 
 int motor_header_prompt_on;
 int motor_overwrite_on;
@@ -175,6 +176,20 @@ wait_at_exit_fn( void )
 {
 	fprintf( stderr, "Press any key to exit...\n" );
 	mx_getch();
+}
+
+/*------------------------------------------------------------------------*/
+
+static int
+motor_ignore_interrupt_fn( void )
+{
+	/* If selected, 'mxmotor' ignores any attempt to send it direct
+	 * user interrupts.  This is only usually necessary if we are
+	 * running as a single process MX system where the running copy
+	 * of 'mxmotor' is running off of a server database.
+	 */
+
+	return MXF_USER_INT_NONE;
 }
 
 /*------------------------------------------------------------------------*/
@@ -270,6 +285,7 @@ motor_main( int argc, char *argv[] )
 	motor_exit_save_policy = EXIT_WITH_PROMPT;
 	run_startup_scripts = TRUE;
 	motor_install_signal_handlers = TRUE;
+	motor_requested_interrupt_on = TRUE;
 
 	motor_default_precision = 8;
 
@@ -291,7 +307,7 @@ motor_main( int argc, char *argv[] )
 	error_flag = FALSE;
 
 	while ( ( c = getopt(argc, argv,
-		"aA:d:DF:f:Hg:iJNnP:p:q:S:s:tT:uVwWY:xz") ) != -1)
+		"aA:d:DF:f:Hg:IiJNnP:p:q:S:s:tT:uVwWY:xz") ) != -1)
 	{
 		switch (c) {
 		case 'a':
@@ -322,6 +338,9 @@ motor_main( int argc, char *argv[] )
 			break;
 		case 'H':
 			motor_install_signal_handlers = FALSE;
+			break;
+		case 'I':
+			motor_requested_interrupt_on = FALSE;
 			break;
 		case 'i':
 			run_startup_scripts = FALSE;
@@ -433,6 +452,12 @@ motor_main( int argc, char *argv[] )
 		fflush( stderr );
 
 		atexit( wait_at_exit_fn );
+	}
+
+	if ( motor_requested_interrupt_on ) {
+		mx_set_user_interrupt_function( NULL );
+	} else {
+		mx_set_user_interrupt_function( motor_ignore_interrupt_fn );
 	}
 
 #endif /* HAVE_GETOPT */
