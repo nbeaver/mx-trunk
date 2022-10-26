@@ -1,5 +1,5 @@
 /*
- * Name:    mx_clock.c
+ * Name:    mx_clock_tick.c
  *
  * Purpose: MX elapsed time functions.
  *
