@@ -170,9 +170,9 @@ mxd_clock_timer_is_busy( MX_TIMER *timer )
 	}
 
 #if MX_CLOCK_TIMER_DEBUG
-	MX_DEBUG(-2,("%s: current time = (%lu,%ld), busy = %d",
-		fname, current_timespec[0], current_timespec[1],
-		timer->busy ));
+	MX_DEBUG(-2,("%s: current time = (%lu,%ld), busy = %d", fname,
+			(unsigned long) current_timespec[0],
+			(long) current_timespec[1], timer->busy ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
