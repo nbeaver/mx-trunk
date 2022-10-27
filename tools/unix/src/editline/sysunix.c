@@ -8,8 +8,7 @@
 #include <termios.h>
 
 void
-rl_ttyset(Reset)
-    int				Reset;
+rl_ttyset( int Reset )
 {
     static struct termios	old;
     struct termios		new;
@@ -39,8 +38,7 @@ rl_ttyset(Reset)
 #include <sgtty.h>
 
 void
-rl_ttyset(Reset)
-    int				Reset;
+rl_ttyset( int Reset )
 {
     static struct sgttyb	old_sgttyb;
     static struct tchars	old_tchars;
@@ -78,9 +76,7 @@ rl_ttyset(Reset)
 #endif	/* defined(HAVE_TCGETATTR) */
 
 void
-rl_add_slash(path, p)
-    char	*path;
-    char	*p;
+rl_add_slash( char *path, char *p )
 {
     struct stat	Sb;
 

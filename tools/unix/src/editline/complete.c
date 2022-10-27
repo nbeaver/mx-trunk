@@ -28,9 +28,7 @@ strdup(p)
 **  strcmp-like sorting predicate for qsort.
 */
 STATIC int
-compare(p1, p2)
-    CONST void	*p1;
-    CONST void	*p2;
+compare( CONST void *p1, CONST void *p2 )
 {
     CONST char	**v1;
     CONST char	**v2;
@@ -45,10 +43,7 @@ compare(p1, p2)
 **  Ignore . and .. .
 */
 STATIC int
-FindMatches(dir, file, avp)
-    char	*dir;
-    char	*file;
-    char	***avp;
+FindMatches( char *dir, char *file, char ***avp )
 {
     char	**av;
     char	**new;
@@ -100,10 +95,7 @@ FindMatches(dir, file, avp)
 **  Split a pathname into allocated directory and trailing filename parts.
 */
 STATIC int
-SplitPath(path, dirpart, filepart)
-    char	*path;
-    char	**dirpart;
-    char	**filepart;
+SplitPath( char *path, char **dirpart, char **filepart )
 {
     static char	DOT[] = ".";
     char	*dpart;
@@ -136,9 +128,7 @@ SplitPath(path, dirpart, filepart)
 **  Fill in *unique if we completed it, or set it to 0 if ambiguous.
 */
 char *
-rl_complete(pathname, unique)
-    char	*pathname;
-    int		*unique;
+rl_complete( char *pathname, int *unique )
 {
     char	**av;
     char	*dir;
@@ -210,9 +200,7 @@ rl_complete(pathname, unique)
 **  Return all possible completions.
 */
 int
-rl_list_possib(pathname, avp)
-    char	*pathname;
-    char	***avp;
+rl_list_possib( char *pathname, char ***avp )
 {
     char	*dir;
     char	*file;

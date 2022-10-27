@@ -197,6 +197,9 @@ mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *data_socket,
 	num_matching_chars = 0;
 
 	for ( i = 0; ; i++ ) {
+
+		MXW_UNUSED(i);
+
 		/* Try to read a character. */
 
 		mx_status = mx_socket_receive( data_socket,

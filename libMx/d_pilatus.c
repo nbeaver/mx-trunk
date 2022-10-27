@@ -868,6 +868,9 @@ mxd_pilatus_open( MX_RECORD *record )
 	line_ptr   = buffer_ptr;
 
 	for ( i = 0; ; i++ ) {
+
+		MXW_UNUSED(i);
+
 		buffer_ptr = strchr( buffer_ptr, '\n' );
 
 		if ( buffer_ptr != NULL ) {

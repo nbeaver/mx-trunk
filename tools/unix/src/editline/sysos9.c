@@ -8,8 +8,7 @@
 
 
 void
-rl_ttyset(Reset)
-    int			Reset;
+rl_ttyset( int Reset )
 {
     static struct sgbuf	old;
     struct sgbuf	new;
@@ -38,7 +37,7 @@ rl_ttyset(Reset)
 }
 
 void
-rl_add_slash(path, p)
+rl_add_slash( char *path, char *p )
     char	*path;
     char	*p;
 {

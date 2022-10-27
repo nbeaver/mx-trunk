@@ -285,7 +285,9 @@ mxd_soft_mce_interval_timer_callback( MX_INTERVAL_TIMER *itimer,
 
 	MX_SOFT_MCE *soft_mce;
 
+#if MXD_SOFT_MCE_DEBUG_INTERVAL_TIMER
 	static unsigned long timer_callback_counter = 0;
+#endif
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
@@ -299,11 +301,11 @@ mxd_soft_mce_interval_timer_callback( MX_INTERVAL_TIMER *itimer,
 
 	soft_mce = (MX_SOFT_MCE *) callback_args;
 
-	timer_callback_counter++;
-
 	/* Tell the "monitor" thread to read a motor position. */
 
 #if MXD_SOFT_MCE_DEBUG_INTERVAL_TIMER
+	timer_callback_counter++;
+
 	MX_DEBUG(-2,
     ("%s Timer %p [%lu]: Signaling the monitor thread to take a measurement.",
 		fname, mx_get_current_thread_pointer(),
@@ -330,9 +332,12 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 	MX_SOFT_MOTOR *soft_motor = NULL;
 
 	long i, n;
-	unsigned long monitor_loop_counter;
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+	unsigned long monitor_loop_counter;
+#endif
 
 #if 0
 	MX_DEBUG(-2,("%s invoked.",fname));
@@ -441,9 +446,9 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 
 	/*------------------------------------------------------------------*/
 
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
 	monitor_loop_counter = 0;
 
-#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
 	MX_DEBUG(-2,("%s %p [%lu]: MCE '%s' entering event loop.",
 		fname, mx_get_current_thread_pointer(),
 		monitor_loop_counter, record->name));
@@ -451,7 +456,9 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 
 	while (TRUE) {
 
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
 		monitor_loop_counter++;
+#endif
 
 		/* Wait on the command condition variable. */
 

@@ -18,7 +18,7 @@ include ../libMx/Makehead.termux
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
                 -DUSE_DIRENT -DSYS_UNIX
 
-EDITLINE_GCCWARN = -Wall -Wshadow -Wpointer-arith -Wwrite-strings \
+EDITLINE_GCCWARN = -Werror -Wall -Wshadow -Wpointer-arith -Wwrite-strings \
                 -Wunused -Wcomment -Wswitch
 
 ##EDITLINE_CC = "gcc $(EDITLINE_GCCWARN)"

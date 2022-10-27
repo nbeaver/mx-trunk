@@ -533,10 +533,11 @@ mx_delete_all_vtimer_events( MX_MASTER_TIMER_EVENT_LIST *event_list,
 #endif
 
 	MX_MASTER_TIMER_EVENT *current_event, *next_event;
-	unsigned long i;
 	mx_status_type mx_status;
 
 #if MX_VIRTUAL_TIMER_DEBUG
+	unsigned long i;
+
 	MX_DEBUG(-2,("*****************************************************"));
 	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
 		fname, event_list, vtimer));
@@ -567,7 +568,9 @@ mx_delete_all_vtimer_events( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 	/* Loop through the event list looking for events for this vtimer. */
 
+#if MX_VIRTUAL_TIMER_DEBUG
 	i = 0;
+#endif
 
 	while ( next_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
 
@@ -598,7 +601,9 @@ mx_delete_all_vtimer_events( MX_MASTER_TIMER_EVENT_LIST *event_list,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if MX_VIRTUAL_TIMER_DEBUG
 		i++;
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;

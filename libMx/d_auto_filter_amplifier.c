@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2006, 2010 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006, 2010, 2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -539,6 +539,8 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 	 */
 
 	for ( i = 0; ; i++ ) {
+
+		MXW_UNUSED(i);
 
 		/* Perform a 1 second measurement. */
 

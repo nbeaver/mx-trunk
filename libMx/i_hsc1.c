@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2007, 2010, 2012, 2015
+ * Copyright 1999-2001, 2004-2007, 2010, 2012, 2015, 2022
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -657,8 +657,6 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 	unsigned long num_input_bytes_available;
 	mx_status_type mx_status;
 
-	static unsigned long command_number = 0L;
-
 	if ( hsc1_interface == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_HSC1_INTERFACE pointer passed was NULL." );
@@ -670,8 +668,6 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 	if ( response != NULL ) {
 		strlcpy( response, "", response_buffer_length );
 	}
-
-	command_number++;
 
 	if ( module_number >= hsc1_interface->num_modules )
 	{
