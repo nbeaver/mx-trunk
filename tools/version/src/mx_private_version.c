@@ -17,7 +17,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008-2009, 2011, 2014-2016, 2018 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011, 2014-2016, 2018, 2022
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -347,6 +348,12 @@ mxp_generate_clang_macros( FILE *version_file )
 		+ libc_patchlevel );
 
 	  fprintf( version_file, "\n" );
+
+#   if defined( MX_HAVE_CONDA )
+
+ 	  fprintf( version_file, "#define MX_HAVE_CONDA   1\n" );
+	  fprintf( version_file, "\n" );
+#   endif  /* HAVE_CONDA */
       }
 
 #endif   /* __GLIBC__ */

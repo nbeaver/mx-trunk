@@ -261,7 +261,7 @@ _gcc_lib_dir_v2_len := $(shell echo ${_gcc_dir_v2} | wc -c)
 ifeq ($(_have_conda),true)
     _gcc_lib_dir := $(_gcc_lib_dir_conda)
 
-    GCCFLAGS += -DHAVE_CONDA
+    CFLAGS_MX_VERS += -DMX_HAVE_CONDA
 
 else ifeq ($(_gcc_lib_dir_v1_len),0)
     _gcc_lib_dir := $(_gcc_lib_dir_v2)
@@ -390,9 +390,7 @@ endif
 
 # Special cases for individual files.
 
-#CFLAGS_MX_CFN   = -DHAVE_LSB
-
-CFLAGS_MX_VERS  = -DOS_LINUX -D_GNU_SOURCE \
+CFLAGS_MX_VERS  += -DOS_LINUX -D_GNU_SOURCE \
 			-DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
 			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION) \

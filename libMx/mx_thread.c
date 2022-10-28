@@ -2176,7 +2176,7 @@ mx_thread_exit( MX_THREAD *thread,
 
 #if defined( OS_LINUX )
 
-#  if ( MX_GLIBC_VERSION < 2030000L ) || defined( HAVE_CONDA )
+#  if ( MX_GLIBC_VERSION < 2030000L ) || defined( MX_HAVE_CONDA )
 
 #    include <sys/syscall.h>   /* Needed to get definition of SYS_gettid. */
 
