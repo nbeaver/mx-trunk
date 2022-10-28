@@ -202,42 +202,79 @@ endif
 # to determine the GCC top level directory
 #
 
+#========
+# For Conda, we look in a Conda-specific location.
+
+_conda_prefix := ${CONDA_PREFIX}
+
+### $(info _conda_prefix is [${_conda_prefix}])
+
+_conda_prefix_len := $(shell echo ${_conda_prefix} | wc -c)
+
+### $(info _conda_prefix_len is [${_conda_prefix_len}])
+
+ifeq ($(_conda_prefix_len),0)
+    _have_conda := false
+else ifeq ($(_conda_prefix_len),1)
+    _have_conda := false
+else
+    _have_conda := true
+endif
+
+ifeq ($(_have_conda),true)
+    _gcc_lib_dir_conda := ${_conda_prefix}/lib
+endif
+
+$(info _have_conda is [${_have_conda}])
+
+#========
+
+# For modern Linux distributions, we find libbacktrace this way.
+
 _gcc_collect_lto_wrapper := $(shell gcc -v 2>&1 | grep COLLECT_LTO_WRAPPER  | cut -f3  -d' ' | cut -f2 -d=)
 
 _lto_wrapper_length := $(shell echo ${_gcc_collect_lto_wrapper} | wc -c)
 
 _lpl := $(shell expr ${_lto_wrapper_length} - 13)
 
-_gcc_dir_v1 := $(shell echo ${_gcc_collect_lto_wrapper} | cut -c1-${_lpl})
+_gcc_lib_dir_v1 := $(shell echo ${_gcc_collect_lto_wrapper} | cut -c1-${_lpl})
 
-_gcc_dir_v1_len := $(shell echo ${_gcc_dir_v1} | wc -c)
+_gcc_lib_dir_v1_len := $(shell echo ${_gcc_dir_v1} | wc -c)
 
 #
-# Otherwise, we construct it from the target and the version.
+# Otherwise, we construct it the old fashioned way from the target
+# and the version.
 #
 
 _gcc_target := $(shell gcc -v 2>&1 | grep Target: | cut -f2 -d' ')
 
 _gcc_version := $(shell gcc -v 2>&1 | grep '^gcc version' | cut -f3  -d' ')
 
-_gcc_dir_v2 := $(shell echo /usr/lib/gcc/${_gcc_target}/${_gcc_version})
+_gcc_lib_dir_v2 := $(shell echo /usr/lib/gcc/${_gcc_target}/${_gcc_version})
+
+_gcc_lib_dir_v2_len := $(shell echo ${_gcc_dir_v2} | wc -c)
 
 #
 # Now select the one we like the best.
 #
 
-ifeq ($(_gcc_dir_v1_len),0)
-    _gcc_dir := $(_gcc_dir_v2)
+ifeq ($(_have_conda),true)
+    _gcc_lib_dir := $(_gcc_lib_dir_conda)
+
+else ifeq ($(_gcc_lib_dir_v1_len),0)
+    _gcc_lib_dir := $(_gcc_lib_dir_v2)
 else
-    _gcc_dir := $(_gcc_dir_v1)
+    _gcc_lib_dir := $(_gcc_lib_dir_v1)
 endif
 
-#$(info _gcc_dir is [${_gcc_dir}])
+### $(info _gcc_lib_dir_v1 is [${_gcc_lib_dir_v1}])
+### $(info _gcc_lib_dir_v2 is [${_gcc_lib_dir_v2}])
+
+### $(info _gcc_lib_dir is [${_gcc_lib_dir}])
 
 #--------------------------------------------------------------------------
 #
-# For doing architecture-specific stuff
-#
+# For doing architecture-specific stuff #
 
 _machine_name := $(shell uname -m)
 
@@ -267,7 +304,11 @@ LINKFLAGS += -rdynamic
 ifeq ($(_have_mx_config),true)
   _libc_version := $(shell ../tools/mx_config library)
 
-  _have_tirpc := $(shell ../scripts/directory_exists /usr/include/tirpc)
+  ifeq ($(_have_conda),true)
+    _have_tirpc := $(shell echo "false")
+  else
+    _have_tirpc := $(shell ../scripts/directory_exists /usr/include/tirpc)
+  endif
 
   ### $(info _libc_version is [${_libc_version}])
 
@@ -313,7 +354,7 @@ $(info _have_librt is [${_have_librt}])
 #
 # libbacktrace is typically installed in a directory that is part of GCC.
 #
-_have_libbacktrace := $(shell find $(_gcc_dir) -name libbacktrace.a -print | wc -l)
+_have_libbacktrace := $(shell find $(_gcc_lib_dir) -name libbacktrace.a -print | wc -l)
 
 #
 # If GCC does not bundle libbacktrace, see if it was installed in /usr/local
@@ -334,9 +375,13 @@ endif
 
 $(info _have_libbacktrace is [${_have_libbacktrace}])
 
-ifeq ($(_have_libbacktrace),true)
-    MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE -I$(_gcc_dir)/include
-    MX_LIB_LIBRARIES += -L$(_gcc_dir) -lbacktrace
+ifeq ($(_have_conda),true)
+    MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE -I$(_conda_prefix)/include
+    MX_LIB_LIBRARIES += -L$(_conda_prefix)/lib -lbacktrace
+
+else ifeq ($(_have_libbacktrace),true)
+    MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE -I$(_gcc_lib_dir)/include
+    MX_LIB_LIBRARIES += -L$(_gcc_lib_dir) -lbacktrace
 endif
 
 #--------------------------------------------------------------------------
@@ -504,6 +549,7 @@ MOTOR_NAME2	= mxmotor.static
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			$(MX_LIB_LIBRARIES) \
 			 -lMx $(LIBRARIES) $(READLINE_LIBRARIES)
 	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
@@ -522,7 +568,7 @@ SERVER_NAME	= mxserver
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(LINKFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
-			$(LIB_DIRS) -lMx $(LIBRARIES)
+			$(LIB_DIRS) $(MX_LIB_LIBRARIES) -lMx $(LIBRARIES)
 
 server_install:
 	install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
@@ -538,7 +584,7 @@ AUTOSAVE_NAME	= mxautosave
 
 $(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(LINKFLAGS) -o $(AUTOSAVE_NAME) $(AUTOSAVE_OBJS) \
-			$(LIB_DIRS) -lMx $(LIBRARIES)
+			$(LIB_DIRS) $(MX_LIB_LIBRARIES) -lMx $(LIBRARIES)
 
 autosave_install:
 	install -m 755 $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin
@@ -553,16 +599,16 @@ autosave_install:
 MXDRIVERINFO_NAME    = mxdriverinfo
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(LINKFLAGS) -o $(MXDRIVERINFO_NAME) \
-		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+	$(CC) $(LINKFLAGS) -o $(MXDRIVERINFO_NAME) $(MXDRIVERINFO_OBJS) \
+		$(LIB_DIRS) $(MX_LIB_LIBRARIES) -lMx $(LIBRARIES)
 
 #----
 
 MXMONITOR_NAME       = mxmonitor
 
 $(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(LINKFLAGS) -o $(MXMONITOR_NAME) \
-		$(MXMONITOR_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+	$(CC) $(LINKFLAGS) -o $(MXMONITOR_NAME) $(MXMONITOR_OBJS) \
+		$(LIB_DIRS) $(MX_LIB_LIBRARIES) -lMx $(LIBRARIES)
 
 #----
 
@@ -570,7 +616,7 @@ MXSERIAL_NAME        = mxserial
 
 $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
 	$(CC) $(LINKFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
-				$(LIB_DIRS) -lMx $(LIBRARIES)
+			$(LIB_DIRS) $(MX_LIB_LIBRARIES) -lMx $(LIBRARIES)
 
 mxserial.o: mxserial_fork.c
 	$(CC) $(CFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
@@ -580,24 +626,24 @@ mxserial.o: mxserial_fork.c
 MXGET_NAME           = mxget
 
 $(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(LINKFLAGS) -o $(MXGET_NAME) \
-		$(MXGET_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+	$(CC) $(LINKFLAGS) -o $(MXGET_NAME) $(MXGET_OBJS) \
+			$(LIB_DIRS) $(MX_LIB_LIBRARIES) -lMx $(LIBRARIES)
 
 #----
 
 MXPUT_NAME           = mxput
 
 $(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(LINKFLAGS) -o $(MXPUT_NAME) \
-		$(MXPUT_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+	$(CC) $(LINKFLAGS) -o $(MXPUT_NAME) $(MXPUT_OBJS) \
+			$(LIB_DIRS) $(MX_LIB_LIBRARIES) -lMx $(LIBRARIES)
 
 #----
 
 MXGPIB_NAME           = mxgpib
 
 $(MXGPIB_NAME): $(MXGPIB_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(LINKFLAGS) -o $(MXGPIB_NAME) \
-		$(MXGPIB_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+	$(CC) $(LINKFLAGS) -o $(MXGPIB_NAME) $(MXGPIB_OBJS) \
+			$(LIB_DIRS) $(MX_LIB_LIBRARIES) -lMx $(LIBRARIES)
 
 #----
 
