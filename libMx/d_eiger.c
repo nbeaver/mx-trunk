@@ -17,10 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined(__GNUC__)
-#  define __USE_XOPEN
-#endif
-
 #include "mx_util.h"
 #include "mx_time.h"
 #include "mx_record.h"

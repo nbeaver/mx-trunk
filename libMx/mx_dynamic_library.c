@@ -722,10 +722,6 @@ mx_dynamic_library_get_symbol_from_address( void *address,
  * back refers to the process as a whole, so you should not dlclose() that.
  */
 
-#if defined(__GLIBC__)
-#  define __USE_GNU
-#endif
-
 #include <dlfcn.h>
 
 MX_EXPORT mx_status_type
@@ -1008,7 +1004,6 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 #elif defined(OS_LINUX) || defined(OS_BSD) || defined(OS_HURD) \
 	|| defined(OS_SOLARIS) || defined(OS_MINIX)
 
-#define _GNU_SOURCE
 #include <link.h>
 #include <dlfcn.h>
 
@@ -1116,7 +1111,6 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 #if defined(OS_BSD) || defined(OS_HURD) || defined(OS_MINIX) \
 	|| ( defined(OS_LINUX) && (MX_GLIBC_VERSION > 2001003L ) )
 
-#define _GNU_SOURCE
 #include <link.h>
 
 static int
@@ -1134,8 +1128,6 @@ mx_dynamic_library_show_list( FILE *file )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#undef _GNU_SOURCE
 
 /*--------*/
 

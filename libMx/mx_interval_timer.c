@@ -1581,7 +1581,7 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 	 */
 #error booyah!
 
-	posix_itimer_private->evp.sigev_notify_thread_id = syscall(__NR_gettid);
+	posix_itimer_private->evp.sigev_notify_thread_id = mx_gettid();
 #endif
 
 	/* Setup the signal mask that the thread uses. */

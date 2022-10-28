@@ -1639,21 +1639,11 @@ int pthread_getname_np(pthread_t __pthread, char* __buf, size_t __n);
 #  define _TIMESPEC_T_
 #endif
 
-/*---*/
-
-#if defined(OS_LINUX)
-#  define __USE_GNU
-
-#  if ( MX_GLIBC_VERSION >= 2030000L )
-     extern pid_t gettid( void );
-#  else
-#    include <sys/syscall.h>	/* Needed to call gettid() system call. */
-#  endif
-#endif
-
 #if defined(OS_MACOSX) || defined(OS_HURD)
 #  include <mach/mach.h>
 #endif
+
+/*--------*/
 
 #include <pthread.h>
 
@@ -1771,15 +1761,8 @@ mx_thread_start_function( void *args_ptr )
 	posix_thread_private =
 			(MX_POSIX_THREAD_PRIVATE *) thread->thread_private;
 
-#if defined(OS_LINUX)
-#  if ( MX_GLIBC_VERSION >= 2030000L )
-	posix_thread_private->linux_thread_id = gettid();
-#  else
-	posix_thread_private->linux_thread_id = syscall(SYS_gettid);
-#  endif
-
-#elif defined(OS_ANDROID)
-	posix_thread_private->linux_thread_id = gettid();
+#if defined(OS_LINUX) || defined(OS_ANDROID)
+	posix_thread_private->linux_thread_id = mx_gettid();
 
 #elif defined(OS_MACOSX) || defined(OS_HURD)
 	posix_thread_private->mach_task = mach_task_self();
@@ -2188,6 +2171,52 @@ mx_thread_exit( MX_THREAD *thread,
 
 	(void) pthread_exit( (void *) thread_exit_status );	/* ICK! */
 }
+
+/*=========================================================================*/
+
+#if defined( OS_LINUX )
+
+#  if ( MX_GLIBC_VERSION < 2030000L ) || defined( HAVE_CONDA )
+
+#    include <sys/syscall.h>   /* Needed to get definition of SYS_gettid. */
+
+MX_EXPORT pid_t
+mx_gettid( void )
+{
+	pid_t kernel_thread_id = syscall( SYS_gettid );
+
+	return kernel_thread_id;
+}
+
+#  else   /* Using Glibc 2.30 and above, _without_ Conda */
+
+extern pid_t gettid( void );
+
+MX_EXPORT pid_t
+mx_gettid( void )
+{
+	pid_t kernel_thread_id = gettid();
+
+	return kernel_thread_id;
+}
+
+#  endif
+
+#endif   /* OS_LINUX */
+
+/*----------------*/
+
+#if defined( OS_ANDROID )
+
+MX_EXPORT pid_t
+mx_gettid( void )
+{
+	pid_t kernel_thread_id = gettid();
+
+	return kernel_thread_id;
+}
+
+#endif   /* OS_ANDROID */
 
 /*=========================================================================*/
 

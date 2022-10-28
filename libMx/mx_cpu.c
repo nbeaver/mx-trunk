@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2011, 2014-2016, 2018, 2021 Illinois Institute of Technology
+ * Copyright 2007-2011, 2014-2016, 2018, 2021-2022
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -603,8 +604,6 @@ mx_set_process_affinity_mask( unsigned long process_id,
 #include <sys/types.h>
 #include <errno.h>
 #include <unistd.h>
-
-#define __USE_GNU
 
 #include <sched.h>
 

@@ -19,14 +19,6 @@
 
 #define MX_DEBUG_FIND_FILE_IN_PATH	FALSE
 
-/* On Linux, we must define _GNU_SOURCE before including any C library header
- * in order to get splice() from fcntl.h 
- */
-
-#if defined(OS_LINUX)
-#  define _GNU_SOURCE
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

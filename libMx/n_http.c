@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2019, 2021 Illinois Institute of Technology
+ * Copyright 2019, 2021-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,14 +27,6 @@
 #define MXN_HTTP_DEBUG_PUT_RESPONSE_BODY	TRUE
 
 #define MXN_HTTP_DEBUG_PARSE_ADDRESS		FALSE
-
-/* On Linux, we must define _GNU_SOURCE before including any C library header
- * in order to get strcasestr() from string.h
- */
-
-#if defined(OS_LINUX) || defined(OS_CYGWIN)
-#  define _GNU_SOURCE
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>

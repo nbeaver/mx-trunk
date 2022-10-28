@@ -127,6 +127,17 @@ MX_API void *mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key );
 
 MX_API mx_status_type mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key,
 							void *value );
+/*---*/
+
+#if defined(OS_LINUX) || defined(OS_ANDROID)
+
+/* The Linux kernel has its own internal thread id that is returned by
+ * the Linux gettid() system call.
+ */
+
+MX_API pid_t mx_gettid( void );
+
+#endif   /* OS_LINUX, etc. */
 
 /*---*/
 
@@ -140,7 +151,8 @@ MX_API mx_status_type mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key,
 MX_API void *mx_win32_get_current_thread_handle( void );
 
 MX_API mx_status_type mx_win32_thread_get_handle_and_id( MX_THREAD *thread );
-#endif
+
+#endif   /* OS_WIN32 */
 
 #ifdef __cplusplus
 }
