@@ -222,6 +222,8 @@ else
 endif
 
 ifeq ($(_have_conda),true)
+    GCCFLAGS += -I${_conda_prefix}/include
+
     _gcc_lib_dir_conda := ${_conda_prefix}/lib
 endif
 
