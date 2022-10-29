@@ -309,7 +309,7 @@ ifeq ($(_have_mx_config),true)
   _libc_version := $(shell ../tools/mx_config library)
 
   ifeq ($(_have_conda),true)
-    _have_tirpc := $(shell echo "false")
+    _have_tirpc := false
   else
     _have_tirpc := $(shell ../scripts/directory_exists /usr/include/tirpc)
   endif
@@ -343,9 +343,9 @@ _num_librt_instances := $(strip $(_num_librt_instances))
 ###$(info _num_librt_instances is [${_num_librt_instances}])
 
 ifneq ($(_num_librt_instances),0)
-  _have_librt := $(shell echo true)
+  _have_librt := true
 else
-  _have_librt := $(shell echo false)
+  _have_librt := false
 endif
 
 ifeq ($(_have_librt),true)
