@@ -1659,6 +1659,7 @@ typedef struct {
 #endif
 
 #if ( defined(__OpenBSD__) || defined(OS_HURD) || defined(OS_MINIX) \
+    || defined(OS_CYGWIN) \
     || ( defined(OS_MACOSX) && (MX_DARWIN_VERSION < 9000000L) ) \
     || ( defined(OS_LINUX) \
 	&& defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2012000L) ) \
