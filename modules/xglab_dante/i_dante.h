@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2020-2021 Illinois Institute of Technology
+ * Copyright 2020-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -192,6 +192,12 @@ typedef struct dante_configuration {
 } MX_DANTE_CONFIGURATION;
 
 #endif
+
+/* Warning: If the callback ID can ever legitimately be 2^32 - 1, then
+ * the definition below of MX_DANTE_ILLEGAL_CALLBACK_ID	will be a problem.
+ */
+
+#define MX_DANTE_ILLEGAL_CALLBACK_ID	0xFFFFFFFF
 
 extern uint32_t mxi_dante_callback_id;
 extern uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];

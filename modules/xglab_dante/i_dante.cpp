@@ -101,9 +101,10 @@ extern const char *mxi_dante_strerror( int xia_status );
  * the handling of callbacks.  If we find ourself needing to deserialize the
  * handling of callbacks, then we will need to redesign this stuff.
  *
- * FIXME: The variables mxi_dante_callback_id, mxi_dante_callback_data, and
- * mxi_dante are _GLOBAL_ variables.  This means that their usage is not
- * thread safe, as is.  Please, please, please find a way to fix this someday!
+ * FIXME: The variables mxi_dante_callback_id, mxi_dante_callback_data,
+ * and mxi_dante are _GLOBAL_ variables.  This means that their usage
+ * is not thread safe, as is.  Please, please, * please find a way to
+ * fix this someday!
  *
  * FIXME:  Please find a way to persuade Bruker to add an extra function
  * argument like this 'void *user_pointer' to the function signature of
@@ -120,9 +121,11 @@ extern const char *mxi_dante_strerror( int xia_status );
  * in a way that is closer to being thread safe.
  */
 
-uint32_t mxi_dante_callback_id;
+uint32_t mxi_dante_callback_id = MX_DANTE_ILLEGAL_CALLBACK_ID;
 
 uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
+
+mx_bool_type mxi_dante_callback_in_progress = FALSE;
 
 static MX_DANTE *mxi_dante_pointer = NULL;
 
@@ -171,14 +174,16 @@ mxi_dante_callback_fn( uint16_t type,
 		fflush( stderr );
 	}
 
-	mx_atomic_write32( (int32_t *) &mxi_dante_callback_id, 0 );
+	mx_atomic_write32( (int32_t *) &mxi_dante_callback_id,
+				(int32_t) MX_DANTE_ILLEGAL_CALLBACK_ID );
 
 	return;
 }
 
 /* This wait function sets mxi_dante_callback_id to the callback id value
  * that was returned by a previous call to a DANTE API function.  It then
- * waits until mxi_dante_callback_id is reset to 0.
+ * waits until mxi_dante_callback_id is reset to the value of
+ * MX_DANTE_ILLEGAL_CALLBACK_ID, which is a 32-bit version of (-1).
  */
 
 int
@@ -193,7 +198,8 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 	 * value of call_id that was just passed to us.
 	 */
 
-	mx_atomic_write32( (int32_t *) &mxi_dante_callback_id, call_id );
+	mx_atomic_write32( (int32_t *) &mxi_dante_callback_id,
+						(int32_t) call_id );
 
 	/* Check for null MX_DANTE pointer being passed. */
 
@@ -223,7 +229,8 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 	}
 
 	/* Wait for mxi_dante_callback_id to be different from call_id.
-	 * Normally, the new value of mxi_dante_callback_id should be 0.
+	 * Normally, the new value of mxi_dante_callback_id should be
+	 * MX_DANTE_ILLEGAL_CALLBACK_ID (-1).
 	 */
 
 	for ( i = 0; i < dante->max_io_attempts; i++ ) {
@@ -232,13 +239,22 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 			mx_atomic_read32( (int32_t *) &mxi_dante_callback_id );
 
 		if ( shared_callback_id != call_id ) {
+		    if ( shared_callback_id != MX_DANTE_ILLEGAL_CALLBACK_ID ) {
+			mx_warning( "The value of mxi_dante_callback_id (%#lx) "
+				"was not reset to %#u, which is the normal "
+				"MX value for an invalid callback id.  "
+				"This should _never_ happen, but we continue "
+				"anyway.",
+				  shared_callback_id,
+				  (unsigned int) MX_DANTE_ILLEGAL_CALLBACK_ID );
+		    }
 
-			if ( dante->trace_callbacks ) {
-				fprintf( stderr, "Callback %lu seen. )))\n",
+		    if ( dante->trace_callbacks ) {
+			fprintf( stderr, "Callback %lu seen. )))\n",
 					(unsigned long) call_id );
-			}
+		    }
 
-			return TRUE;
+		    return TRUE;
 		}
 
 		mx_msleep( max_io_delay_ms );

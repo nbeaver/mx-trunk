@@ -216,6 +216,13 @@ export __DOTNET_ADD_64BIT=1
 export __DOTNET_PREFERRED_BITNESS=64
 export __VSCMD_PREINIT_PATH="C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;$HOME_DIR\\AppData\\Local\\Microsoft\\WindowsApps;"
 
+# The definitions below of MS_NATIVE_... exist for people who need to create
+# a shell script wrapper for the native Visual Studio command line utilities.
+# Most people will not need to do this.
+
+export MS_NATIVE_CL=`/usr/bin/which cl`
+export MS_NATIVE_LINK=`/usr/bin/which link`
+
 #----------------------------------------------------------------------------
 #
 # Arrange for some MX-specific stuff to be created.  If you are not using MX,

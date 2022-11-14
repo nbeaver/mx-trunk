@@ -1,0 +1,60 @@
+#! /usr/bin/env python3
+#
+# This is a Cygwin-specific wrapper for the Microsoft Visual Studio
+# 'cl' compiler .  The purpose of this wrapper is to replace any
+# instances of Cygwin-style /cygdrive/c drive names with the 
+# equivalent Microsoft-style C: drive names.  This is because the
+# Microsoft compiler does not understand Cygwin-style drive names.
+#
+# Note that the path to the actual Microsoft compiler has to be 
+# passed to this script in the MS_NATIVE_CL environment variable.
+#
+#  Author: William Lavender
+#
+#--------------------------------------------------------------------------
+#
+# Copyright 2022 Illinois Institute of Technology
+#
+# See the file "LICENSE" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+import os,sys
+
+ms_native_cl = os.environ['MS_NATIVE_CL']
+
+newcmd = ms_native_cl
+
+for arg in sys.argv[1:]:
+
+    cygdrive_offset = arg.find( "cygdrive" )
+
+    if ( cygdrive_offset < 0 ):
+        newcmd = newcmd + " " + arg
+    else:
+        argsplit = arg.split('/')
+
+        newarg = argsplit[0]
+
+        in_cygdrive = False
+
+        for s in argsplit[1:]:
+            if ( in_cygdrive ):
+                drive_letter = s
+                newarg = newarg + drive_letter + ":"
+                in_cygdrive = False
+                continue
+
+            elif ( s == "cygdrive" ):
+                in_cygdrive = True
+                continue
+
+            else:
+                newarg = newarg + "/" + s
+
+        newcmd = newcmd + " " + newarg
+
+print( "newcmd = '%s'" % newcmd )
+
+os.system( newcmd )
+
