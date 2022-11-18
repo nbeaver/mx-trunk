@@ -27,10 +27,24 @@ newcmd = ms_native_cl
 
 for arg in sys.argv[1:]:
 
+    quote_offset = arg.find('"')
     cygdrive_offset = arg.find( "cygdrive" )
 
-    if ( cygdrive_offset < 0 ):
+    if( quote_offset >= 0 ):
+        newarg = ""
+
+        char_list = list( arg )
+        for c in char_list:
+            if ( c == '"' ):
+                newarg = newarg + '\\"'
+            else:
+                newarg = newarg + c
+
+        newcmd = newcmd + " " + newarg
+
+    elif ( cygdrive_offset < 0 ):
         newcmd = newcmd + " " + arg
+
     else:
         argsplit = arg.split('/')
 
@@ -54,7 +68,7 @@ for arg in sys.argv[1:]:
 
         newcmd = newcmd + " " + newarg
 
-print( "newcmd = '%s'" % newcmd )
+#print( "newcmd = '%s'" % newcmd )
 
 os.system( newcmd )
 
