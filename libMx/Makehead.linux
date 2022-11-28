@@ -190,6 +190,11 @@ ifeq ($(_have_mx_config),true)
   ifeq ($(_have_fwrapv),1)
       GCCFLAGS += -fwrapv
   endif
+
+  #
+  # FIXME: We should also add -fno-delete-null-pointer-checks
+  #        as well as -fwrapv-pointer.
+  #
 endif
 
 #--------------------------------------------------------------------------
