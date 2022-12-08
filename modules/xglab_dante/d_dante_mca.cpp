@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020-2021 Illinois Institute of Technology
+ * Copyright 2020-2022 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1100,7 +1100,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 #endif
 
 #if 1 || MXD_DANTE_MCA_TRACE_CALLS
-		fprintf( stderr, "call_id %lu\n", call_id );
+		fprintf( stderr, "call_id %lu\n", (unsigned long) call_id );
 #endif
 
 		if ( call_id != 0 )
@@ -1879,9 +1879,9 @@ mxd_dante_mca_validate_configuration( MX_DANTE_MCA *dante_mca )
 	if ( configuration->peaking_time > configuration->max_peaking_time ) {
 		mx_warning( "The peaking_time (%lu) for Dante MCA '%s' "
 			"is greater than the max_peaking_time (%lu).",
-			configuration->peaking_time,
+			(unsigned long) configuration->peaking_time,
 			dante_mca->record->name,
-			configuration->max_peaking_time );
+			(unsigned long) configuration->max_peaking_time );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

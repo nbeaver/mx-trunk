@@ -170,7 +170,7 @@ mxi_dante_callback_fn( uint16_t type,
 			(unsigned long) mxi_dante_callback_data[i] );
 		}
 
-		fprintf( stderr, "<<<\n", fname );
+		fprintf( stderr, "<<<\n" );
 		fflush( stderr );
 	}
 
@@ -241,12 +241,12 @@ mxi_dante_wait_for_answer( uint32_t call_id, MX_DANTE *dante )
 		if ( shared_callback_id != call_id ) {
 		    if ( shared_callback_id != MX_DANTE_ILLEGAL_CALLBACK_ID ) {
 			mx_warning( "The value of mxi_dante_callback_id (%#lx) "
-				"was not reset to %#u, which is the normal "
+				"was not reset to %lu, which is the normal "
 				"MX value for an invalid callback id.  "
 				"This should _never_ happen, but we continue "
 				"anyway.",
-				  shared_callback_id,
-				  (unsigned int) MX_DANTE_ILLEGAL_CALLBACK_ID );
+			      (unsigned long) shared_callback_id,
+			      (unsigned long) MX_DANTE_ILLEGAL_CALLBACK_ID );
 		    }
 
 		    if ( dante->trace_callbacks ) {
@@ -450,7 +450,9 @@ mxi_dante_open( MX_RECORD *record )
 	uint16_t error_code = DLL_NO_ERROR;
 	uint16_t num_boards;
 
+#if MXI_DANTE_DEBUG_TIMING
 	MX_HRT_TIMING global_reset_measurement;
+#endif
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -616,7 +618,7 @@ mxi_dante_open( MX_RECORD *record )
 	if ( dante->trace_calls ) {
 		fprintf( stderr,
 		"%s: libVersion( dante_version_string, %lu ) = ",
-						fname, version_length );
+				fname, (unsigned long) version_length );
 	}
 
 	dante_status = libVersion( dante->dante_version_string,
@@ -703,7 +705,7 @@ mxi_dante_open( MX_RECORD *record )
 	if ( dante->trace_calls ) {
 		fprintf( stderr, "true\n" );
 		fprintf( stderr, "%s: number_of_master_devices = %lu\n",
-				fname, number_of_master_devices );
+			fname, (unsigned long) number_of_master_devices );
 	}
 
 	dante->num_master_devices = number_of_master_devices;
@@ -755,7 +757,8 @@ mxi_dante_open( MX_RECORD *record )
 		if ( dante->trace_calls ) {
 			fprintf( stderr,
 				"%s: get_ids( chain_id, %lu, %lu ) = ",
-				fname, board_number, max_identifier_length );
+				fname, (unsigned long) board_number,
+				(unsigned long) max_identifier_length );
 		}
 
 		dante_status = get_ids( dante->master[i].chain_id,
@@ -854,7 +857,7 @@ mxi_dante_open( MX_RECORD *record )
 				fprintf( stderr,
 			    "%s: get_lastErrorCode( error_code )\n", fname );
 				fprintf( stderr, "%s: error_code = %lu\n",
-					fname, error_code );
+					fname, (unsigned long) error_code );
 			}
 
 			switch( error_code ) {
@@ -1738,8 +1741,8 @@ mxi_dante_show_parameters( MX_RECORD *record )
 		mx_dante_configuration->baseline_offset));
 
 	MX_DEBUG(-2,("  cfg_offset = ( %lu, %lu )",
-		mx_dante_configuration->cfg_offset.offset_val1,
-		mx_dante_configuration->cfg_offset.offset_val2 ));
+	    (unsigned long) mx_dante_configuration->cfg_offset.offset_val1,
+	    (unsigned long) mx_dante_configuration->cfg_offset.offset_val2 ));
 
 	MX_DEBUG(-2,("  calib_energies_bins = [ %lu, %lu ]",
 		mx_dante_configuration->calib_energies_bins[0],

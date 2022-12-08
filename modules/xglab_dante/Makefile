@@ -11,7 +11,7 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	XGLAB_DANTE_DIR = /opt/DANTE/Library/Linux-gcc4.8.5-libc2.17-x64/3.4.0.3-4.8.5-Callback-x64
+	XGLAB_DANTE_DIR = /opt/DANTE/3.7.19.0-repacked/Library/Linux/3.7.19.0-8.4.1-Callback-x64
 endif
 
 ifeq ($(MX_ARCH),linux-clang)
