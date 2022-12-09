@@ -1393,6 +1393,24 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+		} else if ( strncmp( buffer, "!library ", 9 ) == 0 ) {
+
+			MX_DYNAMIC_LIBRARY *dynamic_library = NULL;
+
+			mx_status = mxp_get_cfn_filename( MX_CFN_ABSOLUTE,
+					buffer, filename, sizeof(filename) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_dynamic_library_open( filename,
+						&dynamic_library, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			MX_DEBUG(-2,("%s:  dynamic library '%s' ptr = %p",
+				fname, filename, dynamic_library));
 
 		} else if ( strncmp( buffer, "!return", 7 ) == 0 ) {
 

@@ -729,7 +729,107 @@ mx_expand_env( const char *original_env_value,
 				original_env_value );
 	}
 
-	return os_status;
+	return strlen( new_env_value );
+}
+
+#elif ( defined(OS_LINUX) && ( defined(MX_MUSL_VERSION) \
+      || ( defined(MX_GLIBC_VERSION) && ( MX_GLIBC_VERSION >= 2001000L ) )) )
+
+#include <wordexp.h>
+
+MX_EXPORT int
+mx_expand_env( const char *original_env_value,
+		char *new_env_value, size_t max_env_size )
+{
+	static const char fname[] = "mx_expand_env()";
+
+	wordexp_t wexp;
+	int wordexp_status;
+
+	if ( new_env_value == (char *) NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		    "The destination environment string pointer was NULL." );
+
+		return -1;
+	}
+
+	if ( original_env_value == (const char *) NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		    "The original environment string passed was NULL." );
+
+		return -1;
+	}
+
+	wordexp_status = wordexp( original_env_value, &wexp, WRDE_NOCMD );
+
+	switch( wordexp_status ) {
+	case 0:            /* SUCCESS */
+		break;
+	case WRDE_BADCHAR:
+		mx_warning(
+		    "%s: Illegal characters found in environment string '%s'.",
+		    fname, original_env_value );
+		break;
+	case WRDE_NOSPACE:
+		mx_warning( "%s: Ran out of memory trying to handle "
+		    "environment string '%s'", fname, original_env_value );
+		break;
+	case WRDE_SYNTAX:
+		mx_warning(
+		    "%s: Syntax error found in environment string '%s'.",
+		    fname, original_env_value );
+		break;
+	case WRDE_CMDSUB:
+		mx_warning( "%s: Command substitution requested for your "
+		    "environment string, but MX has been configured "
+		    "not to allow it.  This may have happend because your "
+		    "environment string included parentheses '()' "
+		    "or backticks '`' which are not allowed.  "
+		    "Original environment string = '%s'",
+		    fname, original_env_value );
+		break;
+
+		/* NOTE: The following status codes from wordexp() should not
+		 * occur since we are not requesting them in the flags 
+		 * variable for wordexp().  But we test for them anyway.
+		 */
+	case WRDE_BADVAL:
+		mx_warning( "%s: Undefined environment variable referenced "
+		    "in environment string '%s'", fname, original_env_value );
+		break;
+
+	default:
+		mx_warning( "%s: Unexpected error code %d returned by "
+		    "wordexp() for environment string '%s'.",
+		    fname, wordexp_status, original_env_value );
+		break;
+	}
+
+	if ( wordexp_status == 0 ) {
+#if 0
+		char **word_array;
+		int i;
+
+		word_array = wexp.we_wordv;
+
+		fprintf( stderr, "%s: we_wordc = %lu\n", fname, wexp.we_wordc );
+
+		for ( i = 0; i < wexp.we_wordc; i++ ) {
+			fprintf( stderr, "%s: word_array[i] = '%s'\n",
+				fname, word_array[i] );
+		}
+#endif
+
+		strlcpy( new_env_value, wexp.we_wordv[0], max_env_size );
+
+		wordfree( &wexp );
+
+		return strlen( new_env_value );
+	} else {
+		wordfree( &wexp );
+
+		return -1;
+	}
 }
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_CYGWIN) \
@@ -743,7 +843,8 @@ mx_expand_env( const char *original_env_value,
 {
 	static const char fname[] = "mx_expand_env()";
 
-	mx_warning( "%s: FIXME needed here!", fname );
+	mx_warning( "%s: FIXME needed here!  "
+		"Not actually doing a real environment expansion!", fname );
 
 	strlcpy( new_env_value, original_env_value, max_env_size );
 
