@@ -734,7 +734,7 @@ mx_expand_env( const char *original_env_value,
 
 #elif ( defined(OS_LINUX) && ( defined(MX_MUSL_VERSION) \
   || ( defined(MX_GLIBC_VERSION) && ( MX_GLIBC_VERSION >= 2001000L ) )) ) \
-	|| defined(OS_MACOSX)
+	|| defined(OS_MACOSX) || defined(OS_CYGWIN)
 
 #include <wordexp.h>
 
