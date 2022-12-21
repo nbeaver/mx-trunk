@@ -690,9 +690,11 @@ mx_setenv( const char *env_name,
 	os_status = setenv( env_name, env_value, TRUE );
 
 	if ( os_status == 0 ) {
+		errno = 0;
 		return 0;
 	} else {
-		return errno;
+		errno = EINVAL;
+		return (-1);
 	}
 }
 
@@ -705,13 +707,14 @@ mx_setenv( const char *env_name,
 #if defined(OS_WIN32)
 
 MX_EXPORT int
-mx_expand_env( const char *original_env_value,
-		char *new_env_value, size_t max_env_size )
+mx_expand_env( char *expanded_env_value,
+		const char *original_env_value,
+		size_t max_env_size )
 {
 	int os_status;
 
 	os_status = (int) ExpandEnvironmentStrings( original_env_value,
-						new_env_value, max_env_size );
+					expanded_env_value, max_env_size );
 
 	if ( os_status == 0 ) {
 		char error_message[200];
@@ -727,9 +730,11 @@ mx_expand_env( const char *original_env_value,
 			"Original string was '%s'.",
 				last_error_code, error_message,
 				original_env_value );
+
+		return -1;
 	}
 
-	return strlen( new_env_value );
+	return strlen( expanded_env_value );
 }
 
 #elif ( defined(OS_LINUX) && ( defined(MX_MUSL_VERSION) \
@@ -739,17 +744,18 @@ mx_expand_env( const char *original_env_value,
 #include <wordexp.h>
 
 MX_EXPORT int
-mx_expand_env( const char *original_env_value,
-		char *new_env_value, size_t max_env_size )
+mx_expand_env( char *expanded_env_value,
+		const char *original_env_value,
+		size_t max_env_size )
 {
 	static const char fname[] = "mx_expand_env()";
 
 	wordexp_t wexp;
 	int wordexp_status;
 
-	if ( new_env_value == (char *) NULL ) {
+	if ( expanded_env_value == (char *) NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
-		    "The destination environment string pointer was NULL." );
+		"The expanded environment string pointer passed was NULL." );
 
 		return -1;
 	}
@@ -821,11 +827,11 @@ mx_expand_env( const char *original_env_value,
 		}
 #endif
 
-		strlcpy( new_env_value, wexp.we_wordv[0], max_env_size );
+		strlcpy( expanded_env_value, wexp.we_wordv[0], max_env_size );
 
 		wordfree( &wexp );
 
-		return strlen( new_env_value );
+		return strlen( expanded_env_value );
 	} else {
 		wordfree( &wexp );
 
@@ -839,17 +845,18 @@ mx_expand_env( const char *original_env_value,
 	|| defined(OS_UNIXWARE) || defined(OS_ANDROID)
 
 MX_EXPORT int
-mx_expand_env( const char *original_env_value,
-		char *new_env_value, size_t max_env_size )
+mx_expand_env( char *expanded_env_value,
+		const char *original_env_value,
+		size_t max_env_size )
 {
 	static const char fname[] = "mx_expand_env()";
 
 	mx_warning( "%s: FIXME needed here!  "
 		"Not actually doing a real environment expansion!", fname );
 
-	strlcpy( new_env_value, original_env_value, max_env_size );
+	strlcpy( expanded_env_value, original_env_value, max_env_size );
 
-	return strlen( new_env_value );
+	return strlen( expanded_env_value );
 }
 
 #else

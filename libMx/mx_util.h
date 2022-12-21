@@ -432,29 +432,40 @@ extern "C" {
 
 /**
  * Set the value of an environment variable.
- * @param[in] env_name    Environment variable name.
- * @param[in] env_value   New string value for the environment variable.
  *
- * On Linux, this function does not have any effect on the environment
- * variable LD_LIBRARY_PATH since that variable is only examined once
- * when the program starts.
+ * @param[in] env_name    Environment variable name.
+ * @param[in] env_value   New value of the environment string.
+ *
+ * @return Returns -1 if setting the environment variable failed
+ * and 0 if it succeeded.
+ *
+ * For Linux, changing the value of the environment variable LD_LIBRARY_PATH
+ * after your program has started will not have any effect on the search
+ * for shared libraries.  The dynamic loader checks the the value of
+ * the variable LD_LIBRARY_PATH only once at program startup time before
+ * the program's main() function is called.  Therefore any changes to 
+ * LD_LIBRARY_PATH after main() has been invoked will have no effect.
  */
 
 MX_API int mx_setenv( const char *env_name, const char *env_value );
 
 /**
- * Expand environment variables in the string.
+ * Expand environment variables in the provided string.
+ *
+ * @param[out] expanded_env_value  The environment variable string after expansion.
  * @param[in] original_env_value   The environment variable string before expansion.
- * @param[out] new_env_value       The environment variable string after expansion.
  * @param[in] max_env_size         The maximum length of 'new_env_value'.
  *
- * mx_expand_env() replaces instances of %%VAR%% (for Windows)
+ * @return Returns -1 on failure.  Otherwise returns the length of 
+ * the expanded string.
+ *
+ * mx_expand_env() replaces instances of %%VAR% (for Windows)
  * or $VAR (for everyone else) in the original string with the contents of
  * those variables.
  */
 
-MX_API int mx_expand_env( const char *original_env_value,
-			char *new_env_value,
+MX_API int mx_expand_env( char *expanded_env_value,
+			const char *original_env_value,
 			size_t max_env_size );
 
 /*------------------------------------------------------------------------*/
@@ -462,26 +473,33 @@ MX_API int mx_expand_env( const char *original_env_value,
 /* Sleep functions with higher resolution than sleep(). */
 
 /**
- * Asks that the current process sleep for the requestd number of seconds.
+ * Asks that the current process sleep for the requested number of seconds.
+ *
  * @param[in] seconds
+ *
+ * @return Returns nothing.
  *
  */
 
 MX_API void mx_sleep( unsigned long seconds );
 
 /**
- * Asks that the current process sleep for the requested number
- * of milliseconds.
+ * Asks that the current process sleep for the requested number of milliseconds.
+ *
  * @param[in] milliseconds
+ *
+ * @return Returns nothing.
  *
  */
 
 MX_API void mx_msleep( unsigned long milliseconds );
 
 /**
- * Asks that the current process sleep for the requested number
- * of microseconds.
+ * Asks that the current process sleep for the requested number of microseconds.
+ *
  * @param[in] microseconds
+ *
+ * @return Returns nothing.
  *
  */
 
@@ -491,6 +509,8 @@ MX_API void mx_usleep( unsigned long microseconds );
 
 /**
  * Display a stack traceback for the current thread.
+ *
+ * @return Returns nothing.
  *
  * mx_stack_traceback() does its best to provide a traceback of the
  * function call stack at the time of invocation.  However, the 
@@ -503,7 +523,13 @@ MX_API void mx_usleep( unsigned long microseconds );
 
 MX_API void mx_stack_traceback( void );
 
-/* mx_stack_check() tries to see if the stack is in a valid state.
+/**
+ * Check for stack corruption.
+ *
+ * @return Returns TRUE if stack is valid.  Might return FALSE if
+ * the stack is not valid.
+ *
+ * mx_stack_check() tries to see if the stack is in a valid state.
  * It returns TRUE if the stack is valid and attempts to return FALSE
  * if the stack is not valid.  However, in cases of bad stack frame
  * corruption, it may not be possible to successfully invoke and
@@ -512,21 +538,71 @@ MX_API void mx_stack_traceback( void );
 
 MX_API int mx_stack_check( void );
 
-/* An approximate estimate of how much stack is unused.  This _might_
- * not take into account things like automatic stack expansion or
- * might not work at all, so don't take it too seriously.  It is just
+/*--- Stack reporting tools ---*/
+
+/**
+ * Estimates how much stack is unused.
+ *
+ * @return Number of bytes unused on the stack.
+ *
+ * mx_stack_available() _might_ not take into account things like
+ * automatic stack expansion or might not work at all depending on
+ * the platform, so don't take it too seriously.  It is just
  * for helping with debugging.
+ *
+ * NOTE: mx_stack_available() relies on mx_initialize_stack_calc()
+ * being called at or near the beginning of the main() function
+ * for your program.
  */
 
 MX_API long mx_stack_available( void );
 
-/*--- Stack reporting tools ---*/
+/**
+ * Initializes the stack reporting tools like mx_stack_available().
+ *
+ * @param[in] stack_base    The address of a variable at the beginning of the stack.
+ *
+ * @return Returns nothing.
+ *
+ * The 'stack_base' variable should be the address of the first variable
+ * allocated on the stack for your main() function.
+ * The mx_stack_available() function will not work correctly if
+ * mx_initialize_stack_calc() was not called at the start of your program.
+ * Note that variables with the 'static' keyword in their definition
+ * cannot be used, since they are not allocated on the stack.
+ */
 
 MX_API void mx_initialize_stack_calc( const void *stack_base );
 
+/**
+ * Returns the stack_base pointer saved by mx_initialize_stack_calc().
+ *
+ * @return Returns the stack base pointer.
+ */
+
 MX_API const void *mx_get_stack_base( void );
 
+/**
+ * Report the direction that the stack grows in.
+ *
+ * @return Returns TRUE if the stack grows up and FALSE if the stack grows down.
+ */
+
 MX_API int mx_stack_grows_up( void );
+
+/**
+ * Reports the byte offset between the supplied stack address and the stack base.
+ *
+ * @param[in] stack_base      Should be the stack base address reported by
+ *   mx_get_stack_base().
+ * @param[in] stack_address   Should be the address of a variable on the stack.
+ *
+ * @return Returns the address offset in bytes betweeen the two addresses
+ * on the stack.
+ *
+ * Note that if the two addresses are not both from the stack, then 
+ * mx_get_stack_offset() will not return a meaningful value.
+ */
 
 MX_API long mx_get_stack_offset( const void *stack_base,
 				const void *stack_address );

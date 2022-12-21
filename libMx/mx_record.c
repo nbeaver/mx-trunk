@@ -1591,8 +1591,8 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			 * $env (anybody else).
 			 */
 
-			mx_expand_env( old_buffer_value,
-				new_variable_value, sizeof(new_variable_value));
+			mx_expand_env( new_variable_value, old_buffer_value,
+						sizeof(new_variable_value));
 
 			/* Update the environment variable's value. */
 
