@@ -17,6 +17,12 @@
 #ifndef __MX_UTIL_H__
 #define __MX_UTIL_H__
 
+/** @file mx_util.h 
+ * Common MX utility functions that do not use MX databases.
+ */
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include "mx_private_version.h"
 
 #include <string.h>	/* We get 'size_t' from here. */
@@ -418,11 +424,31 @@ extern "C" {
 
 /*------------------------------------------------------------------------*/
 
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
+/*------------------------------------------------------------------------*/
+
 /* Environment variable related functions. */
+
+/**
+ * Set the value of an environment variable.
+ * @param[in] env_name    Environment variable name.
+ * @param[in] env_value   New string value for the environment variable.
+ *
+ * On Linux, this function does not have any effect on the environment
+ * variable LD_LIBRARY_PATH since that variable is only examined once
+ * when the program starts.
+ */
 
 MX_API int mx_setenv( const char *env_name, const char *env_value );
 
-/* The mx_expand_env() function replaces instances of %VAR% (for Windows)
+/**
+ * Expand environment variables in the string.
+ * @param[in] original_env_value   The environment variable string before expansion.
+ * @param[out] new_env_value       The environment variable string after expansion.
+ * @param[in] max_env_size         The maximum length of 'new_env_value'.
+ *
+ * mx_expand_env() replaces instances of %%VAR%% (for Windows)
  * or $VAR (for everyone else) in the original string with the contents of
  * those variables.
  */
@@ -435,14 +461,44 @@ MX_API int mx_expand_env( const char *original_env_value,
 
 /* Sleep functions with higher resolution than sleep(). */
 
+/**
+ * Asks that the current process sleep for the requestd number of seconds.
+ * @param[in] seconds
+ *
+ */
+
 MX_API void mx_sleep( unsigned long seconds );
+
+/**
+ * Asks that the current process sleep for the requested number
+ * of milliseconds.
+ * @param[in] milliseconds
+ *
+ */
+
 MX_API void mx_msleep( unsigned long milliseconds );
+
+/**
+ * Asks that the current process sleep for the requested number
+ * of microseconds.
+ * @param[in] microseconds
+ *
+ */
+
 MX_API void mx_usleep( unsigned long microseconds );
 
 /*--- Stack debugging tools ---*/
 
-/* mx_stack_traceback() does its best to provide a traceback of the
- * function call stack at the time of invocation.
+/**
+ * Display a stack traceback for the current thread.
+ *
+ * mx_stack_traceback() does its best to provide a traceback of the
+ * function call stack at the time of invocation.  However, the 
+ * functionality available differs between different operating systems,
+ * so the amount of available information can vary.  Furthermore, if
+ * the stack for the current thread is corrupted, then a call to
+ * mx_stack_traceback() may return incorrect information and may
+ * even crash your program.
  */
 
 MX_API void mx_stack_traceback( void );
@@ -1183,7 +1239,11 @@ MX_API unsigned long mx_get_random_max( void );
 
 /* === Define error message codes. === */
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include "mx_error_codes.h"
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #ifdef __cplusplus
 }

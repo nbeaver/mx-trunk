@@ -178,6 +178,9 @@ install: depend_files
 	( cd autosave ; $(MAKECMD) mx_install )
 	( cd util ; $(MAKECMD) mx_install )
 
+doxygen:
+	( cd doxygen; doxygen Doxyfile )
+
 #------------------------------------------------------------------------------
 
 modules: modules-build
