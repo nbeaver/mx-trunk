@@ -9,7 +9,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014, 2016, 2019, 2021
+ * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014, 2016, 2019, 2021,
+ *           2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1529,14 +1530,12 @@ mxi_pmac_tcp_flush( MX_PMAC *pmac,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Wait for the PMAC to send us a response to the flush. */
+	/* See if there was an error. */
 
 	mx_status = mx_socket_wait_for_event( pmac->pmac_socket, 5.0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* See if there was an error. */
 
 	mx_status = mx_socket_receive( pmac->pmac_socket,
 				&ack_byte, sizeof(ack_byte),
@@ -1610,6 +1609,11 @@ mxi_pmac_tcp_command( MX_PMAC *pmac,
 			return mx_status;
 
 		/* See if there was an error. */
+
+		mx_status = mx_socket_wait_for_event( pmac->pmac_socket, 5.0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		mx_status = mx_socket_receive( pmac->pmac_socket,
 					&ack_byte, sizeof(ack_byte),
