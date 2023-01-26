@@ -352,6 +352,13 @@ mxd_dg645_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* Update the trigger mode variables. */
+
+	mx_status = mx_pulse_generator_get_trigger_mode( pulser->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* If we are a burst mode pulser, then turn burst mode on. */
 
 	if ( pulser->record->mx_type == MXT_PGN_DG645_BURST ) {

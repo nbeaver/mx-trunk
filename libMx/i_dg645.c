@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017-2019, 2022 Illinois Institute of Technology
+ * Copyright 2017-2019, 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -391,10 +391,13 @@ mxi_dg645_command( MX_DG645 *dg645,
 		dg645->last_error = lerr_code;
 
 		if ( lerr_code != 0 ) {
-			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"Command '%s' sent to DG645 controller '%s' "
-			"failed with an LERR error code of %d.",
-				command, dg645->record->name, lerr_code );
+			mx_status = mx_error( MXE_INTERFACE_ACTION_FAILED,fname,
+			"Command '%s' sent to DG645 controller '%s' failed "
+			"with an LERR error code of %d.  Error = '%s'.",
+				command, dg645->record->name, lerr_code,
+				mxi_dg645_get_lerr_message( lerr_code ) );
+
+			return mx_status;
 		}
 	}
 
@@ -813,4 +816,155 @@ mxi_dg645_process_function( void *record_ptr,
 	return mx_status;
 }
 
+/*==================================================================*/
+
+static struct lerr_message_type {
+    unsigned long lerr_code;
+    const char lerr_message[150];
+} lerr_message_array[] = {
+
+{ 0, "No Error --- No more errors left in the queue." },
+{ 10, "Illegal Value --- A parameter was out of range." },
+{ 11, "Illegal Mode --- The action is illegal in the current mode." },
+{ 12, "Illegal Delay --- The requested delay is out of range." },
+{ 13, "Illegal Link --- The requested delay linkage is illegal." },
+{ 14, "Recall Failed --- The recall of instrument settings from nonvolatile "
+        "storage failed. The instrument settings were invalid." },
+{ 15, "Not Allowed --- The requested action is not allowed because the "
+        "instrument is locked by another interface." },
+{ 16, "Failed Self Test --- The DG645 self test failed." },
+{ 17, "Failed Auto Calibration --- The DG645 auto calibration failed." },
+{ 30, "Lost Data --- Data in the output buffer was lost." },
+{ 32, "No Listener --- This is a communications error that occurs if the DG645 "
+        "is addressed to talk on the GPIB bus, but there are no listeners." },
+{ 40, "Failed ROM Check --- The ROM checksum failed. The firmware code "
+        "is likely corrupted." },
+{ 41, "Failed Offset T0 Test --- Self test of offset functionality "
+        "for output T0 failed." },
+{ 42, "Failed Offset AB Test --- Self test of offset functionality "
+        "for output AB failed." },
+{ 43, "Failed Offset CD Test --- Self test of offset functionality "
+        "for output CD failed." },
+{ 44, "Failed Offset EF Test --- Self test of offset functionality "
+        "for output EF failed." },
+{ 45, "Failed Offset GH Test --- Self test of offset functionality "
+        "for output GH failed." },
+{ 46, "Failed Amplitude T0 Test --- Self test of amplitude functionality "
+        "for output T0 failed." },
+{ 47, "Failed Amplitude AB Test --- Self test of amplitude functionality "
+        "for output AB failed." },
+{ 48, "Failed Amplitude CD Test --- Self test of amplitude functionality "
+        "for output CD failed." },
+{ 49, "Failed Amplitude EF Test --- Self test of amplitude functionality "
+        "for output EF failed." },
+{ 50, "Failed Amplitude GH Test --- Self test of amplitude functionality "
+        "for output GH failed." },
+{ 51, "Failed FPGA Communications Test --- Self test of FPGA communications "
+        "failed." },
+{ 52, "Failed GPIB Communications Test --- Self test of GPIB communications "
+        "failed." },
+{ 53, "Failed DDS Communications Test --- Self test of DDS communications "
+        "failed." },
+{ 54, "Failed Serial EEPROM Communications Test --- Self test of serial "
+        "EEPROM communications failed." },
+{ 55, "Failed Temperature Sensor Communications Test --- Self test of the "
+        "temperature sensor communications failed." },
+{ 56, "Failed PLL Communications Test --- Self test of PLL communications "
+        "failed." },
+{ 57, "Failed DAC 0 Communications Test --- Self test of DAC 0 communications "
+        "failed." },
+{ 58, "Failed DAC 1 Communications Test --- Self test of DAC 1 communications "
+        "failed." },
+{ 59, "Failed DAC 2 Communications Test --- Self test of DAC 2 communications "
+        "failed." },
+{ 60, "Failed Sample and Hold Operations Test --- Self test of sample and "
+        "hold operations failed." },
+{ 61, "Failed Vjitter Operations Test --- Self test of Vjitter operation "
+        "failed." },
+{ 62, "Failed Channel T0 Analog Delay Test --- Self test of channel T0 "
+        "analog delay failed." },
+{ 63, "Failed Channel T1 Analog Delay Test --- Self test of channel T1 "
+        "analog delay failed." },
+{ 64, "Failed Channel A Analog Delay Test --- Self test of channel A "
+        "analog delay failed." },
+{ 65, "Failed Channel B Analog Delay Test --- Self test of channel B "
+        "analog delay failed." },
+{ 66, "Failed Channel C Analog Delay Test --- Self test of channel C "
+        "analog delay failed." },
+{ 67, "Failed Channel D Analog Delay Test --- Self test of channel D "
+        "analog delay failed." },
+{ 68, "Failed Channel E Analog Delay Test --- Self test of channel E "
+        "analog delay failed." },
+{ 69, "Failed Channel F Analog Delay Test --- Self test of channel F "
+        "analog delay failed." },
+{ 70, "Failed Channel G Analog Delay Test --- Self test of channel G "
+        "analog delay failed." },
+{ 71, "Failed Channel H Analog Delay Test --- Self test of channel H "
+        "analog delay failed." },
+{ 80, "Failed Sample and Hold Calibration --- Auto calibration of sample "
+        "and hold DAC failed." },
+{ 81, "Failed T0 Calibration --- Auto calibration of channel T0 failed." },
+{ 82, "Failed T1 Calibration --- Auto calibration of channel T1 failed." },
+{ 83, "Failed A Calibration --- Auto calibration of channel A failed." },
+{ 84, "Failed B Calibration --- Auto calibration of channel B failed." },
+{ 85, "Failed C Calibration --- Auto calibration of channel C failed." },
+{ 86, "Failed D Calibration --- Auto calibration of channel D failed." },
+{ 87, "Failed E Calibration --- Auto calibration of channel E failed." },
+{ 88, "Failed F Calibration --- Auto calibration of channel F failed." },
+{ 89, "Failed G Calibration --- Auto calibration of channel G failed." },
+{ 90, "Failed H Calibration --- Auto calibration of channel H failed." },
+{ 91, "Failed Vjitter Calibration --- Auto calibration of Vjitter failed." },
+{ 110, "Illegal Command --- The command syntax used was illegal." },
+{ 111, "Undefined Command --- The specified command does not exist." },
+{ 112, "Illegal Query --- The specified command does not permit queries." },
+{ 113, "Illegal Set --- The specified command can only be queried." },
+{ 114, "Null Parameter --- The parser detected an empty parameter." },
+{ 115, "Extra Parameters --- The parser detected more parameters than "
+        "allowed by the command." },
+{ 116, "Missing Parameters --- The parser detected missing parameters "
+        "required by the command." },
+{ 117, "Parameter Overflow --- The buffer for storing parameter values "
+        "overflowed. This probably indicates a syntax error." },
+{ 118, "Invalid Floating Point Number --- The parser expected a floating "
+        "point number, but was unable to parse it." },
+{ 120, "Invalid Integer --- The parser expected an integer, but was unable "
+        "to parse it." },
+{ 121, "Integer Overflow --- A parsed integer was too large to "
+        "store correctly." },
+{ 122, "Invalid Hexadecimal --- The parser expected hexadecimal characters "
+        "but was unable to parse them." },
+{ 126, "Syntax Error --- The parser detected a syntax error in the command." },
+{ 170, "Communication Error --- A communication error was detected. This is "
+        "reported if the hardware detects a framing, or parity error in "
+        "the data stream." },
+{ 171, "Over run --- The input buffer of the remote interface overflowed. "
+        "All data in both the input and output buffers will be flushed." },
+{ 254, "Too Many Errors --- The error buffer is full. Subsequent errors "
+        "have been dropped." },
+};
+
+static size_t num_lerr_messages = sizeof( lerr_message_array )
+	                        / sizeof( lerr_message_array[0] );
+
+MX_EXPORT const char *
+mxi_dg645_get_lerr_message( unsigned long lerr_code )
+{
+	size_t i;
+	const char *lerr_message_ptr = NULL;
+	static const char unrecognized_lerr_message[] =
+				"Unrecognized LERR message code.";
+
+	for ( i = 0; i < num_lerr_messages; i++ ) {
+		if ( lerr_code == lerr_message_array[i].lerr_code ) {
+			lerr_message_ptr = lerr_message_array[i].lerr_message;
+			break;
+		}
+	}
+
+	if ( lerr_message_ptr != NULL ) {
+		return lerr_message_ptr;
+	}
+
+	return unrecognized_lerr_message;
+}
 

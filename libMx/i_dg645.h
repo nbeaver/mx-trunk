@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017-2018, 2022 Illinois Institute of Technology
+ * Copyright 2017-2018, 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -174,6 +174,14 @@ MX_API mx_status_type mxi_dg645_compute_delay_between_channels(
 					double *adjacent_delay );
 
 MX_API mx_status_type mxi_dg645_get_status( MX_DG645 *dg645 );
+
+MX_API const char *mxi_dg645_get_lerr_message( unsigned long lerr_code );
+
+#if 0
+MX_API mx_status_type mxi_dg645_investigate_lerr_code( MX_DG645 *dg645,
+						unsigned long lerr_code,
+						char *command );
+#endif
 
 extern MX_RECORD_FUNCTION_LIST mxi_dg645_record_function_list;
 
