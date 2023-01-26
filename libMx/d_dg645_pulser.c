@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2017-2019, 2022 Illinois Institute of Technology
+ * Copyright 2017-2019, 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -307,22 +307,16 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 			return mx_status;
 
 		dg645->burst_mode_on = TRUE;
-	}
 
-	/* For single shot modes, enable the external trigger. */
-
-#if 0
-	if ( pulser->trigger_mode & MXF_DEV_ONE_SHOT_TRIGGER ) {
-#endif
+	} else {
+		/* Enable the external trigger. */
 
 		mx_status = mxi_dg645_command( dg645, "*TRG",
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-#if 0
 	}
-#endif
 
 	dg645->armed = TRUE;
 
