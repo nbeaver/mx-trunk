@@ -10,8 +10,7 @@
  *---------------------------------------------------------------------------
  *
  * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014, 2016, 2019, 2021,
- *           2023
- *    Illinois Institute of Technology
+ *    2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -196,6 +195,7 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 	char **argv;
 	int i, length;
 	char port_record_name[MXU_RECORD_NAME_LENGTH+1];
+	mx_status_type mx_status;
 
 	pmac = (MX_PMAC *) record->record_type_struct;
 
@@ -325,8 +325,74 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 	case MX_PMAC_PORT_TYPE_TCP:
 		pmac->port_record = NULL;
 
-		strlcpy( pmac->hostname, pmac->port_args,
+		port_args = strdup( pmac->port_args );
+
+		if ( port_args == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to create a copy "
+			"of the PMAC port_args." );
+		}
+
+		mx_string_split( port_args, " ", &argc, &argv );
+
+#if 0
+		{
+			int n;
+
+			MX_DEBUG(-2,("%s: MX_PMAC_PORT_TYPE_TCP, argc = %d",
+					fname, argc));
+
+
+			for ( n = 0; n < argc; n++ ) {
+				fprintf( stderr, "argv[%d] = '%s'\n",
+					n, argv[n] );
+			}
+		}
+#endif
+		mx_status = MX_SUCCESSFUL_RESULT;
+
+		switch( argc ) {
+		case 1:
+			strlcpy( pmac->hostname, argv[0],
 						sizeof(pmac->hostname) );
+
+			mx_warning( "The receive timeout for pmac '%s' did not "
+				"have a value set in port_args = '%s'.  The "
+				"timeout has been set to -1 (meaning forever).",
+					pmac->record->name, pmac->port_args );
+
+			pmac->tcp_receive_timeout_in_seconds = -1.0;
+			break;
+
+		case 2:
+			strlcpy( pmac->hostname, argv[0],
+						sizeof(pmac->hostname) );
+
+			pmac->tcp_receive_timeout_in_seconds = atof( argv[1] );
+			break;
+
+		default:
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The 'port_args' field '%s' for pmac '%s' contains "
+			"an unexpected number of arguments (%d).  "
+			"The expected number of arguments is 2, namely "
+			"the hostname and the TCP receive timeout in seconds.",
+				pmac->port_args, pmac->record->name, argc );
+			break;
+		}
+
+		mx_free(argv);
+		mx_free(port_args);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if 1
+		MX_DEBUG(-2,
+		    ("%s: pmac '%s' hostname = '%s', tcp receive timeout = %f",
+		     fname, pmac->record->name, pmac->hostname,
+		     pmac->tcp_receive_timeout_in_seconds));
+#endif
 		break;
 
 	case MX_PMAC_PORT_TYPE_GPLIB:

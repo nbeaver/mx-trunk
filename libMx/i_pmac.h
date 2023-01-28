@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006, 2009-2010, 2014, 2021
+ * Copyright 1999-2003, 2006, 2009-2010, 2014, 2021, 2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -104,10 +104,11 @@ typedef struct {
 	char command[MX_PMAC_MAX_COMMAND_LENGTH+1];
 	char response[MX_PMAC_MAX_COMMAND_LENGTH+1];
 
-	/* Parameters used by the PMAC 'ethernet' port type. */
+	/* Parameters used by the PMAC 'tcp' port type. */
 
 	MX_SOCKET *pmac_socket;
 	char hostname[MXU_HOSTNAME_LENGTH+1];
+	double tcp_receive_timeout_in_seconds;
 
 	/* Parameters used by the PowerPMAC 'gpascii' port type. */
 
@@ -119,7 +120,7 @@ typedef struct {
 	mx_bool_type gplib_initialized;
 
 #if ( defined(HAVE_EPICS) && HAVE_EPICS )
-	/* Parameters used by the PMAC 'ethernet' port type. */
+	/* Parameters used by the PMAC 'epics_ect' port type. */
 
 	MX_EPICS_PV strcmd_pv;
 	MX_EPICS_PV strrsp_pv;
