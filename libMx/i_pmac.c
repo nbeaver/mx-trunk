@@ -124,7 +124,7 @@ mxi_pmac_tcp_command( MX_PMAC *, char *, char *, size_t, mx_bool_type );
 
 static mx_status_type
 mxi_pmac_tcp_receive_response( MX_SOCKET *,
-				char *, size_t, size_t *, mx_bool_type );
+			char *, size_t, size_t *, double, mx_bool_type );
 
 /*--*/
 
@@ -1108,15 +1108,9 @@ mxi_pmac_getchar( MX_PMAC *pmac, char *c )
 		break;
 
 	case MX_PMAC_PORT_TYPE_TCP:
-		mx_status = mx_socket_wait_for_event( pmac->pmac_socket, 5.0 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
 		mx_status = mx_socket_receive( pmac->pmac_socket,
-						c, sizeof(char),
-						&num_bytes_received,
-						NULL, 0, 0 );
+				c, sizeof(char), &num_bytes_received, NULL, 0,
+				pmac->tcp_receive_timeout_in_seconds );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1598,14 +1592,9 @@ mxi_pmac_tcp_flush( MX_PMAC *pmac,
 
 	/* See if there was an error. */
 
-	mx_status = mx_socket_wait_for_event( pmac->pmac_socket, 5.0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	mx_status = mx_socket_receive( pmac->pmac_socket,
-				&ack_byte, sizeof(ack_byte),
-				NULL, NULL, 0, 0 );
+				&ack_byte, sizeof(ack_byte), NULL, NULL, 0,
+				pmac->tcp_receive_timeout_in_seconds );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1676,14 +1665,9 @@ mxi_pmac_tcp_command( MX_PMAC *pmac,
 
 		/* See if there was an error. */
 
-		mx_status = mx_socket_wait_for_event( pmac->pmac_socket, 5.0 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
 		mx_status = mx_socket_receive( pmac->pmac_socket,
-					&ack_byte, sizeof(ack_byte),
-					NULL, NULL, 0, 0 );
+				&ack_byte, sizeof(ack_byte), NULL, NULL, 0,
+				pmac->tcp_receive_timeout_in_seconds );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1715,7 +1699,9 @@ mxi_pmac_tcp_command( MX_PMAC *pmac,
 
 	mx_status = mxi_pmac_tcp_receive_response( pmac->pmac_socket,
 					response, response_buffer_length,
-					&num_bytes_received, debug_flag );
+					&num_bytes_received,
+					pmac->tcp_receive_timeout_in_seconds,
+					debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1758,6 +1744,7 @@ mxi_pmac_tcp_receive_response( MX_SOCKET *mx_socket,
 				char *response,
 				size_t response_buffer_length,
 				size_t *num_bytes_received,
+				double tcp_receive_timeout_in_seconds,
 				mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_tcp_receive_response()";
@@ -1778,18 +1765,13 @@ mxi_pmac_tcp_receive_response( MX_SOCKET *mx_socket,
 	memset( response, 0, response_buffer_length );
 
 #if MXI_PMAC_DEBUG_TCP
-	MX_DEBUG(-2,("%s: Before mx_socket_wait_for_event()", fname));
+	MX_DEBUG(-2,("%s: Before mx_socket_receive()", fname));
 #endif
-
-	mx_status = mx_socket_wait_for_event( mx_socket, 5.0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	mx_status = mx_socket_receive( mx_socket,
 					response, response_buffer_length,
-					&local_num_bytes_received,
-					"\r\006", 2, 0 );
+					&local_num_bytes_received, "\r\006", 2,
+					tcp_receive_timeout_in_seconds );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
