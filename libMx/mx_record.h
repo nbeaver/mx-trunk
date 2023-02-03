@@ -585,7 +585,7 @@ typedef struct {
 
 	mx_bool_type breakpoint;		/* Run mx_breakpoint(). */
 	mx_bool_type crash;			/* Intentional crash. */
-	mx_bool_type debugger_started;
+	unsigned long debugger_pid;
 	mx_bool_type show_open_fds;
 	mx_bool_type callbacks_enabled;
 	char *cflags;

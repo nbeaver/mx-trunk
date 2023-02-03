@@ -57,7 +57,7 @@ MX_API void mx_wait_for_debugger( void );
  * now becomes easy to set a breakpoint in a constructor.
  */
 
-MX_API int mx_breakpoint_helper( void );
+MX_API void mx_breakpoint_helper( void );
 
 /* mx_raw_breakpoint() triggers a hardware breakpoint.  If an MX program
  * is not being run from a debugger, then on most platforms calling the
@@ -130,14 +130,19 @@ MX_API int mx_clear_watchpoint( MX_WATCHPOINT *watchpoint );
 MX_API int mx_show_watchpoints( void );
 
 /*
- * mx_set_debugger_started_flag() provides a way to directly set the internal
- * 'mx_debugger_started' flag.  This can be useful if an MX program is started
+ * mx_set_debugger_pid() provides a way to directly set the internal
+ * 'mxp_debugger_pid' flag.  This can be useful if an MX program is started
  * manually from a debugger.
  */
 
-MX_API void mx_set_debugger_started_flag( int started_flag );
+MX_API void mx_set_debugger_pid( unsigned long debugger_pid );
 
-MX_API int mx_get_debugger_started_flag( void );
+/* mx_get_debugger_saved_pid() just returns the most recently saved value
+ * of the mxp_debugger_pid variable.  It does not itself check for the
+ * actual presence of a debugger.
+ */
+
+MX_API unsigned long mx_get_debugger_saved_pid( void );
 
 /*
  * mx_global_debug_pointer and mx_global_debug_initialized are used to
@@ -154,3 +159,4 @@ MX_API void *mx_global_debug_pointer[10];
 #endif
 
 #endif /* __MX_DEBUGGER_H__ */
+

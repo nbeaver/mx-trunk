@@ -61,7 +61,7 @@ mx_just_in_time_debugging_is_enabled( void )
  * now becomes easy to set a breakpoint in a constructor.
  */
 
-MX_EXPORT int
+MX_EXPORT void
 mx_breakpoint_helper( void )
 {
 	/* Make it a bit harder for the optimizer to optimize us away. */
@@ -70,7 +70,9 @@ mx_breakpoint_helper( void )
 
 	i = 42;
 
-	return i;
+	MXW_UNUSED(i);
+
+	return;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -79,7 +81,7 @@ mx_breakpoint_helper( void )
  * It is not possible to implement this for all platforms.
  */
 
-static mx_bool_type mxp_debugger_started = FALSE;
+static unsigned long mxp_debugger_pid = 0;
 
 /* Note: The argument to mx_set_debugger_started_flag() is an int, rather
  * than an mx_bool_type, so that we will not need to define mx_bool_type
@@ -87,19 +89,15 @@ static mx_bool_type mxp_debugger_started = FALSE;
  */
 
 MX_EXPORT void
-mx_set_debugger_started_flag( int flag )
+mx_set_debugger_pid( unsigned long debugger_pid )
 {
-	if ( flag ) {
-		mxp_debugger_started = TRUE;
-	} else {
-		mxp_debugger_started = FALSE;
-	}
+	mxp_debugger_pid = debugger_pid;
 }
 
-MX_EXPORT int
-mx_get_debugger_started_flag( void )
+MX_EXPORT unsigned long
+mx_get_debugger_saved_pid( void )
 {
-	return mxp_debugger_started;
+	return mxp_debugger_pid;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -109,7 +107,7 @@ mx_get_debugger_started_flag( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	mxp_debugger_started = TRUE;
+	mxp_debugger_pid = 1;
 
 	DebugBreak();
 }
@@ -119,10 +117,10 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	if ( mxp_debugger_started ) {
+	if ( mxp_debugger_pid ) {
 		mx_raw_breakpoint();
 	} else {
-		mxp_debugger_started = TRUE;
+		mxp_debugger_pid = 1;
 
 		mx_start_debugger(NULL);
 	}
@@ -902,7 +900,7 @@ mx_debugger_is_present( void )
 	char buffer[200];
 	char error_message[80];
 	int saved_errno, num_items;
-	long debugger_pid;
+	unsigned long debugger_pid;
 
 	FILE *status_file = fopen( "/proc/self/status", "r" );
 
@@ -927,7 +925,7 @@ mx_debugger_is_present( void )
 
 			/* If we did not find TracerPid, then our fallback
 			 * strategy is to look to see if MX's own static
-			 * variable called 'mxp_debugger_present' has
+			 * variable called 'mxp_debugger_pid' has
 			 * been set or not.
 			 *
 			 * This is not a 100% reliable way of detecting
@@ -937,11 +935,7 @@ mx_debugger_is_present( void )
 			 * variable.
 			 */
 
-			if ( mxp_debugger_started ) {
-				return TRUE;
-			} else {
-				return FALSE;
-			}
+			return mxp_debugger_pid;
 		}
 		if ( ferror( status_file ) ) {
 			(void) mx_error( MXE_FILE_IO_ERROR, fname,
@@ -952,16 +946,14 @@ mx_debugger_is_present( void )
 			return FALSE;
 		}
 
-		num_items = sscanf( buffer, "TracerPid: %ld", &debugger_pid );
+		num_items = sscanf( buffer, "TracerPid: %lu", &debugger_pid );
 
 		if ( num_items == 1 ) {
 			fclose( status_file );
 
-			if ( debugger_pid != 0 ) {
-				mxp_debugger_started = TRUE;
-			}
+			mxp_debugger_pid = debugger_pid;
 
-			return debugger_pid;
+			return mxp_debugger_pid;
 		}
 	}
 
@@ -973,11 +965,7 @@ mx_debugger_is_present( void )
 MX_EXPORT unsigned long
 mx_debugger_is_present( void )
 {
-	if ( mxp_debugger_started ) {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
+	return mxp_debugger_pid;
 }
 
 #endif

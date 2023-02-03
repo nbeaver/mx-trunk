@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2019, 2021-2022
+ * Copyright 2003-2004, 2006-2009, 2011-2019, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -56,7 +56,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_CFLAGS:
 		case MXLV_LHD_CRASH:
 		case MXLV_LHD_DEBUG_LEVEL:
-		case MXLV_LHD_DEBUGGER_STARTED:
+		case MXLV_LHD_DEBUGGER_PID:
 		case MXLV_LHD_FIELDDEF:
 		case MXLV_LHD_NUMBERED_BREAKPOINT_STATUS:
 		case MXLV_LHD_POSIX_TIME:
@@ -121,9 +121,9 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_DEBUG_LEVEL:
 			list_head->debug_level = mx_get_debug_level();
 			break;
-		case MXLV_LHD_DEBUGGER_STARTED:
-			list_head->debugger_started =
-					mx_get_debugger_started_flag();
+		case MXLV_LHD_DEBUGGER_PID:
+			list_head->debugger_pid =
+					mx_get_debugger_saved_pid();
 			break;
 		case MXLV_LHD_BREAKPOINT_NUMBER:
 			break;
@@ -277,12 +277,7 @@ mx_list_head_process_function( void *record_ptr,
 						"change ignored." );
 			}
 			break;
-		case MXLV_LHD_DEBUGGER_STARTED:
-			if ( list_head->debugger_started ) {
-				mx_set_debugger_started_flag( 1 );
-			} else {
-				mx_set_debugger_started_flag( 0 );
-			}
+		case MXLV_LHD_DEBUGGER_PID:
 			break;
 		case MXLV_LHD_SHOW_OPEN_FDS:
 			mx_info( "Open file descriptors:" );

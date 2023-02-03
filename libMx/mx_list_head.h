@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2019, 2022
+ * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2019, 2022-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -41,7 +41,7 @@ extern "C" {
 #define MXLV_LHD_NUMBERED_BREAKPOINT_STATUS	1013
 #define MXLV_LHD_BREAKPOINT			1014
 #define MXLV_LHD_CRASH				1015
-#define MXLV_LHD_DEBUGGER_STARTED		1016
+#define MXLV_LHD_DEBUGGER_PID			1016
 #define MXLV_LHD_SHOW_OPEN_FDS			1017
 #define MXLV_LHD_CALLBACKS_ENABLED		1018
 #define MXLV_LHD_CFLAGS				1019
@@ -173,8 +173,8 @@ extern "C" {
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, crash), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_LHD_DEBUGGER_STARTED, -1, "debugger_started", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, debugger_started), \
+  {MXLV_LHD_DEBUGGER_PID, -1, "debugger_pid", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, debugger_pid), \
 	{0}, NULL, 0}, \
   \
   {MXLV_LHD_SHOW_OPEN_FDS, -1, "show_open_fds", MXFT_BOOL, NULL, 0, {0}, \

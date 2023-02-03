@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2016, 2018-2020, 2022
+ * Copyright 1999-2001, 2003-2004, 2006-2016, 2018-2020, 2022-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -155,7 +155,7 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->allow_fast_mode = TRUE;
 	list_head_struct->network_debug_flags = 0;
 	list_head_struct->breakpoint = FALSE;
-	list_head_struct->debugger_started = FALSE;
+	list_head_struct->debugger_pid = 0;
 	list_head_struct->callbacks_enabled = FALSE;
 
 	list_head_struct->is_server = FALSE;
