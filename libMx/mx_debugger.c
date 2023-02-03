@@ -845,9 +845,9 @@ mx_debugger_is_present( void )
 #include <sys/sysctl.h>
 
 MX_EXPORT unsigned long
-mx_debugger_is_present( void )
+mx_get_debugger_pid( void )
 {
-	static const char fname[] = "mx_debugger_is_present()";
+	static const char fname[] = "mx_get_debugger_pid()";
 
 	int mib[4];
 	int p_flag, os_status, saved_errno;
@@ -874,17 +874,31 @@ mx_debugger_is_present( void )
 		return FALSE;
 	}
 
-	/* Look for the P_TRACED flag. */
+	/* If the P_TRACED flag is set, then we are being debugged.
+	 *
+	 * In <sys/proc.h>, the 'extern_proc' contains an element
+	 * of type 'pid_t' that is called 'p_oppid'.  The comment
+	 * associated with 'p_oppid' says the following:
+	 *
+	 * "Save parent pid during ptrace. XXX"
+	 *
+	 * FIXME: It seemed likely that 'p_oppid' would be the
+	 * process id of the tracing process, but it seems to 
+	 * turn out to be the original parent process.
+	 *
+	 * I have not yet figured out how to get the process id
+	 * of the tracing process.  To be continued.....
+	 */
 
 	p_flag = pinfo.kp_proc.p_flag;
 
 	if ( p_flag & P_TRACED ) {
-		mxp_debugger_started = TRUE;
-
-		return TRUE;
+		mxp_debugger_pid = pinfo.kp_proc.p_oppid;
 	} else {
-		return FALSE;
+		mxp_debugger_pid = 0;
 	}
+
+	return mxp_debugger_pid;
 }
 
 #elif defined(OS_LINUX)
