@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -824,7 +824,7 @@ mx_start_debugger( char *command )
 
 #if defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400)
 
-MX_EXPORT long
+MX_EXPORT unsigned long
 mx_debugger_is_present( void )
 {
 	long debugger_present;
@@ -846,7 +846,7 @@ mx_debugger_is_present( void )
 
 #include <sys/sysctl.h>
 
-MX_EXPORT long
+MX_EXPORT unsigned long
 mx_debugger_is_present( void )
 {
 	static const char fname[] = "mx_debugger_is_present()";
@@ -893,8 +893,9 @@ mx_debugger_is_present( void )
 
 /* Look for a non-zero value for TracerPid: in /proc/self/status. */
 
-MX_EXPORT long
+MX_EXPORT unsigned long
 mx_debugger_is_present( void )
+
 {
 	static const char fname[] = "mx_debugger_is_present()";
 
@@ -922,12 +923,25 @@ mx_debugger_is_present( void )
 		mx_fgets( buffer, sizeof(buffer), status_file );
 
 		if ( feof( status_file ) ) {
-			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Did not find TracerPid: in the output of the file "
-			"/proc/self/status." );
-
 			fclose( status_file );
-			return FALSE;
+
+			/* If we did not find TracerPid, then our fallback
+			 * strategy is to look to see if MX's own static
+			 * variable called 'mxp_debugger_present' has
+			 * been set or not.
+			 *
+			 * This is not a 100% reliable way of detecting
+			 * a debugger, but it is better than nothing.
+			 * At least for MX programs that are aware of
+			 * the existence of the 'mxp_debugger_present'
+			 * variable.
+			 */
+
+			if ( mxp_debugger_started ) {
+				return TRUE;
+			} else {
+				return FALSE;
+			}
 		}
 		if ( ferror( status_file ) ) {
 			(void) mx_error( MXE_FILE_IO_ERROR, fname,
@@ -956,7 +970,7 @@ mx_debugger_is_present( void )
 
 #else
 
-MX_EXPORT long
+MX_EXPORT unsigned long
 mx_debugger_is_present( void )
 {
 	if ( mxp_debugger_started ) {

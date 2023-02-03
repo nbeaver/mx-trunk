@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2020, 2022 Illinois Institute of Technology
+ * Copyright 1999-2020, 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,10 +42,10 @@ MX_API void mx_start_debugger( char *command );
 
 /* mx_debugger_is_present():
  *     Returns 0 if no debugger present.
- *     Returns debugger's process id if know, otherwise 1 if not known.
+ *     Returns the debugger's process id if known, otherwise 1 if not known.
  */
 
-MX_API long mx_debugger_is_present( void );
+MX_API unsigned long mx_debugger_is_present( void );
 
 MX_API void mx_wait_for_debugger( void );
 
