@@ -815,7 +815,7 @@ mx_start_debugger( char *command )
 
 /*-------------------------------------------------------------------------*/
 
-/* Note: mx_debugger_is_present() is not designed to be used for 
+/* Note: mx_get_debugger_pid() is not designed to be used for 
  * copy protection purposes, so it does not make extreme attempts
  * to detect a debugger that is trying to hide itself.
  */
@@ -823,7 +823,7 @@ mx_start_debugger( char *command )
 #if defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400)
 
 MX_EXPORT unsigned long
-mx_debugger_is_present( void )
+mx_get_debugger_pid( void )
 {
 	long debugger_present;
 
@@ -977,7 +977,7 @@ mx_get_debugger_pid( void )
 #else
 
 MX_EXPORT unsigned long
-mx_debugger_is_present( void )
+mx_get_debugger_pid( void )
 {
 	return mxp_debugger_pid;
 }
