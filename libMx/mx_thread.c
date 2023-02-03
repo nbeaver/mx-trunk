@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011, 2013, 2015-2019, 2022
+ * Copyright 2005-2007, 2010-2011, 2013, 2015-2019, 2022-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -2177,9 +2177,36 @@ mx_thread_exit( MX_THREAD *thread,
 
 #if defined( OS_LINUX )
 
-#  if ( MX_GLIBC_VERSION < 2030000L ) || defined( MX_HAVE_CONDA )
+#include <sys/syscall.h>   /* Needed to get definition of SYS_gettid. */
 
-#    include <sys/syscall.h>   /* Needed to get definition of SYS_gettid. */
+#  if !defined( SYS_gettid )
+
+     /*** Case 1: Before the gettid system call existed. ***/
+
+     /* In modern versions of Linux, the first thread created for a
+      * process has a thread id which is equal to the process id.
+      *
+      * However, in ancient versions of Linux, thread ids did not exist.
+      * In this case, it seems that the best practice here would be to
+      * set MX's value of a thread id to be equal to the process id.
+      * That way, for single threaded processes you get the same
+      * behavior.  If this proves to be a problem, then please let
+      * me know.  (W. Lavender)
+      */
+
+MX_EXPORT pid_t
+mx_gettid( void )
+{
+	pid_t kernel_thread_id = getpid();
+
+	return kernel_thread_id;
+}
+
+     /*- - - - - - - - -*/
+
+#  elif ( ( MX_GLIBC_VERSION < 2030000L ) || defined( MX_HAVE_CONDA ) )
+
+     /*** Case 2: Before Glibc included a gettid() wrapper. ***/
 
 MX_EXPORT pid_t
 mx_gettid( void )
@@ -2189,7 +2216,10 @@ mx_gettid( void )
 	return kernel_thread_id;
 }
 
-#  else   /* Using Glibc 2.30 and above, _without_ Conda */
+   /*- - - - - - - - -*/
+
+#  else
+     /*** Case 3: Using Glibc 2.30 and above or Musl, _without_ Conda. ***/
 
 extern pid_t gettid( void );
 
@@ -2205,7 +2235,7 @@ mx_gettid( void )
 
 #endif   /* OS_LINUX */
 
-/*----------------*/
+/*-----------------*/
 
 #if defined( OS_ANDROID )
 
@@ -2682,7 +2712,7 @@ mx_show_thread_list( void )
 	DIR *dir = NULL;
 	struct dirent *dirent_ptr = NULL;
 	char *name_ptr = NULL;
-	int i, saved_errno = 0;;
+	int i, saved_errno = 0;
 	char errmsg_buffer[80];
 
 	FILE *item_file = NULL;

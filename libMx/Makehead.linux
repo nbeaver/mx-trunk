@@ -212,11 +212,11 @@ endif
 
 _conda_prefix := ${CONDA_PREFIX}
 
-$(info _conda_prefix is [${_conda_prefix}])
+##$(info _conda_prefix is [${_conda_prefix}])
 
 _conda_prefix_len := $(shell echo ${_conda_prefix} | wc -c | sed 's/ //g')
 
-$(info _conda_prefix_len is [${_conda_prefix_len}])
+##$(info _conda_prefix_len is [${_conda_prefix_len}])
 
 ifeq ($(_conda_prefix_len),0)
     _have_conda := false
@@ -240,27 +240,27 @@ $(info _have_conda is [${_have_conda}])
 
 _gcc_collect_lto_wrapper := $(shell gcc -v 2>&1 | grep COLLECT_LTO_WRAPPER  | cut -f3  -d' ' | cut -f2 -d=)
 
-$(info _gcc_collect_lto_wrapper is [${_gcc_collect_lto_wrapper}])
+### $(info _gcc_collect_lto_wrapper is [${_gcc_collect_lto_wrapper}])
 
 _lto_wrapper_length := $(shell echo ${_gcc_collect_lto_wrapper} | wc -c | sed 's/ //g')
 
-$(info _lto_wrapper_length is [${_lto_wrapper_length}])
+### $(info _lto_wrapper_length is [${_lto_wrapper_length}])
 
 ifeq ($(_lto_wrapper_length),1)
     _gcc_lib_dir_v1_len := 0
 else
     _lpl := $(shell expr ${_lto_wrapper_length} - 13)
 
-    $(info _lpl is [${_lpl}])
+    ### $(info _lpl is [${_lpl}])
 
     _gcc_lib_dir_v1 := $(shell echo ${_gcc_collect_lto_wrapper} | cut -c1-${_lpl})
 
-    $(info _gcc_lib_dir_v1 is [${_gcc_lib_dir_v1}])
+    ### $(info _gcc_lib_dir_v1 is [${_gcc_lib_dir_v1}])
 
     _gcc_lib_dir_v1_len := $(shell echo ${_gcc_dir_v1} | wc -c | sed 's/ //g')
 endif
 
-$(info _gcc_lib_dir_v1_len is [${_gcc_lib_dir_v1_len}])
+### $(info _gcc_lib_dir_v1_len is [${_gcc_lib_dir_v1_len}])
 
 #
 # Otherwise, we construct it the old fashioned way from the target
@@ -290,9 +290,9 @@ else
     _gcc_lib_dir := $(_gcc_lib_dir_v1)
 endif
 
-$(info _gcc_lib_dir_v2 is [${_gcc_lib_dir_v2}])
+### $(info _gcc_lib_dir_v2 is [${_gcc_lib_dir_v2}])
 
-$(info _gcc_lib_dir is [${_gcc_lib_dir}])
+### $(info _gcc_lib_dir is [${_gcc_lib_dir}])
 
 #--------------------------------------------------------------------------
 #
