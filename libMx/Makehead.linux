@@ -212,11 +212,11 @@ endif
 
 _conda_prefix := ${CONDA_PREFIX}
 
-### $(info _conda_prefix is [${_conda_prefix}])
+$(info _conda_prefix is [${_conda_prefix}])
 
-_conda_prefix_len := $(shell echo ${_conda_prefix} | wc -c)
+_conda_prefix_len := $(shell echo ${_conda_prefix} | wc -c | sed 's/ //g')
 
-### $(info _conda_prefix_len is [${_conda_prefix_len}])
+$(info _conda_prefix_len is [${_conda_prefix_len}])
 
 ifeq ($(_conda_prefix_len),0)
     _have_conda := false
@@ -240,13 +240,27 @@ $(info _have_conda is [${_have_conda}])
 
 _gcc_collect_lto_wrapper := $(shell gcc -v 2>&1 | grep COLLECT_LTO_WRAPPER  | cut -f3  -d' ' | cut -f2 -d=)
 
-_lto_wrapper_length := $(shell echo ${_gcc_collect_lto_wrapper} | wc -c)
+$(info _gcc_collect_lto_wrapper is [${_gcc_collect_lto_wrapper}])
 
-_lpl := $(shell expr ${_lto_wrapper_length} - 13)
+_lto_wrapper_length := $(shell echo ${_gcc_collect_lto_wrapper} | wc -c | sed 's/ //g')
 
-_gcc_lib_dir_v1 := $(shell echo ${_gcc_collect_lto_wrapper} | cut -c1-${_lpl})
+$(info _lto_wrapper_length is [${_lto_wrapper_length}])
 
-_gcc_lib_dir_v1_len := $(shell echo ${_gcc_dir_v1} | wc -c)
+ifeq ($(_lto_wrapper_length),1)
+    _gcc_lib_dir_v1_len := 0
+else
+    _lpl := $(shell expr ${_lto_wrapper_length} - 13)
+
+    $(info _lpl is [${_lpl}])
+
+    _gcc_lib_dir_v1 := $(shell echo ${_gcc_collect_lto_wrapper} | cut -c1-${_lpl})
+
+    $(info _gcc_lib_dir_v1 is [${_gcc_lib_dir_v1}])
+
+    _gcc_lib_dir_v1_len := $(shell echo ${_gcc_dir_v1} | wc -c | sed 's/ //g')
+endif
+
+$(info _gcc_lib_dir_v1_len is [${_gcc_lib_dir_v1_len}])
 
 #
 # Otherwise, we construct it the old fashioned way from the target
@@ -259,7 +273,7 @@ _gcc_version := $(shell gcc -v 2>&1 | grep '^gcc version' | cut -f3  -d' ')
 
 _gcc_lib_dir_v2 := $(shell echo /usr/lib/gcc/${_gcc_target}/${_gcc_version})
 
-_gcc_lib_dir_v2_len := $(shell echo ${_gcc_dir_v2} | wc -c)
+_gcc_lib_dir_v2_len := $(shell echo ${_gcc_dir_v2} | wc -c | sed 's/ //g')
 
 #
 # Now select the one we like the best.
@@ -276,10 +290,9 @@ else
     _gcc_lib_dir := $(_gcc_lib_dir_v1)
 endif
 
-### $(info _gcc_lib_dir_v1 is [${_gcc_lib_dir_v1}])
-### $(info _gcc_lib_dir_v2 is [${_gcc_lib_dir_v2}])
+$(info _gcc_lib_dir_v2 is [${_gcc_lib_dir_v2}])
 
-### $(info _gcc_lib_dir is [${_gcc_lib_dir}])
+$(info _gcc_lib_dir is [${_gcc_lib_dir}])
 
 #--------------------------------------------------------------------------
 #
@@ -341,7 +354,7 @@ endif
 # this issue are very old versions of Debian.
 #
 
-_num_librt_instances := $(shell /sbin/ldconfig -p | grep librt.so | wc -l)
+_num_librt_instances := $(shell /sbin/ldconfig -p | grep librt.so | wc -l | sed 's/ //g')
 
 _num_librt_instances := $(strip $(_num_librt_instances))
 
@@ -363,13 +376,13 @@ $(info _have_librt is [${_have_librt}])
 #
 # libbacktrace is typically installed in a directory that is part of GCC.
 #
-_have_libbacktrace := $(shell find $(_gcc_lib_dir) -name libbacktrace.a -print | wc -l)
+_have_libbacktrace := $(shell find $(_gcc_lib_dir) -name libbacktrace.a -print | wc -l | sed 's/ //g')
 
 #
 # If GCC does not bundle libbacktrace, see if it was installed in /usr/local
 #
 ifeq ($(_have_libbacktrace),0)
-    _have_libbacktrace := $(shell find /usr/local -name libbacktrace.a -print | wc -l)
+    _have_libbacktrace := $(shell find /usr/local -name libbacktrace.a -print | wc -l | sed 's/ //g')
 endif
 
 #

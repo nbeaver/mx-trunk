@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2014-2015, 2021 Illinois Institute of Technology
+ * Copyright 2006-2007, 2014-2015, 2021, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -176,9 +176,15 @@
 #define PRIu8	"hu"
 #define PRIx8	"hx"
 
-#define SCNd8	"!unsupported"
-#define SCNu8	"!unsupported"
-#define SCNx8	"!unsupported"
+/* Note that the '*' character will cause the compiler to throw away
+ * the value produced by the conversion.  The sscanf() function for
+ * this ancient version of Glibc does not provide a way of converting
+ * an 8-bit value as anything other than a signed or unsigne 'char'.
+ */
+
+#define SCNd8	"c"
+#define SCNu8	"c"
+#define SCNx8	"c"
 
 #define PRId16	"hd"
 #define PRIu16	"hu"

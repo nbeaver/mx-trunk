@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013-2019, 2021-2022
+ * Copyright 1999-2009, 2011, 2013-2019, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -235,13 +235,24 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 MX_EXPORT mx_status_type
 mx_socket_set_send_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 {
+
+#if !defined( SO_SNDTIMEO )
+
+	/* If SO_SNDTIMEO is not available for sockets on this platform,
+	 * then we silently return without doing anything.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
+
+#else /* SO_SNDTIMEO */
+
 	static const char fname[] = "mx_socket_set_send_timeout()";
 
-#if defined(OS_WIN32)
+#   if defined(OS_WIN32)
 	DWORD timeout;		/* in milliseconds */
-#else
+#   else
 	struct timeval timeout;
-#endif
+#   endif
 	int os_status, saved_errno;
 	char error_message[100];
 
@@ -250,13 +261,13 @@ mx_socket_set_send_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
-#if defined(OS_WIN32)
+#   if defined(OS_WIN32)
 	timeout = mx_round( 1000.0 * timeout_in_seconds );
-#else
+#   else
 	timeout.tv_sec = timeout_in_seconds;
 
 	timeout.tv_usec = 1000000.0 * ( timeout_in_seconds - timeout.tv_sec );
-#endif
+#   endif
 
 	os_status = setsockopt( mx_socket->socket_fd, SOL_SOCKET,
 			SO_SNDTIMEO, (const char *) &timeout, sizeof(timeout) );
@@ -273,18 +284,32 @@ mx_socket_set_send_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+
+#endif /* SO_SNDTIMEO */
+
 }
 
 MX_EXPORT mx_status_type
 mx_socket_set_receive_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 {
+
+#if !defined( SO_RCVTIMEO )
+
+	/* If SO_RCVTIMEO is not available for sockets on this platform,
+	 * then we silently return without doing anything.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
+
+#else /* SO_RCVTIMEO */
+
 	static const char fname[] = "mx_socket_set_receive_timeout()";
 
-#if defined(OS_WIN32)
+#   if defined(OS_WIN32)
 	DWORD timeout;		/* in milliseconds */
-#else
+#   else
 	struct timeval timeout;
-#endif
+#   endif
 	int os_status, saved_errno;
 	char error_message[100];
 
@@ -293,13 +318,13 @@ mx_socket_set_receive_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
-#if defined(OS_WIN32)
+#   if defined(OS_WIN32)
 	timeout = mx_round( 1000.0 * timeout_in_seconds );
-#else
+#   else
 	timeout.tv_sec = timeout_in_seconds;
 
 	timeout.tv_usec = 1000000.0 * ( timeout_in_seconds - timeout.tv_sec );
-#endif
+#   endif
 
 	os_status = setsockopt( mx_socket->socket_fd, SOL_SOCKET,
 			SO_RCVTIMEO, (const char *) &timeout, sizeof(timeout) );
@@ -316,18 +341,35 @@ mx_socket_set_receive_timeout( MX_SOCKET *mx_socket, double timeout_in_seconds )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+
+#endif /* SO_RCVTIMEO */
+
 }
 
 MX_EXPORT mx_status_type
 mx_socket_get_send_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds )
 {
+#if !defined( SO_SNDTIMEO )
+
+	/* If SO_SNDTIMEO is not available for sockets on this platform,
+	 * then we silently return without doing anything.
+	 */
+
+	if ( timeout_in_seconds != (double *) NULL ) {
+		*timeout_in_seconds = 0.0;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+
+#else /* SO_SNDTIMEO */
+
 	static const char fname[] = "mx_socket_set_send_timeout()";
 
-#if defined(OS_WIN32)
+#   if defined(OS_WIN32)
 	DWORD timeout;		/* in milliseconds */
-#else
+#   else
 	struct timeval timeout;
-#endif
+#   endif
 	int timeval_size = sizeof( struct timeval );
 	int os_status, saved_errno;
 	char error_message[100];
@@ -355,25 +397,42 @@ mx_socket_get_send_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds )
 			error_message, sizeof(error_message)));
 	}
 
-#if defined(OS_WIN32)
+#   if defined(OS_WIN32)
 	*timeout_in_seconds = 1.0e-3 * timeout;
-#else
+#   else
 	*timeout_in_seconds = timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
-#endif
+#   endif
 
 	return MX_SUCCESSFUL_RESULT;
+
+#endif /* SO_SNDTIMEO */
+
 }
 
 MX_EXPORT mx_status_type
 mx_socket_get_receive_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds)
 {
+#if !defined( SO_RCVTIMEO )
+
+	/* If SO_RCVTIMEO is not available for sockets on this platform,
+	 * then we silently return without doing anything.
+	 */
+
+	if ( timeout_in_seconds != (double *) NULL ) {
+		*timeout_in_seconds = 0.0;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+
+#else /* SO_RCVTIMEO */
+
 	static const char fname[] = "mx_socket_set_send_timeout()";
 
-#if defined(OS_WIN32)
+#   if defined(OS_WIN32)
 	DWORD timeout;		/* in milliseconds */
-#else
+#   else
 	struct timeval timeout;
-#endif
+#   endif
 	int timeval_size = sizeof( struct timeval );
 	int os_status, saved_errno;
 	char error_message[100];
@@ -401,13 +460,16 @@ mx_socket_get_receive_timeout( MX_SOCKET *mx_socket, double *timeout_in_seconds)
 			error_message, sizeof(error_message)));
 	}
 
-#if defined(OS_WIN32)
+#   if defined(OS_WIN32)
 	*timeout_in_seconds = 1.0e-3 * timeout;
-#else
+#   else
 	*timeout_in_seconds = timeout.tv_sec + 1.0e-6 * timeout.tv_usec;
-#endif
+#   endif
 
 	return MX_SUCCESSFUL_RESULT;
+
+#endif /* SO_RCVTIMEO */
+
 }
 
 /********************************************************************/
