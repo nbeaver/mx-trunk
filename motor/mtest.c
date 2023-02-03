@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012-2013, 2015-2019, 2021-2022
+ * Copyright 2009-2010, 2012-2013, 2015-2019, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -67,16 +67,16 @@ motor_test_fn( int argc, char *argv[] )
 			return SUCCESS;
 		} else
 		if ( strcmp( argv[2], "debugger" ) == 0 ) {
-			MX_DEBUG(-2,("Debugger is present = %ld",
-				mx_debugger_is_present() ));
+			MX_DEBUG(-2,("Debugger pid = %ld",
+				mx_get_debugger_pid() ));
 
 			return SUCCESS;
 		} else
 		if ( strcmp( argv[2], "watch" ) == 0 ) {
 			mx_breakpoint();
 
-			MX_DEBUG(-2,("Debugger is present = %ld",
-				mx_debugger_is_present() ));
+			MX_DEBUG(-2,("Debugger pid = %lu",
+				mx_get_debugger_pid() ));
 
 			mx_info( "Beginning watchpoint test." );
 

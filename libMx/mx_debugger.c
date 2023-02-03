@@ -892,10 +892,10 @@ mx_debugger_is_present( void )
 /* Look for a non-zero value for TracerPid: in /proc/self/status. */
 
 MX_EXPORT unsigned long
-mx_debugger_is_present( void )
+mx_get_debugger_pid( void )
 
 {
-	static const char fname[] = "mx_debugger_is_present()";
+	static const char fname[] = "mx_get_debugger_pid()";
 
 	char buffer[200];
 	char error_message[80];
@@ -979,7 +979,7 @@ MX_EXPORT void
 mx_wait_for_debugger( void )
 {
 	unsigned long pid;
-	long debugger_pid;
+	unsigned long debugger_pid;
 
 	pid = mx_process_id();
 
@@ -990,7 +990,7 @@ mx_wait_for_debugger( void )
 	while (1) {
 		mx_msleep(100);
 
-		debugger_pid = mx_debugger_is_present();
+		debugger_pid = mx_get_debugger_pid();
 
 		if ( debugger_pid ) {
 			if ( debugger_pid > 1 ) {

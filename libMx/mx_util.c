@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -236,7 +236,7 @@ mx_initialize_runtime( void )
 
 	/* Check to see if a debugger is already running. */
 
-	(void) mx_debugger_is_present();
+	(void) mx_get_debugger_pid();
 
 	/* We are done, so return to the caller. */
 

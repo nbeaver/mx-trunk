@@ -40,12 +40,12 @@ MX_API int mx_just_in_time_debugging_is_enabled( void );
 
 MX_API void mx_start_debugger( char *command );
 
-/* mx_debugger_is_present():
- *     Returns 0 if no debugger present.
+/* mx_get_debugger_pid():
+ *     Returns 0 if no debugger is attached to the current process.
  *     Returns the debugger's process id if known, otherwise 1 if not known.
  */
 
-MX_API unsigned long mx_debugger_is_present( void );
+MX_API unsigned long mx_get_debugger_pid( void );
 
 MX_API void mx_wait_for_debugger( void );
 
