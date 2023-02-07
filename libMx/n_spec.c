@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2010, 2015, 2018 Illinois Institute of Technology
+ * Copyright 2004-2006, 2010, 2015, 2018, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -206,7 +206,7 @@ mxn_spec_server_open( MX_RECORD *record )
 		"This should not be able to happen." );
 	}
 
-	process_id = mx_process_id();
+	process_id = mx_get_process_id();
 
 #if MXN_SPEC_DEBUG
 	MX_DEBUG(-2,("%s: program_name = '%s', process_id = %lu",

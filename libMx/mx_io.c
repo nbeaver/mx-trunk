@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2017, 2021 Illinois Institute of Technology
+ * Copyright 2010-2017, 2021, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1151,7 +1151,7 @@ mxp_parse_lsof_output( FILE *file,
 	unsigned long peer_pid = 0;
 	char peer_command_name[MXU_FILENAME_LENGTH+1];
 
-	if ( process_id == mx_process_id() ) {
+	if ( process_id == mx_get_process_id() ) {
 		is_self = TRUE;
 	} else {
 		is_self = FALSE;

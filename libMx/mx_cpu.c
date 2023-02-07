@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2011, 2014-2016, 2018, 2021-2022
+ * Copyright 2007-2011, 2014-2016, 2018, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1064,7 +1064,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 	int vms_status;
 
 	if ( process_id == 0 ) {
-		process_id = mx_process_id();
+		process_id = mx_get_process_id();
 	}
 
 	vms_status = sys$process_affinity( 0, 0, 0, 0, &prev_mask, 0 );
@@ -1092,7 +1092,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	int vms_status;
 
 	if ( process_id == 0 ) {
-		process_id = mx_process_id();
+		process_id = mx_get_process_id();
 	}
 
 	select_mask = (~0);
@@ -1128,7 +1128,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 {
 	static const char fname[] = "mx_get_process_affinity_mask()";
 
-	if ( (process_id == 0) || (process_id == mx_process_id()) )
+	if ( (process_id == 0) || (process_id == mx_get_process_id()) )
 	{
 		*mask = affinity_mask;
 
@@ -1148,7 +1148,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 	int runmask, os_status, saved_errno;
 
-	if ( (process_id != 0) && (process_id != mx_process_id()) )
+	if ( (process_id != 0) && (process_id != mx_get_process_id()) )
 	{
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Setting the CPU affinity mask for a different process "

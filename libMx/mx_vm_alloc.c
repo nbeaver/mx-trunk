@@ -10,7 +10,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2013-2016, 2018, 2021-2022 Illinois Institute of Technology
+ * Copyright 2013-2016, 2018, 2021-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -957,7 +957,7 @@ mx_vm_get_region( void *address,
 	MX_DEBUG(-2,("%s: address = %p", fname, address));
 #endif
 
-	kreturn = task_for_pid( current_task(), mx_process_id(), &task );
+	kreturn = task_for_pid( current_task(), mx_get_process_id(), &task );
 
 	if ( kreturn != KERN_SUCCESS ) {
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
@@ -1385,7 +1385,7 @@ mx_vm_get_region( void *address,
 	/* Open the /proc file for the current process. */
 
 	snprintf( proc_filename, sizeof(proc_filename),
-		"/proc/%lu", mx_process_id() );
+		"/proc/%lu", mx_get_process_id() );
 
 #if MX_VM_POINTER_DEBUG
 	MX_DEBUG(-2,("%s: About to open '%s' for read-only access.",

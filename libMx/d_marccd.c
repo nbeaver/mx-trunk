@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013-2015, 2018-2019, 2021-2022
+ * Copyright 2008-2010, 2013-2015, 2018-2019, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1657,7 +1657,7 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 
 		/* Stop the MX server nicely. */
 
-		(void) mx_kill_process_id( mx_process_id() );
+		(void) mx_kill_process_id( mx_get_process_id() );
 	}
 
 	/* The interpretation of the state flag depends on the command that

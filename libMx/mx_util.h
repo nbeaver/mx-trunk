@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1246,7 +1246,9 @@ MX_API int mx_process_id_exists( unsigned long process_id );
 
 MX_API mx_status_type mx_kill_process_id( unsigned long process_id );
 
-MX_API unsigned long mx_process_id( void );
+MX_API unsigned long mx_get_process_id( void );
+
+MX_API unsigned long mx_get_parent_process_id( unsigned long process_id );
 
 MX_API mx_status_type mx_wait_for_process_id( unsigned long process_id,
 						long *process_status );

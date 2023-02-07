@@ -384,7 +384,7 @@ mx_start_debugger( char *command )
 	    "\nWarning: The Visual C++ debugger is being started.\n\n");
 	fflush(stderr);
 
-	mxp_debugger_started = TRUE;
+	mxp_debugger_pid = TRUE;
 
 	DebugBreak();
 
@@ -417,14 +417,14 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 		mxp_just_in_time_debugging_enabled = FALSE;
 	}
 
-	/* FIXME: Why was the following write to mxp_debugger_started here
+	/* FIXME: Why was the following write to mxp_debugger_pid here
 	 * and why has it never bitten us before?  (WML 2017-12-01)
 	 */
 #if 0
-	mxp_debugger_started = TRUE;
+	mxp_debugger_pid = TRUE;
 #endif
 
-	pid = mx_process_id();
+	pid = mx_get_process_id();
 
 	/* We try several things in order here. */
 
@@ -749,13 +749,13 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 			snprintf( mx_debugger_command,
 				sizeof(mx_debugger_command),
 				"mintty -e gdb -tui -p %lu",
-				mx_process_id() );
+				mx_get_process_id() );
 		} else
 		if ( mx_command_found( "rxvt" ) ) {
 			snprintf( mx_debugger_command,
 				sizeof(mx_debugger_command),
 				"rxvt -e gdb -tui -p %lu",
-				mx_process_id() );
+				mx_get_process_id() );
 		} else {
 			MX_DEBUG(-2,
 			("%s: Neither 'mintty' nor 'rxvt' were found, "
@@ -830,7 +830,7 @@ mx_get_debugger_pid( void )
 	debugger_present = (long) IsDebuggerPresent();
 
 	if ( debugger_present ) {
-		mxp_debugger_started = TRUE;
+		mxp_debugger_pid = TRUE;
 	}
 
 	return debugger_present;
@@ -995,7 +995,7 @@ mx_wait_for_debugger( void )
 	unsigned long pid;
 	unsigned long debugger_pid;
 
-	pid = mx_process_id();
+	pid = mx_get_process_id();
 
 	fprintf( stderr,
 	"\nProcess %lu is now waiting to be attached to by a debugger...\n\n",
@@ -1033,7 +1033,7 @@ mx_wait_for_debugger( void )
 	volatile int loop;
 	unsigned long pid;
 
-	pid = mx_process_id();
+	pid = mx_get_process_id();
 
 	fprintf( stderr,
 "\n"

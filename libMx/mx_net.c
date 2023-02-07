@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2018, 2020-2022 Illinois Institute of Technology
+ * Copyright 1999-2018, 2020-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -7856,7 +7856,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	ptr = message + message_length;
 
 	snprintf( ptr, max_message_length - message_length,
-			"%lu", mx_process_id() );
+			"%lu", mx_get_process_id() );
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2012, 2014-2017, 2019, 2021-2022
+ * Copyright 1999-2007, 2009-2012, 2014-2017, 2019, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -306,7 +306,7 @@ main( int argc, char *argv[] )
 
 				if ( pid_file != NULL ) {
 					fprintf( pid_file, "%lu\n",
-						mx_process_id() );
+						mx_get_process_id() );
 
 					fclose( pid_file );
 				}

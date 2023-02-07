@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -938,7 +938,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 
 	mx_username( socket_handler->username, MXU_USERNAME_LENGTH );
 
-	socket_handler->process_id = mx_process_id();
+	socket_handler->process_id = mx_get_process_id();
 
 	/* The server socket does not read anything from the socket,
 	 * so it does not need a message buffer.

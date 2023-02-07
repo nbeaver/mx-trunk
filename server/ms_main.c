@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -762,7 +762,7 @@ mxserver_main( int argc, char *argv[] )
 
 				if ( pid_file != NULL ) {
 					fprintf( pid_file, "%lu\n",
-						mx_process_id() );
+						mx_get_process_id() );
 
 					fclose( pid_file );
 				}
@@ -1148,7 +1148,7 @@ mxserver_main( int argc, char *argv[] )
 
 	mx_info("Server '%s' (%s), process id %ld",
 	    list_head_struct->hostname, os_version_string,
-		(long) mx_process_id() );
+		(long) mx_get_process_id() );
 
 #if 0
 	MX_DEBUG(-2,("%s: MX_WORDSIZE = %d, MX_PROGRAM_MODEL = %#x",

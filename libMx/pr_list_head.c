@@ -281,7 +281,7 @@ mx_list_head_process_function( void *record_ptr,
 			break;
 		case MXLV_LHD_SHOW_OPEN_FDS:
 			mx_info( "Open file descriptors:" );
-			mx_show_fd_names( mx_process_id() );
+			mx_show_fd_names( mx_get_process_id() );
 #if defined(OS_WIN32)
 			mx_info( "Open sockets:" );
 			mx_win32_show_socket_names();
@@ -492,7 +492,7 @@ mx_list_head_show_process_memory( MX_LIST_HEAD *list_head )
 	unsigned long process_id;
 	MX_PROCESS_MEMINFO meminfo;
 
-	process_id = mx_process_id();
+	process_id = mx_get_process_id();
 
 	mx_info( "Process %lu memory usage:", process_id );
 

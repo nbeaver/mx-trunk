@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2017, 2020, 2022
+ * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2017, 2020, 2022-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -121,7 +121,7 @@ mx_coprocess_open( MX_COPROCESS **coprocess,
 
 #if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: This is child process %lu.",
-			fname, mx_process_id()));
+			fname, mx_get_process_id()));
 #endif
 
 		/* Try to redirect standard input for the external command. */
@@ -237,7 +237,7 @@ mx_coprocess_open( MX_COPROCESS **coprocess,
 
 			fprintf( stderr,
 "The attempt by child process %lu to become a process group leader failed.  "
-"Errno = %d, error message = '%s'", mx_process_id(),
+"Errno = %d, error message = '%s'", mx_get_process_id(),
 				saved_errno, strerror( saved_errno ) );
 
 			exit(1);
@@ -1512,7 +1512,7 @@ mx_coprocess_open( MX_COPROCESS **coprocess,
 
 	snprintf( vms_private->from_name,
 		sizeof( vms_private->from_name ),
-		"MX_FROM_COPROCESS_%lu", mx_process_id() );
+		"MX_FROM_COPROCESS_%lu", mx_get_process_id() );
 
 	vms_private->from_descriptor.dsc$w_length =
 					strlen( vms_private->from_name ) + 1;
@@ -1560,7 +1560,7 @@ mx_coprocess_open( MX_COPROCESS **coprocess,
 	/* Create the 'to' mailbox. */
 
 	snprintf( vms_private->to_name, sizeof( vms_private->to_name ),
-		"MX_TO_COPROCESS_%lu", mx_process_id() );
+		"MX_TO_COPROCESS_%lu", mx_get_process_id() );
 
 	vms_private->to_descriptor.dsc$w_length =
 					strlen( vms_private->to_name ) + 1;

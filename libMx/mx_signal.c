@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2017-2019, 2021-2022 Illinois Institute of Technology
+ * Copyright 2017-2019, 2021-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -304,7 +304,7 @@ mxp_standard_new_signal_error_handler( int signal_number,
 		break;
 	}
 
-	mx_info( "Process id = %lu", mx_process_id() );
+	mx_info( "Process id = %lu", mx_get_process_id() );
 
 	/* Print out the stack traceback. */
 

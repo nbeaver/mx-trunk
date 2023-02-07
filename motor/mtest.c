@@ -124,7 +124,7 @@ motor_test_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[2], "show_open_fds" ) == 0 ) {
 			mx_info( "Open file descriptors:" );
-			mx_show_fd_names( mx_process_id() );
+			mx_show_fd_names( mx_get_process_id() );
 
 #if defined(OS_WIN32)
 			mx_info( "Open sockets:" );

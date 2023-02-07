@@ -2733,7 +2733,7 @@ mx_show_thread_list( void )
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot open the /proc/self/task directory for process %lu.  "
 		"Is it possible that the /proc filesystem is not mounted.",
-			mx_process_id() );
+			mx_get_process_id() );
 
 		return;
 	}

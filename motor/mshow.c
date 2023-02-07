@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2022 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1249,7 +1249,7 @@ motor_show_version( void )
 /*-------------------------------------------------------------------------*/
 
 	fprintf( output, "Process ID: %lu, Wordsize: %lu\n",
-		mx_process_id(), (unsigned long) MX_WORDSIZE );
+		mx_get_process_id(), (unsigned long) MX_WORDSIZE );
 
 /*-------------------------------------------------------------------------*/
 

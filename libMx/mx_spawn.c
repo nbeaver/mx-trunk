@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013-2021 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2021, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -670,7 +670,7 @@ mx_kill_process_id( unsigned long process_id )
 /*=========================================================================*/
 
 MX_EXPORT unsigned long
-mx_process_id( void )
+mx_get_process_id( void )
 {
 	unsigned long process_id;
 

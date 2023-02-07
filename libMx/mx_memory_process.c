@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009-2011, 2015-2016, 2021
+ * Copyright 2005-2007, 2009-2011, 2015-2016, 2021, 2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -204,14 +204,14 @@ mx_get_process_meminfo( unsigned long process_id,
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
 		current_process = TRUE;
 	} else
-	if ( process_id == mx_process_id() ) {
+	if ( process_id == mx_get_process_id() ) {
 		current_process = TRUE;
 	} else {
 		current_process = FALSE;
 	}
 
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
-		process_id = mx_process_id();
+		process_id = mx_get_process_id();
 	}
 
 	memset( meminfo, 0, sizeof( MX_PROCESS_MEMINFO ) );
@@ -840,7 +840,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
 		/* We want to examine the current process. */
 
-		process_id = mx_process_id();
+		process_id = mx_get_process_id();
 	}
 
 	memset( meminfo, 0, sizeof( MX_PROCESS_MEMINFO ) );
@@ -886,7 +886,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	 * Note: This does not rely on the presence of PSAPI.DLL.
 	 */
 
-	if ( process_id == mx_process_id() ) {
+	if ( process_id == mx_get_process_id() ) {
 
 		/* We only do this if we are asking about the current
 		 * process, because apparently there is no easy way to
@@ -980,7 +980,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
 		/* We want to examine the current process. */
 
-		process_id = mx_process_id();
+		process_id = mx_get_process_id();
 	}
 
 	memset( meminfo, 0, sizeof( MX_PROCESS_MEMINFO ) );
@@ -1171,14 +1171,14 @@ mx_get_process_meminfo( unsigned long process_id,
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
 		current_process = TRUE;
 	} else
-	if ( process_id == mx_process_id() ) {
+	if ( process_id == mx_get_process_id() ) {
 		current_process = TRUE;
 	} else {
 		current_process = FALSE;
 	}
 
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
-		process_id = mx_process_id();
+		process_id = mx_get_process_id();
 	}
 
 	memset( meminfo, 0, sizeof( MX_PROCESS_MEMINFO ) );
@@ -1530,19 +1530,19 @@ mx_get_process_meminfo( unsigned long process_id,
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
 		current_process = TRUE;
 	} else
-	if ( process_id == mx_process_id() ) {
+	if ( process_id == mx_get_process_id() ) {
 		current_process = TRUE;
 	} else {
 		current_process = FALSE;
 	}
 
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
-		process_id = mx_process_id();
+		process_id = mx_get_process_id();
 	}
 
 	memset( meminfo, 0, sizeof( MX_PROCESS_MEMINFO ) );
 
-	meminfo->process_id = mx_process_id();
+	meminfo->process_id = mx_get_process_id();
 
 	/* Get system page size. */
 
@@ -1627,7 +1627,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	}
 
 	if ( process_id != MXF_PROCESS_ID_SELF ) {
-		if ( process_id != mx_process_id() ) {
+		if ( process_id != mx_get_process_id() ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"%s for process IDs other than the current process "
 			"is not supported on this platform.", fname );
@@ -1636,7 +1636,7 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	memset( meminfo, 0, sizeof( MX_PROCESS_MEMINFO ) );
 
-	meminfo->process_id = mx_process_id();
+	meminfo->process_id = mx_get_process_id();
 
 	/* Get process memory statistics from getrusage() */
 
@@ -1699,7 +1699,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	}
 
 	if ( process_id != MXF_PROCESS_ID_SELF ) {
-		if ( process_id != mx_process_id() ) {
+		if ( process_id != mx_get_process_id() ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"%s for process IDs other than the current process "
 			"is not supported on this platform.", fname );
@@ -1708,7 +1708,7 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	memset( meminfo, 0, sizeof( MX_PROCESS_MEMINFO ) );
 
-	meminfo->process_id = mx_process_id();
+	meminfo->process_id = mx_get_process_id();
 
 	/* Currently all counters are set to zero for this platform. */
 
@@ -1771,12 +1771,12 @@ mx_get_process_meminfo( unsigned long process_id,
 	}
 
 	if ( process_id == MXF_PROCESS_ID_SELF ) {
-		process_id = mx_process_id();
+		process_id = mx_get_process_id();
 	}
 
 	memset( meminfo, 0, sizeof( MX_PROCESS_MEMINFO ) );
 
-	meminfo->process_id = mx_process_id();
+	meminfo->process_id = mx_get_process_id();
 
 	/* sys$getjpiw() gives us information about the process as a whole. */
 
