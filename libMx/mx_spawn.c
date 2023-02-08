@@ -774,6 +774,16 @@ mx_get_parent_process_id( unsigned long process_id )
 	return 0;
 }
 
+#elif defined(OS_UNIX)
+
+MX_EXPORT unsigned long
+mx_get_parent_process_id( unsigned long process_id )
+{
+	unsigned long parent_process_id = getppid();
+
+	return parent_process_id;
+}
+
 #else
 
 #error mx_get_parent_process_id() is not yet implemented for this platform
