@@ -1185,12 +1185,15 @@ mx_show_thread_list( void )
 
 	THREADENTRY32 thread_entry;
 	BOOL os_status;
+
 	HANDLE toolhelp_handle = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 
 	if ( toolhelp_handle == INVALID_HANDLE_VALUE ) {
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"The attempt to acquire the CreateToolhelp32_Snapshot "
 		"handle failed." );
+
+		return;
 	}
 
 	thread_entry.dwSize = sizeof(thread_entry);

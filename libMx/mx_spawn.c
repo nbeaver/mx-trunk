@@ -688,6 +688,106 @@ mx_get_process_id( void )
 
 /*=========================================================================*/
 
+#if defined(OS_WIN32)
+
+/* This version of the code is based on this web page:
+ *
+ *     https://www.codeproject.com/Articles/9893/Get-Parent-Process-PID
+ */
+
+#include <tlhelp32.h>
+
+MX_EXPORT unsigned long
+mx_get_parent_process_id( unsigned long process_id )
+{
+	static const char fname[] = "mx_get_parent_process_id()";
+
+	PROCESSENTRY32 process_entry;
+	BOOL os_status;
+	DWORD last_error_code;
+	unsigned long parent_process_id = 0L;
+
+	HANDLE toolhelp_handle =
+		CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
+
+	if ( toolhelp_handle == INVALID_HANDLE_VALUE ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to acquire the CreateToolhelp32_Snapshot "
+		"handle failed." );
+
+		return 0;
+	}
+
+	process_entry.dwSize = sizeof(process_entry);
+
+	os_status = Process32First( toolhelp_handle, &process_entry );
+
+	if ( os_status != 0 ) {
+		CloseHandle( toolhelp_handle );
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call Process32First() failed." );
+
+		return 0;
+	}
+
+	while( TRUE ) {
+		if ( process_id == process_entry.th32ProcessID ) {
+			/* Success!  We have found the parent process ID.
+			 * Now we can returne that to our caller.
+			 */
+
+			parent_process_id = process_entry.th32ParentProcessID;
+
+			return parent_process_id;
+		}
+
+		process_entry.dwSize = sizeof(process_entry);
+
+		os_status = Process32Next( toolhelp_handle, &process_entry );
+
+		last_error_code = GetLastError();
+#if 1
+		MX_DEBUG(-2,
+		("Process32Next(): os_status = %d, last_error_code = %lu",
+		 	(int) os_status, last_error_code));
+#endif
+
+		if ( os_status != 0 ) {
+			CloseHandle( toolhelp_handle );
+
+			if ( last_error_code == ERROR_NO_MORE_FILES ) {
+				mx_warning(
+			    "%s: The requested process id %lu was not found.",
+				fname, process_id );
+			} else {
+				(void) mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+				"The attempt to call Process32Next() failed "
+				"with Win32 error code %lu", last_error_code );
+			}
+
+			return 0;
+		}
+
+	}
+
+	return 0;
+}
+
+#else
+
+#error mx_get_parent_process_id() is not yet implemented for this platform
+
+MX_EXPORT unsigned long
+mx_get_parent_process_id( unsigned long process_id )
+{
+	return (unsigned long) ( -1L );
+}
+
+#endif
+
+/*=========================================================================*/
+
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID) \
 	|| defined(OS_MINIX)
 

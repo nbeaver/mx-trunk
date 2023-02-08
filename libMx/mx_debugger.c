@@ -107,9 +107,9 @@ mx_get_debugger_saved_pid( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	mxp_debugger_pid = 1;
-
 	DebugBreak();
+
+	mxp_debugger_pid = mx_get_parent_process_id( mx_get_process_id() );
 }
 
 #else
@@ -163,6 +163,8 @@ MX_EXPORT void
 mx_raw_breakpoint( void )
 {
 	DebugBreak();
+
+	mxp_debugger_pid = mx_get_parent_process_id( mx_get_process_id() );
 }
 
 #  endif
@@ -384,9 +386,9 @@ mx_start_debugger( char *command )
 	    "\nWarning: The Visual C++ debugger is being started.\n\n");
 	fflush(stderr);
 
-	mxp_debugger_pid = TRUE;
-
 	DebugBreak();
+
+	mxp_debugger_pid = mx_get_parent_process_id( mx_get_process_id() );
 
 	return;
 }
