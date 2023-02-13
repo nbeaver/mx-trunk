@@ -1,3 +1,7 @@
+#
+# Configuration of the EPICS build should be done in 'Makefile.config'
+# rather than in this file.
+#
 
 ifndef MX_ARCH
     MX_ARCH = linux

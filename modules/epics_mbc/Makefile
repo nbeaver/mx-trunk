@@ -1,4 +1,6 @@
-
+#
+# You must build the 'epics.mxo' module first before trying to build this one.
+#
 
 ifndef MX_ARCH
     MX_ARCH = linux
