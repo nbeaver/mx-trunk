@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2013, 2017-2018, 2021-2022
+ * Copyright 1999-2006, 2009-2013, 2017-2018, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -309,9 +309,9 @@ mx_epics_exception_handler( struct exception_handler_args args )
 
 #if 1 /* MX_EPICS_DEBUG_HANDLERS */
 	MX_DEBUG(-2,("%s: \"%s\" for %s - with request chan=%s, op=%ld, "
-	"datatype=%s, count=%ld, file=%s, line_number = %u",
+	"datatype=%ld, count=%ld, file=%s, line_number = %u",
 	 	fname, ca_message( args.stat ), args.ctx, name, args.op,
-		dbr_type_to_text( args.type ), args.count,
+		args.type, args.count,
 		filename, args.lineNo));
 #endif
 
