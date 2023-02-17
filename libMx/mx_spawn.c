@@ -774,7 +774,7 @@ mx_get_parent_process_id( unsigned long process_id )
 	return 0;
 }
 
-#elif ( defined(OS_UNIX) || defined(OS_ANDROID) )
+#elif ( defined(OS_UNIX) || defined(OS_ANDROID) ) || defined(OS_CYGWIN)
 
 MX_EXPORT unsigned long
 mx_get_parent_process_id( unsigned long process_id )
