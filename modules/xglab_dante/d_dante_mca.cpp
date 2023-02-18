@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020-2022 Illinois Institute of Technology
+ * Copyright 2020-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -358,75 +358,14 @@ mxd_dante_mca_open( MX_RECORD *record )
 	dante_mca->trace_calls = TRUE;
 #endif
 
-	/* Detect the firmware used by this board. */
-
-#if MXD_DANTE_MCA_TRACE_CALLS
-	fprintf( stderr, "%s: getFirmware( '%s', 0 ) = ",
-		fname, dante_mca->identifier, dante_mca->board_number );
-#endif
-
-	call_id = getFirmware( dante_mca->identifier,
-				dante_mca->board_number );
-
-#if MXD_DANTE_MCA_TRACE_CALLS
-	fprintf( stderr, "call_id %lu\n", call_id );
-#endif
-
-	if ( call_id == 0 ) {
-		(void) getLastError( dante_error_code );
-
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Getting the firmware version for MCA '%s' failed "
-		"with DANTE error code %lu.",
-			record->name, (unsigned long) dante_error_code );
+	if( dante_mca->dante_mca_flags & MXF_DANTE_MCA_SHOW_FIRMWARE_AT_OPEN ) {
+		mx_status = mxd_dante_mca_get_firmware_version( mca, TRUE );
+	} else {
+		mx_status = mxd_dante_mca_get_firmware_version( mca, FALSE );
 	}
 
-	mxi_dante_wait_for_answer( call_id, dante );
-
-#if 0
-	int i;
-
-	fprintf( stderr, "getFirmware() callback data = " );
-
-	for ( i = 0; i < MXU_DANTE_MAX_CALLBACK_DATA_LENGTH; i++ ) {
-		fprintf( stderr, "%lu ",
-			(unsigned long) mxi_dante_callback_data[i] );
-	}
-
-	fprintf( stderr, "\n" );
-#endif
-
-	dante_mca->firmware_version = 1000000 * mxi_dante_callback_data[0]
-				      + 10000 * mxi_dante_callback_data[1]
-				      +   100 * mxi_dante_callback_data[2]
-				      +         mxi_dante_callback_data[3];
-
-#if 1
-	{
-	    char firmware_type[40];
-
-	    switch( mxi_dante_callback_data[3] ) {
-	    case 1:
-		    strlcpy( firmware_type, "LE", sizeof(firmware_type) );
-		    break;
-	    case 2:
-		    strlcpy( firmware_type, "HR", sizeof(firmware_type) );
-		    break;
-	    default:
-		    snprintf( firmware_type, sizeof(firmware_type),
-			"'Unknown type %lu'",
-			(unsigned long) mxi_dante_callback_data[3] );
-		    break;
-	    }
-
-	    MX_DEBUG(-2,("%s: '%s', firmware_version = (%lu.%lu.%lu %s)",
-		fname, dante_mca->record->name,
-		(unsigned long) mxi_dante_callback_data[0],
-		(unsigned long) mxi_dante_callback_data[1],
-		(unsigned long) mxi_dante_callback_data[2],
-		firmware_type ));
-	}
-#endif
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*---*/
 
@@ -589,6 +528,7 @@ mxd_dante_mca_special_processing_setup( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_DANTE_MCA_CONFIGURE:
+		case MXLV_DANTE_MCA_FIRMWARE_VERSION:
 			record_field->process_function
 					    = mxd_dante_mca_process_function;
 			break;
@@ -607,12 +547,21 @@ mxd_dante_mca_process_function( void *record_ptr,
 {
 	static const char fname[] = "mxd_dante_mca_process_function()";
 
-	MX_RECORD *record;
-	MX_RECORD_FIELD *record_field;
+	MX_RECORD *record = NULL;
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_MCA *mca = NULL;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+
+	mca = (MX_MCA *) record->record_class_struct;
+
+	if ( mca == (MX_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCA pointer for DANTE MCA record '%s' is NULL.",
+			record->name );
+	}
 
 	MXW_UNUSED( record );
 	MXW_UNUSED( record_field );
@@ -622,12 +571,20 @@ mxd_dante_mca_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_DANTE_MCA_FIRMWARE_VERSION:
+			mx_status =
+			    mxd_dante_mca_get_firmware_version( mca, FALSE );
+			break;
 		default:
 			break;
 		}
 		break;
 	case MX_PROCESS_PUT:
 	switch( record_field->label_value ) {
+		case MXLV_DANTE_MCA_FIRMWARE_VERSION:
+			mx_status =
+			    mxd_dante_mca_get_firmware_version( mca, TRUE );
+			break;
 		default:
 			break;
 		}
@@ -754,7 +711,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	if( dante_mca->dante_mca_flags & MXF_DANTE_MCA_VALIDATE_CONFIGURATION )
 	{
-	    mx_status = mxd_dante_mca_validate_configuration( dante_mca );
+	    mx_status = mxd_dante_mca_validate_configuration( mca );
 
 	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1850,17 +1807,20 @@ mxd_dante_mca_set_parameter( MX_MCA *mca )
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_dante_mca_validate_configuration( MX_DANTE_MCA *dante_mca )
+mxd_dante_mca_validate_configuration( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_dante_mca_validate_configuration()";
 
+	MX_DANTE_MCA *dante_mca = NULL;
+	MX_DANTE *dante = NULL;
 	MX_DANTE_CONFIGURATION *mx_dante_configuration = NULL;
 	struct configuration *configuration = NULL;
+	mx_status_type mx_status;
 
-	if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_DANTE_MCA pointer passed was NULL." );
-	}
+	mx_status = mxd_dante_mca_get_pointers( mca, &dante_mca, &dante, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_dante_configuration = dante_mca->mx_dante_configuration;
 
@@ -1882,6 +1842,97 @@ mxd_dante_mca_validate_configuration( MX_DANTE_MCA *dante_mca )
 			(unsigned long) configuration->peaking_time,
 			dante_mca->record->name,
 			(unsigned long) configuration->max_peaking_time );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_dante_mca_get_firmware_version( MX_MCA *mca,
+				mx_bool_type log_firmware_version )
+{
+	static const char fname[] = "mxd_dante_mca_get_firmware_version()";
+
+	MX_DANTE_MCA *dante_mca = NULL;
+	MX_DANTE *dante = NULL;
+
+	uint32_t call_id;
+	uint16_t dante_error_code = DLL_NO_ERROR;
+	mx_status_type mx_status;
+
+	mx_status = mxd_dante_mca_get_pointers( mca, &dante_mca, &dante, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Detect the firmware used by this board. */
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "%s: getFirmware( '%s', 0 ) = ",
+		fname, dante_mca->identifier, dante_mca->board_number );
+#endif
+
+	call_id = getFirmware( dante_mca->identifier,
+				dante_mca->board_number );
+
+#if MXD_DANTE_MCA_TRACE_CALLS
+	fprintf( stderr, "call_id %lu\n", call_id );
+#endif
+
+	if ( call_id == 0 ) {
+		(void) getLastError( dante_error_code );
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Getting the firmware version for MCA '%s' failed "
+		"with DANTE error code %lu.",
+			mca->record->name, (unsigned long) dante_error_code );
+	}
+
+	mxi_dante_wait_for_answer( call_id, dante );
+
+#if 0
+	int i;
+
+	fprintf( stderr, "getFirmware() callback data = " );
+
+	for ( i = 0; i < MXU_DANTE_MAX_CALLBACK_DATA_LENGTH; i++ ) {
+		fprintf( stderr, "%lu ",
+			(unsigned long) mxi_dante_callback_data[i] );
+	}
+
+	fprintf( stderr, "\n" );
+#endif
+
+	dante_mca->firmware_version = 1000000 * mxi_dante_callback_data[0]
+				      + 10000 * mxi_dante_callback_data[1]
+				      +   100 * mxi_dante_callback_data[2]
+				      +         mxi_dante_callback_data[3];
+
+	if ( log_firmware_version ) {
+	    char firmware_type[40];
+
+	    switch( mxi_dante_callback_data[3] ) {
+	    case 1:
+		    strlcpy( firmware_type, "LE", sizeof(firmware_type) );
+		    break;
+	    case 2:
+		    strlcpy( firmware_type, "HR", sizeof(firmware_type) );
+		    break;
+	    default:
+		    snprintf( firmware_type, sizeof(firmware_type),
+			"'Unknown type %lu'",
+			(unsigned long) mxi_dante_callback_data[3] );
+		    break;
+	    }
+
+	    MX_DEBUG(-2,("%s: '%s', firmware_version = (%lu.%lu.%lu %s)",
+		fname, dante_mca->record->name,
+		(unsigned long) mxi_dante_callback_data[0],
+		(unsigned long) mxi_dante_callback_data[1],
+		(unsigned long) mxi_dante_callback_data[2],
+		firmware_type ));
 	}
 
 	return MX_SUCCESSFUL_RESULT;

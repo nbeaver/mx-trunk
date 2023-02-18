@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2020-2022 Illinois Institute of Technology
+ * Copyright 2020-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,7 @@ extern "C" {
 /* The following flags are used by the 'dante_mca_flags' field. */
 
 #define MXF_DANTE_MCA_VALIDATE_CONFIGURATION	0x10
+#define MXF_DANTE_MCA_SHOW_FIRMWARE_AT_OPEN	0x20
 
 #define MXF_DANTE_MCA_ALLOW_CALLID_ZERO		0x1000
 
@@ -92,8 +93,9 @@ typedef struct {
 #endif
 } MX_DANTE_MCA;
 
-#define MXLV_DANTE_MCA_CONFIGURE	23001
-#define MXLV_DANTE_MCA_TRACE_CALLS	23002
+#define MXLV_DANTE_MCA_FIRMWARE_VERSION	23001
+#define MXLV_DANTE_MCA_CONFIGURE	23002
+#define MXLV_DANTE_MCA_TRACE_CALLS	23003
 
 #define MXD_DANTE_MCA_STANDARD_FIELDS \
   {-1, -1, "dante_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -118,7 +120,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, dante_mca_flags ), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_DANTE_MCA_FIRMWARE_VERSION, -1, "firmware_version", \
+	  					MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, firmware_version ), \
 	{0}, NULL, 0 }, \
   \
@@ -246,8 +249,10 @@ MX_API mx_status_type mxd_dante_mca_busy( MX_MCA *mca );
 MX_API mx_status_type mxd_dante_mca_get_parameter( MX_MCA *mca );
 MX_API mx_status_type mxd_dante_mca_set_parameter( MX_MCA *mca );
 
-MX_API mx_status_type mxd_dante_mca_validate_configuration(
-						MX_DANTE_MCA *dante_mca );
+MX_API mx_status_type mxd_dante_mca_validate_configuration( MX_MCA *mca );
+
+MX_API mx_status_type mxd_dante_mca_get_firmware_version( MX_MCA *mca,
+					mx_bool_type log_firmware_version );
 
 extern MX_RECORD_FUNCTION_LIST mxd_dante_mca_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_dante_mca_mca_function_list;
