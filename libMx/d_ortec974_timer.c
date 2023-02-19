@@ -1,14 +1,14 @@
 /*
  * Name:    d_ortec974_timer.c
  *
- * Purpose: MX timer driver to control the timer in EG&G Ortec 974
+ * Purpose: MX timer driver to control the timer in NIM-based EG&G Ortec 974
  *          counter/timer units.
  *
  * Author:  William Lavender
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006-2007, 2010, 2015
+ * Copyright 1999, 2001-2002, 2006-2007, 2010, 2015, 2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution

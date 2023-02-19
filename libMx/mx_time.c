@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010, 2015-2018, 2021-2022 Illinois Institute of Technology
+ * Copyright 2010, 2015-2018, 2021-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -253,20 +253,7 @@ localtime_r( const time_t *time_struct, struct tm *tm_struct )
 
 /*------------ MX OS time reporting functions. ------------*/
 
-#if 0
-
-MX_EXPORT struct timespec
-mx_current_os_time( void )
-{
-	struct timespec result;
-
-	result.tv_sec = 0;
-	result.tv_nsec = 0;
-
-	return result;
-}
-
-#elif defined(OS_WIN32)
+#if defined(OS_WIN32)
 
 MX_EXPORT struct timespec
 mx_current_os_time( void )

@@ -39,6 +39,8 @@ typedef struct {
 	double last_measurement_time;
 	double elapsed_time;
 	double remaining_time;
+
+	struct timespec start_timespec;
 } MX_TIMER;
 
 #define MXLV_TIM_VALUE			7001

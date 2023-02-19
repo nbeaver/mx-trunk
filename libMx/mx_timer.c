@@ -23,6 +23,7 @@
 #include "mx_driver.h"
 #include "mx_timer.h"
 #include "mx_measurement.h"
+#include "mx_time.h"
 
 /*=======================================================================*/
 
@@ -184,6 +185,8 @@ mx_timer_start( MX_RECORD *timer_record, double seconds )
 	}
 
 	/* Start the timer. */
+
+	timer->start_timespec = mx_current_os_time();
 
 	timer->value = seconds;
 
@@ -410,6 +413,7 @@ mx_timer_get_elapsed_time( MX_RECORD *timer_record,
 
 	MX_TIMER *timer;
 	MX_TIMER_FUNCTION_LIST *function_list;
+	struct timespec current_timespec, elapsed_timespec;
 	mx_status_type ( *get_elapsed_time ) ( MX_TIMER * );
 	mx_status_type mx_status;
 
@@ -424,7 +428,17 @@ mx_timer_get_elapsed_time( MX_RECORD *timer_record,
 	if ( get_elapsed_time != NULL ) {
 		mx_status = (*get_elapsed_time)( timer );
 	} else {
-		timer->elapsed_time = 0.0;
+		/* If there is no driver-specific calculation, we fall back
+		 * to the following generic calculation.
+		 */
+
+		current_timespec = mx_current_os_time();
+
+		elapsed_timespec = mx_subtract_timespec_times(
+				current_timespec, timer->start_timespec );
+
+		timer->elapsed_time =
+		    mx_convert_timespec_time_to_seconds( elapsed_timespec );
 	}
 
 	if ( elapsed_time != (double *) NULL ) {
@@ -442,6 +456,7 @@ mx_timer_get_remaining_time( MX_RECORD *timer_record,
 
 	MX_TIMER *timer;
 	MX_TIMER_FUNCTION_LIST *function_list;
+	struct timespec current_timespec, remaining_timespec;
 	mx_status_type ( *get_remaining_time ) ( MX_TIMER * );
 	mx_status_type mx_status;
 
@@ -456,7 +471,17 @@ mx_timer_get_remaining_time( MX_RECORD *timer_record,
 	if ( get_remaining_time != NULL ) {
 		mx_status = (*get_remaining_time)( timer );
 	} else {
-		timer->remaining_time = 0.0;
+		/* If there is no driver-specific calculation, we fall back
+		 * to the following generic calculation.
+		 */
+
+		current_timespec = mx_current_os_time();
+
+		remaining_timespec = mx_subtract_timespec_times(
+				current_timespec, timer->start_timespec );
+
+		timer->remaining_time =
+		    mx_convert_timespec_time_to_seconds( remaining_timespec );
 	}
 
 	if ( remaining_time != (double *) NULL ) {
