@@ -58,6 +58,8 @@
 
 #define MXD_DANTE_MCA_DEBUG_TIMING				FALSE
 
+#define MXD_DANTE_MCA_DEBUG_ARM					FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -965,7 +967,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if MXD_DANTE_MCA_DEBUG_ARM
 	MX_DEBUG(-2,("%s invoked for MCA '%s'.", fname, mca->record->name ));
 #endif
 
@@ -982,13 +984,13 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	 * sequence has completed.
 	 */
 
-#if 1
+#if MXD_DANTE_MCA_DEBUG_ARM
 	MX_DEBUG(-2,("%s: before call to mxd_dante_mca_stop()", fname));
 #endif
 
 	mx_status = mxd_dante_mca_stop( mca );
 
-#if 1
+#if MXD_DANTE_MCA_DEBUG_ARM
 	MX_DEBUG(-2,("%s: after call to mxd_dante_mca_stop()", fname));
 #endif
 
@@ -1003,14 +1005,14 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	MX_HRT_START( configure_measurement );
 #endif
 
-#if 1
+#if MXD_DANTE_MCA_DEBUG_ARM
 	MX_DEBUG(-2,
 	    ("%s: before call to mxd_dante_mca_configure()", fname));
 #endif
 
 	mx_status = mxd_dante_mca_configure( dante_mca, NULL );
 
-#if 1
+#if MXD_DANTE_MCA_DEBUG_ARM
 	MX_DEBUG(-2,
 	    ("%s: after call to mxd_dante_mca_configure()", fname));
 #endif
@@ -1035,7 +1037,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 		dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
-#if 1 || MXD_DANTE_MCA_TRACE_CALLS
+#if 0 || MXD_DANTE_MCA_TRACE_CALLS
 		fprintf( stderr, "%s: start( '%s', %f, %ld ) = ",
 			fname, dante_mca->identifier,
 			mca->preset_real_time,
@@ -1056,7 +1058,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 				"start(), i = %lu", i );
 #endif
 
-#if 1 || MXD_DANTE_MCA_TRACE_CALLS
+#if 0 || MXD_DANTE_MCA_TRACE_CALLS
 		fprintf( stderr, "call_id %lu\n", (unsigned long) call_id );
 #endif
 
@@ -1153,7 +1155,8 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	mca->old_busy = -1;
 	mca->busy = -1;
-#if 1
+
+#if MXD_DANTE_MCA_DEBUG_ARM
 	MX_DEBUG(-2,("%s: '%s' busy = %d",
 		fname, mca->record->name, (int) mca->busy));
 #endif
@@ -1161,7 +1164,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	mx_status = mxi_dante_set_data_available_flag_for_chain( mca->record,
 									TRUE );
 
-#if 1
+#if MXD_DANTE_MCA_DEBUG_ARM
 	MX_DEBUG(-2,("%s complete for MCA '%s'.", fname, mca->record->name ));
 #endif
 	return mx_status;
