@@ -21,7 +21,7 @@
 #include "mx_time.h"
 #include "mx_version.h"
 
-#define MX_DATE "February 18, 2023"
+#define MX_DATE "February 19, 2023"
 
 #include "mx_private_revision.h"
 

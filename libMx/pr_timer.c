@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2012, 2019
+ * Copyright 1999, 2001-2002, 2004, 2006, 2012, 2019, 2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -50,6 +50,8 @@ mx_setup_timer_process_functions( MX_RECORD *record )
 		case MXLV_TIM_CLEAR:
 		case MXLV_TIM_MODE:
 		case MXLV_TIM_LAST_MEASUREMENT_TIME:
+		case MXLV_TIM_ELAPSED_TIME:
+		case MXLV_TIM_REMAINING_TIME:
 			record_field->process_function
 					    = mx_timer_process_function;
 			break;
@@ -97,6 +99,12 @@ mx_timer_process_function( void *record_ptr,
 		case MXLV_TIM_LAST_MEASUREMENT_TIME:
 			status = mx_timer_get_last_measurement_time( record,
 									NULL );
+			break;
+		case MXLV_TIM_ELAPSED_TIME:
+			status = mx_timer_get_elapsed_time( record, NULL );
+			break;
+		case MXLV_TIM_REMAINING_TIME:
+			status = mx_timer_get_remaining_time( record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(

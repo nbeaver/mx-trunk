@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006-2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2008, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,6 +37,8 @@ typedef struct {
 
 	long mode;
 	double last_measurement_time;
+	double elapsed_time;
+	double remaining_time;
 } MX_TIMER;
 
 #define MXLV_TIM_VALUE			7001
@@ -45,6 +47,8 @@ typedef struct {
 #define MXLV_TIM_CLEAR			7004
 #define MXLV_TIM_MODE			7005
 #define MXLV_TIM_LAST_MEASUREMENT_TIME	7006
+#define MXLV_TIM_ELAPSED_TIME		7007
+#define MXLV_TIM_REMAINING_TIME		7008
 
 #define MX_TIMER_STANDARD_FIELDS \
   {MXLV_TIM_VALUE, -1, "value", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -70,6 +74,14 @@ typedef struct {
   {MXLV_TIM_LAST_MEASUREMENT_TIME, -1, "last_measurement_time", \
   						MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, last_measurement_time), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_TIM_ELAPSED_TIME, -1, "elapsed_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, elapsed_time), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_TIM_REMAINING_TIME, -1, "remaining_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, remaining_time), \
 	{0}, NULL, 0 }
 
 typedef struct {
@@ -83,6 +95,8 @@ typedef struct {
 	mx_status_type ( *set_modes_of_associated_counters )
 						( MX_TIMER *timer );
 	mx_status_type ( *get_last_measurement_time ) ( MX_TIMER *timer );
+	mx_status_type ( *get_elapsed_time ) ( MX_TIMER *timer );
+	mx_status_type ( *get_remaining_time ) ( MX_TIMER *timer );
 } MX_TIMER_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mx_timer_get_pointers( MX_RECORD *timer_record,
@@ -114,6 +128,12 @@ MX_API mx_status_type mx_timer_set_modes_of_associated_counters(
 MX_API mx_status_type mx_timer_get_last_measurement_time(
 						MX_RECORD *timer_record,
 						double *last_measurement_time );
+
+MX_API mx_status_type mx_timer_get_elapsed_time( MX_RECORD *timer_record,
+						double *elapsed_time );
+
+MX_API mx_status_type mx_timer_get_remaining_time( MX_RECORD *timer_record,
+						double *remaining_time );
 
 extern MX_RECORD_FUNCTION_LIST mx_timer_record_function_list;
 

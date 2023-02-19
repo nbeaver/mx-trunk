@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2009, 2012
+ * Copyright 1999, 2001-2002, 2004, 2006, 2009, 2012, 2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -397,6 +397,70 @@ mx_timer_get_last_measurement_time( MX_RECORD *timer_record,
 
 	if ( last_measurement_time != (double *) NULL ) {
 		*last_measurement_time = timer->last_measurement_time;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_timer_get_elapsed_time( MX_RECORD *timer_record,
+					double *elapsed_time )
+{
+	static const char fname[] = "mx_timer_get_elapsed_time()";
+
+	MX_TIMER *timer;
+	MX_TIMER_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_elapsed_time ) ( MX_TIMER * );
+	mx_status_type mx_status;
+
+	mx_status = mx_timer_get_pointers( timer_record,
+					&timer, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_elapsed_time = function_list->get_elapsed_time;
+
+	if ( get_elapsed_time != NULL ) {
+		mx_status = (*get_elapsed_time)( timer );
+	} else {
+		timer->elapsed_time = 0.0;
+	}
+
+	if ( elapsed_time != (double *) NULL ) {
+		*elapsed_time = timer->elapsed_time;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_timer_get_remaining_time( MX_RECORD *timer_record,
+					double *remaining_time )
+{
+	static const char fname[] = "mx_timer_get_remaining_time()";
+
+	MX_TIMER *timer;
+	MX_TIMER_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_remaining_time ) ( MX_TIMER * );
+	mx_status_type mx_status;
+
+	mx_status = mx_timer_get_pointers( timer_record,
+					&timer, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_remaining_time = function_list->get_remaining_time;
+
+	if ( get_remaining_time != NULL ) {
+		mx_status = (*get_remaining_time)( timer );
+	} else {
+		timer->remaining_time = 0.0;
+	}
+
+	if ( remaining_time != (double *) NULL ) {
+		*remaining_time = timer->remaining_time;
 	}
 
 	return mx_status;
