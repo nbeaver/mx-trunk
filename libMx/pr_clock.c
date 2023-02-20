@@ -43,10 +43,16 @@ mx_setup_clock_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_CLK_TIME:
-		case MXLV_CLK_TIME_OFFSET:
 		case MXLV_CLK_TIMESPEC:
 		case MXLV_CLK_TIMESPEC_OFFSET:
+		case MXLV_CLK_TIME:
+		case MXLV_CLK_TIME_OFFSET:
+		case MXLV_CLK_SET_OFFSET_TO_CURRENT_TIME:
+
+		case MXLV_CLK_TIMESTAMP:
+		case MXLV_CLK_UTC_OFFSET:
+		case MXLV_CLK_TIMEZONE_NAME:
+		case MXLV_CLK_EPOCH_NAME:
 			record_field->process_function
 					    = mx_clock_process_function;
 			break;
@@ -84,6 +90,19 @@ mx_clock_process_function( void *record_ptr,
 			mx_status = mx_clock_get_timespec( record,
 							mx_clock->timespec );
 			break;
+		case MXLV_CLK_TIMESTAMP:
+			mx_status = mx_clock_get_timestamp( record, NULL, 0 );
+			break;
+		case MXLV_CLK_UTC_OFFSET:
+			mx_status = mx_clock_get_utc_offset( record, NULL );
+			break;
+		case MXLV_CLK_TIMEZONE_NAME:
+			mx_status = mx_clock_get_timezone_name( record,
+								NULL, 0 );
+			break;
+		case MXLV_CLK_EPOCH_NAME:
+			mx_status = mx_clock_get_epoch_name( record, NULL, 0 );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -100,6 +119,10 @@ mx_clock_process_function( void *record_ptr,
 		case MXLV_CLK_TIMESPEC_OFFSET:
 			mx_status = mx_clock_set_timespec_offset( record,
 						mx_clock->timespec_offset);
+			break;
+		case MXLV_CLK_SET_OFFSET_TO_CURRENT_TIME:
+			mx_status =
+			    mx_clock_set_offset_to_current_time( record );
 			break;
 		default:
 			MX_DEBUG( 1,(

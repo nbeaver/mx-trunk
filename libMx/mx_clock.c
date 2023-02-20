@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2022 Illinois Institute of Technology
+ * Copyright 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -111,24 +111,112 @@ mx_clock_finish_record_initialization( MX_RECORD *clock_record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----*/
+
+#if defined( OS_WIN32 )
+#  define tzset		_tzset
+#  define tzname	_tzname
+#endif
+
+MX_EXPORT mx_status_type
+mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
+{
+	static const char fname[] = "mx_clock_default_get_parameter_handler()";
+
+	time_t current_epoch_time_in_seconds;
+	struct tm current_time_in_struct_tm;
+	int saved_errno;
+
+	mx_status_type mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( mx_clock->parameter_type ) {
+	case MXLV_CLK_TIMESTAMP:
+		current_epoch_time_in_seconds = time( NULL );
+
+		if ( current_epoch_time_in_seconds == (time_t) (-1) ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to read the current epoch time.  "
+			"errno = %d, error message = '%s'",
+				saved_errno, strerror( saved_errno ) );
+		}
+
+
+		(void) localtime_r( &current_epoch_time_in_seconds,
+					&current_time_in_struct_tm );
+
+		strftime( mx_clock->timestamp, MXU_CLK_STRING_LENGTH,
+				"%b %d %H:%M:%S", &current_time_in_struct_tm );
+		break;
+
+	case MXLV_CLK_UTC_OFFSET:
+		mx_clock->utc_offset = 0;
+		break;
+
+	case MXLV_CLK_TIMEZONE_NAME:
+		tzset();	/* Sets the value of 'tzname' */
+
+		strlcpy( mx_clock->timezone_name,
+				tzname[0], MXU_CLK_STRING_LENGTH );
+		break;
+
+	/* Platform dependent epoch time names. */
+
+#if defined( OS_WIN32 )
+
+	/* January 1, 1601 00:00:00 UTC */
+	case MXLV_CLK_EPOCH_NAME:
+		strlcpy( mx_clock->epoch_name,
+			"Windows", MXU_CLK_STRING_LENGTH );
+		break;
+
+
+#elif ( defined( OS_UNIX ) || defined( OS_CYGWIN ) )
+
+	/* January 1, 1970 00:00:00 UTC */
+	case MXLV_CLK_EPOCH_NAME:
+		strlcpy( mx_clock->epoch_name, "UNIX", MXU_CLK_STRING_LENGTH );
+		break;
+
+#elif defined( OS_VMS )
+
+	/* November 17, 1858 00:00:00 UTC */
+	case MXLV_CLK_EPOCH_NAME:
+		strlcpy( mx_clock->epoch_name, "VMS", MXU_CLK_STRING_LENGTH );
+		break;
+#else
+#error Reporting the Epoch name is not yet implemented for this build target.
+#endif
+	/* -------- */
+
+	default:
+		break;
+	}
+
+	return mx_status;
+}
+
+/*----*/
+
 MX_EXPORT mx_status_type
 mx_clock_get_timespec( MX_RECORD *clock_record, uint64_t *timespec )
 {
 	static const char fname[] = "mx_clock_get_timespec()";
 
-	MX_CLOCK *mx_clock;
-	MX_CLOCK_FUNCTION_LIST *function_list;
-	mx_status_type ( *get_timespec_fn )( MX_CLOCK * );
+	MX_CLOCK *mx_clock = NULL;
+	MX_CLOCK_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *get_timespec_fn )( MX_CLOCK * ) = NULL;
 	struct timespec timespec_struct, result_struct;
 	mx_status_type mx_status;
 
 	mx_status = mx_clock_get_pointers( clock_record,
-					&mx_clock, &function_list, fname );
+					&mx_clock, &flist, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	get_timespec_fn = function_list->get_timespec;
+	get_timespec_fn = flist->get_timespec;
 
 	if ( get_timespec_fn == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -245,6 +333,175 @@ mx_clock_set_time_offset( MX_RECORD *clock_record, double offset )
 
 	mx_clock->timespec_offset[0] = mx_clock->timespec_offset_struct.tv_sec;
 	mx_clock->timespec_offset[1] = mx_clock->timespec_offset_struct.tv_nsec;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_clock_set_offset_to_current_time( MX_RECORD *clock_record )
+{
+	uint64_t current_time[2];
+	mx_status_type mx_status;
+
+	mx_status = mx_clock_get_timespec( clock_record, current_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_clock_set_timespec_offset( clock_record, current_time );
+
+	return mx_status;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_clock_get_timestamp( MX_RECORD *clock_record,
+			char *timestamp, size_t timestamp_length )
+{
+	static const char fname[] = "mx_clock_get_timestamp()";
+
+	MX_CLOCK *mx_clock = NULL;
+	MX_CLOCK_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *get_parameter_fn )( MX_CLOCK * ) = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_clock_get_pointers( clock_record,
+						&mx_clock, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_clock_default_get_parameter_handler;
+	}
+
+	mx_clock->parameter_type = MXLV_CLK_TIMESTAMP;
+
+	mx_status = (*get_parameter_fn)( mx_clock );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( timestamp != (char *) NULL ) {
+		strlcpy( timestamp, mx_clock->timestamp, timestamp_length );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_clock_get_utc_offset( MX_RECORD *clock_record, long *utc_offset )
+{
+	static const char fname[] = "mx_clock_get_utc_offset()";
+
+	MX_CLOCK *mx_clock = NULL;
+	MX_CLOCK_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *get_parameter_fn )( MX_CLOCK * ) = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_clock_get_pointers( clock_record,
+						&mx_clock, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_clock_default_get_parameter_handler;
+	}
+
+	mx_clock->parameter_type = MXLV_CLK_UTC_OFFSET;
+
+	mx_status = (*get_parameter_fn)( mx_clock );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( utc_offset != (long *) NULL ) {
+		*utc_offset = mx_clock->utc_offset;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_clock_get_timezone_name( MX_RECORD *clock_record,
+			char *timezone_name, size_t timezone_name_length )
+{
+	static const char fname[] = "mx_clock_get_timezone_name()";
+
+	MX_CLOCK *mx_clock = NULL;
+	MX_CLOCK_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *get_parameter_fn )( MX_CLOCK * ) = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_clock_get_pointers( clock_record,
+						&mx_clock, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_clock_default_get_parameter_handler;
+	}
+
+	mx_clock->parameter_type = MXLV_CLK_TIMEZONE_NAME;
+
+	mx_status = (*get_parameter_fn)( mx_clock );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( timezone_name != (char *) NULL ) {
+		strlcpy( timezone_name,
+			mx_clock->timezone_name,
+			timezone_name_length );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_clock_get_epoch_name( MX_RECORD *clock_record,
+			char *epoch_name, size_t epoch_name_length )
+{
+	static const char fname[] = "mx_clock_get_epoch_name()";
+
+	MX_CLOCK *mx_clock = NULL;
+	MX_CLOCK_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *get_parameter_fn )( MX_CLOCK * ) = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_clock_get_pointers( clock_record,
+						&mx_clock, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_clock_default_get_parameter_handler;
+	}
+
+	mx_clock->parameter_type = MXLV_CLK_EPOCH_NAME;
+
+	mx_status = (*get_parameter_fn)( mx_clock );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( epoch_name != (char *) NULL ) {
+		strlcpy( epoch_name,
+			mx_clock->epoch_name,
+			epoch_name_length );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
