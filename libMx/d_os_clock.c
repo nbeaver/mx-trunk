@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2022 Illinois Institute of Technology
+ * Copyright 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -156,6 +156,9 @@ mxd_os_clock_get_timespec( MX_CLOCK *mx_clock )
 	mx_clock->timespec[1] = os_timespec.tv_nsec;
 
 	mx_clock->time = mx_convert_clock_time_to_seconds( os_timespec );
+
+	MX_DEBUG(-2,("%s: timespec = ( %ld, %ld ), time = %.3lf",
+	  fname, mx_clock->timespec[0], mx_clock->timespec[1], mx_clock->time));
 
 	return MX_SUCCESSFUL_RESULT;
 }

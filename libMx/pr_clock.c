@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2022 Illinois Institute of Technology
+ * Copyright 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -79,9 +79,10 @@ mx_clock_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case MXLV_CLK_TIMESPEC:
 		case MXLV_CLK_TIME:
-			mx_status = mx_clock_get_timespec( record, NULL );
+		case MXLV_CLK_TIMESPEC:
+			mx_status = mx_clock_get_timespec( record,
+							mx_clock->timespec );
 			break;
 		default:
 			MX_DEBUG( 1,(
