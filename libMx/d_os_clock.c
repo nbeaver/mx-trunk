@@ -157,8 +157,10 @@ mxd_os_clock_get_timespec( MX_CLOCK *mx_clock )
 
 	mx_clock->time = mx_convert_clock_time_to_seconds( os_timespec );
 
+#if 0
 	MX_DEBUG(-2,("%s: timespec = ( %ld, %ld ), time = %.6lf",
 	  fname, mx_clock->timespec[0], mx_clock->timespec[1], mx_clock->time));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

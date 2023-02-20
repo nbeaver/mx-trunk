@@ -126,11 +126,16 @@ mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
 
 	time_t current_epoch_time_in_seconds;
 	struct tm current_time_in_struct_tm;
+	time_t zero_time, local_time_lag;
+	struct tm *zt_struct_tm_ptr = NULL;
 	int saved_errno;
 
 	mx_status_type mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( mx_clock->parameter_type ) {
+
+	/*================== Reporting the timestamp. ==================*/
+
 	case MXLV_CLK_TIMESTAMP:
 		current_epoch_time_in_seconds = time( NULL );
 
@@ -148,12 +153,46 @@ mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
 					&current_time_in_struct_tm );
 
 		strftime( mx_clock->timestamp, MXU_CLK_STRING_LENGTH,
-				"%b %d %H:%M:%S", &current_time_in_struct_tm );
+			"%Y/%m/%d %H:%M:%S", &current_time_in_struct_tm );
 		break;
 
+	/*======== Platform dependent UTC time offset calculation. ========*/
+
 	case MXLV_CLK_UTC_OFFSET:
-		mx_clock->utc_offset = 0;
+		zero_time = 0;
+
+#if defined( OS_LINUX ) || defined( OS_MACOSX )
+		{
+			struct tm zt_struct_tm;
+
+			zt_struct_tm_ptr =
+				gmtime_r( &zero_time, &zt_struct_tm );
+
+			local_time_lag = mktime( &zt_struct_tm );
+		}
+#elif 0
+		{
+			struct tm zt_struct_tm;
+
+			memset( &zt_struct_tm, 0, sizeof(zt_struct_tm) );
+
+			(void) gmtime_s( &zt_struct_tm, &zero_time );
+
+			local_time_lag = mktime( &zt_struct_tm );
+		}
+#elif defined( OS_WIN32 )
+		{
+			zt_struct_tm_ptr = gmtime( &zero_time );
+
+			local_time_lag = mktime( zt_struct_tm_ptr );
+		}
+#else
+#error 'mx_clock->utc_offset' is not yet implemented for this build target.
+#endif
+		mx_clock->utc_offset = - local_time_lag;
 		break;
+
+	/*================== Reporting the timezone. ==================*/
 
 	case MXLV_CLK_TIMEZONE_NAME:
 		tzset();	/* Sets the value of 'tzname' */
@@ -162,7 +201,7 @@ mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
 				tzname[0], MXU_CLK_STRING_LENGTH );
 		break;
 
-	/* Platform dependent epoch time names. */
+	/*============ Platform dependent epoch time names. ============*/
 
 #if defined( OS_WIN32 )
 
@@ -187,9 +226,9 @@ mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
 		strlcpy( mx_clock->epoch_name, "VMS", MXU_CLK_STRING_LENGTH );
 		break;
 #else
-#error Reporting the Epoch name is not yet implemented for this build target.
+#error 'mx_clock->epoch_name' is not yet implemented for this build target.
 #endif
-	/* -------- */
+	/*===========================================================*/
 
 	default:
 		break;

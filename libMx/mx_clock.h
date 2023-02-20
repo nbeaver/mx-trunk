@@ -42,7 +42,6 @@ typedef struct {
 	long utc_offset;		/* in seconds */
 
 	char timezone_name[MXU_CLK_STRING_LENGTH+1];
-
 	char epoch_name[MXU_CLK_STRING_LENGTH+1];
 
 	struct timespec timespec_offset_struct;
