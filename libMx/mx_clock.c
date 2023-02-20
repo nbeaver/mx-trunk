@@ -161,7 +161,7 @@ mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
 	case MXLV_CLK_UTC_OFFSET:
 		zero_time = 0;
 
-#if defined( OS_LINUX ) || defined( OS_MACOSX )
+#if defined( OS_UNIX ) || defined( OS_CYGWIN )
 		{
 			struct tm zt_struct_tm;
 
