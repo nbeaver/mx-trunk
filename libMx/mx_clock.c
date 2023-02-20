@@ -23,6 +23,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_time.h"
+#include "mx_osdef.h"
 #include "mx_hrt.h"
 #include "mx_clock.h"
 
@@ -227,7 +228,7 @@ mx_clock_get_timespec( MX_RECORD *clock_record, uint64_t *timespec )
 	mx_status = (*get_timespec_fn)( mx_clock );
 
 	timespec_struct.tv_sec = mx_clock->timespec[0];
-	timespec_struct.tv_nsec = mx_clock->timespec[0];
+	timespec_struct.tv_nsec = mx_clock->timespec[1];
 
 	result_struct = mx_subtract_timespec_times( timespec_struct,
 					mx_clock->timespec_offset_struct );
