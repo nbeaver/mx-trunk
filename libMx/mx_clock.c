@@ -168,7 +168,7 @@ mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
 			zt_struct_tm_ptr =
 				gmtime_r( &zero_time, &zt_struct_tm );
 
-			local_time_lag = mktime( &zt_struct_tm );
+			local_time_lag = mktime( zt_struct_tm_ptr );
 		}
 #elif 0
 		{
