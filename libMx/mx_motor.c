@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3150,6 +3150,8 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 		motor->parameter_type));
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_SPEED:
+	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_CURRENT_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
@@ -3193,14 +3195,6 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 
 	case MXLV_MTR_EXTRA_GAIN:
 		motor->extra_gain = 0.0;
-		break;
-
-	case MXLV_MTR_SPEED:
-		motor->raw_speed = 0.0;
-		break;
-
-	case MXLV_MTR_BASE_SPEED:
-		motor->raw_base_speed = 0.0;
 		break;
 
 	case MXLV_MTR_ACCELERATION_TYPE:
