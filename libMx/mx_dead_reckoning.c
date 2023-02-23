@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2015, 2022 Illinois Institute of Technology
+ * Copyright 2001-2006, 2015, 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -154,6 +155,12 @@ mx_dead_reckoning_start_motion( MX_DEAD_RECKONING *dead_reckoning,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( fabs( slew_speed ) < (2.0 * DBL_MIN) ) {
+		mx_warning( "The slew speed for motor '%s' is zero, so "
+				"this move will never complete.",
+				motor->record->name );
+	}
 
 	/* Compute acceleration parameters. */
 
