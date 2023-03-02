@@ -1,5 +1,5 @@
 #
-# Supported values of MX_ARCH: linux linux-clang win32
+# Supported values of MX_ARCH: linux win32
 #
 
 ifndef MX_ARCH
@@ -10,22 +10,21 @@ ifndef MX_INSTALL_DIR
   MX_INSTALL_DIR = /opt/mx
 endif
 
+XGLAB_DANTE_VERSION   = 3.7.26.0
+XGLAB_DANTE_VERSION_2 = 8.3.0
+
+$(info XGLAB_DANTE_VERSION is [${XGLAB_DANTE_VERSION}])
+$(info XGLAB_DANTE_VERSION_2 is [${XGLAB_DANTE_VERSION_2}])
+
 ifeq ($(MX_ARCH),linux)
-	XGLAB_DANTE_DIR = /opt/DANTE/3.7.19.0-repacked/Library/Linux/3.7.19.0-8.4.1-Callback-x64
+	XGLAB_DANTE_DIR = /opt/DANTE/$(XGLAB_DANTE_VERSION)/Library/Linux/$(XGLAB_DANTE_VERSION)-$(XGLAB_DANTE_VERSION_2)-Callback-x64
 
-	XGLAB_DANTE_INCLUDES = $(XGLAB_DANTE_DIR)
-	XGLAB_DANTE_LIBS = -L$(XGLAB_DANTE_DIR) -lXGL_DPP
-endif
-
-ifeq ($(MX_ARCH),linux-clang)
-	XGLAB_DANTE_DIR = /opt/DANTE/Library/Linux-gcc4.8.5-libc2.17-x64/3.4.0.3-4.8.5-Callback-x64
-
-	XGLAB_DANTE_INCLUDES = $(XGLAB_DANTE_DIR)
+	XGLAB_DANTE_INCLUDES = -I$(XGLAB_DANTE_DIR)
 	XGLAB_DANTE_LIBS = -L$(XGLAB_DANTE_DIR) -lXGL_DPP
 endif
 
 ifeq ($(MX_ARCH),win32)
-	XGLAB_DANTE_DIR = "C:\\opt\\DANTE\\3.7.19.0\\Library\\Windows\\3.7.19.0-Callback-x64"
+	XGLAB_DANTE_DIR = "C:\\opt\\DANTE\\$(XGLAB_DANTE_VERSION)\\Library\\Windows\\$(XGLAB_DANTE_VERSION)-$(XGLAB_DANTE_VERSION_2)-Callback-x64"
 
 	XGLAB_DANTE_INCLUDES = -I$(XGLAB_DANTE_DIR)
 	XGLAB_DANTE_LIBS = $(XGLAB_DANTE_DIR)\\Release\\XGL_DPP.lib
@@ -43,12 +42,16 @@ endif
 # specific reason not to.
 #
 
-ifeq (1,1)
+ifeq (0,1)
 	XGLAB_DANTE_DIR = C:\\opt\\epics\support\\Dante\\danteApp\\danteSupport
 
 	XGLAB_DANTE_INCLUDES = -I$(XGLAB_DANTE_DIR)
 	XGLAB_DANTE_LIBS = $(XGLAB_DANTE_DIR)\\os\\WIN32\\x64\\XGL_DPP.lib
 endif
+
+$(info XGLAB_DANTE_DIR is [${XGLAB_DANTE_DIR}])
+$(info XGLAB_DANTE_INCLUDES is [${XGLAB_DANTE_INCLUDES}])
+$(info XGLAB_DANTE_LIBS is [${XGLAB_DANTE_LIBS}])
 
 #--------------------------------------------------------------------------
 
@@ -60,11 +63,6 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 ifeq ($(MX_ARCH),linux)
 	CFLAGS = $(GCCFLAGS) -DOS_LINUX $(XGLAB_DANTE_INCLUDES)
-	C_COMPILE = gcc -c -fPIC -DDEBUG
-	CPP_COMPILE = g++ -c -fPIC -DDEBUG
-endif
-ifeq ($(MX_ARCH),linux-clang)
-	CFLAGS = -DOS_LINUX $(XGLAB_DANTE_INCLUDES)
 	C_COMPILE = gcc -c -fPIC -DDEBUG
 	CPP_COMPILE = g++ -c -fPIC -DDEBUG
 endif
@@ -88,17 +86,6 @@ $(info $$XGLAB_DANTE_DIR is [${XGLAB_DANTE_DIR}])
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),linux)
-
-$(XGLAB_DANTE_MXO): $(XGLAB_DANTE_OBJS)
-	gcc -shared -rdynamic -Wl,-soname,$(XGLAB_DANTE_MXO) \
-		-o $(XGLAB_DANTE_MXO) $(XGLAB_DANTE_OBJS) \
-		$(XGLAB_DANTE_LIBS)
-
-endif
-
-#--------------------------------------------------------------------------
-
-ifeq ($(MX_ARCH),linux-clang)
 
 $(XGLAB_DANTE_MXO): $(XGLAB_DANTE_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,$(XGLAB_DANTE_MXO) \

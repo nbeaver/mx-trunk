@@ -292,9 +292,6 @@ mxd_dante_mca_open( MX_RECORD *record )
 	unsigned long board_number;
 	mx_status_type mx_status;
 
-	uint32_t call_id;
-	uint16_t dante_error_code = DLL_NO_ERROR;
-
 #if MXD_DANTE_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
