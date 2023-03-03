@@ -88,7 +88,7 @@ LIBCURL_LIBRARY = -lcurl
 
 #----
 
-else ifeq ($(MX_ARCH),android)
+else ifeq ($(MX_ARCH),termux)
 
 LIBCURL_INCLUDES = 
 LIBCURL_LIBRARY = -lcurl
@@ -224,7 +224,7 @@ endif
 
 #--------------------------------------------------------------------------
 
-ifeq ($(MX_ARCH),android)
+ifeq ($(MX_ARCH),termux)
 
 libcurl.mxo: $(LIBCURL_OBJS)
 	$(CC) -shared -o libcurl.mxo $(LIBCURL_OBJS) \

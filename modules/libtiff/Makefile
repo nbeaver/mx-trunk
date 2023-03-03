@@ -93,7 +93,7 @@ LIBTIFF_LIBRARY = -ltiff
 
 #----
 
-else ifeq ($(MX_ARCH),android)
+else ifeq ($(MX_ARCH),termux)
 
 LIBTIFF_INCLUDES = 
 LIBTIFF_LIBRARY = -ltiff
@@ -229,7 +229,7 @@ endif
 
 #--------------------------------------------------------------------------
 
-ifeq ($(MX_ARCH),android)
+ifeq ($(MX_ARCH),termux)
 
 libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) -shared -o libtiff.mxo $(LIBTIFF_OBJS) \
