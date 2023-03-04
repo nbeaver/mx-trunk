@@ -903,7 +903,7 @@ mx_get_debugger_pid( void )
 	return mxp_debugger_pid;
 }
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) || defined(OS_ANDROID)
 
 /* Look for a non-zero value for TracerPid: in /proc/self/status. */
 
@@ -989,7 +989,7 @@ mx_get_debugger_pid( void )
 /*-------------------------------------------------------------------------*/
 
 #if ( defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400) ) || defined(OS_MACOSX) \
-	|| defined(OS_LINUX)
+	|| defined(OS_LINUX) || defined(OS_ANDROID)
 
 MX_EXPORT void
 mx_wait_for_debugger( void )
