@@ -305,7 +305,7 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	if ( current_process ) {
 
-#if ( MX_GLIBC_VERSION >= 2033000L )
+#if ( MX_GLIBC_VERSION >= 2033000L ) && !defined( MX_HAVE_CONDA )
 		struct mallinfo2 mallinfo_struct = mallinfo2();
 #else
 		struct mallinfo mallinfo_struct = mallinfo();

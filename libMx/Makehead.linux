@@ -191,24 +191,32 @@ ifeq ($(_have_mx_config),true)
       GCCFLAGS += -fwrapv
   endif
 
+  # 
+  # -fno-delete-null-pointer-checks in GCC ??? and above.
   #
-  # FIXME: We should also add -fno-delete-null-pointer-checks
-  #        as well as -fwrapv-pointer.
+  # FIXME: When was -fno-delete-null-pointer-checks added?
   #
+
+  _need_no_delete_null_pointer_checks := $(shell expr $(_mx_gccver) \> 2000000 )
+
+  ifeq ($(_need_no_delete_null_pointer_checks),1)
+      GCCFLAGS += -fno-delete-null-pointer-checks
+  endif
+
 endif
 
 #--------------------------------------------------------------------------
 #
-# Find the GCC top level directory
+# Find the GCC library directory.  With that we can find things that are
+# sometimes bundled with GCC there, like libbacktrace.
 #
-
+# New versions of GCC locate this differently than older versions of GCC.
+# And Conda is its own special snowflake.
 #
-# If gcc -v prints it out, then COLLECT_LTO_WRAPPER is a more reliable way
-# to determine the GCC top level directory
+#----------
 #
-
-#========
-# For Conda, we look in a Conda-specific location.
+# For Conda, we must look in a Conda-specific location.
+#
 
 _conda_prefix := ${CONDA_PREFIX}
 
@@ -227,72 +235,76 @@ else
 endif
 
 ifeq ($(_have_conda),true)
+    CFLAGS_MX_VERS += -DMX_HAVE_CONDA
+
     GCCFLAGS += -I${_conda_prefix}/include
 
-    _gcc_lib_dir_conda := ${_conda_prefix}/lib
+    _gcc_lib_dir_from_conda := ${_conda_prefix}/lib
 endif
 
 $(info _have_conda is [${_have_conda}])
 
-#========
-
-# For modern Linux distributions, we find libbacktrace this way.
+#----------
+#
+# If gcc -v prints it out, then COLLECT_LTO_WRAPPER is a generally
+# reliable way to determine the GCC library directory.
+#
 
 _gcc_collect_lto_wrapper := $(shell gcc -v 2>&1 | grep COLLECT_LTO_WRAPPER  | cut -f3  -d' ' | cut -f2 -d=)
 
-### $(info _gcc_collect_lto_wrapper is [${_gcc_collect_lto_wrapper}])
-
 _lto_wrapper_length := $(shell echo ${_gcc_collect_lto_wrapper} | wc -c | sed 's/ //g')
 
-### $(info _lto_wrapper_length is [${_lto_wrapper_length}])
-
 ifeq ($(_lto_wrapper_length),1)
-    _gcc_lib_dir_v1_len := 0
+    _gcc_lib_dir_from_lto_len := 0
 else
     _lpl := $(shell expr ${_lto_wrapper_length} - 13)
 
-    ### $(info _lpl is [${_lpl}])
+    _gcc_lib_dir_from_lto := $(shell echo ${_gcc_collect_lto_wrapper} | cut -c1-${_lpl})
 
-    _gcc_lib_dir_v1 := $(shell echo ${_gcc_collect_lto_wrapper} | cut -c1-${_lpl})
-
-    ### $(info _gcc_lib_dir_v1 is [${_gcc_lib_dir_v1}])
-
-    _gcc_lib_dir_v1_len := $(shell echo ${_gcc_dir_v1} | wc -c | sed 's/ //g')
+    _gcc_lib_dir_from_lto_len := $(shell echo ${_gcc_dir_v1} | wc -c | sed 's/ //g')
 endif
 
-### $(info _gcc_lib_dir_v1_len is [${_gcc_lib_dir_v1_len}])
-
+#----------
 #
-# Otherwise, we construct it the old fashioned way from the target
-# and the version.
+# Otherwise, we construct the GCC library directory the old fashioned way
+# from the target and the version.
 #
 
 _gcc_target := $(shell gcc -v 2>&1 | grep Target: | cut -f2 -d' ')
 
 _gcc_version := $(shell gcc -v 2>&1 | grep '^gcc version' | cut -f3  -d' ')
 
-_gcc_lib_dir_v2 := $(shell echo /usr/lib/gcc/${_gcc_target}/${_gcc_version})
+_gcc_lib_dir_from_target := $(shell echo /usr/lib/gcc/${_gcc_target}/${_gcc_version})
 
-_gcc_lib_dir_v2_len := $(shell echo ${_gcc_dir_v2} | wc -c | sed 's/ //g')
+_gcc_lib_dir_from_target_len := $(shell echo ${_gcc_dir_v2} | wc -c | sed 's/ //g')
 
 #
-# Now select the one we like the best.
+# If requested, print out the possibilities for the GCC library directory.
+#
+
+##$(info _gcc_lib_dir_from_lto is [${_gcc_lib_dir_from_lto}])
+##$(info _gcc_lib_dir_from_target is [${_gcc_lib_dir_from_target}])
+##$(info _gcc_lib_dir_from_conda is [${_gcc_lib_dir_from_conda}])
+
+#
+# Now select the candidate for the GCC library directory that is
+# most likely to be correct.
 #
 
 ifeq ($(_have_conda),true)
-    _gcc_lib_dir := $(_gcc_lib_dir_conda)
+    _gcc_lib_dir := $(_gcc_lib_dir_from_conda)
 
-    CFLAGS_MX_VERS += -DMX_HAVE_CONDA
-
-else ifeq ($(_gcc_lib_dir_v1_len),0)
-    _gcc_lib_dir := $(_gcc_lib_dir_v2)
+else ifeq ($(_gcc_lib_dir_from_lto_len),0)
+    _gcc_lib_dir := $(_gcc_lib_dir_from_target)
 else
-    _gcc_lib_dir := $(_gcc_lib_dir_v1)
+    _gcc_lib_dir := $(_gcc_lib_dir_from_lto)
 endif
 
-### $(info _gcc_lib_dir_v2 is [${_gcc_lib_dir_v2}])
+#
+# Print out the library directory we ended up selecting.
+#
 
-### $(info _gcc_lib_dir is [${_gcc_lib_dir}])
+##$(info _gcc_lib_dir is [${_gcc_lib_dir}])
 
 #--------------------------------------------------------------------------
 #
@@ -397,11 +409,7 @@ endif
 
 $(info _have_libbacktrace is [${_have_libbacktrace}])
 
-ifeq ($(_have_conda),true)
-    MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE -I$(_conda_prefix)/include
-    MX_LIB_LIBRARIES += -L$(_conda_prefix)/lib -lbacktrace
-
-else ifeq ($(_have_libbacktrace),true)
+ifeq ($(_have_libbacktrace),true)
     MX_STACK_INCLUDES = -DMX_HAVE_LIBBACKTRACE -I$(_gcc_lib_dir)/include
     MX_LIB_LIBRARIES += -L$(_gcc_lib_dir) -lbacktrace
 endif
