@@ -786,13 +786,62 @@ mx_get_parent_process_id( unsigned long process_id )
 
 #else
 
-#error mx_get_parent_process_id() is not yet implemented for this platform
+#error mx_get_parent_process_id() is not yet implemented for this platform.
 
 MX_EXPORT unsigned long
 mx_get_parent_process_id( unsigned long process_id )
 {
 	return (unsigned long) ( -1L );
 }
+
+#endif
+
+/*=========================================================================*/
+
+#if defined(OS_LINUX)
+
+MX_EXPORT const char *
+mx_get_process_name_from_process_id( unsigned long process_id,
+					char *name_buffer,
+					size_t name_buffer_length )
+{
+	static const char fname[] = "mx_get_process_name_from_process_id()";
+
+	FILE *proc_file = NULL;
+	char proc_file_name[ MXU_FILENAME_LENGTH+1 ];
+
+	if ( ( name_buffer == (char *) NULL )
+	  || ( name_buffer_length == 0 ) )
+	{
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"No process name buffer was passed to us." );
+
+		return NULL;
+	}
+
+	snprintf( proc_file_name, sizeof(proc_file_name),
+		"/proc/%lu/cmdline", process_id );
+
+	proc_file = fopen( proc_file_name, "r" );
+
+	if ( proc_file == NULL ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Could not open the proc_file_name '%s'.",
+			proc_file_name );
+
+		return NULL;
+	}
+
+	mx_fgets( name_buffer, name_buffer_length, proc_file );
+
+	fclose( proc_file );
+
+	return name_buffer;
+}
+
+#else
+
+#error mx_get_process_name_from_process_id() is not yet implemented for this platform.
 
 #endif
 

@@ -1250,6 +1250,11 @@ MX_API unsigned long mx_get_process_id( void );
 
 MX_API unsigned long mx_get_parent_process_id( unsigned long process_id );
 
+MX_API const char *mx_get_process_name_from_process_id(
+						unsigned long process_id,
+						char *name_buffer,
+						size_t name_buffer_length );
+
 MX_API mx_status_type mx_wait_for_process_id( unsigned long process_id,
 						long *process_status );
 

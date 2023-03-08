@@ -916,7 +916,11 @@ mx_get_debugger_pid( void )
 	char buffer[200];
 	char error_message[80];
 	int saved_errno, num_items;
-	unsigned long debugger_pid;
+	unsigned long debugger_pid, parent_pid;
+	char parent_process_path[ MXU_FILENAME_LENGTH+1 ];
+	const char *returned_string_ptr = NULL;
+	const char *name_string_ptr = NULL;
+	int name_match_status;
 
 	FILE *status_file = fopen( "/proc/self/status", "r" );
 
@@ -937,19 +941,47 @@ mx_get_debugger_pid( void )
 		mx_fgets( buffer, sizeof(buffer), status_file );
 
 		if ( feof( status_file ) ) {
+
 			fclose( status_file );
 
+			mx_breakpoint();
+
 			/* If we did not find TracerPid, then our fallback
-			 * strategy is to look to see if MX's own static
-			 * variable called 'mxp_debugger_pid' has
-			 * been set or not.
-			 *
-			 * This is not a 100% reliable way of detecting
-			 * a debugger, but it is better than nothing.
-			 * At least for MX programs that are aware of
-			 * the existence of the 'mxp_debugger_present'
-			 * variable.
+			 * strategy is to see if our parent process has
+			 * the name 'gdb'.  In the days before TracerPid
+			 * existed, the most likely debugger in use was
+			 * probably 'gdb'.
 			 */
+
+			parent_pid = getppid();
+
+			returned_string_ptr =
+				mx_get_process_name_from_process_id(
+					parent_pid,
+					parent_process_path,
+					sizeof(parent_process_path) );
+
+			if ( returned_string_ptr == NULL ) {
+				return 0;
+			}
+
+			/* Skip over the directory part of the name, if any. */
+
+			name_string_ptr = strrchr( returned_string_ptr, '/' );
+
+			if ( name_string_ptr == NULL ) {
+				name_string_ptr = returned_string_ptr;
+			} else {
+				name_string_ptr++;    /* Skip over the '/'. */
+			}
+
+			name_match_status = strcmp( name_string_ptr, "gdb" );
+
+			if ( name_match_status == 0 ) {
+				mxp_debugger_pid = parent_pid;
+			} else {
+				mxp_debugger_pid = 0;
+			}
 
 			return mxp_debugger_pid;
 		}
@@ -959,7 +991,7 @@ mx_get_debugger_pid( void )
 			"/proc/self/status." );
 
 			fclose( status_file );
-			return FALSE;
+			return 0;
 		}
 
 		num_items = sscanf( buffer, "TracerPid: %lu", &debugger_pid );
@@ -973,7 +1005,7 @@ mx_get_debugger_pid( void )
 		}
 	}
 
-	return FALSE;
+	return 0;
 }
 
 #else

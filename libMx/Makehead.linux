@@ -151,6 +151,16 @@ _have_mx_config := $(shell ../scripts/file_exists ../tools/mx_config )
 ifeq ($(_have_mx_config),true)
   _mx_gccver := $(shell ../tools/mx_config gcc )
 
+  # 
+  # -fno-delete-null-pointer-checks in GCC 2.8 and above.
+  #
+
+  _need_no_delete_null_pointer_checks := $(shell expr $(_mx_gccver) \>= 2008000 )
+
+  ifeq ($(_need_no_delete_null_pointer_checks),1)
+      GCCFLAGS += -fno-delete-null-pointer-checks
+  endif
+
   #
   # -fexceptions in GCC 2.95 and above
   #
@@ -189,18 +199,6 @@ ifeq ($(_have_mx_config),true)
 
   ifeq ($(_have_fwrapv),1)
       GCCFLAGS += -fwrapv
-  endif
-
-  # 
-  # -fno-delete-null-pointer-checks in GCC ??? and above.
-  #
-  # FIXME: When was -fno-delete-null-pointer-checks added?
-  #
-
-  _need_no_delete_null_pointer_checks := $(shell expr $(_mx_gccver) \> 2000000 )
-
-  ifeq ($(_need_no_delete_null_pointer_checks),1)
-      GCCFLAGS += -fno-delete-null-pointer-checks
   endif
 
 endif
