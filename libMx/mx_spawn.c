@@ -798,7 +798,7 @@ mx_get_parent_process_id( unsigned long process_id )
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_ANDROID)
 
 MX_EXPORT const char *
 mx_get_process_name_from_process_id( unsigned long process_id,
