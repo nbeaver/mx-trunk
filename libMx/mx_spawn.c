@@ -799,7 +799,67 @@ mx_get_parent_process_id( unsigned long process_id )
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX) || defined(OS_ANDROID)
+#if defined(OS_WIN32)
+
+#include <psapi.h>
+
+MX_EXPORT mx_status_type
+mx_get_process_name_from_process_id( unsigned long process_id,
+					char *name_buffer,
+					size_t name_buffer_length )
+{
+	static const char fname[] = "mx_get_process_name_from_process_id()";
+
+	HANDLE process_handle;
+	DWORD desired_process_access;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	DWORD actual_name_length;
+
+	if ( ( name_buffer == (char *) NULL )
+	  || ( name_buffer_length == 0 ) )
+	{
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No process name buffer was passed to this function." );
+	}
+
+	desired_process_access = PROCESS_ALL_ACCESS
+			| PROCESS_QUERY_INFORMATION | PROCESS_VM_READ;
+
+	process_handle = OpenProcess( desired_process_access,
+					FALSE, (DWORD) process_id );
+
+	if ( process_handle == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to access process id %lu.  ",
+			"Win32 error code = %ld, error message = '%s'.",
+			process_id, last_error_code, message_buffer );
+	}
+
+	actual_name_length = GetProcessImageFileName( process_handle,
+					name_buffer, name_buffer_length );
+
+	if ( actual_name_length == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to get image file name for process id %lu.  ",
+			"Win32 error code = %ld, error message = '%s'.",
+			process_id, last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_LINUX) || defined(OS_ANDROID)
 
 MX_EXPORT mx_status_type
 mx_get_process_name_from_process_id( unsigned long process_id,
