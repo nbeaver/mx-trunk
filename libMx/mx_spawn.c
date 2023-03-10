@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #include "mx_osdef.h"
@@ -800,7 +801,7 @@ mx_get_parent_process_id( unsigned long process_id )
 
 #if defined(OS_LINUX) || defined(OS_ANDROID)
 
-MX_EXPORT const char *
+MX_EXPORT mx_status_type
 mx_get_process_name_from_process_id( unsigned long process_id,
 					char *name_buffer,
 					size_t name_buffer_length )
@@ -813,10 +814,8 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	if ( ( name_buffer == (char *) NULL )
 	  || ( name_buffer_length == 0 ) )
 	{
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"No process name buffer was passed to us." );
-
-		return NULL;
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No process name buffer was passed to this function." );
 	}
 
 	snprintf( proc_file_name, sizeof(proc_file_name),
@@ -825,18 +824,138 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	proc_file = fopen( proc_file_name, "r" );
 
 	if ( proc_file == NULL ) {
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Could not open the proc_file_name '%s'.",
 			proc_file_name );
-
-		return NULL;
 	}
 
 	mx_fgets( name_buffer, name_buffer_length, proc_file );
 
 	fclose( proc_file );
 
-	return name_buffer;
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_MACOSX)
+
+#include <libproc.h>
+
+MX_EXPORT mx_status_type
+mx_get_process_name_from_process_id( unsigned long process_id,
+					char *name_buffer,
+					size_t name_buffer_length )
+{
+	static const char fname[] = "mx_get_process_name_from_process_id()";
+
+	int os_status, saved_errno;
+
+	if ( ( name_buffer == (char *) NULL )
+	  || ( name_buffer_length == 0 ) )
+	{
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No process name buffer was passed to this function." );
+	}
+
+	os_status = proc_pidpath( process_id, name_buffer, name_buffer_length );
+
+	if ( os_status <= 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The call to proc_pidpath() failed with errno = %d, "
+		"error message = '%s'.", saved_errno, strerror(saved_errno));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif 0
+
+/* Parse the output of 'ps -p <pid>' if nothing else is available. */
+
+MX_EXPORT mx_status_type
+mx_get_process_name_from_process_id( unsigned long process_id,
+					char *name_buffer,
+					size_t name_buffer_length )
+{
+	static const char fname[] = "mx_get_process_name_from_process_id()";
+
+	FILE *file = NULL;
+	char command[40], response[80];
+	int saved_errno, argc;
+	char **argv;
+	unsigned long process_id_for_line;
+
+	if ( ( name_buffer == (char *) NULL )
+	  || ( name_buffer_length == 0 ) )
+	{
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No process name buffer was passed to this function." );
+	}
+
+	snprintf( command, sizeof(command), "ps -p %lu", process_id );
+
+	file = popen( command, "r" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to run the command '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			command, saved_errno, strerror(saved_errno) );
+	}
+
+	while( TRUE ) {
+		mx_fgets( response, sizeof(response), file );
+
+		if ( feof( file ) ) {
+			fclose( file );
+
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Pid %lu was not found on this computer.",
+				process_id );
+		}
+		if ( ferror( file ) ) {
+			saved_errno = errno;
+
+			fclose( file );
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"An error occurred while reading the output "
+			"from the command '%s' for process id %lu.  "
+			"Errno = %d, error message = '%s'.",
+				command, process_id,
+				saved_errno, strerror( saved_errno ) );
+		}
+
+		/* FIXME: The output of 'ps' for different
+		 *        operating systems may vary.
+		 */
+
+		mx_string_split( response, " ", &argc, &argv );
+
+		if ( argc < 4 ) {
+			mx_free( argv );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Too few values were received in the response '%s' "
+			"to the command '%s' for process id %lu.",
+				response, command, process_id );
+		}
+
+		process_id_for_line = atol( argv[0] );
+
+		if ( process_id_for_line == process_id ) {
+			strlcpy( name_buffer, argv[3], name_buffer_length );
+
+			mx_free( argv );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		mx_free( argv );
+	}
 }
 
 #else
