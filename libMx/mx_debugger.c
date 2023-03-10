@@ -918,9 +918,9 @@ mx_get_debugger_pid( void )
 	int saved_errno, num_items;
 	unsigned long debugger_pid, parent_pid;
 	char parent_process_path[ MXU_FILENAME_LENGTH+1 ];
-	const char *returned_string_ptr = NULL;
 	const char *name_string_ptr = NULL;
 	int name_match_status;
+	mx_status_type mx_status;
 
 	FILE *status_file = fopen( "/proc/self/status", "r" );
 
@@ -955,22 +955,20 @@ mx_get_debugger_pid( void )
 
 			parent_pid = getppid();
 
-			returned_string_ptr =
-				mx_get_process_name_from_process_id(
-					parent_pid,
-					parent_process_path,
-					sizeof(parent_process_path) );
+			mx_status = mx_get_process_name_from_process_id(
+						parent_pid,
+						parent_process_path,
+						sizeof(parent_process_path) );
 
-			if ( returned_string_ptr == NULL ) {
+			if ( mx_status.code != MXE_SUCCESS )
 				return 0;
-			}
 
 			/* Skip over the directory part of the name, if any. */
 
-			name_string_ptr = strrchr( returned_string_ptr, '/' );
+			name_string_ptr = strrchr( parent_process_path, '/' );
 
 			if ( name_string_ptr == NULL ) {
-				name_string_ptr = returned_string_ptr;
+				name_string_ptr = parent_process_path;
 			} else {
 				name_string_ptr++;    /* Skip over the '/'. */
 			}
