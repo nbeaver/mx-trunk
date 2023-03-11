@@ -832,13 +832,29 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	if ( process_handle == NULL ) {
 		last_error_code = GetLastError();
 
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
+		switch( last_error_code ) {
+		case ERROR_INVALID_PARAMETER:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Process ID %lu does not exist.", process_id );
+			break;
 
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to access process id %lu.  ",
-			"Win32 error code = %ld, error message = '%s'.",
-			process_id, last_error_code, message_buffer );
+		case ERROR_ACCESS_DENIED:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"You do not have the required permissions "
+			"to get the process name for process ID %lu.",
+				process_id );
+			break;
+
+		default:
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to access process id %lu.  "
+				"Win32 error code = %ld, error message = '%s'.",
+				process_id, last_error_code, message_buffer );
+			break;
+		}
 	}
 
 	actual_name_length = GetProcessImageFileName( process_handle,
@@ -851,7 +867,7 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 			message_buffer, sizeof(message_buffer) );
 
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to get image file name for process id %lu.  ",
+			"Unable to get image file name for process id %lu.  "
 			"Win32 error code = %ld, error message = '%s'.",
 			process_id, last_error_code, message_buffer );
 	}
