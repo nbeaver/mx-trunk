@@ -492,6 +492,26 @@ motor_test_fn( int argc, char *argv[] )
 		}
 
 		else
+		if ( strcmp( argv[2], "pid" ) == 0 ) {
+			unsigned long process_id;
+			char process_name[MXU_FILENAME_LENGTH+1];
+
+			process_id = atol( argv[3] );
+
+			mx_status = mx_get_process_name_from_process_id(
+			    process_id, process_name, sizeof(process_name) );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				return FAILURE;
+			}
+
+			fprintf( output, "Process ID %lu is '%s'.\n",
+				process_id, process_name );
+
+			return SUCCESS;
+		}
+
+		else
 		if ( strcmp( argv[2], "mxget" ) == 0 ) {
 #if 1
 			static const char cname[] = "mxget";
@@ -708,6 +728,7 @@ motor_test_fn( int argc, char *argv[] )
 "test dll_filename 'filename' - show the file that a dll was opened from\n"
 "test max_fds - show the maximum number of file descriptors (Win32)\n"
 "test mxget - get server:record.field using new array copy\n"
+"test pid - get process name from process id\n"
 "test num_open_fds - show the number of open file descriptors\n"
 "test offset - test stack offset\n"
 "test process - execute all outstanding MX callbacks\n"

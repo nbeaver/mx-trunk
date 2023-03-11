@@ -870,6 +870,7 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 
 	FILE *proc_file = NULL;
 	char proc_file_name[ MXU_FILENAME_LENGTH+1 ];
+	int saved_errno;
 
 	if ( ( name_buffer == (char *) NULL )
 	  || ( name_buffer_length == 0 ) )
@@ -884,9 +885,22 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	proc_file = fopen( proc_file_name, "r" );
 
 	if ( proc_file == NULL ) {
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Could not open the proc_file_name '%s'.",
-			proc_file_name );
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Process ID %lu does not exist.\n",
+				process_id );
+			break;
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Could not open the proc_file_name '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				proc_file_name,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
 	}
 
 	mx_fgets( name_buffer, name_buffer_length, proc_file );
