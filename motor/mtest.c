@@ -492,6 +492,21 @@ motor_test_fn( int argc, char *argv[] )
 		}
 
 		else
+		if ( strcmp( argv[2], "parent" ) == 0 ) {
+			unsigned long process_id, parent_process_id;
+
+			process_id = atol( argv[3] );
+
+			parent_process_id =
+				mx_get_parent_process_id( process_id );
+
+			fprintf( output, "Process ID %lu parent is %lu.\n",
+				process_id, parent_process_id );
+
+			return SUCCESS;
+		}
+
+		else
 		if ( strcmp( argv[2], "pid" ) == 0 ) {
 			unsigned long process_id;
 			char process_name[MXU_FILENAME_LENGTH+1];
@@ -728,9 +743,10 @@ motor_test_fn( int argc, char *argv[] )
 "test dll_filename 'filename' - show the file that a dll was opened from\n"
 "test max_fds - show the maximum number of file descriptors (Win32)\n"
 "test mxget - get server:record.field using new array copy\n"
-"test pid - get process name from process id\n"
 "test num_open_fds - show the number of open file descriptors\n"
 "test offset - test stack offset\n"
+"test parent 'process_id' - get parent process id for requested process id\n"
+"test pid 'process_id' - get process name from process id\n"
 "test process - execute all outstanding MX callbacks\n"
 "test remote_host 'ip_address'- show network interface for remote host\n"
 "test show_fd_metadata 'fd' - show information about a file descriptor\n"
