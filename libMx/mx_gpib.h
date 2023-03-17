@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2007, 2018 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2007, 2018, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,8 +35,9 @@ extern "C" {
 
 /* ======== GPIB interface flag values ======== */
 
-#define MXF_GPIB_DEBUG		0x1
-#define MXF_GPIB_NOWAIT		0x2
+#define MXF_GPIB_DEBUG				0x1
+#define MXF_GPIB_NOWAIT				0x2
+#define MXF_GPIB_FORCE_COMM_BUFFER_SETUP	0x4
 
 /* ======== Generic GPIB interface data structure ======= */
 

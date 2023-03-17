@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2018 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2018, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +70,7 @@ mx_gpib_setup_communication_buffers( MX_RECORD *gpib_record )
 	MX_LIST_HEAD *list_head;
 	MX_RECORD_FIELD *field;
 	long saved_read_buffer_length, saved_write_buffer_length;
+	mx_bool_type allocate_comm_buffers = FALSE;
 	mx_status_type mx_status;
 
 	if ( gpib_record == (MX_RECORD *) NULL ) {
@@ -97,7 +98,16 @@ mx_gpib_setup_communication_buffers( MX_RECORD *gpib_record )
 	 * and write operations.
 	 */
 
-	if ( list_head->is_server == FALSE ) {
+	if ( gpib->gpib_flags & MXF_GPIB_FORCE_COMM_BUFFER_SETUP ) {
+		allocate_comm_buffers = TRUE;
+	} else
+	if ( list_head->is_server ) {
+		allocate_comm_buffers = TRUE;
+	} else {
+		allocate_comm_buffers = FALSE;
+	}
+
+	if ( allocate_comm_buffers == FALSE ) {
 		gpib->read_buffer_length = 0;
 		gpib->write_buffer_length = 0;
 		gpib->read_buffer = NULL;

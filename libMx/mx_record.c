@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2806,10 +2806,15 @@ mx_print_field_value( FILE *file,
 		"The MX_RECORD_FIELD pointer passed was NULL." );
 	}
 	if ( value_ptr == NULL ) {
+#if 0
 		mx_stack_traceback();
 		mx_breakpoint();
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The value pointer passed was NULL." );
+#else
+		fprintf( file, "NULL" );
+		return MX_SUCCESSFUL_RESULT;
+#endif
 	}
 
 	if ( field->flags & MXFF_NO_ACCESS ) {
