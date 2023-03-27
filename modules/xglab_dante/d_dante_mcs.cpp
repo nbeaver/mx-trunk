@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020-2021 Illinois Institute of Technology
+ * Copyright 2020-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_callback.h"
 #include "mx_measurement.h"
 #include "mx_mutex.h"
 #include "mx_thread.h"

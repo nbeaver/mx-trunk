@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020-2022 Illinois Institute of Technology
+ * Copyright 2020-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,6 +44,7 @@
 #include "mx_driver.h"
 #include "mx_cfn.h"
 #include "mx_array.h"
+#include "mx_callback.h"
 #include "mx_process.h"
 #include "mx_dynamic_library.h"
 #include "mx_thread.h"
@@ -1113,12 +1114,88 @@ mxi_dante_close( MX_RECORD *record )
 
 /*-------------------------------------------------------------------------*/
 
+static mx_status_type
+mxi_dante_poll_callback_function( MX_CALLBACK_MESSAGE *callback_message )
+{
+	static const char fname[] = "mxi_dante_poll_callback_function()";
+
+	MX_DANTE *dante = NULL;
+	MX_RECORD *first_mca_record = NULL;
+	MX_MCA *first_mca = NULL;
+	mx_status_type mx_status;
+
+#if MXI_DANTE_POLL_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s invoked", fname));
+#endif
+
+	/* Check pointer validity. */
+
+	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The MX_CALLBACK_MESSAGE pointer passed to this callback "
+		"function is NULL." );
+	}
+
+	dante = (MX_DANTE *) callback_message->u.function.callback_args;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The callback argument pointer contained in "
+		"callback message %p is NULL.", callback_message );
+	}
+
+	if ( dante->num_mcas == 0 ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"Dante '%s' is configured for 0 records.  "
+		"We have to have at least one MCA in order to "
+		"poll its firmware version.", dante->record->name );
+	}
+
+	/* Periodically reading the firmware version of the first MCA
+	 * apparently keeps the connection to the Dante alive.
+	 */
+
+	first_mca_record = dante->mca_record_array[0];
+
+	if ( first_mca_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The first Dante MCA record pointer for "
+		"Dante record '%s' is NULL.",
+			dante->record->name );
+	}
+
+	first_mca = (MX_MCA *) dante->record->record_type_struct;
+
+	if ( first_mca == (MX_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCA pointer for Dante MCA record '%s' is NULL.",
+			first_mca_record->name );
+	}
+
+	mx_status = mxd_dante_mca_get_firmware_version( first_mca, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Restart the virtual timer to arrange for the next callback. */
+
+	mx_status = mx_virtual_timer_start(
+			callback_message->u.function.oneshot_timer,
+			callback_message->u.function.callback_interval );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_finish_delayed_initialization()";
 
-	MX_DANTE *dante;
+	MX_DANTE *dante = NULL;
+	MX_LIST_HEAD *list_head = NULL;
+	MX_VIRTUAL_TIMER *oneshot_timer = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1145,9 +1222,70 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 
 	mx_status = mxi_dante_configure( record );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	if ( dante->trace_calls ) {
 		MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name ));
 	}
+
+	/* If we are not going to do the poll callback, then we are done. */
+
+	if ( dante->poll_interval < 0.0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Create a callback that checks the status of the connection to
+	 * the Dante electronics.  It does that by periodically fetching
+	 * the firmware version number of the first MCA channel.
+	 * Inspired by the EPICS Dante drivers by Mark Rivers of the
+	 * University of Chicago.
+	 */
+
+	/* We are not supposed to allocate memory in the timer callback
+	 * function, so we allocate it, once and for all, right here.
+	 */
+
+	dante->poll_callback_message =
+		(MX_CALLBACK_MESSAGE *) malloc( sizeof(MX_CALLBACK_MESSAGE) );
+
+	if ( dante->poll_callback_message == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_CALLBACK_MESSAGE "
+		"structure for Dante interface '%s'.", record->name );
+	}
+
+	dante->poll_callback_message->callback_type = MXCBT_FUNCTION;
+	dante->poll_callback_message->list_head = list_head;
+
+	dante->poll_callback_message->u.function.callback_function =
+					mxi_dante_poll_callback_function;
+
+	dante->poll_callback_message->u.function.callback_args = dante;
+
+	dante->poll_callback_message->u.function.callback_interval =
+					dante->poll_interval;
+
+	/* We find the master timer via the MX_LIST_HEAD structure. */
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	/* Next, we create the virtual timer itself. */
+
+	mx_status = mx_virtual_timer_create(
+				&oneshot_timer,
+				(MX_INTERVAL_TIMER *) list_head->master_timer,
+				MXIT_ONE_SHOT_TIMER,
+				mx_callback_standard_vtimer_handler,
+				dante->poll_callback_message );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the callback virtual timer. */
+
+	mx_status = mx_virtual_timer_start( oneshot_timer,
+		dante->poll_callback_message->u.function.callback_interval );
 
 	return mx_status;
 }

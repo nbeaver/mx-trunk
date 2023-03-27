@@ -69,6 +69,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_inttypes.h"
+#include "mx_callback.h"
 #include "mx_process.h"
 #include "mx_mcs.h"
 #include "mx_mca.h"

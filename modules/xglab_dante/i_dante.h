@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2020-2022 Illinois Institute of Technology
+ * Copyright 2020-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -130,6 +130,7 @@ typedef struct dante_struct {
 	double max_io_delay;
 	unsigned long max_io_attempts;
 	char config_filename[MXU_FILENAME_LENGTH+1];
+	double poll_interval;				/* in seconds */
 
 	mx_bool_type load_config_file;
 	mx_bool_type save_config_file;
@@ -145,6 +146,9 @@ typedef struct dante_struct {
 	MX_DANTE_COMMON_CONFIG common;
 
 	MX_RECORD **mca_record_array;
+
+	mx_bool_type use_poll_callback;
+	MX_CALLBACK_MESSAGE *poll_callback_message;
 
 	mx_bool_type trace_calls;
 	mx_bool_type trace_callbacks;
@@ -240,6 +244,10 @@ extern int mxi_dante_wait_for_answer( uint32_t callback_id, MX_DANTE *dante );
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, config_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
+  {-1, -1, "poll_interval", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, poll_interval), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
   {MXLV_DANTE_LOAD_CONFIG_FILE, -1, "load_config_file", \
 	  		MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, load_config_file), \
@@ -269,6 +277,10 @@ extern int mxi_dante_wait_for_answer( uint32_t callback_id, MX_DANTE *dante );
   \
   {-1, -1, "num_master_devices", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, num_master_devices), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "use_poll_callback", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, use_poll_callback), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_DANTE_TRACE_CALLS, -1, "trace_calls", MXFT_BOOL, NULL, 0, {0}, \

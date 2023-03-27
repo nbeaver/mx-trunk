@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2020 Illinois Institute of Technology
+ * Copyright 2020, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,7 @@
 #include "mx_module.h"
 #include "mx_mcs.h"
 #include "mx_mca.h"
+#include "mx_callback.h"
 
 #include "i_dante.h"
 #include "d_dante_mcs.h"
