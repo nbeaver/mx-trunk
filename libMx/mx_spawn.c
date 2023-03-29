@@ -959,6 +959,46 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#elif defined(__FreeBSD__)
+
+#include <sys/types.h>
+#include <sys/user.h>
+#include <libutil.h>
+
+MX_EXPORT mx_status_type
+mx_get_process_name_from_process_id( unsigned long process_id,
+					char *name_buffer,
+					size_t name_buffer_length )
+{
+	static const char fname[] = "mx_get_process_name_from_process_id()";
+
+	struct kinfo_proc *kproc;
+	int saved_errno;
+
+	if ( ( name_buffer == (char *) NULL )
+	  || ( name_buffer_length == 0 ) )
+	{
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No process name buffer was passed to this function." );
+	}
+
+	kproc = kinfo_getproc( process_id );
+
+	if ( kproc == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The call to kinfo_getproc() failed with errno = %d, "
+		"error message = '%s'.", saved_errno, strerror(saved_errno));
+	}
+
+	strlcpy( name_buffer, kproc->ki_comm, name_buffer_length );
+
+	free( kproc );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #elif 0
 
 /* Parse the output of 'ps -p <pid>' if nothing else is available. */

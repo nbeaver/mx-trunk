@@ -20,9 +20,9 @@ INCLUDES	= $(MX_INCLUDES)
 LIB_DIRS	= -L$(MX_LIB_DIR)
 
 ifeq ($(BSD_UNAME),OpenBSD)
-LIBRARIES	= -pthread -lpthread -lm
+LIBRARIES	= -pthread -lpthread -lutil -lm
 else
-LIBRARIES	= -pthread -lpthread -lrt -lm
+LIBRARIES	= -pthread -lpthread -lutil -lrt -lm
 endif
 
 #
