@@ -1000,7 +1000,7 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(__NetBSD__)
+#elif defined(__NetBSD__) || defined(__OpenBSD__)
 
 /* Parse the output of 'ps -p <pid>' if nothing else is available. */
 
