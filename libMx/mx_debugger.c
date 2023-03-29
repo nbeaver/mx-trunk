@@ -944,8 +944,6 @@ mx_get_debugger_pid( void )
 
 			fclose( status_file );
 
-			mx_breakpoint();
-
 			/* If we did not find TracerPid, then our fallback
 			 * strategy is to see if our parent process has
 			 * the name 'gdb'.  In the days before TracerPid
