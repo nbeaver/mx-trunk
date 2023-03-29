@@ -336,25 +336,37 @@ LINKFLAGS += -rdynamic
 ifeq ($(_have_mx_config),true)
   _libc_version := $(shell ../tools/mx_config library)
 
-  ifeq ($(_have_conda),true)
-    _have_tirpc := false
-  else
-    _have_tirpc := $(shell ../scripts/directory_exists /usr/include/tirpc)
-  endif
-
-  ### $(info _libc_version is [${_libc_version}])
-
-  $(info _have_tirpc is [${_have_tirpc}])
-
   ifeq ($(_libc_version),musl)
     MUSL_INCLUDES = -I/usr/include/tirpc
     LIBRARIES += -ltirpc
+
+    _have_tirpc_inc := true
+    _have_tirpc_lib := true
   else
-    ifeq ($(_have_tirpc),true)
-      CFLAGS += -I/usr/include/tirpc
-      LIBRARIES += -ltirpc
+    ifeq ($(_have_conda),true)
+      _have_tirpc_inc := false
+      _have_tirpc_lib := false
+    else
+      _have_tirpc_inc := $(shell ../scripts/directory_exists /usr/include/tirpc)
+
+      ifeq ($(_have_tirpc_inc),true)
+        CFLAGS += -I/usr/include/tirpc
+        LIBRARIES += -ltirpc
+
+        _have_tirpc_lib := true
+      else
+        _have_tirpc_lib := $(shell ../scripts/file_exists /lib64/libtirpc.so.3)
+
+        ifeq ($(_have_tirpc_lib),true)
+          LIBRARIES += -ltirpc
+        endif
+      endif
+
     endif
   endif
+
+  $(info _have_tirpc_inc is [${_have_tirpc_inc}])
+  $(info _have_tirpc_lib is [${_have_tirpc_lib}])
 endif
 
 #--------------------------------------------------------------------------
