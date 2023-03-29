@@ -879,6 +879,27 @@ mx_dynamic_library_get_address_from_symbol( MX_DYNAMIC_LIBRARY *library,
 	|| defined(OS_SOLARIS) || defined(OS_MACOSX) || defined(OS_QNX) \
 	|| defined(OS_MINIX) || defined(OS_UNIXWARE) || defined(OS_ANDROID)
 
+/*--------------------*/
+#if defined(OS_HURD)
+
+/* FIXME: Explicitly defining the following on Hurd should not be necessary.
+ *        But '#define _GNU_SOURCE' and '#include <dlfcn.h> somehow do not
+ *        do the trick.
+ */
+
+typedef struct
+{
+  const char *dli_fname;
+  void *dli_fbase;
+  const char *dli_sname;
+  void *dli_saddr;
+} Dl_info;
+
+int dladdr( void *addr, Dl_info *info );
+
+#endif /* OS_HURD */
+/*--------------------*/
+
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_symbol_from_address( void *address,
 						char *function_name,
@@ -1108,7 +1129,7 @@ mx_dynamic_library_get_filename( MX_DYNAMIC_LIBRARY *library,
 
 /*----- mx_dynamic_library_show_list() -----*/
 
-#if defined(OS_BSD) || defined(OS_HURD) || defined(OS_MINIX) \
+#if defined(OS_BSD) || defined(OS_MINIX) \
 	|| ( defined(OS_LINUX) && (MX_GLIBC_VERSION > 2001003L ) )
 
 #include <link.h>
@@ -1152,7 +1173,8 @@ mx_dynamic_library_show_list( FILE *file )
 /*--------*/
 
 #elif defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_QNX) \
-	|| defined(OS_UNIXWARE) || defined(OS_LINUX) || defined(OS_ANDROID)
+	|| defined(OS_UNIXWARE) || defined(OS_LINUX) || defined(OS_ANDROID) \
+	|| defined(OS_HURD)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_show_list( FILE *file )

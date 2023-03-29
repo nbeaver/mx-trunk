@@ -875,7 +875,8 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_CYGWIN)
+#elif defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_CYGWIN) \
+	|| defined(OS_HURD)
 
 MX_EXPORT mx_status_type
 mx_get_process_name_from_process_id( unsigned long process_id,
