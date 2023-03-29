@@ -1000,7 +1000,7 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 0
+#elif defined(__NetBSD__)
 
 /* Parse the output of 'ps -p <pid>' if nothing else is available. */
 
@@ -1078,7 +1078,7 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 		process_id_for_line = atol( argv[0] );
 
 		if ( process_id_for_line == process_id ) {
-			strlcpy( name_buffer, argv[3], name_buffer_length );
+			strlcpy( name_buffer, argv[4], name_buffer_length );
 
 			mx_free( argv );
 
