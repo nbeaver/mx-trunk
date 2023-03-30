@@ -1000,9 +1000,11 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(__NetBSD__) || defined(__OpenBSD__)
+#elif defined(__NetBSD__) || defined(__OpenBSD__) || defined(OS_QNX)
 
-/* Parse the output of 'ps -p <pid>' if nothing else is available. */
+/* Parse the output of 'ps -p <pid>' or similar commands if nothing better
+ * is available.
+ */
 
 MX_EXPORT mx_status_type
 mx_get_process_name_from_process_id( unsigned long process_id,
@@ -1014,6 +1016,7 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	FILE *file = NULL;
 	char command[40], response[80];
 	int saved_errno, argc;
+	int pid_arg_index, name_arg_index;
 	char **argv;
 	unsigned long process_id_for_line;
 
@@ -1024,7 +1027,17 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 		"No process name buffer was passed to this function." );
 	}
 
+#if defined(OS_QNX)
+	pid_arg_index = 0;
+	name_arg_index = 2;
+
+	snprintf( command, sizeof(command), "pidin -p %lu", process_id );
+#else
+	pid_arg_index = 0;
+	name_arg_index = 4;
+
 	snprintf( command, sizeof(command), "ps -p %lu", process_id );
+#endif
 
 	file = popen( command, "r" );
 
@@ -1075,10 +1088,11 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 				response, command, process_id );
 		}
 
-		process_id_for_line = atol( argv[0] );
+		process_id_for_line = atol( argv[ pid_arg_index ] );
 
 		if ( process_id_for_line == process_id ) {
-			strlcpy( name_buffer, argv[4], name_buffer_length );
+			strlcpy( name_buffer, argv[ name_arg_index ],
+							name_buffer_length );
 
 			mx_free( argv );
 
