@@ -927,6 +927,69 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#elif defined(OS_SOLARIS)
+
+/* Solaris has a different type of /proc filesystem. */
+
+#include <procfs.h>
+
+MX_EXPORT mx_status_type
+mx_get_process_name_from_process_id( unsigned long process_id,
+					char *name_buffer,
+					size_t name_buffer_length )
+{
+	static const char fname[] = "mx_get_process_name_from_process_id()";
+
+	FILE *proc_file = NULL;
+	char proc_file_name[MXU_FILENAME_LENGTH+1];
+	psinfo_t psinfo_data;
+	int bytes_read, saved_errno;
+
+	if ( ( name_buffer == (char *) NULL )
+	  || ( name_buffer_length == 0 ) )
+	{
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No process name buffer was passed to this function." );
+	}
+
+	snprintf( proc_file_name, sizeof(proc_file_name),
+		"/proc/%lu/psinfo", process_id );
+
+	proc_file = fopen( proc_file_name, "r" );
+
+	if ( proc_file == NULL ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Process ID %lu does not exist.\n",
+				process_id );
+			break;
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Could not open the proc_file_name '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				proc_file_name,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
+
+	bytes_read = fread( &psinfo_data, sizeof(psinfo_data), 1, proc_file );
+
+	if ( bytes_read < sizeof(psinfo_data) ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable get the process name for process id %lu "
+		"by reading the psinfo data structure from '%s'.",
+			process_id, proc_file_name );
+	}
+
+	fclose( proc_file );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #elif defined(OS_MACOSX)
 
 #include <libproc.h>

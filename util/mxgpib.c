@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018, 2020 Illinois Institute of Technology
+ * Copyright 2018, 2020, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,6 +72,7 @@ mxgpib_install_signal_and_exit_handlers( void )
 	return;
 }
 
+#if 0
 static unsigned long
 mxgpib_parse_hex( char *buffer )
 {
@@ -86,6 +87,7 @@ mxgpib_parse_hex( char *buffer )
 
 	return value;
 }
+#endif
 
 int
 main( int argc, char *argv[] )
@@ -99,8 +101,10 @@ main( int argc, char *argv[] )
 	int gpib_address;
 	char gpib_buffer[1000];
 
+#if 0
 	unsigned long newline;
 	char newline_chars[4];
+#endif
 
 	int i, debug_level, num_non_option_arguments;
 	int default_display_precision;
@@ -149,7 +153,9 @@ main( int argc, char *argv[] )
 
 	default_display_precision = 8;
 
+#if 0
 	newline = mxgpib_parse_hex( "0x0d0a" );
+#endif
 
 	start_debugger = FALSE;
 
@@ -170,9 +176,11 @@ main( int argc, char *argv[] )
 		case 'D':
 			start_debugger = TRUE;
 			break;
+#if 0
 		case 'n':
 			newline = mxgpib_parse_hex( optarg );
 			break;
+#endif
 		case 'x':
 			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
 			break;
@@ -190,10 +198,12 @@ main( int argc, char *argv[] )
 		mx_breakpoint();
 	}
 
+#if 0
 	newline_chars[0] = (char) (( newline >> 24 ) & 0xff);
 	newline_chars[1] = (char) (( newline >> 16 ) & 0xff);
 	newline_chars[2] = (char) (( newline >> 8 ) & 0xff);
 	newline_chars[3] = (char) (newline & 0xff);
+#endif
 
 	if ( num_non_option_arguments != 1 ) {
 		error_flag = TRUE;
