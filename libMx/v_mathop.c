@@ -428,7 +428,7 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 		case MXC_ENCODER:
 			mx_status = mx_encoder_read( record, &double_value );
 
-			*value = (double) long_value;
+			*value = double_value;
 			break;
 		case MXC_SCALER:
 			mx_status = mx_scaler_read( record, &long_value );

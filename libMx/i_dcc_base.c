@@ -245,6 +245,8 @@ mxi_dcc_base_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	dcc_base = (MX_DCC_BASE *) record->record_type_struct;
 
+	MXW_UNUSED(dcc_base);
+
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( record_field->label_value ) {

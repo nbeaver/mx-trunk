@@ -380,9 +380,9 @@ mxd_dcc_cab_stop_locomotive( MX_MOTOR *motor, int type_of_stop )
 	}
 
 	snprintf( dcc_base->command, sizeof(dcc_base->command),
-		"< t %lu %lu -1 %lu >",
+		"< t %lu %lu %ld %lu >",
 		dcc_cab->packet_register, dcc_cab->cab_number,
-		cab_lighting_direction );
+		new_dcc_speed, cab_lighting_direction );
 
 	mx_status = mxi_dcc_base_command( dcc_base, DCC_CAB_DEBUG );
 
