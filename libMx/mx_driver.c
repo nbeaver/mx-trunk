@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -210,6 +210,7 @@
 #include "i_keithley199.h"
 #include "i_numato_gpio.h"
 #include "i_flowbus.h"
+#include "i_dcc_base.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -330,6 +331,7 @@
 #include "d_linkam_t9x_temp.h"
 #include "d_sim960.h"
 #include "d_umx_rc_servo.h"
+#include "d_dcc_cab.h"
 
 #include "d_energy.h"
 #include "d_wavelength.h"
@@ -2428,6 +2430,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_umx_rc_servo_num_record_fields,
 				&mxd_umx_rc_servo_rfield_def_ptr},
 
+{"dcc_cab",        MXT_MTR_DCC_CAB,      MXC_MOTOR,        MXR_DEVICE,
+				&mxd_dcc_cab_record_function_list,
+				NULL,
+				&mxd_dcc_cab_motor_function_list,
+				&mxd_dcc_cab_num_record_fields,
+				&mxd_dcc_cab_rfield_def_ptr},
+
 /* Pseudo motors. */
 
 {"energy_motor",   MXT_MTR_ENERGY,    MXC_MOTOR,          MXR_DEVICE,
@@ -2619,7 +2628,7 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_compumotor_linear_rfield_def_ptr},
 
 #if 0
-{"encoder_soft",   MXT_ENC_SOFTWARE,  MXC_ENCODER,        MXR_DEVICE,
+{"soft_encoder",   MXT_ENC_SOFTWARE,  MXC_ENCODER,        MXR_DEVICE,
 				NULL, NULL, NULL, NULL, NULL},
 #endif
 

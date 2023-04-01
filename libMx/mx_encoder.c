@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2012, 2016 Illinois Institute of Technology
+ * Copyright 1999-2001, 2012, 2016, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@
 MX_EXPORT mx_status_type
 mx_encoder_get_pointers( MX_RECORD *encoder_record,
 			MX_ENCODER **encoder,
-			MX_ENCODER_FUNCTION_LIST **function_list_ptr,
+			MX_ENCODER_FUNCTION_LIST **flist_ptr,
 			const char *calling_fname )
 {
 	static const char fname[] = "mx_encoder_get_pointers()";
@@ -56,11 +56,11 @@ mx_encoder_get_pointers( MX_RECORD *encoder_record,
 		}
 	}
 
-	if ( function_list_ptr != (MX_ENCODER_FUNCTION_LIST **) NULL ) {
-		*function_list_ptr = (MX_ENCODER_FUNCTION_LIST *)
+	if ( flist_ptr != (MX_ENCODER_FUNCTION_LIST **) NULL ) {
+		*flist_ptr = (MX_ENCODER_FUNCTION_LIST *)
 				(encoder_record->class_specific_function_list);
 
-		if ( *function_list_ptr == (MX_ENCODER_FUNCTION_LIST *) NULL )
+		if ( *flist_ptr == (MX_ENCODER_FUNCTION_LIST *) NULL )
 		{
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "MX_ENCODER_FUNCTION_LIST pointer for record '%s' passed by '%s' is NULL.",
@@ -72,96 +72,34 @@ mx_encoder_get_pointers( MX_RECORD *encoder_record,
 }
 
 MX_EXPORT mx_status_type
-mx_encoder_get_overflow_status( MX_RECORD *encoder_record,
-		int *underflow_set, int *overflow_set )
-{
-	static const char fname[] = "mx_encoder_get_overflow_status()";
-
-	MX_ENCODER *encoder;
-	MX_ENCODER_FUNCTION_LIST *function_list;
-	mx_status_type ( *get_overflow_status_fn ) ( MX_ENCODER * );
-	mx_status_type status;
-
-	status = mx_encoder_get_pointers( encoder_record, &encoder,
-					&function_list, fname );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	get_overflow_status_fn = function_list->get_overflow_status;
-
-	if ( get_overflow_status_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"overflow_set function ptr for MX_ENCODER ptr 0x%p is NULL.",
-			encoder);
-	}
-
-	status = (*get_overflow_status_fn)( encoder );
-
-	*overflow_set = encoder->overflow_set;
-	*underflow_set = encoder->underflow_set;
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mx_encoder_reset_overflow_status( MX_RECORD *encoder_record )
-{
-	static const char fname[] = "mx_encoder_reset_overflow_status()";
-
-	MX_ENCODER *encoder;
-	MX_ENCODER_FUNCTION_LIST *function_list;
-	mx_status_type ( *reset_overflow_status_fn ) ( MX_ENCODER * );
-	mx_status_type status;
-
-	status = mx_encoder_get_pointers( encoder_record, &encoder,
-					&function_list, fname );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	reset_overflow_status_fn = function_list->reset_overflow_status;
-
-	if ( reset_overflow_status_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"reset_overflow_status function ptr for MX_ENCODER ptr 0x%p is NULL.",
-			encoder);
-	}
-
-	status = (*reset_overflow_status_fn)( encoder );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
 mx_encoder_read( MX_RECORD *encoder_record, long *value )
 {
 	static const char fname[] = "mx_encoder_read()";
 
 	MX_ENCODER *encoder;
-	MX_ENCODER_FUNCTION_LIST *function_list;
+	MX_ENCODER_FUNCTION_LIST *flist;
 	mx_status_type ( *read_fn ) ( MX_ENCODER * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_encoder_get_pointers( encoder_record, &encoder,
-					&function_list, fname );
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
+					&flist, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	read_fn = function_list->read;
+	read_fn = flist->read;
 
 	if ( read_fn == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"read function ptr for MX_ENCODER ptr 0x%p is NULL.",
-			encoder);
+		"read function ptr for MX_ENCODER '%s' is NULL.",
+			encoder_record->name );
 	}
 
-	status = (*read_fn)( encoder );
+	mx_status = (*read_fn)( encoder );
 
 	*value = encoder->value;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -170,33 +108,158 @@ mx_encoder_write( MX_RECORD *encoder_record, long value )
 	static const char fname[] = "mx_encoder_write()";
 
 	MX_ENCODER *encoder;
-	MX_ENCODER_FUNCTION_LIST *function_list;
+	MX_ENCODER_FUNCTION_LIST *flist;
 	mx_status_type ( *write_fn ) ( MX_ENCODER * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_encoder_get_pointers( encoder_record, &encoder,
-					&function_list, fname );
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
+					&flist, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( encoder->encoder_type == MXT_ENC_ABSOLUTE_ENCODER ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Writing to an absolute encoder is not allowed.");
 	}
 
-	write_fn = function_list->write;
+	write_fn = flist->write;
 
 	if ( write_fn == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"read function ptr for MX_ENCODER ptr 0x%p is NULL.",
-			encoder);
+		"write function ptr for MX_ENCODER '%s' is NULL.",
+			encoder_record->name );
 	}
 
 	encoder->value = value;
 
-	status = (*write_fn)( encoder );
+	mx_status = (*write_fn)( encoder );
 
-	return status;
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_encoder_reset( MX_RECORD *encoder_record )
+{
+	static const char fname[] = "mx_encoder_reset()";
+
+	MX_ENCODER *encoder;
+	MX_ENCODER_FUNCTION_LIST *flist;
+	mx_status_type ( *reset_fn ) ( MX_ENCODER * );
+	mx_status_type mx_status;
+
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
+					&flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	reset_fn = flist->reset;
+
+	if ( reset_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"reset function ptr for MX_ENCODER '%s' is NULL.",
+			encoder_record->name );
+	}
+
+	mx_status = (*reset_fn)( encoder );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_encoder_get_status( MX_RECORD *encoder_record,
+			unsigned long *encoder_status )
+{
+	static const char fname[] = "mx_encoder_get_status()";
+
+	MX_ENCODER *encoder;
+	MX_ENCODER_FUNCTION_LIST *flist;
+	mx_status_type ( *get_status_fn ) ( MX_ENCODER * );
+	mx_status_type mx_status;
+
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
+					&flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_status_fn = flist->get_status;
+
+	if ( get_status_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"get_status function ptr for MX_RECORD '%s' is NULL.",
+			encoder_record->name );
+	}
+
+	mx_status = (*get_status_fn)( encoder );
+
+	*encoder_status = encoder->status;
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_encoder_get_measurement_time( MX_RECORD *encoder_record,
+					double *measurement_time )
+{
+	static const char fname[] = "mx_encoder_get_measurement_time()";
+
+	MX_ENCODER *encoder = NULL;
+	MX_ENCODER_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *get_measurement_time_fn ) ( MX_ENCODER * );
+	mx_status_type mx_status;
+
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
+					&flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_measurement_time_fn = flist->get_measurement_time;
+
+	if ( get_measurement_time_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"get_measurement_time function ptr for MX_RECORD '%s' is NULL.",
+			encoder_record->name );
+	}
+
+	mx_status = (*get_measurement_time_fn)( encoder );
+
+	*measurement_time = encoder->measurement_time;
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_encoder_set_measurement_time( MX_RECORD *encoder_record,
+					double measurement_time )
+{
+	static const char fname[] = "mx_encoder_set_measurement_time()";
+
+	MX_ENCODER *encoder = NULL;
+	MX_ENCODER_FUNCTION_LIST *flist = NULL;
+	mx_status_type ( *set_measurement_time_fn ) ( MX_ENCODER * );
+	mx_status_type mx_status;
+
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
+					&flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_measurement_time_fn = flist->set_measurement_time;
+
+	if ( set_measurement_time_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"set_measurement_time function ptr for MX_RECORD '%s' is NULL.",
+			encoder_record->name );
+	}
+
+	encoder->measurement_time = measurement_time;
+
+	mx_status = (*set_measurement_time_fn)( encoder );
+
+	return mx_status;
 }
 

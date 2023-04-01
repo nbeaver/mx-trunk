@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2008, 2010, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,10 +40,10 @@ MX_RECORD_FUNCTION_LIST mxd_ks3640_record_function_list = {
 };
 
 MX_ENCODER_FUNCTION_LIST mxd_ks3640_encoder_function_list = {
-	mxd_ks3640_get_overflow_status,
-	mxd_ks3640_reset_overflow_status,
 	mxd_ks3640_read,
-	mxd_ks3640_write
+	mxd_ks3640_write,
+	mxd_ks3640_reset,
+	mxd_ks3640_get_status,
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_ks3640_record_field_defaults[] = {
@@ -229,121 +229,6 @@ mxd_ks3640_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3640_get_overflow_status( MX_ENCODER *encoder )
-{
-	static const char fname[] = "mxd_ks3640_get_overflow_status()";
-
-	MX_KS3640 *ks3640 = NULL;
-	int32_t data, status_bits;
-	int32_t underflow_set_temp, overflow_set_temp;
-	long N, A;
-	int camac_Q, camac_X;
-	mx_status_type mx_status;
-
-	mx_status = mxd_ks3640_get_pointers( encoder, &ks3640, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	N = ks3640->slot;
-	A = ks3640->subaddress;
-
-	/* Are any of the overflow/underflow LAM bits set? */
-
-	mx_camac( ks3640->camac_record, N, 15, 8, &data, &camac_Q, &camac_X );
-
-	if ( camac_X == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-"CAMAC error testing whether LAM is set for device '%s': Q = %d, X = %d",
-			encoder->record->name, camac_Q, camac_X );
-	}
-
-	/* If no bits are set (Q = 0), we need do nothing more. */
-
-	if ( camac_Q == 0 ) {
-		encoder->underflow_set = FALSE;
-		encoder->overflow_set = FALSE;
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* Otherwise, get the LAM status bits for all the subaddresses. */
-
-	mx_camac( ks3640->camac_record, N, 12, 1,
-					&status_bits, &camac_Q, &camac_X);
-
-	if ( camac_Q == 0 || camac_X == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"CAMAC error getting LAM status bits for device '%s': Q = %d, X = %d",
-			encoder->record->name, camac_Q, camac_X );
-	}
-
-	underflow_set_temp = status_bits >> (2*A);
-	underflow_set_temp &= 0x1;
-
-	if ( underflow_set_temp ) {
-		encoder->underflow_set = TRUE;
-	} else {
-		encoder->underflow_set = FALSE;
-	}
-
-	overflow_set_temp = status_bits >> (2*A+1);
-	overflow_set_temp &= 0x1;
-
-	if ( overflow_set_temp ) {
-		encoder->overflow_set = TRUE;
-	} else {
-		encoder->overflow_set = FALSE;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder )
-{
-	static const char fname[] = "mxd_ks3640_reset_overflow_status()";
-
-	MX_KS3640 *ks3640 = NULL;
-	int32_t data;
-	long N, A;
-	int camac_Q, camac_X;
-	mx_status_type mx_status;
-
-	mx_status = mxd_ks3640_get_pointers( encoder, &ks3640, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	N = ks3640->slot;
-	A = ks3640->subaddress;
-
-	/* Reset the underflow bit. */
-
-	mx_camac( ks3640->camac_record, N, 2*A, 10,
-						&data, &camac_Q, &camac_X );
-
-	if ( camac_Q == 0 || camac_X == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"CAMAC error resetting underflow for device '%s': Q = %d, X = %d",
-			encoder->record->name, camac_Q, camac_X );
-	}
-
-	/* Reset the overflow bit. */
-
-	mx_camac( ks3640->camac_record, N, 2*A+1, 10,
-						&data, &camac_Q, &camac_X );
-
-	if ( camac_Q == 0 || camac_X == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"CAMAC error resetting overflow for device '%s': Q = %d, X = %d",
-			encoder->record->name, camac_Q, camac_X );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3640_read( MX_ENCODER *encoder )
 {
 	static const char fname[] = "mxd_ks3640_read()";
@@ -399,5 +284,117 @@ mxd_ks3640_write( MX_ENCODER *encoder )
 	} else {
 		return MX_SUCCESSFUL_RESULT;
 	}
+}
+
+MX_EXPORT mx_status_type
+mxd_ks3640_reset( MX_ENCODER *encoder )
+{
+	static const char fname[] = "mxd_ks3640_reset()";
+
+	MX_KS3640 *ks3640 = NULL;
+	int32_t data;
+	long N, A;
+	int camac_Q, camac_X;
+	mx_status_type mx_status;
+
+	mx_status = mxd_ks3640_get_pointers( encoder, &ks3640, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	N = ks3640->slot;
+	A = ks3640->subaddress;
+
+	/* Reset the underflow bit. */
+
+	mx_camac( ks3640->camac_record, N, 2*A, 10,
+						&data, &camac_Q, &camac_X );
+
+	if ( camac_Q == 0 || camac_X == 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	"CAMAC error resetting underflow for device '%s': Q = %d, X = %d",
+			encoder->record->name, camac_Q, camac_X );
+	}
+
+	/* Reset the overflow bit. */
+
+	mx_camac( ks3640->camac_record, N, 2*A+1, 10,
+						&data, &camac_Q, &camac_X );
+
+	if ( camac_Q == 0 || camac_X == 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	"CAMAC error resetting overflow for device '%s': Q = %d, X = %d",
+			encoder->record->name, camac_Q, camac_X );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_ks3640_get_status( MX_ENCODER *encoder )
+{
+	static const char fname[] = "mxd_ks3640_get_status()";
+
+	MX_KS3640 *ks3640 = NULL;
+	int32_t data, status_bits;
+	int32_t underflow_set_temp, overflow_set_temp;
+	long N, A;
+	int camac_Q, camac_X;
+	mx_status_type mx_status;
+
+	mx_status = mxd_ks3640_get_pointers( encoder, &ks3640, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	N = ks3640->slot;
+	A = ks3640->subaddress;
+
+	/* Are any of the overflow/underflow LAM bits set? */
+
+	mx_camac( ks3640->camac_record, N, 15, 8, &data, &camac_Q, &camac_X );
+
+	if ( camac_X == 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+"CAMAC error testing whether LAM is set for device '%s': Q = %d, X = %d",
+			encoder->record->name, camac_Q, camac_X );
+	}
+
+	/* Initialize all the bits to 0. */
+
+	encoder->status = 0;
+
+	/* If no bits are set (Q = 0), we need do nothing more. */
+
+	if ( camac_Q == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise, get the LAM status bits for all the subaddresses. */
+
+	mx_camac( ks3640->camac_record, N, 12, 1,
+					&status_bits, &camac_Q, &camac_X);
+
+	if ( camac_Q == 0 || camac_X == 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	"CAMAC error getting LAM status bits for device '%s': Q = %d, X = %d",
+			encoder->record->name, camac_Q, camac_X );
+	}
+
+	underflow_set_temp = status_bits >> (2*A);
+	underflow_set_temp &= 0x1;
+
+	if ( underflow_set_temp ) {
+		encoder->status |= MXSF_ENC_UNDERFLOW;
+	}
+
+	overflow_set_temp = status_bits >> (2*A+1);
+	overflow_set_temp &= 0x1;
+
+	if ( overflow_set_temp ) {
+		encoder->status |= MXSF_ENC_OVERFLOW;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

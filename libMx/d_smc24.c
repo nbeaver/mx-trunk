@@ -18,7 +18,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2020 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006, 2020, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -724,7 +724,7 @@ smc24_update_32bit_software_encoder_position(
 {
 	long hardware_encoder_position;
 	int32_t hardware_encoder_32bit_position;
-	int overflow, underflow;
+	unsigned long encoder_status, both_set_mask;
 	mx_status_type mx_status;
 
 	mx_status = mx_encoder_read( smc24->encoder_record,
@@ -744,24 +744,28 @@ smc24_update_32bit_software_encoder_position(
 
 	/* Check for overflow and underflow. */
 
-	mx_status = mx_encoder_get_overflow_status( smc24->encoder_record,
-						&underflow, &overflow );
+	mx_status = mx_encoder_get_status( smc24->encoder_record,
+						&encoder_status );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_status;
 	}
 
-	if ( overflow && underflow ) {
+	both_set_mask = ( MXSF_ENC_UNDERFLOW | MXSF_ENC_OVERFLOW );
+
+	if ( ( encoder_status & both_set_mask ) == both_set_mask ) {
 		/* Can't handle this situation, so do nothing. */
-	} else if ( overflow ) {
+
+	} else if ( encoder_status & MXSF_ENC_OVERFLOW ) {
 		*software_encoder_position += 65536;
-	} else if ( underflow ) {
+
+	} else if ( encoder_status & MXSF_ENC_UNDERFLOW ) {
 		*software_encoder_position -= 65536;
 	}
 
 	/* Clear the underflow and overflow status for this encoder. */
 
-	mx_status = mx_encoder_reset_overflow_status( smc24->encoder_record );
+	mx_status = mx_encoder_reset( smc24->encoder_record );
 
 	return mx_status;
 }

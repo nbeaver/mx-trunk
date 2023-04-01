@@ -91,7 +91,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_cyberstar_x1000.c d_cyberstar_x1000_aout.c d_cxtilt02.c \
 	d_d8.c d_dac_motor.c d_databox_mce.c d_databox_mcs.c d_databox_motor.c \
 	d_databox_scaler.c d_databox_timer.c \
-	d_delta_motor.c d_dg645_pulser.c \
+	d_dcc_cab.c d_delta_motor.c d_dg645_pulser.c \
 	d_digital_fanin.c d_digital_fanout.c \
 	d_disabled_motor.c d_doutput_pulser.c d_dtu_stage.c d_e500.c \
 	d_e662.c d_eiger.c d_elapsed_time.c d_energy.c d_fg_scaler.c \
@@ -175,7 +175,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_6821.c i_8255.c i_am9513.c \
 	i_amptek_dp5.c i_aps_adcmod2.c \
 	i_bkprecision_912x.c i_camera_link_api.c i_camera_link_rs232.c \
-	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
+	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c i_dcc_base.c \
 	i_dg645.c i_dos_com.c i_dos_portio.c i_dsp6001.c \
 	i_file_rs232.c i_flowbus.c i_flowbus_format.c i_fossil.c i_hsc1.c \
 	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c i_k500serial.c \

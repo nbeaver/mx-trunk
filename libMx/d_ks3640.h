@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006, 2010, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,10 +46,10 @@ MX_API mx_status_type mxd_ks3640_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_ks3640_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_ks3640_get_overflow_status( MX_ENCODER *encoder );
-MX_API mx_status_type mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder );
 MX_API mx_status_type mxd_ks3640_read( MX_ENCODER *encoder );
 MX_API mx_status_type mxd_ks3640_write( MX_ENCODER *encoder );
+MX_API mx_status_type mxd_ks3640_reset( MX_ENCODER *encoder );
+MX_API mx_status_type mxd_ks3640_get_status( MX_ENCODER *encoder );
 
 extern MX_RECORD_FUNCTION_LIST mxd_ks3640_record_function_list;
 extern MX_ENCODER_FUNCTION_LIST mxd_ks3640_encoder_function_list;

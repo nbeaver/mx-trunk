@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -274,6 +274,7 @@ extern "C" {
 #define MXI_CTRL_KEITHLEY199		469
 #define MXI_CTRL_NUMATO_GPIO		470
 #define MXI_CTRL_FLOWBUS		471
+#define MXI_CTRL_DCC_BASE		472
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601
@@ -537,6 +538,7 @@ extern "C" {
 #define MXT_MTR_SIM960			50057
 #define MXT_MTR_NEWPORT_XPS		50058
 #define MXT_MTR_UMX_RC_SERVO		50059
+#define MXT_MTR_DCC_CAB			50060
 
    /* Pseudomotors. */
 

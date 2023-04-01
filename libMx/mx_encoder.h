@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2007, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,12 +25,19 @@
 extern "C" {
 #endif
 
+/* Flag bits for the 'status' field. */
+
+#define MXSF_ENC_MOVING		0x1
+#define MXSF_ENC_UNDERFLOW	0x2
+#define MXSF_ENC_OVERFLOW	0x4
+
 typedef struct {
 	MX_RECORD *record;
 	int encoder_type;
-	int overflow_set;
-	int underflow_set;
 	long value;
+	mx_bool_type reset;
+	unsigned long status;
+	double measurement_time;
 } MX_ENCODER;
 
 #define MX_ENCODER_STANDARD_FIELDS \
@@ -49,10 +56,12 @@ typedef struct {
  */
 
 typedef struct {
-	mx_status_type ( *get_overflow_status ) ( MX_ENCODER *encoder );
-	mx_status_type ( *reset_overflow_status ) ( MX_ENCODER *encoder );
 	mx_status_type ( *read ) ( MX_ENCODER *encoder );
 	mx_status_type ( *write ) ( MX_ENCODER *encoder );
+	mx_status_type ( *reset ) ( MX_ENCODER *encoder );
+	mx_status_type ( *get_status ) ( MX_ENCODER *encoder );
+	mx_status_type ( *get_measurement_time ) ( MX_ENCODER *encoder );
+	mx_status_type ( *set_measurement_time ) ( MX_ENCODER *encoder );
 } MX_ENCODER_FUNCTION_LIST;
 
 MX_API mx_status_type mx_encoder_get_pointers( MX_RECORD *record,
@@ -60,11 +69,15 @@ MX_API mx_status_type mx_encoder_get_pointers( MX_RECORD *record,
 					MX_ENCODER_FUNCTION_LIST **fl_ptr,
 					const char *calling_fname );
 
-MX_API mx_status_type mx_encoder_get_overflow_status( MX_RECORD *record,
-				int *underflow_set, int *overflow_set );
-MX_API mx_status_type mx_encoder_reset_overflow_status( MX_RECORD *record );
 MX_API mx_status_type mx_encoder_read( MX_RECORD *record, long *value );
 MX_API mx_status_type mx_encoder_write( MX_RECORD *record, long value );
+MX_API mx_status_type mx_encoder_reset( MX_RECORD *record );
+MX_API mx_status_type mx_encoder_get_status( MX_RECORD *record,
+						unsigned long *status );
+MX_API mx_status_type mx_encoder_get_measurement_time( MX_RECORD *record,
+						double *measurement_time );
+MX_API mx_status_type mx_encoder_set_measurement_time( MX_RECORD *record,
+						double measurement_time );
 
 #ifdef __cplusplus
 }
