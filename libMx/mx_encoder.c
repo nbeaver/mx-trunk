@@ -72,7 +72,7 @@ mx_encoder_get_pointers( MX_RECORD *encoder_record,
 }
 
 MX_EXPORT mx_status_type
-mx_encoder_read( MX_RECORD *encoder_record, long *value )
+mx_encoder_read( MX_RECORD *encoder_record, double *value )
 {
 	static const char fname[] = "mx_encoder_read()";
 
@@ -103,7 +103,7 @@ mx_encoder_read( MX_RECORD *encoder_record, long *value )
 }
 
 MX_EXPORT mx_status_type
-mx_encoder_write( MX_RECORD *encoder_record, long value )
+mx_encoder_write( MX_RECORD *encoder_record, double value )
 {
 	static const char fname[] = "mx_encoder_write()";
 

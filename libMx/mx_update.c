@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2014, 2018, 2022 Illinois Institute of Technology
+ * Copyright 1999-2009, 2014, 2018, 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -85,7 +85,7 @@ mx_update_record_values( MX_RECORD *record )
 						record, &double_value);
 			break;
 		case MXC_ENCODER:
-			mx_status = mx_encoder_read(record, &long_value);
+			mx_status = mx_encoder_read(record, &double_value);
 			break;
 		case MXC_SCALER:
 			mx_status = mx_scaler_read( record, NULL );

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2004-2006, 2008, 2010, 2021-2022
+ * Copyright 2001-2002, 2004-2006, 2008, 2010, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -384,6 +384,7 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 	long num_dimensions, field_type;
 	unsigned long ulong_value;
 	long long_value;
+	double double_value;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -425,7 +426,7 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			mx_status = mx_motor_get_position( record, value );
 			break;
 		case MXC_ENCODER:
-			mx_status = mx_encoder_read( record, &long_value );
+			mx_status = mx_encoder_read( record, &double_value );
 
 			*value = (double) long_value;
 			break;

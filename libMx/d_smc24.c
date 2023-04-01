@@ -168,7 +168,8 @@ mxd_smc24_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_SMC24 *smc24;
-	long motor_steps, encoder_ticks;
+	double encoder_position;
+	long motor_steps;
 	double position, backlash;
 	double negative_limit, positive_limit, move_deadband;
 	mx_status_type mx_status;
@@ -200,7 +201,7 @@ mxd_smc24_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  slot        = %ld\n", smc24->slot);
 	fprintf(file, "  encoder     = %s\n", smc24->encoder_record->name);
 
-	mx_status = mx_encoder_read( smc24->encoder_record, &encoder_ticks );
+	mx_status = mx_encoder_read( smc24->encoder_record, &encoder_position );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -209,11 +210,11 @@ mxd_smc24_print_motor_structure( FILE *file, MX_RECORD *record )
 	}
 
 	motor_steps = mx_round( smc24->motor_steps_per_encoder_tick
-		* (double) encoder_ticks );
+							* encoder_position );
 
 	position = motor->offset + motor->scale
 		* smc24->motor_steps_per_encoder_tick
-		* (double) encoder_ticks;
+		* encoder_position;
 
 	fprintf(file, "  position    = %ld steps (%g %s)\n",
 		motor_steps, position, motor->units);
@@ -349,7 +350,8 @@ mxd_smc24_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_smc24_get_position_steps()";
 
 	MX_SMC24 *smc24;
-	long motor_steps, encoder_ticks;
+	double encoder_position;
+	long motor_steps;
 	mx_status_type mx_status;
 
 	smc24 = (MX_SMC24 *) (motor->record->record_type_struct);
@@ -368,14 +370,14 @@ mxd_smc24_get_position( MX_MOTOR *motor )
 	}
 #endif
 
-	mx_status = mx_encoder_read( smc24->encoder_record, &encoder_ticks );
+	mx_status = mx_encoder_read( smc24->encoder_record, &encoder_position );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_status;
 	}
 
 	motor_steps = mx_round( smc24->motor_steps_per_encoder_tick
-			* (double) encoder_ticks );
+						* encoder_position );
 
 	motor->raw_position.stepper = motor_steps;
 
@@ -388,7 +390,8 @@ mxd_smc24_set_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_smc24_set_position_steps()";
 
 	MX_SMC24 *smc24;
-	long motor_steps, encoder_ticks;
+	double encoder_position;
+	long motor_steps;
 	mx_status_type mx_status;
 
 	smc24 = (MX_SMC24 *) (motor->record->record_type_struct);
@@ -402,13 +405,13 @@ mxd_smc24_set_position( MX_MOTOR *motor )
 	motor_steps = motor->raw_set_position.stepper;
 
 	if (fabs( smc24->motor_steps_per_encoder_tick ) < MX_MOTOR_STEP_FUZZ){
-		encoder_ticks = 0;
+		encoder_position = 0;
 	} else {
-		encoder_ticks = mx_round( ( (double) motor_steps ) /
+		encoder_position = mx_round( ( (double) motor_steps ) /
 			smc24->motor_steps_per_encoder_tick );
 	}
 
-	mx_status = mx_encoder_write( smc24->encoder_record, encoder_ticks );
+	mx_status = mx_encoder_write( smc24->encoder_record, encoder_position );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_status;
@@ -620,8 +623,8 @@ mxd_smc24_update_position( MX_MOTOR *motor )
 
 	MX_SMC24 *smc24;
 	int32_t software_encoder_position;
-	double position;
-	long motor_steps, encoder_ticks;
+	double position, encoder_position;
+	long motor_steps;
 	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -663,7 +666,7 @@ mxd_smc24_update_position( MX_MOTOR *motor )
 			motor_steps = 0;
 		} else {
 			mx_status = mx_encoder_read( smc24->encoder_record,
-							&encoder_ticks );
+							&encoder_position );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				return mx_status;
@@ -672,7 +675,7 @@ mxd_smc24_update_position( MX_MOTOR *motor )
 			position = motor->offset
 				+ motor->scale
 				* (smc24->motor_steps_per_encoder_tick)
-				* (double) encoder_ticks;
+				* encoder_position;
 
 			motor_steps = mx_round( position );
 		}
@@ -722,7 +725,7 @@ static mx_status_type
 smc24_update_32bit_software_encoder_position(
 	MX_SMC24 *smc24, int32_t *software_encoder_position )
 {
-	long hardware_encoder_position;
+	double hardware_encoder_position;
 	int32_t hardware_encoder_32bit_position;
 	unsigned long encoder_status, both_set_mask;
 	mx_status_type mx_status;
@@ -734,7 +737,8 @@ smc24_update_32bit_software_encoder_position(
 		return mx_status;
 	}
 
-	hardware_encoder_32bit_position = (int32_t) hardware_encoder_position;
+	hardware_encoder_32bit_position =
+		(int32_t) mx_round( hardware_encoder_position );
 
 	/* Force the least significant 16 bits to agree. */
 
@@ -841,7 +845,7 @@ smc24_normal_soft_abort( MX_MOTOR *motor )
 	static const char fname[] = "smc24_normal_soft_abort()";
 
 	MX_SMC24 *smc24;
-	long old_encoder_position, encoder_position;
+	double old_encoder_position, encoder_position;
 	int num_constant_measurements, timeout, naptime;
 	int32_t data;
 	int camac_Q, camac_X;

@@ -278,9 +278,14 @@ mxd_dcc_cab_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	mx_status = mxi_dcc_base_command( dcc_base, DCC_CAB_DEBUG );
 
 	return mx_status;
+#else
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Not yet implemented." );
+#endif
 }
 
 MX_EXPORT mx_status_type
@@ -290,7 +295,6 @@ mxd_dcc_cab_get_position( MX_MOTOR *motor )
 
 	MX_DCC_CAB *dcc_cab = NULL;
 	MX_DCC_BASE *dcc_base = NULL;
-	int num_items;
 	double raw_position;
 	mx_status_type mx_status;
 
@@ -299,17 +303,14 @@ mxd_dcc_cab_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_dcc_base_command( dcc_base, DCC_CAB_DEBUG );
+	if ( dcc_cab->encoder_record == NULL ) {
+		raw_position = 0.0;
+	} else {
+		mx_status = mx_encoder_read( dcc_cab->encoder_record,
+							&raw_position );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	num_items = sscanf( dcc_base->response, "%lg", &raw_position );
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Unparseable position value '%s' was read.",
-		dcc_base->response );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	motor->raw_position.analog = raw_position;
@@ -332,12 +333,12 @@ mxd_dcc_cab_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( dcc_cab->encoder_record == NULL )
+		return MX_SUCCESSFUL_RESULT;
+
 	raw_position = motor->raw_set_position.analog;
 
-	snprintf( dcc_base->command, sizeof(dcc_base->command),
-		"HM%g", raw_position );
-
-	mx_status = mxi_dcc_base_command( dcc_base, DCC_CAB_DEBUG );
+	mx_status = mx_encoder_write( dcc_cab->encoder_record, raw_position );
 
 	return mx_status;
 }

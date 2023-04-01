@@ -33,17 +33,35 @@ extern "C" {
 
 typedef struct {
 	MX_RECORD *record;
-	int encoder_type;
-	long value;
+
+	double value;
+	double measurement_time;
+
+	long encoder_type;
 	mx_bool_type reset;
 	unsigned long status;
-	double measurement_time;
 } MX_ENCODER;
 
 #define MX_ENCODER_STANDARD_FIELDS \
-  {-1, -1, "value", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "value", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_ENCODER, value), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "measurement_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_ENCODER, measurement_time), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "encoder_type", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_ENCODER, encoder_type), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "reset", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_ENCODER, reset), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "status", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_ENCODER, status), \
+	{0}, NULL, 0 }
 
 /* Encoder type */
 
@@ -69,8 +87,8 @@ MX_API mx_status_type mx_encoder_get_pointers( MX_RECORD *record,
 					MX_ENCODER_FUNCTION_LIST **fl_ptr,
 					const char *calling_fname );
 
-MX_API mx_status_type mx_encoder_read( MX_RECORD *record, long *value );
-MX_API mx_status_type mx_encoder_write( MX_RECORD *record, long value );
+MX_API mx_status_type mx_encoder_read( MX_RECORD *record, double *value );
+MX_API mx_status_type mx_encoder_write( MX_RECORD *record, double value );
 MX_API mx_status_type mx_encoder_reset( MX_RECORD *record );
 MX_API mx_status_type mx_encoder_get_status( MX_RECORD *record,
 						unsigned long *status );
