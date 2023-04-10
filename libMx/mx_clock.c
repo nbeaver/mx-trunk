@@ -161,7 +161,8 @@ mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
 	case MXLV_CLK_UTC_OFFSET:
 		zero_time = 0;
 
-#if defined( OS_UNIX ) || defined( OS_ANDROID ) || defined( OS_CYGWIN )
+#if defined( OS_UNIX ) || defined( OS_ANDROID ) || defined( OS_CYGWIN ) \
+    || defined( OS_MINIX )
 		{
 			struct tm zt_struct_tm;
 
@@ -212,7 +213,8 @@ mx_clock_default_get_parameter_handler( MX_CLOCK *mx_clock )
 		break;
 
 
-#elif defined( OS_UNIX ) || defined( OS_ANDROID ) || defined( OS_CYGWIN )
+#elif defined( OS_UNIX ) || defined( OS_ANDROID ) || defined( OS_CYGWIN ) \
+    || defined( OS_MINIX )
 
 	/* January 1, 1970 00:00:00 UTC */
 	case MXLV_CLK_EPOCH_NAME:

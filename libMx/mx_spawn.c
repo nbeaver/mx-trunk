@@ -775,7 +775,8 @@ mx_get_parent_process_id( unsigned long process_id )
 	return 0;
 }
 
-#elif ( defined(OS_UNIX) || defined(OS_ANDROID) ) || defined(OS_CYGWIN)
+#elif ( defined(OS_UNIX) || defined(OS_ANDROID) ) || defined(OS_CYGWIN) \
+   || ( defined(OS_MINIX) )
 
 MX_EXPORT unsigned long
 mx_get_parent_process_id( unsigned long process_id )
@@ -1063,7 +1064,8 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(__NetBSD__) || defined(__OpenBSD__) || defined(OS_QNX)
+#elif defined(__NetBSD__) || defined(__OpenBSD__) || defined(OS_QNX) \
+   || defined(OS_MINIX)
 
 /* Parse the output of 'ps -p <pid>' or similar commands if nothing better
  * is available.
@@ -1095,6 +1097,12 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 	name_arg_index = 2;
 
 	snprintf( command, sizeof(command), "pidin -p %lu", process_id );
+
+#elif defined(OS_MINIX)
+	pid_arg_index = 0;
+	name_arg_index = 3;
+
+	snprintf( command, sizeof(command), "ps ax" );
 #else
 	pid_arg_index = 0;
 	name_arg_index = 4;
@@ -1142,6 +1150,16 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 
 		mx_string_split( response, " ", &argc, &argv );
 
+#if 1
+		{
+		    int i;
+
+		    for ( i = 0; i < argc; i++ ) {
+			fprintf( stderr, "argv[%d] = '%s'\n", i, argv[i] );
+		    }
+		}
+#endif
+
 		if ( argc < 4 ) {
 			mx_free( argv );
 
@@ -1167,7 +1185,6 @@ mx_get_process_name_from_process_id( unsigned long process_id,
 }
 
 #else
-
 #error mx_get_process_name_from_process_id() is not yet implemented for this platform.
 
 #endif
