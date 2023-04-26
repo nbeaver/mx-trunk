@@ -373,7 +373,7 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 		"mxd_arduino_dc_motor_constant_velocity_move()";
 
 	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
-	long direction;
+	unsigned long direction;
 	unsigned long pwm_value;
 	double pwm_real8;
 	mx_status_type mx_status;
@@ -387,7 +387,7 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 	if ( motor->speed >= 0.0 ) {
 		direction = 1;
 	} else {
-		direction = -1;
+		direction = 0;
 	}
 
 	/* Release the brake. */
@@ -404,6 +404,16 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Set the move direction. */
+
+	mx_status = mx_digital_output_write(
+			arduino_dc_motor->direction_pin_record, direction );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the speed. */
 
 	pwm_real8 = mx_divide_safely( motor->speed, 256.0 );
 
