@@ -332,6 +332,7 @@
 #include "d_sim960.h"
 #include "d_umx_rc_servo.h"
 #include "d_dcc_cab.h"
+#include "d_arduino_dc_motor.h"
 
 #include "d_energy.h"
 #include "d_wavelength.h"
@@ -2436,6 +2437,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_dcc_cab_motor_function_list,
 				&mxd_dcc_cab_num_record_fields,
 				&mxd_dcc_cab_rfield_def_ptr},
+
+{"arduino_dc_motor", MXT_MTR_ARDUINO_DC, MXC_MOTOR,        MXR_DEVICE,
+				&mxd_arduino_dc_motor_record_function_list,
+				NULL,
+				&mxd_arduino_dc_motor_motor_function_list,
+				&mxd_arduino_dc_motor_num_record_fields,
+				&mxd_arduino_dc_motor_rfield_def_ptr},
 
 /* Pseudo motors. */
 
