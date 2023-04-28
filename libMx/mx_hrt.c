@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2017, 2021-2022
+ * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2017, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -329,6 +329,8 @@ mx_get_hrt_counter_tick( void )
 	return timebase;
 }
 
+/******* GCC on 64-bit ARM (AARCH64) *******/
+
 #elif ( defined(__GNUC__) && defined(__aarch64__) )
 
 /* Uses ARM64 CNTVCT_EL0 system counter register */
@@ -352,11 +354,73 @@ mx_get_hrt_counter_tick( void )
 	return system_counter;
 }
 
+/******* GCC on 32-bit ARM (for ARM Arch 6 and above) *******/
+
+#elif ( defined(__GNUC__) && defined(__ARM_ARCH) && (__ARM_ARCH >= 6) )
+
+/* Based on:
+ *    https://github.com/google/benchmark/blob/v1.1.0/src/cycleclock.h
+ * which was referenced by the 64-bit ARM case immediately above.
+ */
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	uint32_t pmccntr;
+	uint32_t pmuseren;
+	uint32_t pmcntenset;
+
+	uint64_t system_counter;
+
+	/* See if we have permission to read the performance counter. */
+
+	asm volatile( "mrc p15, 0, %0, c9, c14, 0" : "=r"(pmuseren) );
+
+	if ( (pmuseren & 1) == 0 ) {
+		/* Permission denied. */
+		return 0;
+	}
+
+	/* See if the performance counter is counting. */
+
+	asm volatile( "mrc p15, 0, %0, c9, c12, 1" : "=r"(pmcntenset) );
+
+	if ( (pmcntenset & 0x80000000ul) == 0 ) {
+		/* Not counting. */
+		return 0;
+	}
+
+	/* The counter counts every 64th cycle. */
+
+	asm volatile( "mrc p15, 0, %0, c9, c13, 0" : "=r"(pmccntr) );
+
+	system_counter = (uint64_t) ( pmccntr * 64 );
+
+	return system_counter;
+}
+
 #elif 0
 
 static __inline__ uint64_t
 mx_get_hrt_counter_tick( void )
 {
+	struct timeval tv;
+
+	uint64_t system_counter;
+
+	gettimeofday( %tv, NULL );
+
+	system_counter = (uint64_t) ( (tv.tv_sec * 1000000 + tv.tv_usec) );
+
+	return system_counter;
+}
+
+#elif 0
+
+static __inline__ uint64_t
+mx_get_hrt_counter_tick( void )
+{
+	return 0;
 }
 
 #else
