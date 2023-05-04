@@ -2603,6 +2603,12 @@ mxsrv_send_field_value_to_client(
 			break;
 
 		case MX_NETWORK_DATAFMT_RAW:
+		case MX_NETWORK_DATAFMT_BYTESWAP:
+
+			/* Note: MX expects the clients to perform any byte
+			 * swapping, so the MX server sends the data without
+			 * byte swapping it.
+			 */
 
 			mx_status = mx_copy_array_to_network_buffer(
 					pointer_to_value,
@@ -2622,6 +2628,9 @@ mxsrv_send_field_value_to_client(
 			break;
 
 		case MX_NETWORK_DATAFMT_XDR:
+			/* XDR is a legacy format intended for use with
+			 * MX servers before MX 2.2.
+			 */
 #if HAVE_XDR
 			mx_status = mx_xdr_data_transfer(
 					MX_XDR_ENCODE,
@@ -2759,6 +2768,7 @@ mxsrv_send_field_value_to_client(
 			break;
 
 		case MX_NETWORK_DATAFMT_RAW:
+		case MX_NETWORK_DATAFMT_BYTESWAP:
 			snprintf( text_buffer, sizeof(text_buffer),
 				"%s: sending response = ", fname );
 
@@ -3150,6 +3160,13 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			break;
 
 		case MX_NETWORK_DATAFMT_RAW:
+		case MX_NETWORK_DATAFMT_BYTESWAP:
+
+			/* Note: MX expects the clients to perform any byte
+			 * swapping, so the MX server assumes that the data
+			 * sent by the client is already byte swapped.
+			 */
+
 			mx_status = mx_copy_network_buffer_to_array(
 					value_buffer,
 					buffer_left,
@@ -3165,6 +3182,9 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			break;
 
 		case MX_NETWORK_DATAFMT_XDR:
+			/* XDR is a legacy format intended for use with
+			 * MX servers before MX 2.2.
+			 */
 #if HAVE_XDR
 			/* The XDR data pointer 'ptr' must be aligned on a
 			 * 4 byte address boundary for XDR data conversion
@@ -3962,6 +3982,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 			break;
 
 		case MX_NETWORK_DATAFMT_RAW:
+		case MX_NETWORK_DATAFMT_BYTESWAP:
 			u.double_value = attribute_value;
 
 			send_buffer_message[0] = u.uint32_value[0];
@@ -4131,6 +4152,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
+	case MX_NETWORK_DATAFMT_BYTESWAP:
 		u.uint32_value[0] = uint32_value_ptr[0];
 		u.uint32_value[1] = uint32_value_ptr[1];
 

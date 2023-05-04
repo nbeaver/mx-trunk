@@ -678,6 +678,10 @@ mxserver_main( int argc, char *argv[] )
 			if ( strcmp( optarg, "raw" ) == 0 ) {
 				default_data_format = MX_NETWORK_DATAFMT_RAW;
 			} else
+			if ( strcmp( optarg, "byteswap" ) == 0 ) {
+				default_data_format =
+						MX_NETWORK_DATAFMT_BYTESWAP;
+			} else
 			if ( strcmp( optarg, "xdr" ) == 0 ) {
 				default_data_format = MX_NETWORK_DATAFMT_XDR;
 			} else

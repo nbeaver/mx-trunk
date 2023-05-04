@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2015, 2017, 2021-2022
+ * Copyright 1999-2000, 2003-2015, 2017, 2021-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -304,6 +304,7 @@ typedef struct {
 #define MXF_NETWORK_SERVER_USE_ASCII_FORMAT	0x100
 #define MXF_NETWORK_SERVER_USE_RAW_FORMAT	0x200
 #define MXF_NETWORK_SERVER_USE_XDR_FORMAT	0x400
+#define MXF_NETWORK_SERVER_USE_BYTESWAP_FORMAT	0x800
 
 #define MXF_NETWORK_SERVER_USE_64BIT_LONGS	0x10000
 
@@ -331,6 +332,7 @@ typedef struct {
 #define MX_NETWORK_DATAFMT_ASCII	1
 #define MX_NETWORK_DATAFMT_RAW		2
 #define MX_NETWORK_DATAFMT_XDR		3
+#define MX_NETWORK_DATAFMT_BYTESWAP	4
 
 /* The following definition is used to request automatic network
  * format negotiation.
@@ -410,7 +412,8 @@ typedef struct {
 
 	/* MX_NETWORK_OPTION_DATAFMT and MX_NETWORK_OPTION_NATIVE_DATAFMT
 	 * currently can have the values MX_NETWORK_DATAFMT_ASCII,
-	 * MX_NETWORK_DATAFMT_RAW, and MX_NETWORK_DATAFMT_XDR.
+	 * MX_NETWORK_DATAFMT_RAW, MX_NETWORK_DATAFMT_XDR, and
+	 * MX_NETWORK_DATAFMT_BYTESWAP.
 	 */
 
 #define MX_NETWORK_OPTION_DATAFMT		1

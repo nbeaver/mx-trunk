@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012, 2014-2017, 2020-2022
+ * Copyright 1999-2008, 2010-2012, 2014-2017, 2020-2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -363,6 +363,9 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	} else
 	if ( flags & MXF_NETWORK_SERVER_USE_RAW_FORMAT ) {
 		requested_data_format = MX_NETWORK_DATAFMT_RAW;
+	} else
+	if ( flags & MXF_NETWORK_SERVER_USE_BYTESWAP_FORMAT ) {
+		requested_data_format = MX_NETWORK_DATAFMT_BYTESWAP;
 	} else
 	if ( flags & MXF_NETWORK_SERVER_USE_XDR_FORMAT ) {
 		requested_data_format = MX_NETWORK_DATAFMT_XDR;
