@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2011, 2014, 2018-2021
+ * Copyright 1999-2008, 2010-2011, 2014, 2018-2021, 2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -838,7 +838,10 @@ mxi_tty_read( MX_RS232 *rs232,
 	buffer_ptr = buffer;
 	total_bytes_read = 0;
 	bytes_left_to_read = max_bytes_to_read;
+
 	i = 0;
+
+	MXW_UNUSED( i );
 
 #if MXI_TTY_DEBUG
 	MX_DEBUG(-2,("%s: About to read %lu bytes from TTY '%s'.",
