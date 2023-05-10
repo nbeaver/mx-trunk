@@ -151,6 +151,8 @@ mxd_arduino_dc_motor_create_record_structures( MX_RECORD *record )
 	motor->raw_speed = 0.0;
 	motor->raw_base_speed = 0.0;
 
+	arduino_dc_motor->move_in_progress = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -237,9 +239,12 @@ mxd_arduino_dc_motor_is_busy( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( arduino_dc_motor->encoder_record == (MX_RECORD *) NULL ) {
-		/* FIXME: This is not a great solution. */
 
-		motor->busy = FALSE;
+		if ( arduino_dc_motor->move_in_progress ) {
+			motor->busy = TRUE;
+		} else {
+			motor->busy = FALSE;
+		}
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -265,6 +270,7 @@ mxd_arduino_dc_motor_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_arduino_dc_motor_move_absolute()";
 
 	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
@@ -273,8 +279,16 @@ mxd_arduino_dc_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Not yet implemented." );
+	if ( motor->raw_destination.analog >= 0.0 ) {
+		direction = 1;
+	} else {
+		direction = -1;
+	}
+
+	mx_status = mx_motor_constant_velocity_move( motor->record,
+							direction );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -322,8 +336,11 @@ mxd_arduino_dc_motor_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( arduino_dc_motor->encoder_record == NULL )
+	if ( arduino_dc_motor->encoder_record == NULL ) {
+		motor->raw_position.analog = 0.0;
+
 		return MX_SUCCESSFUL_RESULT;
+	}
 
 	raw_position = motor->raw_set_position.analog;
 
@@ -384,11 +401,19 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Set the direction of the next move. */
+
 	if ( motor->speed >= 0.0 ) {
 		direction = 1;
 	} else {
 		direction = 0;
 	}
+
+	mx_status = mx_digital_output_write(
+			arduino_dc_motor->direction_pin_record, direction );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Release the brake. */
 
@@ -400,20 +425,14 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 
 	/* Set the motor speed. */
 
+	/* We start by reading the most recently requested speed. */
+
 	mx_status = mx_motor_get_speed( motor->record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the move direction. */
-
-	mx_status = mx_digital_output_write(
-			arduino_dc_motor->direction_pin_record, direction );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the speed. */
+	/* Convert the requested speed into a PWM value. */
 
 	pwm_real8 = mx_divide_safely( motor->speed, 256.0 );
 
@@ -421,8 +440,16 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 
 	pwm_value = mx_round( pwm_real8 );
 
+	/* Set the PWM value.  This should start the move. */
+
 	mx_status = mx_digital_output_write(
 			arduino_dc_motor->pwm_pin_record, pwm_value );
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+		arduino_dc_motor->move_in_progress = TRUE;
+	} else {
+		arduino_dc_motor->move_in_progress = FALSE;
+	}
 
 	return mx_status;
 }

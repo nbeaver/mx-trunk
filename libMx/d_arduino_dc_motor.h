@@ -43,6 +43,7 @@ typedef struct {
 	char encoder_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
 	MX_RECORD *encoder_record;
+	mx_bool_type move_in_progress;
 } MX_ARDUINO_DC_MOTOR;
 
 /* Define all of the interface functions. */
