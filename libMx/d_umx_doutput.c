@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2019-2021 Illinois Institute of Technology
+ * Copyright 2019-2021, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,7 +35,7 @@ MX_RECORD_FUNCTION_LIST mxd_umx_doutput_record_function_list = {
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_umx_doutput_digital_output_function_list =
 {
-	NULL,
+	mxd_umx_doutput_read,
 	mxd_umx_doutput_write
 };
 
@@ -142,6 +142,49 @@ mxd_umx_doutput_create_record_structures( MX_RECORD *record )
 
 	doutput->record = record;
 	umx_doutput->record = record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_umx_doutput_read( MX_DIGITAL_OUTPUT *doutput )
+{
+	static const char fname[] = "mxd_umx_doutput_read()";
+
+	MX_UMX_DOUTPUT *umx_doutput = NULL;
+	MX_RECORD *umx_record = NULL;
+	char command[80];
+	char response[80];
+	int num_items;
+	mx_bool_type debug_flag;
+	mx_status_type mx_status;
+
+	mx_status = mxd_umx_doutput_get_pointers( doutput,
+				&umx_doutput, &umx_record, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	debug_flag = FALSE;
+
+	snprintf( command, sizeof(command),
+		"GET %s.value", umx_doutput->doutput_name );
+
+	mx_status = mx_umx_command( umx_record, command,
+				response, sizeof(response),
+				debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "$%lu", &(doutput->value) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not see the status of digital output '%s' in the "
+		"response '%s' to command '%s'.",
+			doutput->record->name, response, command );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

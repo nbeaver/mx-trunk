@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,8 @@ typedef struct {
 
 MX_API mx_status_type mxd_umx_doutput_create_record_structures(
 							MX_RECORD *record );
+
+MX_API mx_status_type mxd_umx_doutput_read(MX_DIGITAL_OUTPUT *doutput);
 
 MX_API mx_status_type mxd_umx_doutput_write(MX_DIGITAL_OUTPUT *doutput);
 
