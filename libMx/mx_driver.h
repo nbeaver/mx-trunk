@@ -379,7 +379,6 @@ extern "C" {
 #define MXT_AOU_LINKAM_T9X_PUMP		20026
 #define MXT_AOU_FANOUT			20027
 #define MXT_AOU_UMX			20028
-#define MXT_AOU_UMX_PWM			20029
 
 /* --- Analog output subclasses -- */
 
