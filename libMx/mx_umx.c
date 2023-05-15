@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2019-2020 Illinois Institute of Technology
+ * Copyright 2019-2020, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,9 +26,24 @@
 /*------------------------------------------------------------------------*/
 
 static mx_status_type
-mxp_umx_handle_error( MX_RECORD *rs232_record, char *buffer_ptr )
+mxp_umx_error_message( MX_RECORD *mx_record,
+			const char *device_name,
+			const char *fname,
+			const char *command,
+			const char *response )
 {
-	return MX_SUCCESSFUL_RESULT;
+	unsigned long umx_error_code;
+	int num_items;
+
+	num_items = sscanf( response, "!E%lu", &umx_error_code );
+
+	if ( num_items != 1 ) {
+		umx_error_code = MXE_UNKNOWN_ERROR;
+	}
+
+	return mx_error( umx_error_code, fname,
+		"UMX command '%s' returned error message '%s'",
+			command, response );
 }
 
 /*------------------------------------------------------------------------*/
@@ -43,13 +58,14 @@ mxp_umx_handle_monitor_callback( MX_RECORD *rs232_record, char *buffer_ptr )
 
 MX_EXPORT mx_status_type
 mx_umx_command( MX_RECORD *umx_record,
+		const char *device_name,
+		const char *fname,
 		char *command,
 		char *response,
 		size_t max_response_length,
-		mx_bool_type debug_flag )
+		mx_bool_type debug_flag
+)
 {
-	static const char fname[] = "mx_umx_command()";
-
 	MX_UMX_SERVER *umx_server = NULL;
 	MX_RECORD *rs232_record = NULL;
 	char local_response_buffer[200];
@@ -144,8 +160,8 @@ mx_umx_command( MX_RECORD *umx_record,
 			break;
 		case '!':	/* Error */
 
-			mx_status = mxp_umx_handle_error( rs232_record,
-								buffer_ptr );
+			mx_status = mxp_umx_error_message( umx_record,
+				device_name, fname, command, response );
 			break;
 		case '<':	/* A monitor callback. */
 

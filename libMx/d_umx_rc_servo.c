@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2021 Illinois Institute of Technology
+ * Copyright 2021, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -186,8 +186,8 @@ mxd_umx_rc_servo_open( MX_RECORD *record )
 		umx_rc_servo->servo_number,
 		umx_rc_servo->servo_pin );
 
-	mx_status = mx_umx_command( umx_record, command,
-				response, sizeof(response), FALSE );
+	mx_status = mx_umx_command( umx_record, motor->record->name,
+		fname, command, response, sizeof(response), FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -223,8 +223,8 @@ mxd_umx_rc_servo_move_absolute( MX_MOTOR *motor )
 		umx_rc_servo->servo_number,
 		motor->raw_destination.stepper );
 
-	mx_status = mx_umx_command( umx_record, command,
-				response, sizeof(response), FALSE );
+	mx_status = mx_umx_command( umx_record, motor->record->name,
+		fname, command, response, sizeof(response), FALSE );
 
 	return mx_status;
 }
@@ -253,8 +253,8 @@ mxd_umx_rc_servo_get_position( MX_MOTOR *motor )
 		"GET RC%lu.position",
 		umx_rc_servo->servo_number );
 
-	mx_status = mx_umx_command( umx_record, command,
-				response, sizeof(response), FALSE );
+	mx_status = mx_umx_command( umx_record, motor->record->name,
+		fname, command, response, sizeof(response), FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

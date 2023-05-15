@@ -170,12 +170,13 @@ mxd_umx_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 	snprintf( command, sizeof(command),
 		"GET %s.value", umx_doutput->doutput_name );
 
-	mx_status = mx_umx_command( umx_record, command,
-				response, sizeof(response),
-				debug_flag );
+	mx_status = mx_umx_command( umx_record, doutput->record->name,
+		fname, command, response, sizeof(response), debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Parse the response message. */
 
 	num_items = sscanf( response, "$%lu", &(doutput->value) );
 
@@ -214,9 +215,8 @@ mxd_umx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 		umx_doutput->doutput_name,
 		doutput->value );
 
-	mx_status = mx_umx_command( umx_record, command,
-				response, sizeof(response),
-				debug_flag );
+	mx_status = mx_umx_command( umx_record, doutput->record->name,
+		fname, command, response, sizeof(response), debug_flag );
 
 	return mx_status;
 }

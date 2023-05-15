@@ -1,5 +1,5 @@
 /*
- * Name: mx_umx.c
+ * Name: mx_umx.h
  *
  * Purpose: Header file for communication with a UMX-based microcontroller.
  *
@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,10 +23,13 @@ extern "C" {
 
 MX_API mx_status_type
 mx_umx_command( MX_RECORD *umx_record,
+		const char *device_name,
+		const char *fname,
 		char *command,
 		char *response,
 		size_t max_response_length,
-		mx_bool_type debug_flag );
+		mx_bool_type debug_flag
+);
 
 #ifdef __cplusplus
 }
