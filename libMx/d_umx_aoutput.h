@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2021 Illinois Institute of Technology
+ * Copyright 2021, 2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +24,7 @@ typedef struct {
 
 	MX_RECORD *umx_record;
 	char aoutput_name[MXU_RECORD_NAME_LENGTH+1];
+	long timer_number;
 	double frequency;
 } MX_UMX_AOUTPUT;
 
@@ -31,6 +32,7 @@ typedef struct {
 
 MX_API mx_status_type mxd_umx_aoutput_create_record_structures(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_umx_aoutput_open( MX_RECORD *record );
 MX_API mx_status_type mxd_umx_aoutput_special_processing_setup(
 							MX_RECORD *record );
 
@@ -43,7 +45,8 @@ extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 extern long mxd_umx_aoutput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_umx_aoutput_rfield_def_ptr;
 
-#define MXLV_UMX_AOUTPUT_FREQUENCY			103001
+#define MXLV_UMX_AOUTPUT_TIMER_NUMBER			103001
+#define MXLV_UMX_AOUTPUT_FREQUENCY			103002
 
 #define MXD_UMX_AOUTPUT_STANDARD_FIELDS \
   {-1, -1, "umx_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -53,6 +56,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_umx_aoutput_rfield_def_ptr;
   {-1, -1, "aoutput_name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_AOUTPUT, aoutput_name),\
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {MXLV_UMX_AOUTPUT_TIMER_NUMBER, -1, "timer_number", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_AOUTPUT, timer_number), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {MXLV_UMX_AOUTPUT_FREQUENCY, -1, "frequency", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_AOUTPUT, frequency), \

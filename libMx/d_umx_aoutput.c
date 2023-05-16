@@ -31,7 +31,7 @@ MX_RECORD_FUNCTION_LIST mxd_umx_aoutput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	mxd_umx_aoutput_open,
 	NULL,
 	NULL,
 	NULL,
@@ -130,7 +130,7 @@ mxd_umx_aoutput_create_record_structures( MX_RECORD *record )
 
         if ( analog_output == (MX_ANALOG_OUTPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-                "Can't allocate memory for MX_ANALOG_OUTPUT structure." );
+                "Cannot allocate memory for MX_ANALOG_OUTPUT structure." );
         }
 
         umx_aoutput = (MX_UMX_AOUTPUT *)
@@ -138,7 +138,7 @@ mxd_umx_aoutput_create_record_structures( MX_RECORD *record )
 
         if ( umx_aoutput == (MX_UMX_AOUTPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-                "Can't allocate memory for MX_UMX_AOUTPUT structure." );
+                "Cannot allocate memory for MX_UMX_AOUTPUT structure." );
         }
 
         /* Now set up the necessary pointers. */
@@ -154,6 +154,25 @@ mxd_umx_aoutput_create_record_structures( MX_RECORD *record )
 	/* Raw UMX analog output values are stored as longs. */
 
 	analog_output->subclass = MXT_AOU_LONG;
+
+        return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_umx_aoutput_open( MX_RECORD *record )
+{
+	mx_status_type mx_status;
+
+	/* Configure PWM frequency. */
+
+	mx_status = mx_process_record_field_by_name( record, "timer_number",
+						NULL, MX_PROCESS_PUT, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_process_record_field_by_name( record, "frequency",
+						NULL, MX_PROCESS_PUT, NULL );
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -208,6 +227,7 @@ mxd_umx_aoutput_special_processing_setup( MX_RECORD *record )
 
 		switch( record_field->label_value )  {
 		case MXLV_UMX_AOUTPUT_FREQUENCY:
+		case MXLV_UMX_AOUTPUT_TIMER_NUMBER:
 			record_field->process_function
 				= mxd_umx_aoutput_process_function;
 			break;
@@ -226,8 +246,7 @@ mxd_umx_aoutput_process_function( void *record_ptr,
 					void *socket_handler_ptr,
 					int operation )
 {
-	static const char fname[] =
-		"mxd_umx_aoutput_special_processing_setup()";
+	static const char fname[] = "mxd_umx_aoutput_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
@@ -247,6 +266,29 @@ mxd_umx_aoutput_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_UMX_AOUTPUT_TIMER_NUMBER:
+			snprintf( command, sizeof(command),
+				"GET %s.timer_number",
+				umx_aoutput->aoutput_name );
+
+			mx_status = mx_umx_command( umx_record, record->name,
+			    fname, command, response, sizeof(response), FALSE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response,
+				"$%ld", &(umx_aoutput->timer_number) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find a timer number in the "
+				"response '%s' to command '%s' sent "
+				"to UMX analog output '%s'.",
+					response, command,
+					record->name );
+			}
+			break;
 		case MXLV_UMX_AOUTPUT_FREQUENCY:
 			snprintf( command, sizeof(command),
 				"GET %s.frequency",
@@ -279,6 +321,15 @@ mxd_umx_aoutput_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_UMX_AOUTPUT_TIMER_NUMBER:
+			snprintf( command, sizeof(command),
+				"PUT %s.timer_number %ld",
+					umx_aoutput->aoutput_name,
+					umx_aoutput->timer_number );
+
+			mx_status = mx_umx_command( umx_record, record->name,
+			    fname, command, response, sizeof(response), FALSE );
+			break;
 		case MXLV_UMX_AOUTPUT_FREQUENCY:
 			snprintf( command, sizeof(command),
 				"PUT %s.frequency %f",
