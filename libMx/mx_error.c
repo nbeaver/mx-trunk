@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012, 2014-2015, 2017-2018, 2021
+ * Copyright 1999-2010, 2012, 2014-2015, 2017-2018, 2021, 2023
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -91,6 +91,9 @@ static MX_ERROR_MESSAGE error_message_list[] = {
 { MXE_NETWORK_CONNECTION_REFUSED,	"MXE_NETWORK_CONNECTION_REFUSED" },
 { MXE_CALLBACK_IN_PROGRESS,		"MXE_CALLBACK_IN_PROGRESS" },
 { MXE_ILLEGAL_COMMAND,			"MXE_ILLEGAL_COMMAND" },
+{ MXE_RECORD_NOT_FOUND,			"MXE_RECORD_NOT_FOUND" },
+{ MXE_FIELD_NOT_FOUND,			"MXE_FIELD_NOT_FOUND" },
+{ MXE_ATTRIBUTE_NOT_FOUND,		"MXE_ATTRIBUTE_NOT_FOUND" },
 { 0, "" } };
 
 static long num_error_messages = sizeof(error_message_list)

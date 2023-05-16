@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2021 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,6 +80,9 @@ extern "C" {
 #define MXE_NETWORK_CONNECTION_REFUSED		1055
 #define MXE_CALLBACK_IN_PROGRESS		1056
 #define MXE_ILLEGAL_COMMAND			1057
+#define MXE_RECORD_NOT_FOUND			1058
+#define MXE_FIELD_NOT_FOUND			1059
+#define MXE_ATTRIBUTE_NOT_FOUND			1060
 
 /* If the error message code is OR-ed with MXE_QUIET, then
  * the error message is not displayed to the user.
