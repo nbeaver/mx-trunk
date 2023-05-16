@@ -161,9 +161,35 @@ mxd_umx_aoutput_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_umx_aoutput_open( MX_RECORD *record )
 {
+	static const char fname[] = "mxd_umx_aoutput_open()";
+
+	MX_UMX_AOUTPUT *umx_aoutput = NULL;
 	mx_status_type mx_status;
 
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+        umx_aoutput = (MX_UMX_AOUTPUT *) record->record_type_struct;
+
+        if ( umx_aoutput == (MX_UMX_AOUTPUT *) NULL ) {
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+                "The MX_UMX_AOUTPUT pointer for record '%s' is NULL",
+			record->name );
+        }
+
 	/* Configure PWM frequency. */
+
+	if ( ( umx_aoutput->timer_number < 0 )
+	  || ( umx_aoutput->frequency <= 0.0 ) )
+	{
+		/* If we get here, then the user has essentially requested 
+		 * that the existing PWM frequency not be changed.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	mx_status = mx_process_record_field_by_name( record, "timer_number",
 						NULL, MX_PROCESS_PUT, NULL );
