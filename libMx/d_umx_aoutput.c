@@ -31,7 +31,7 @@ MX_RECORD_FUNCTION_LIST mxd_umx_aoutput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_umx_aoutput_open,
+	NULL,     /* mxd_umx_aoutput_open */
 	NULL,
 	NULL,
 	NULL,
@@ -181,6 +181,7 @@ mxd_umx_aoutput_open( MX_RECORD *record )
 
 	/* Configure PWM frequency. */
 
+#if 1
 	if ( ( umx_aoutput->timer_number < 0 )
 	  || ( umx_aoutput->frequency <= 0.0 ) )
 	{
@@ -199,7 +200,7 @@ mxd_umx_aoutput_open( MX_RECORD *record )
 
 	mx_status = mx_process_record_field_by_name( record, "frequency",
 						NULL, MX_PROCESS_PUT, NULL );
-
+#endif
         return MX_SUCCESSFUL_RESULT;
 }
 
