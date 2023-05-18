@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2022 Illinois Institute of Technology
+ * Copyright 1999-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -83,6 +83,7 @@ COMMAND command_list[] = {
 	{ motor_modify_fn,  3, "modify"        },
 	{ motor_mabs_fn,    3, "move"          },     /* alias for 'mabs' */
 	{ motor_mrel_fn,    2, "mrel"          },
+	{ motor_mslew_fn,   2, "mslew"         },
 	{ motor_open_fn,    1, "open"          },
 	{ motor_ptz_fn,     3, "ptz"           },
 	{ motor_exit_fn,    1, "quit"          },     /* alias for 'exit' */

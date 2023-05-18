@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2014-2017, 2022 Illinois Institute of Technology
+ * Copyright 1999-2011, 2014-2017, 2022-2023 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -131,6 +131,7 @@ extern int motor_measure_fn( int argc, char *argv[] );
 extern int motor_mjog_fn( int argc, char *argv[] );
 extern int motor_modify_fn( int argc, char *argv[] );
 extern int motor_mrel_fn( int argc, char *argv[] );
+extern int motor_mslew_fn( int argc, char *argv[] );
 extern int motor_open_fn( int argc, char *argv[] );
 extern int motor_ptz_fn( int argc, char *argv[] );
 extern int motor_readp_fn( int argc, char *argv[] );

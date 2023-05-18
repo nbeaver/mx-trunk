@@ -76,7 +76,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_amptek_dp4_mca.c d_amptek_dp5_mca.c \
 	d_aoutput_as_doutput.c \
 	d_aps_adcmod2_ainput.c d_aps_adcmod2_amplifier.c \
-	d_area_detector_timer.c d_arduino_dc_motor.c \
+	d_area_detector_timer.c d_arduino_ms3_dc_motor.c \
 	d_auto_amplifier.c d_auto_filter.c \
 	d_auto_filter_amplifier.c d_auto_net.c d_auto_scaler.c \
 	d_bit.c d_bkprecision_912x_aio.c d_bkprecision_912x_dio.c \

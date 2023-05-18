@@ -1,8 +1,8 @@
 /*
- * Name:    d_arduino_dc_motor.c 
+ * Name:    d_arduino_ms3_dc_motor.c 
  *
- * Purpose: MX motor driver for using the Arduino Motor Shield to control
- *          one of the two available DC motor channels.
+ * Purpose: MX motor driver for using the Arduino Motor Shield R3
+ *          to control one of the two available DC motor channels.
  *
  * Author:  William Lavender
  *
@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_ARDUINO_DC_MOTOR_DEBUG		FALSE
+#define MXD_ARDUINO_MS3_DC_MOTOR_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,76 +27,76 @@
 #include "mx_digital_output.h"
 #include "mx_encoder.h"
 #include "mx_motor.h"
-#include "d_arduino_dc_motor.h"
+#include "d_arduino_ms3_dc_motor.h"
 
 /* Initialize the motor driver jump table. */
 
-MX_RECORD_FUNCTION_LIST mxd_arduino_dc_motor_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxd_arduino_ms3_dc_motor_record_function_list = {
 	NULL,
-	mxd_arduino_dc_motor_create_record_structures,
-	mxd_arduino_dc_motor_finish_record_initialization,
+	mxd_arduino_ms3_dc_motor_create_record_structures,
+	mxd_arduino_ms3_dc_motor_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_arduino_dc_motor_open,
+	mxd_arduino_ms3_dc_motor_open,
 };
 
-MX_MOTOR_FUNCTION_LIST mxd_arduino_dc_motor_motor_function_list = {
-	mxd_arduino_dc_motor_is_busy,
-	mxd_arduino_dc_motor_move_absolute,
-	mxd_arduino_dc_motor_get_position,
-	mxd_arduino_dc_motor_set_position,
+MX_MOTOR_FUNCTION_LIST mxd_arduino_ms3_dc_motor_motor_function_list = {
+	mxd_arduino_ms3_dc_motor_is_busy,
+	mxd_arduino_ms3_dc_motor_move_absolute,
+	mxd_arduino_ms3_dc_motor_get_position,
+	mxd_arduino_ms3_dc_motor_set_position,
 	NULL,
-	mxd_arduino_dc_motor_immediate_abort,
+	mxd_arduino_ms3_dc_motor_immediate_abort,
 	NULL,
 	NULL,
 	NULL,
-	mxd_arduino_dc_motor_constant_velocity_move,
-	mxd_arduino_dc_motor_get_parameter,
-	mxd_arduino_dc_motor_set_parameter
+	mxd_arduino_ms3_dc_motor_constant_velocity_move,
+	mxd_arduino_ms3_dc_motor_get_parameter,
+	mxd_arduino_ms3_dc_motor_set_parameter
 };
 
-/* Pontech ARDUINO_DC_MOTOR motor controller data structures. */
+/* Pontech ARDUINO_MS3_DC_MOTOR motor controller data structures. */
 
-MX_RECORD_FIELD_DEFAULTS mxd_arduino_dc_motor_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_arduino_ms3_dc_motor_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_ANALOG_MOTOR_STANDARD_FIELDS,
 	MX_MOTOR_STANDARD_FIELDS,
-	MXD_ARDUINO_DC_MOTOR_STANDARD_FIELDS
+	MXD_ARDUINO_MS3_DC_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_arduino_dc_motor_num_record_fields
-		= sizeof( mxd_arduino_dc_motor_record_field_defaults )
-			/ sizeof( mxd_arduino_dc_motor_record_field_defaults[0] );
+long mxd_arduino_ms3_dc_motor_num_record_fields
+		= sizeof( mxd_arduino_ms3_dc_motor_record_field_defaults )
+			/ sizeof( mxd_arduino_ms3_dc_motor_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_arduino_dc_motor_rfield_def_ptr
-			= &mxd_arduino_dc_motor_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_arduino_ms3_dc_motor_rfield_def_ptr
+			= &mxd_arduino_ms3_dc_motor_record_field_defaults[0];
 
 /* === */
 
 static mx_status_type
-mxd_arduino_dc_motor_get_pointers( MX_MOTOR *motor,
-			MX_ARDUINO_DC_MOTOR **arduino_dc_motor,
+mxd_arduino_ms3_dc_motor_get_pointers( MX_MOTOR *motor,
+			MX_ARDUINO_MS3_DC_MOTOR **arduino_ms3_dc_motor,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_get_pointers()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_MOTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if ( arduino_dc_motor == (MX_ARDUINO_DC_MOTOR **) NULL ) {
+	if ( arduino_ms3_dc_motor == (MX_ARDUINO_MS3_DC_MOTOR **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_ARDUINO_DC_MOTOR pointer passed by '%s' was NULL.",
+		"The MX_ARDUINO_MS3_DC_MOTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 
-	*arduino_dc_motor = (MX_ARDUINO_DC_MOTOR *)
+	*arduino_ms3_dc_motor = (MX_ARDUINO_MS3_DC_MOTOR *)
 				motor->record->record_type_struct;
 
-	if ( *arduino_dc_motor == (MX_ARDUINO_DC_MOTOR *) NULL ) {
+	if ( *arduino_ms3_dc_motor == (MX_ARDUINO_MS3_DC_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_ARDUINO_DC_MOTOR pointer for record '%s' is NULL.",
+		"The MX_ARDUINO_MS3_DC_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -105,13 +105,13 @@ mxd_arduino_dc_motor_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_create_record_structures( MX_RECORD *record )
+mxd_arduino_ms3_dc_motor_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxd_arduino_dc_motor_create_record_structures()";
+		"mxd_arduino_ms3_dc_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -122,23 +122,23 @@ mxd_arduino_dc_motor_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_MOTOR structure." );
 	}
 
-	arduino_dc_motor = (MX_ARDUINO_DC_MOTOR *)
-				malloc( sizeof(MX_ARDUINO_DC_MOTOR) );
+	arduino_ms3_dc_motor = (MX_ARDUINO_MS3_DC_MOTOR *)
+				malloc( sizeof(MX_ARDUINO_MS3_DC_MOTOR) );
 
-	if ( arduino_dc_motor == (MX_ARDUINO_DC_MOTOR *) NULL ) {
+	if ( arduino_ms3_dc_motor == (MX_ARDUINO_MS3_DC_MOTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate memory for an MX_ARDUINO_DC_MOTOR structure.");
+		"Cannot allocate memory for an MX_ARDUINO_MS3_DC_MOTOR structure.");
 	}
 
 	/* Now set up the necessary pointers. */
 
 	record->record_class_struct = motor;
-	record->record_type_struct = arduino_dc_motor;
+	record->record_type_struct = arduino_ms3_dc_motor;
 	record->class_specific_function_list =
-				&mxd_arduino_dc_motor_motor_function_list;
+				&mxd_arduino_ms3_dc_motor_motor_function_list;
 
 	motor->record = record;
-	arduino_dc_motor->record = record;
+	arduino_ms3_dc_motor->record = record;
 
 	/* An Arduino DC motor is treated as an analog motor. */
 
@@ -151,23 +151,23 @@ mxd_arduino_dc_motor_create_record_structures( MX_RECORD *record )
 	motor->raw_speed = 0.0;
 	motor->raw_base_speed = 0.0;
 
-	arduino_dc_motor->move_in_progress = FALSE;
+	arduino_ms3_dc_motor->move_in_progress = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_finish_record_initialization( MX_RECORD *record )
+mxd_arduino_ms3_dc_motor_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxd_arduino_dc_motor_finish_record_initialization()";
+		"mxd_arduino_ms3_dc_motor_finish_record_initialization()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor;
 	mx_status_type mx_status;
 
-	arduino_dc_motor = (MX_ARDUINO_DC_MOTOR *) record->record_type_struct;
+	arduino_ms3_dc_motor = (MX_ARDUINO_MS3_DC_MOTOR *) record->record_type_struct;
 
-	if ( arduino_dc_motor == (MX_ARDUINO_DC_MOTOR *) NULL ) {
+	if ( arduino_ms3_dc_motor == (MX_ARDUINO_MS3_DC_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"record_type_struct for record '%s' is NULL.",
 			record->name );
@@ -182,12 +182,12 @@ mxd_arduino_dc_motor_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_open( MX_RECORD *record )
+mxd_arduino_ms3_dc_motor_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_open()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_open()";
 
 	MX_MOTOR *motor = NULL;
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -197,25 +197,25 @@ mxd_arduino_dc_motor_open( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* See if a position encoder is available. */
 
-	if ( strlen( arduino_dc_motor->encoder_record_name ) == 0 ) {
-		arduino_dc_motor->encoder_record = NULL;
+	if ( strlen( arduino_ms3_dc_motor->encoder_record_name ) == 0 ) {
+		arduino_ms3_dc_motor->encoder_record = NULL;
 	} else {
-		arduino_dc_motor->encoder_record = mx_get_record( record,
-					arduino_dc_motor->encoder_record_name );
+		arduino_ms3_dc_motor->encoder_record = mx_get_record( record,
+					arduino_ms3_dc_motor->encoder_record_name );
 
-		if ( arduino_dc_motor->encoder_record == NULL ) {
+		if ( arduino_ms3_dc_motor->encoder_record == NULL ) {
 			return mx_error( MXE_NOT_FOUND, fname,
 			"The encoder record '%s' for Arduino DC motor '%s' "
 			"was not found.",
-				arduino_dc_motor->encoder_record_name,
+				arduino_ms3_dc_motor->encoder_record_name,
 				record->name );
 		}
 	}
@@ -224,23 +224,23 @@ mxd_arduino_dc_motor_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_is_busy( MX_MOTOR *motor )
+mxd_arduino_ms3_dc_motor_is_busy( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_is_busy()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_is_busy()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	unsigned long encoder_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( arduino_dc_motor->encoder_record == (MX_RECORD *) NULL ) {
+	if ( arduino_ms3_dc_motor->encoder_record == (MX_RECORD *) NULL ) {
 
-		if ( arduino_dc_motor->move_in_progress ) {
+		if ( arduino_ms3_dc_motor->move_in_progress ) {
 			motor->busy = TRUE;
 		} else {
 			motor->busy = FALSE;
@@ -249,7 +249,7 @@ mxd_arduino_dc_motor_is_busy( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	mx_status = mx_encoder_get_status( arduino_dc_motor->encoder_record,
+	mx_status = mx_encoder_get_status( arduino_ms3_dc_motor->encoder_record,
 						&encoder_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -265,16 +265,16 @@ mxd_arduino_dc_motor_is_busy( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_move_absolute( MX_MOTOR *motor )
+mxd_arduino_ms3_dc_motor_move_absolute( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_move_absolute()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_move_absolute()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	long direction;
 	mx_status_type mx_status;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -292,24 +292,24 @@ mxd_arduino_dc_motor_move_absolute( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_get_position( MX_MOTOR *motor )
+mxd_arduino_ms3_dc_motor_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_get_position()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_get_position()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	double raw_position;
 	mx_status_type mx_status;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( arduino_dc_motor->encoder_record == NULL ) {
+	if ( arduino_ms3_dc_motor->encoder_record == NULL ) {
 		raw_position = 0.0;
 	} else {
-		mx_status = mx_encoder_read( arduino_dc_motor->encoder_record,
+		mx_status = mx_encoder_read( arduino_ms3_dc_motor->encoder_record,
 							&raw_position );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -322,21 +322,21 @@ mxd_arduino_dc_motor_get_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_set_position( MX_MOTOR *motor )
+mxd_arduino_ms3_dc_motor_set_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_set_position()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_set_position()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	double raw_position;
 	mx_status_type mx_status;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( arduino_dc_motor->encoder_record == NULL ) {
+	if ( arduino_ms3_dc_motor->encoder_record == NULL ) {
 		motor->raw_position.analog = 0.0;
 
 		return MX_SUCCESSFUL_RESULT;
@@ -344,22 +344,22 @@ mxd_arduino_dc_motor_set_position( MX_MOTOR *motor )
 
 	raw_position = motor->raw_set_position.analog;
 
-	mx_status = mx_encoder_write( arduino_dc_motor->encoder_record,
+	mx_status = mx_encoder_write( arduino_ms3_dc_motor->encoder_record,
 								raw_position );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_immediate_abort( MX_MOTOR *motor )
+mxd_arduino_ms3_dc_motor_immediate_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_immediate_abort()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_immediate_abort()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -378,25 +378,25 @@ mxd_arduino_dc_motor_immediate_abort( MX_MOTOR *motor )
 	/* Set the brake. */
 
 	mx_status = mx_digital_output_write(
-			arduino_dc_motor->brake_pin_record, 1 );
+			arduino_ms3_dc_motor->brake_pin_record, 1 );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
+mxd_arduino_ms3_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] =
-		"mxd_arduino_dc_motor_constant_velocity_move()";
+		"mxd_arduino_ms3_dc_motor_constant_velocity_move()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	unsigned long direction;
 	unsigned long pwm_value;
 	double pwm_real8;
 	mx_status_type mx_status;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -410,7 +410,7 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 	}
 
 	mx_status = mx_digital_output_write(
-			arduino_dc_motor->direction_pin_record, direction );
+			arduino_ms3_dc_motor->direction_pin_record, direction );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -418,7 +418,7 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 	/* Release the brake. */
 
 	mx_status = mx_digital_output_write(
-			arduino_dc_motor->brake_pin_record, 1 );
+			arduino_ms3_dc_motor->brake_pin_record, 1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -443,27 +443,27 @@ mxd_arduino_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 	/* Set the PWM value.  This should start the move. */
 
 	mx_status = mx_digital_output_write(
-			arduino_dc_motor->pwm_pin_record, pwm_value );
+			arduino_ms3_dc_motor->pwm_pin_record, pwm_value );
 
 	if ( mx_status.code == MXE_SUCCESS ) {
-		arduino_dc_motor->move_in_progress = TRUE;
+		arduino_ms3_dc_motor->move_in_progress = TRUE;
 	} else {
-		arduino_dc_motor->move_in_progress = FALSE;
+		arduino_ms3_dc_motor->move_in_progress = FALSE;
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_get_parameter( MX_MOTOR *motor )
+mxd_arduino_ms3_dc_motor_get_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_get_parameter()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_get_parameter()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -488,15 +488,15 @@ mxd_arduino_dc_motor_get_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_arduino_dc_motor_set_parameter( MX_MOTOR *motor )
+mxd_arduino_ms3_dc_motor_set_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_arduino_dc_motor_set_parameter()";
+	static const char fname[] = "mxd_arduino_ms3_dc_motor_set_parameter()";
 
-	MX_ARDUINO_DC_MOTOR *arduino_dc_motor = NULL;
+	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_arduino_dc_motor_get_pointers(motor,
-						&arduino_dc_motor, fname);
+	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
+						&arduino_ms3_dc_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
