@@ -36,6 +36,7 @@ MX_API mx_status_type mxd_umx_aoutput_open( MX_RECORD *record );
 MX_API mx_status_type mxd_umx_aoutput_special_processing_setup(
 							MX_RECORD *record );
 
+MX_API mx_status_type mxd_umx_aoutput_read( MX_ANALOG_OUTPUT *aoutput );
 MX_API mx_status_type mxd_umx_aoutput_write( MX_ANALOG_OUTPUT *aoutput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_umx_aoutput_record_function_list;

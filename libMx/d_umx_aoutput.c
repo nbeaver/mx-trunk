@@ -39,7 +39,7 @@ MX_RECORD_FUNCTION_LIST mxd_umx_aoutput_record_function_list = {
 };
 
 MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_umx_aoutput_analog_output_function_list = {
-	NULL,
+	mxd_umx_aoutput_read,
 	mxd_umx_aoutput_write
 };
 
@@ -202,6 +202,50 @@ mxd_umx_aoutput_open( MX_RECORD *record )
 						NULL, MX_PROCESS_PUT, NULL );
 #endif
         return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_umx_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
+{
+	static const char fname[] = "mxd_umx_aoutput_read()";
+
+	MX_UMX_AOUTPUT *umx_aoutput = NULL;
+	MX_RECORD *umx_record = NULL;
+	char command[80];
+	char response[80];
+	int num_items;
+	mx_bool_type debug_flag;
+	mx_status_type mx_status;
+
+	mx_status = mxd_umx_aoutput_get_pointers( aoutput,
+		&umx_aoutput, &umx_record, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	debug_flag = FALSE;
+
+	snprintf( command, sizeof(command),
+		"GET %s.value", umx_aoutput->aoutput_name );
+
+	mx_status = mx_umx_command( umx_record, aoutput->record->name,
+		fname, command, response, sizeof(response), debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Parse the response message. */
+
+	num_items = sscanf( response, "$%ld", &(aoutput->raw_value.long_value) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not see the status of analog output '%s' in the "
+		"response '%s' to command '%s'.",
+			aoutput->record->name, response, command );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
