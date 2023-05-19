@@ -25,6 +25,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_digital_output.h"
+#include "mx_analog_output.h"
 #include "mx_encoder.h"
 #include "mx_motor.h"
 #include "d_arduino_ms3_dc_motor.h"
@@ -45,7 +46,7 @@ MX_MOTOR_FUNCTION_LIST mxd_arduino_ms3_dc_motor_motor_function_list = {
 	mxd_arduino_ms3_dc_motor_move_absolute,
 	mxd_arduino_ms3_dc_motor_get_position,
 	mxd_arduino_ms3_dc_motor_set_position,
-	NULL,
+	mxd_arduino_ms3_dc_motor_immediate_abort,
 	mxd_arduino_ms3_dc_motor_immediate_abort,
 	NULL,
 	NULL,
@@ -371,10 +372,6 @@ mxd_arduino_ms3_dc_motor_immediate_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
-	mx_msleep(5000);
-#endif
-
 	/* Set the brake. */
 
 	mx_status = mx_digital_output_write(
@@ -390,9 +387,7 @@ mxd_arduino_ms3_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 		"mxd_arduino_ms3_dc_motor_constant_velocity_move()";
 
 	MX_ARDUINO_MS3_DC_MOTOR *arduino_ms3_dc_motor = NULL;
-	unsigned long direction;
-	unsigned long pwm_value;
-	double pwm_real8;
+	long direction_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_arduino_ms3_dc_motor_get_pointers(motor,
@@ -401,16 +396,17 @@ mxd_arduino_ms3_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the direction of the next move. */
+	/* Specify the direction. */
 
-	if ( motor->speed >= 0.0 ) {
-		direction = 1;
+	if ( motor->constant_velocity_move < 0 ) {
+		direction_flag = 0;
 	} else {
-		direction = 0;
+		direction_flag = 1;
 	}
 
 	mx_status = mx_digital_output_write(
-			arduino_ms3_dc_motor->direction_pin_record, direction );
+			arduino_ms3_dc_motor->direction_pin_record,
+			direction_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -418,37 +414,12 @@ mxd_arduino_ms3_dc_motor_constant_velocity_move( MX_MOTOR *motor )
 	/* Release the brake. */
 
 	mx_status = mx_digital_output_write(
-			arduino_ms3_dc_motor->brake_pin_record, 1 );
+			arduino_ms3_dc_motor->brake_pin_record, 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the motor speed. */
-
-	/* We start by reading the most recently requested speed. */
-
-	mx_status = mx_motor_get_speed( motor->record, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Convert the requested speed into a PWM value. */
-
-	pwm_real8 = mx_divide_safely( motor->speed, 256.0 );
-
-	pwm_real8 = fabs( pwm_real8 );
-
-	pwm_value = mx_round( pwm_real8 );
-
-	/* Set the PWM value.  This should start the move. */
-
-	mx_status = mx_digital_output_write(
-			arduino_ms3_dc_motor->pwm_pin_record, pwm_value );
-
-	if ( mx_status.code == MXE_SUCCESS ) {
-		arduino_ms3_dc_motor->move_in_progress = TRUE;
-	} else {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		arduino_ms3_dc_motor->move_in_progress = FALSE;
+	} else {
+		arduino_ms3_dc_motor->move_in_progress = TRUE;
 	}
 
 	return mx_status;
@@ -509,14 +480,13 @@ mxd_arduino_ms3_dc_motor_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		/* The speed parameter is used when a throttle 't' command
-		 * is requested.
-		 */
+		mx_status = mx_analog_output_write(
+		    arduino_ms3_dc_motor->pwm_pin_record, motor->raw_speed );
 		break;
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 

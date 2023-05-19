@@ -30,19 +30,19 @@ motor_mslew_fn( int argc, char *argv[] )
 	MX_RECORD *record;
 	MX_MOTOR *motor;
 	char *motor_name;
+	double motor_speed;
 	long direction;
 	int c;
-	mx_bool_type exit_loop, first_time, busy;
-	unsigned long naptime, timeout;
+	mx_bool_type exit_loop, busy;
 	mx_status_type mx_status;
 
-	if ( argc <= 3 ) {
+	if ( argc <= 4 ) {
 		fprintf(output,
-"Usage: mslew 'motor' 'direction' - Use single keystrokes to slew the\n"
-"                                   direction 'direction'.  The motor\n"
-"                                   will continue slewing until the user\n"
-"                                   aborts the move, or the motor hits a\n"
-"                                   limit, or some other event stops it.\n"
+"Usage: mslew 'motor' 'motor_speed' 'direction' - Start a constant velocity\n"
+"                           move in the requested direction 'direction'.  \n"
+"                           The motor will continue slewing until the user\n"
+"                           aborts the move, or the motor hits a limit, or\n"
+"                           some other event stops it.\n"
 "\n"
 "         WARNING: Motors controlled entirely by MX will have\n"
 "                       NO BACKLASH CORRECTION\n"
@@ -81,62 +81,67 @@ motor_mslew_fn( int argc, char *argv[] )
 		return FAILURE;
 	}
 
-	/* mslew theta + */
+	/* Set the requested speed. */
 
-	if ( strcmp( argv[3], "+" ) == 0 ) {
+	motor_speed = atof( argv[3] );
+
+	if ( motor_speed > 0.0 ) {
+		mx_status = mx_motor_set_speed( record, motor_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	}
+
+	/* Get the requested direction. */
+
+	if ( strcmp( argv[4], "+" ) == 0 ) {
 		direction = 1;
 	} else
-	if ( strcmp( argv[3], "-" ) == 0 ) {
+	if ( strcmp( argv[4], "-" ) == 0 ) {
 		direction = -1;
 	} else
-	if ( strcmp( argv[3], "1" ) == 0 ) {
+	if ( strcmp( argv[4], "1" ) == 0 ) {
 		direction = 1;
 	} else
-	if ( strcmp( argv[3], "-1" ) == 0 ) {
+	if ( strcmp( argv[4], "-1" ) == 0 ) {
 		direction = -1;
 	} else
-	if ( strcmp( argv[3], "0" ) == 0 ) {
+	if ( strcmp( argv[4], "0" ) == 0 ) {
 		direction = 0;
 	} else {
+		direction = 0;
 	}
+
+	mx_status = mx_motor_constant_velocity_move( record, direction );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
 
 	fprintf( output,
 	"MSLEW '%s' started.  Hit <ctrl-D> or <escape> to exit.\n",
 				motor_name);
 	c = 0;
 	exit_loop = FALSE;
-	first_time = TRUE;
 
 	while (exit_loop == FALSE) {
 
-		/* Wait until the motor is not busy. */
+		mx_msleep(1000);
 
-		busy = TRUE;
+		mx_status = mx_motor_is_busy( record, &busy );
 
-		naptime = 100;		/* milliseconds */
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
 
-		timeout = 100000;	/* 100 seconds */
+		if ( busy == FALSE) {
+			mx_status = mx_motor_stop( record );
 
-		while (busy && timeout > 0) {
-			mx_status = mx_motor_is_busy( record, &busy );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
-			}
 
-			if ( busy ) {
-				timeout -= naptime;
-				mx_msleep( (unsigned long) naptime );
-			}
+			fprintf( output, "Motor '%s' move complete.\n",
+							record->name );
+			return SUCCESS;
 		}
-
-		if ( timeout <= 0 ) {
-			fprintf( output,
-			"Timed out waiting for motor to stop moving.\n");
-
-			break;		/* Exit the while() loop. */
-		}
-
 		/* Read a character from the keyboard. */
 
 		c = mx_getch();
@@ -156,8 +161,12 @@ motor_mslew_fn( int argc, char *argv[] )
 		if ( c == ESC || c == CTRL_D ) {
 			break;		/* Exit the while() loop. */
 		}
-
 	}
+
+	mx_status = mx_motor_stop( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
 
 	fprintf( output, "MJOG finished.\n");
 
