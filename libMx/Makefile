@@ -79,8 +79,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_area_detector_timer.c d_arduino_ms3_dc_motor.c \
 	d_auto_amplifier.c d_auto_filter.c \
 	d_auto_filter_amplifier.c d_auto_net.c d_auto_scaler.c \
-	d_bit.c d_bkprecision_912x_aio.c d_bkprecision_912x_dio.c \
-	d_bkprecision_912x_wvout.c d_blind_relay.c \
+	d_bipolar_relay.c d_bit.c d_bkprecision_912x_aio.c \
+	d_bkprecision_912x_dio.c d_bkprecision_912x_wvout.c d_blind_relay.c \
 	d_bluice_area_detector.c d_bluice_ion_chamber.c d_bluice_motor.c \
 	d_bluice_shutter.c d_bluice_timer.c \
 	d_cm17a_doutput.c d_clock_timer.c \

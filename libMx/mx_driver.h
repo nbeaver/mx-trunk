@@ -666,6 +666,7 @@ extern "C" {
 #define MXT_RLY_MOTOR			100013
 #define MXT_RLY_FIELD			100014
 #define MXT_RLY_FLOWBUS_VALVE		100015
+#define MXT_RLY_BIPOLAR			100016
 
 /* --- Multichannel analyzer types --- */
 

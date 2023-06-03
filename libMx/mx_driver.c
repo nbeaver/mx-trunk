@@ -405,6 +405,7 @@
 #include "d_motor_relay.h"
 #include "d_field_relay.h"
 #include "d_flowbus_valve.h"
+#include "d_bipolar_relay.h"
 
 #include "d_soft_amplifier.h"
 #include "d_net_amplifier.h"
@@ -3253,12 +3254,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_generic_relay_num_record_fields,
 				&mxd_generic_relay_rfield_def_ptr},
 
-{"blind_relay",    MXT_RLY_BLIND,     MXC_RELAY,          MXR_DEVICE,
-				&mxd_blind_relay_record_function_list,
+{"bipolar_relay",  MXT_RLY_BLIND,     MXC_RELAY,          MXR_DEVICE,
+				&mxd_bipolar_relay_record_function_list,
 				NULL,
-				&mxd_blind_relay_relay_function_list,
-				&mxd_blind_relay_num_record_fields,
-				&mxd_blind_relay_rfield_def_ptr},
+				&mxd_bipolar_relay_relay_function_list,
+				&mxd_bipolar_relay_num_record_fields,
+				&mxd_bipolar_relay_rfield_def_ptr},
 
 {"pulsed_relay",   MXT_RLY_PULSED,     MXC_RELAY,          MXR_DEVICE,
 				&mxd_pulsed_relay_record_function_list,
