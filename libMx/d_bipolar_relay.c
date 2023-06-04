@@ -38,7 +38,7 @@ MX_RECORD_FUNCTION_LIST mxd_bipolar_relay_record_function_list = {
 
 MX_RELAY_FUNCTION_LIST mxd_bipolar_relay_relay_function_list = {
 	mxd_bipolar_relay_relay_command,
-	NULL
+	mxd_bipolar_relay_get_relay_status
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_bipolar_relay_record_field_defaults[] = {
@@ -337,5 +337,11 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	mx_msleep( bipolar_relay->settling_time_ms );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_bipolar_relay_get_relay_status( MX_RELAY *relay )
+{
+	return MX_SUCCESSFUL_RESULT;
 }
 
