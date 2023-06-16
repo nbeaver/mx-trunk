@@ -96,6 +96,35 @@ mxd_bipolar_relay_create_record_structures( MX_RECORD *record )
         return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxd_bipolar_relay_open_all_relays( MX_BIPOLAR_RELAY *bipolar_relay )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_relay_command( bipolar_relay->relay_c_record,
+							MXF_OPEN_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_relay_command( bipolar_relay->relay_d_record,
+							MXF_OPEN_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_relay_command( bipolar_relay->relay_a_record,
+							MXF_OPEN_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_relay_command( bipolar_relay->relay_b_record,
+							MXF_OPEN_RELAY );
+
+	return mx_status;
+}
+
 MX_EXPORT mx_status_type
 mxd_bipolar_relay_open( MX_RECORD *record )
 {
@@ -103,8 +132,7 @@ mxd_bipolar_relay_open( MX_RECORD *record )
 
 	MX_RELAY *relay;
         MX_BIPOLAR_RELAY *bipolar_relay;
-	MX_RECORD *output1_record;
-	MX_RECORD *output2_record;
+	mx_status_type mx_status;
 
 	relay = (MX_RELAY *) record->record_class_struct;
 
@@ -124,64 +152,10 @@ mxd_bipolar_relay_open( MX_RECORD *record )
 			record->name);
         }
 
-	/* Verify that the output records have allowed combinations
-	 * device classes.
-	 */
+	/* Make sure that all the relays are open. */
 
-	/* Verify that 'output_record' is a digital output record. */
+	mx_status = mxd_bipolar_relay_open_all_relays( bipolar_relay );
 
-	output1_record = bipolar_relay->output1_record;
-	output2_record = bipolar_relay->output2_record;
-
-	switch( output1_record->mx_class ) {
-	case MXC_ANALOG_OUTPUT:
-	case MXC_DIGITAL_OUTPUT:
-		break;
-	default:
-		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-		"Output 1 record '%s' is not an analog output "
-		"or a digital output.",
-			bipolar_relay->output1_record->name );
-		break;
-	}
-
-	if ( output2_record->mx_class != output1_record->mx_class ) {
-		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR,fname,
-		"Output 1 '%s' is an MX '%s', but Output 2 '%s' is _not_ "
-		"an MX '%s. Instead Output 2 is an MX '%s'.  "
-		"Both records must be of the same MX device class.",
-			output1_record->name,
-			mx_get_driver_class_name( output1_record ),
-			output2_record->name,
-			mx_get_driver_class_name( output1_record ),
-			mx_get_driver_class_name( output2_record ) );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mxd_bipolar_relay_output_write( MX_RECORD *output_record, double output_volts )
-{
-	static const char fname[] = "mxd_bipolar_relay_output_write()";
-
-	mx_status_type mx_status;
-
-	switch( output_record->mx_class ) {
-	case MXC_ANALOG_OUTPUT:
-		mx_status = mx_analog_output_write( output_record,
-							output_volts );
-		break;
-	case MXC_DIGITAL_OUTPUT:
-		mx_status = mx_digital_output_write( output_record,
-						mx_round( output_volts ) );
-		break;
-	default:
-		mx_status = mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-		"Output record '%s' is not an analog output or digital output",
-			output_record->name );
-		break;
-	}
 	return mx_status;
 }
 
@@ -191,9 +165,8 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	static const char fname[] = "mxd_bipolar_relay_relay_command()";
 
 	MX_BIPOLAR_RELAY *bipolar_relay;
-	MX_RECORD *first_active_record, *second_active_record;
-	double first_active_volts, first_idle_volts;
-	double second_active_volts, second_idle_volts;
+	MX_RECORD *first_upstream_record,   *second_upstream_record;
+	MX_RECORD *first_downstream_record, *second_downstream_record;
 	mx_status_type mx_status;
 
 	if ( relay == (MX_RELAY *) NULL ) {
@@ -213,37 +186,21 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
 	if ( relay->relay_command == MXF_OPEN_RELAY ) {
-		first_active_record = bipolar_relay->output1_record;
-		second_active_record = bipolar_relay->output2_record;
-
-		first_active_volts = bipolar_relay->output1_active_volts;
-		first_idle_volts = bipolar_relay->output1_idle_volts;
-
-		second_active_volts = bipolar_relay->output2_active_volts;
-		second_idle_volts = bipolar_relay->output2_idle_volts;
+		first_upstream_record    = bipolar_relay->relay_a_record;
+		first_downstream_record  = bipolar_relay->relay_c_record;
+		second_upstream_record   = bipolar_relay->relay_b_record;
+		second_downstream_record = bipolar_relay->relay_d_record;
 	} else {
-		first_active_record = bipolar_relay->output2_record;
-		second_active_record = bipolar_relay->output1_record;
-
-		first_active_volts = bipolar_relay->output2_active_volts;
-		first_idle_volts = bipolar_relay->output2_idle_volts;
-
-		second_active_volts = bipolar_relay->output1_active_volts;
-		second_idle_volts = bipolar_relay->output1_idle_volts;
+		first_upstream_record    = bipolar_relay->relay_b_record;
+		first_downstream_record  = bipolar_relay->relay_d_record;
+		second_upstream_record   = bipolar_relay->relay_a_record;
+		second_downstream_record = bipolar_relay->relay_c_record;
 	}
 
-	if ( first_active_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The first active record pointer for record '%s' is NULL.",
-			relay->record->name );
-	}
+	/* Make sure all relays are open. */
 
-	if ( second_active_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The second_active_record pointer for record '%s' is NULL.",
-			relay->record->name );
-	}
-
+	mx_status = MX_SUCCESSFUL_RESULT;
+#if 0
 	/* Generate the first half of the bipolar pulse. */
 
 	MX_DEBUG(-2,("%s: Setting first '%s' to %f",
@@ -335,8 +292,9 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 			fname, bipolar_relay->settling_time_ms ));
 
 	mx_msleep( bipolar_relay->settling_time_ms );
+#endif
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;;
 }
 
 MX_EXPORT mx_status_type

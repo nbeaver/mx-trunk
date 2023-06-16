@@ -3254,12 +3254,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_generic_relay_num_record_fields,
 				&mxd_generic_relay_rfield_def_ptr},
 
-{"bipolar_relay",  MXT_RLY_BLIND,     MXC_RELAY,          MXR_DEVICE,
-				&mxd_bipolar_relay_record_function_list,
+{"blind_relay",  MXT_RLY_BLIND,     MXC_RELAY,          MXR_DEVICE,
+				&mxd_blind_relay_record_function_list,
 				NULL,
-				&mxd_bipolar_relay_relay_function_list,
-				&mxd_bipolar_relay_num_record_fields,
-				&mxd_bipolar_relay_rfield_def_ptr},
+				&mxd_blind_relay_relay_function_list,
+				&mxd_blind_relay_num_record_fields,
+				&mxd_blind_relay_rfield_def_ptr},
 
 {"pulsed_relay",   MXT_RLY_PULSED,     MXC_RELAY,          MXR_DEVICE,
 				&mxd_pulsed_relay_record_function_list,

@@ -27,13 +27,10 @@
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *output1_record;
-	MX_RECORD *output2_record;
-
-	double output1_active_volts;
-	double output1_idle_volts;
-	double output2_active_volts;
-	double output2_idle_volts;
+	MX_RECORD *relay_a_record;
+	MX_RECORD *relay_b_record;
+	MX_RECORD *relay_c_record;
+	MX_RECORD *relay_d_record;
 
 	unsigned long first_active_ms;		/* in milliseconds */
 	unsigned long between_time_ms;		/* in milliseconds */
@@ -42,28 +39,20 @@ typedef struct {
 } MX_BIPOLAR_RELAY;
 
 #define MXD_BIPOLAR_RELAY_STANDARD_FIELDS \
-  {-1, -1, "output1_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, output1_record), \
+  {-1, -1, "relay_a_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_a_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "output2_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, output2_record), \
+  {-1, -1, "relay_b_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_b_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "output1_active_volts", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, output1_active_volts), \
+  {-1, -1, "relay_c_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_c_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "output1_idle_volts", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, output1_idle_volts), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
-  \
-  {-1, -1, "output2_active_volts", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, output2_active_volts), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
-  \
-  {-1, -1, "output2_idle_volts", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, output2_idle_volts), \
+  {-1, -1, "relay_d_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_d_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "first_active_ms", MXFT_ULONG, NULL, 0, {0}, \
