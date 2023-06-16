@@ -96,6 +96,11 @@ mxd_bipolar_relay_create_record_structures( MX_RECORD *record )
         return MX_SUCCESSFUL_RESULT;
 }
 
+/* Note: mxd_bipolar_relay_open_all_relays() opens the downstream
+ * relays before opening the upstream one.  This is done to prevent
+ * unwanted voltages from excaping to the relay output.
+ */
+
 static mx_status_type
 mxd_bipolar_relay_open_all_relays( MX_BIPOLAR_RELAY *bipolar_relay )
 {
@@ -199,23 +204,26 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 
 	/* Make sure all relays are open. */
 
-	mx_status = MX_SUCCESSFUL_RESULT;
-#if 0
-	/* Generate the first half of the bipolar pulse. */
+	mx_status = mxd_bipolar_relay_open_all_relays( bipolar_relay );
 
-	MX_DEBUG(-2,("%s: Setting first '%s' to %f",
-		fname, first_active_record->name, first_active_volts ));
-
-	mx_status = mxd_bipolar_relay_output_write( first_active_record,
-							first_active_volts );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: Setting second '%s' to %f",
-		fname, second_active_record->name, second_idle_volts ));
+	/* Generate the first half of the bipolar pulse. */
 
-	mx_status = mxd_bipolar_relay_output_write( second_active_record,
-							second_idle_volts );
+	MX_DEBUG(-2,("%s: Command first upstream '%s' to CLOSE",
+			fname, first_upstream_record->name ));
+
+	mx_status = mx_relay_command( first_upstream_record, MXF_CLOSE_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: Command first downstream '%s' to CLOSE",
+			fname, first_downstream_record->name ));
+
+	mx_status = mx_relay_command( first_downstream_record,
+							MXF_CLOSE_RELAY );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -227,50 +235,43 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 
 	mx_msleep( bipolar_relay->first_active_ms );
 
+	/* Command all the relays to open. */
+
+	mx_status = mxd_bipolar_relay_open_all_relays( bipolar_relay );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	if ( bipolar_relay->between_time_ms > 0 ) {
-		/* If the between time is greater than 0, then set the
-		 * first active record back to idle.
+		/* If the between time is greater than 0, then wait for
+		 * the between time to finish.
 		 */
-
-		MX_DEBUG(-2,("%s: Setting first '%s' to %f and then wait",
-			fname, first_active_record->name, first_idle_volts ));
-
-		mx_status = mxd_bipolar_relay_output_write( first_active_record,
-							first_idle_volts );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* And then wait for the between time to finish. */
 
 		MX_DEBUG(-2,("%s: Between time wait of %lu",
 			fname, bipolar_relay->between_time_ms ));
 
 		mx_msleep( bipolar_relay->between_time_ms );
-	} else {
-		/* Otherwise set the first active record back to idle
-		 * immediately.
-		 */
-
-		MX_DEBUG(-2,("%s: Setting first '%s' to %f without wait",
-			fname, first_active_record->name, first_idle_volts ));
-
-		mx_status = mxd_bipolar_relay_output_write( first_active_record,
-							first_idle_volts );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 	}
 
-	/* Set the second record to active. */
+	/* Generate the second half of the bipolar pulse. */
 
-	MX_DEBUG(-2,("%s: Setting second '%s' to %f",
-		fname, second_active_record->name, second_active_volts ));
+	MX_DEBUG(-2,("%s: Command second upstream '%s' to CLOSE",
+			fname, second_upstream_record->name ));
 
-	mx_status = mxd_bipolar_relay_output_write( second_active_record,
-							second_active_volts );
+	mx_status = mx_relay_command( second_upstream_record, MXF_CLOSE_RELAY );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: Command second downstream '%s' to CLOSE",
+			fname, second_downstream_record->name ));
+
+	mx_status = mx_relay_command( second_downstream_record,
+							MXF_CLOSE_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 
 	/* Wait for the second half of the bipolar pulse to finish. */
 
@@ -279,10 +280,10 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 
 	mx_msleep( bipolar_relay->second_active_ms );
 
-	/* Set the second record back to idle. */
+	/* Command all the relays to open. */
 
-	mx_status = mxd_bipolar_relay_output_write( second_active_record,
-							second_idle_volts );
+	mx_status = mxd_bipolar_relay_open_all_relays( bipolar_relay );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -292,7 +293,6 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 			fname, bipolar_relay->settling_time_ms ));
 
 	mx_msleep( bipolar_relay->settling_time_ms );
-#endif
 
 	return MX_SUCCESSFUL_RESULT;;
 }
