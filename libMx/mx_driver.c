@@ -3345,6 +3345,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_flowbus_valve_num_record_fields,
 				&mxd_flowbus_valve_rfield_def_ptr},
 
+{"bipolar_relay",  MXT_RLY_BIPOLAR,   MXC_RELAY,          MXR_DEVICE,
+				&mxd_bipolar_relay_record_function_list,
+				NULL,
+				&mxd_bipolar_relay_relay_function_list,
+				&mxd_bipolar_relay_num_record_fields,
+				&mxd_bipolar_relay_rfield_def_ptr},
+
 {"adc_table",      MXT_TAB_ADC,       MXC_TABLE,          MXR_DEVICE,
 				&mxd_adc_table_record_function_list,
 				NULL,
