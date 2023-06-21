@@ -130,6 +130,41 @@ mxd_bipolar_relay_open_all_relays( MX_BIPOLAR_RELAY *bipolar_relay )
 	return mx_status;
 }
 
+/* This function allows for the possibility that the low level records,
+ * are actually digital outputs.
+ */
+
+static mx_status_type
+mxd_bipolar_relay_raw_command( MX_RECORD *raw_record, long relay_command )
+{
+        static const char fname[] = "mxd_bipolar_relay_raw_command()";
+
+	long raw_command;
+	mx_status_type mx_status;
+
+	switch( raw_record->mx_class ) {
+	case MXC_RELAY:
+		mx_status = mx_relay_command( raw_record, relay_command );
+		break;
+	case MXC_DIGITAL_OUTPUT:
+		if ( relay_command == MXF_OPEN_RELAY ) {
+			raw_command = 0;
+		} else {
+			raw_command = 1;
+		}
+		mx_status = mx_digital_output_write( raw_record, raw_command );
+		break;
+	default:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Raw record %s is not a relay or digital output.",
+			raw_record->name );
+	}
+
+	return mx_status;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_bipolar_relay_open( MX_RECORD *record )
 {
@@ -214,7 +249,7 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	MX_DEBUG(-2,("%s: Command first upstream '%s' to CLOSE",
 			fname, first_upstream_record->name ));
 
-	mx_status = mx_relay_command( first_upstream_record, MXF_CLOSE_RELAY );
+	mx_status = mxd_bipolar_relay_raw_command( first_upstream_record, MXF_CLOSE_RELAY );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -222,7 +257,7 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	MX_DEBUG(-2,("%s: Command first downstream '%s' to CLOSE",
 			fname, first_downstream_record->name ));
 
-	mx_status = mx_relay_command( first_downstream_record,
+	mx_status = mxd_bipolar_relay_raw_command( first_downstream_record,
 							MXF_CLOSE_RELAY );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -258,7 +293,7 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	MX_DEBUG(-2,("%s: Command second upstream '%s' to CLOSE",
 			fname, second_upstream_record->name ));
 
-	mx_status = mx_relay_command( second_upstream_record, MXF_CLOSE_RELAY );
+	mx_status = mxd_bipolar_relay_raw_command( second_upstream_record, MXF_CLOSE_RELAY );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -266,7 +301,7 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	MX_DEBUG(-2,("%s: Command second downstream '%s' to CLOSE",
 			fname, second_downstream_record->name ));
 
-	mx_status = mx_relay_command( second_downstream_record,
+	mx_status = mxd_bipolar_relay_raw_command( second_downstream_record,
 							MXF_CLOSE_RELAY );
 
 	if ( mx_status.code != MXE_SUCCESS )
