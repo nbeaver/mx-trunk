@@ -27,10 +27,10 @@
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *relay_a_record;
-	MX_RECORD *relay_b_record;
-	MX_RECORD *relay_c_record;
-	MX_RECORD *relay_d_record;
+	MX_RECORD *relay_1_record;
+	MX_RECORD *relay_2_record;
+	MX_RECORD *relay_3_record;
+	MX_RECORD *relay_4_record;
 
 	unsigned long first_active_ms;		/* in milliseconds */
 	unsigned long between_time_ms;		/* in milliseconds */
@@ -39,20 +39,20 @@ typedef struct {
 } MX_BIPOLAR_RELAY;
 
 #define MXD_BIPOLAR_RELAY_STANDARD_FIELDS \
-  {-1, -1, "relay_a_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_a_record), \
+  {-1, -1, "relay_1_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_1_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "relay_b_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_b_record), \
+  {-1, -1, "relay_2_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_2_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "relay_c_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_c_record), \
+  {-1, -1, "relay_3_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_3_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "relay_d_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_d_record), \
+  {-1, -1, "relay_4_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIPOLAR_RELAY, relay_4_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "first_active_ms", MXFT_ULONG, NULL, 0, {0}, \
@@ -73,7 +73,7 @@ typedef struct {
 
 /* Define all of the device functions. */
 
-MX_API mx_status_type mxd_bipolar_relay_create_record_structures(
+MX_API mx_status_type mxd_bipolar_relay_3reate_record_structures(
 							MX_RECORD *record );
 
 MX_API mx_status_type mxd_bipolar_relay_open( MX_RECORD *record );

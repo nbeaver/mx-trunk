@@ -29,7 +29,7 @@
 
 MX_RECORD_FUNCTION_LIST mxd_bipolar_relay_record_function_list = {
 	NULL,
-	mxd_bipolar_relay_create_record_structures,
+	mxd_bipolar_relay_3reate_record_structures,
 	NULL,
 	NULL,
 	NULL,
@@ -57,10 +57,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_bipolar_relay_rfield_def_ptr
 /* ===== */
 
 MX_EXPORT mx_status_type
-mxd_bipolar_relay_create_record_structures( MX_RECORD *record )
+mxd_bipolar_relay_3reate_record_structures( MX_RECORD *record )
 {
         static const char fname[] =
-		"mxd_bipolar_relay_create_record_structures()";
+		"mxd_bipolar_relay_3reate_record_structures()";
 
         MX_RELAY *relay;
         MX_BIPOLAR_RELAY *bipolar_relay;
@@ -96,40 +96,6 @@ mxd_bipolar_relay_create_record_structures( MX_RECORD *record )
         return MX_SUCCESSFUL_RESULT;
 }
 
-/* Note: mxd_bipolar_relay_open_all_relays() opens the downstream
- * relays before opening the upstream one.  This is done to prevent
- * unwanted voltages from excaping to the relay output.
- */
-
-static mx_status_type
-mxd_bipolar_relay_open_all_relays( MX_BIPOLAR_RELAY *bipolar_relay )
-{
-	mx_status_type mx_status;
-
-	mx_status = mx_relay_command( bipolar_relay->relay_c_record,
-							MXF_OPEN_RELAY );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_relay_command( bipolar_relay->relay_d_record,
-							MXF_OPEN_RELAY );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_relay_command( bipolar_relay->relay_a_record,
-							MXF_OPEN_RELAY );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_relay_command( bipolar_relay->relay_b_record,
-							MXF_OPEN_RELAY );
-
-	return mx_status;
-}
-
 /* This function allows for the possibility that the low level records,
  * are actually digital outputs.
  */
@@ -159,6 +125,40 @@ mxd_bipolar_relay_raw_command( MX_RECORD *raw_record, long relay_command )
 			"Raw record %s is not a relay or digital output.",
 			raw_record->name );
 	}
+
+	return mx_status;
+}
+
+/* Note: mxd_bipolar_relay_open_all_relays() opens the downstream
+ * relays before opening the upstream one.  This is done to prevent
+ * unwanted voltages from excaping to the relay output.
+ */
+
+static mx_status_type
+mxd_bipolar_relay_open_all_relays( MX_BIPOLAR_RELAY *bipolar_relay )
+{
+	mx_status_type mx_status;
+
+	mx_status = mxd_bipolar_relay_raw_command( 
+		bipolar_relay->relay_3_record, MXF_OPEN_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_bipolar_relay_raw_command( 
+		bipolar_relay->relay_4_record, MXF_OPEN_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_bipolar_relay_raw_command( 
+		bipolar_relay->relay_1_record, MXF_OPEN_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_bipolar_relay_raw_command( 
+		bipolar_relay->relay_2_record, MXF_OPEN_RELAY );
 
 	return mx_status;
 }
@@ -226,15 +226,15 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
 	if ( relay->relay_command == MXF_OPEN_RELAY ) {
-		first_upstream_record    = bipolar_relay->relay_a_record;
-		first_downstream_record  = bipolar_relay->relay_c_record;
-		second_upstream_record   = bipolar_relay->relay_b_record;
-		second_downstream_record = bipolar_relay->relay_d_record;
+		first_upstream_record    = bipolar_relay->relay_1_record;
+		first_downstream_record  = bipolar_relay->relay_3_record;
+		second_upstream_record   = bipolar_relay->relay_2_record;
+		second_downstream_record = bipolar_relay->relay_4_record;
 	} else {
-		first_upstream_record    = bipolar_relay->relay_b_record;
-		first_downstream_record  = bipolar_relay->relay_d_record;
-		second_upstream_record   = bipolar_relay->relay_a_record;
-		second_downstream_record = bipolar_relay->relay_c_record;
+		first_upstream_record    = bipolar_relay->relay_2_record;
+		first_downstream_record  = bipolar_relay->relay_4_record;
+		second_upstream_record   = bipolar_relay->relay_1_record;
+		second_downstream_record = bipolar_relay->relay_3_record;
 	}
 
 	/* Make sure all relays are open. */
