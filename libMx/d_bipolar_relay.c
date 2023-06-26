@@ -129,6 +129,9 @@ mxd_bipolar_relay_raw_command( MX_RECORD *raw_record, long relay_command )
 	return mx_status;
 }
 
+#if 0
+/* Deprecated. */
+
 /* Note: mxd_bipolar_relay_open_all_relays() opens the downstream
  * relays before opening the upstream one.  This is done to prevent
  * unwanted voltages from excaping to the relay output.
@@ -138,6 +141,8 @@ static mx_status_type
 mxd_bipolar_relay_open_all_relays( MX_BIPOLAR_RELAY *bipolar_relay )
 {
 	mx_status_type mx_status;
+
+
 
 	mx_status = mxd_bipolar_relay_raw_command( 
 		bipolar_relay->relay_3_record, MXF_OPEN_RELAY );
@@ -159,6 +164,58 @@ mxd_bipolar_relay_open_all_relays( MX_BIPOLAR_RELAY *bipolar_relay )
 
 	mx_status = mxd_bipolar_relay_raw_command( 
 		bipolar_relay->relay_2_record, MXF_OPEN_RELAY );
+
+	return mx_status;
+}
+
+#endif /* Deprecated. */
+
+/* Relays 1 and 2 are used as gate signals.  When they are both open,
+ * no output can be sent to the external hardware.  The states of
+ * relays 3 and 4 _MUST_ only be changed while gated off by
+ * relays 1 and 2.
+ */
+
+static mx_status_type
+mxd_bipolar_relay_disable_output( MX_BIPOLAR_RELAY *bipolar_relay )
+{
+	static const char fname[] = "mxd_bipolar_relay_disable_output()";
+
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s: Disabling '%s' output.",
+		fname, bipolar_relay->record->name ));
+
+	mx_status = mxd_bipolar_relay_raw_command( 
+		bipolar_relay->relay_1_record, MXF_OPEN_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_bipolar_relay_raw_command( 
+		bipolar_relay->relay_2_record, MXF_OPEN_RELAY );
+
+	return mx_status;
+}
+
+static mx_status_type
+mxd_bipolar_relay_enable_output( MX_BIPOLAR_RELAY *bipolar_relay )
+{
+	static const char fname[] = "mxd_bipolar_relay_enable_output()";
+
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s: Enabling '%s' output.",
+		fname, bipolar_relay->record->name ));
+
+	mx_status = mxd_bipolar_relay_raw_command( 
+		bipolar_relay->relay_1_record, MXF_CLOSE_RELAY );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_bipolar_relay_raw_command( 
+		bipolar_relay->relay_2_record, MXF_CLOSE_RELAY );
 
 	return mx_status;
 }
@@ -192,9 +249,9 @@ mxd_bipolar_relay_open( MX_RECORD *record )
 			record->name);
         }
 
-	/* Make sure that all the relays are open. */
+	/* Make sure that no signals are being sent to the external hardware. */
 
-	mx_status = mxd_bipolar_relay_open_all_relays( bipolar_relay );
+	mx_status = mxd_bipolar_relay_disable_output( bipolar_relay );
 
 	return mx_status;
 }
@@ -205,8 +262,7 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 	static const char fname[] = "mxd_bipolar_relay_relay_command()";
 
 	MX_BIPOLAR_RELAY *bipolar_relay;
-	MX_RECORD *first_upstream_record,   *second_upstream_record;
-	MX_RECORD *first_downstream_record, *second_downstream_record;
+	long relay_command;
 	mx_status_type mx_status;
 
 	if ( relay == (MX_RELAY *) NULL ) {
@@ -225,54 +281,72 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 
 	relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
+	/* Make sure all relays are open. This disables signal output. */
+
+	mx_status = mxd_bipolar_relay_disable_output( bipolar_relay );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Generate the first half of the bipolar pulse.
+	 * 
+	 * Note that relays 3 and 4 _MUST_ always ensure that they
+	 * are only changed while gated off by relays 1 and 2.
+	 * ALSO, either relays 3 and 4 are both open, or both are
+	 * closed.
+	 *
+	 * Intermediate states where one is open and the other is closed
+	 * are FORBIDDEN, since that can result in the positive voltage
+	 * (for example, +5 volts) being directly shorted to ground.
+	 * If you do this, hilarity may ensure.  Magic smoke may be
+	 * released.  Your external hardware may be damaged.
+	 *
+	 * It seems that the Arduino 4 Relays Shield attempts to protect
+	 * itself from situations that could damage it.  However, it is
+	 * not prudent to rely on this.
+	 */
+
 	if ( relay->relay_command == MXF_OPEN_RELAY ) {
-		first_upstream_record    = bipolar_relay->relay_1_record;
-		first_downstream_record  = bipolar_relay->relay_3_record;
-		second_upstream_record   = bipolar_relay->relay_2_record;
-		second_downstream_record = bipolar_relay->relay_4_record;
+		MX_DEBUG(-2,("%s: Command '%s' and '%s' to OPEN", fname,
+			bipolar_relay->relay_3_record->name,
+			bipolar_relay->relay_4_record->name ));
+
+		relay_command = MXF_OPEN_RELAY;
 	} else {
-		first_upstream_record    = bipolar_relay->relay_2_record;
-		first_downstream_record  = bipolar_relay->relay_4_record;
-		second_upstream_record   = bipolar_relay->relay_1_record;
-		second_downstream_record = bipolar_relay->relay_3_record;
+		MX_DEBUG(-2,("%s: Command '%s' and '%s' to CLOSE", fname,
+			bipolar_relay->relay_3_record->name,
+			bipolar_relay->relay_4_record->name ));
+
+		relay_command = MXF_CLOSE_RELAY;
 	}
 
-	/* Make sure all relays are open. */
-
-	mx_status = mxd_bipolar_relay_open_all_relays( bipolar_relay );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Generate the first half of the bipolar pulse. */
-
-	MX_DEBUG(-2,("%s: Command first upstream '%s' to CLOSE",
-			fname, first_upstream_record->name ));
-
-	mx_status = mxd_bipolar_relay_raw_command( first_upstream_record, MXF_CLOSE_RELAY );
+	mx_status = mxd_bipolar_relay_raw_command(
+		bipolar_relay->relay_3_record, relay_command );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: Command first downstream '%s' to CLOSE",
-			fname, first_downstream_record->name ));
-
-	mx_status = mxd_bipolar_relay_raw_command( first_downstream_record,
-							MXF_CLOSE_RELAY );
+	mx_status = mxd_bipolar_relay_raw_command(
+		bipolar_relay->relay_4_record, relay_command );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Wait for the first half of the bipolar pulse to finish. */
+	mx_status = mxd_bipolar_relay_enable_output( bipolar_relay );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/**** Wait for the first half of the bipolar pulse to finish. ****/
 
 	MX_DEBUG(-2,("%s: First active wait of %lu",
 		fname, bipolar_relay->first_active_ms ));
 
 	mx_msleep( bipolar_relay->first_active_ms );
 
-	/* Command all the relays to open. */
+	/**** The first half of the pulse is finished. ****/
 
-	mx_status = mxd_bipolar_relay_open_all_relays( bipolar_relay );
+	mx_status = mxd_bipolar_relay_disable_output( bipolar_relay );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -288,36 +362,49 @@ mxd_bipolar_relay_relay_command( MX_RELAY *relay )
 		mx_msleep( bipolar_relay->between_time_ms );
 	}
 
-	/* Generate the second half of the bipolar pulse. */
+	/**** Generate the second half of the bipolar pulse. ****/
 
-	MX_DEBUG(-2,("%s: Command second upstream '%s' to CLOSE",
-			fname, second_upstream_record->name ));
+	if ( relay->relay_command == MXF_OPEN_RELAY ) {
+		MX_DEBUG(-2,("%s: Command '%s' and '%s' to CLOSE", fname,
+			bipolar_relay->relay_3_record->name,
+			bipolar_relay->relay_4_record->name ));
 
-	mx_status = mxd_bipolar_relay_raw_command( second_upstream_record, MXF_CLOSE_RELAY );
+		relay_command = MXF_CLOSE_RELAY;
+	} else {
+		MX_DEBUG(-2,("%s: Command '%s' and '%s' to OPEN", fname,
+			bipolar_relay->relay_3_record->name,
+			bipolar_relay->relay_4_record->name ));
+
+		relay_command = MXF_OPEN_RELAY;
+	}
+
+	mx_status = mxd_bipolar_relay_raw_command(
+		bipolar_relay->relay_3_record, relay_command );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: Command second downstream '%s' to CLOSE",
-			fname, second_downstream_record->name ));
-
-	mx_status = mxd_bipolar_relay_raw_command( second_downstream_record,
-							MXF_CLOSE_RELAY );
+	mx_status = mxd_bipolar_relay_raw_command(
+		bipolar_relay->relay_4_record, relay_command );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mxd_bipolar_relay_enable_output( bipolar_relay );
 
-	/* Wait for the second half of the bipolar pulse to finish. */
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/**** Wait for the second half of the bipolar pulse to finish. ****/
 
 	MX_DEBUG(-2,("%s: Second active wait of %lu",
 		fname, bipolar_relay->first_active_ms ));
 
 	mx_msleep( bipolar_relay->second_active_ms );
 
-	/* Command all the relays to open. */
+	/**** Disable the outputs. ****/
 
-	mx_status = mxd_bipolar_relay_open_all_relays( bipolar_relay );
+	mx_status = mxd_bipolar_relay_disable_output( bipolar_relay );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
