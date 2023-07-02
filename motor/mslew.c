@@ -17,10 +17,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "motor.h"
 #include "mx_key.h"
 #include "keycodes.h"
+#include "mdialog.h"
 
 int
 motor_mslew_fn( int argc, char *argv[] )
@@ -30,19 +32,19 @@ motor_mslew_fn( int argc, char *argv[] )
 	MX_RECORD *record;
 	MX_MOTOR *motor;
 	char *motor_name;
-	double motor_speed;
+	double motor_speed, new_speed;
 	long direction;
-	int c;
+	int c, mdialog_status;
 	mx_bool_type exit_loop, busy;
 	mx_status_type mx_status;
 
-	if ( argc <= 4 ) {
+	if ( argc <= 3 ) {
 		fprintf(output,
-"Usage: mslew 'motor' 'motor_speed' 'direction' - Start a constant velocity\n"
-"                           move in the requested direction 'direction'.  \n"
-"                           The motor will continue slewing until the user\n"
-"                           aborts the move, or the motor hits a limit, or\n"
-"                           some other event stops it.\n"
+"Usage: mslew 'motor' 'motor_speed'\n"
+"\n"
+"           The sign of motor_speed controls the direction that the motor\n"
+"           will move in.  The absolute value of the motor_speed determines\n"
+"           the motor speed.\n"
 "\n"
 "         WARNING: Motors controlled entirely by MX will have\n"
 "                       NO BACKLASH CORRECTION\n"
@@ -85,31 +87,15 @@ motor_mslew_fn( int argc, char *argv[] )
 
 	motor_speed = atof( argv[3] );
 
-	if ( motor_speed > 0.0 ) {
-		mx_status = mx_motor_set_speed( record, motor_speed );
+	mx_status = mx_motor_set_speed( record, fabs( motor_speed ) );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return FAILURE;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
 
-	/* Get the requested direction. */
-
-	if ( strcmp( argv[4], "+" ) == 0 ) {
+	if ( motor_speed >= 0.0 ) {
 		direction = 1;
-	} else
-	if ( strcmp( argv[4], "-" ) == 0 ) {
-		direction = -1;
-	} else
-	if ( strcmp( argv[4], "1" ) == 0 ) {
-		direction = 1;
-	} else
-	if ( strcmp( argv[4], "-1" ) == 0 ) {
-		direction = -1;
-	} else
-	if ( strcmp( argv[4], "0" ) == 0 ) {
-		direction = 0;
 	} else {
-		direction = 0;
+		direction = -1;
 	}
 
 	mx_status = mx_motor_constant_velocity_move( record, direction );
@@ -161,6 +147,26 @@ motor_mslew_fn( int argc, char *argv[] )
 		if ( c == ESC || c == CTRL_D ) {
 			break;		/* Exit the while() loop. */
 		}
+
+		if ( c == '\n' || c == '\r' ) {
+			mdialog_status = motor_get_double( output,
+					"Enter new speed: ", 0, 0.0,
+					&new_speed, 0.0, 100.0 );
+
+			if ( mdialog_status == FAILURE )
+				return mdialog_status;
+
+			fprintf( output, "\n" );
+
+			new_speed = fabs( new_speed );
+
+			mx_status = mx_motor_set_speed( record, new_speed );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				(void) mx_motor_stop( record );
+				break;
+			}
+		}
 	}
 
 	mx_status = mx_motor_stop( record );
@@ -168,7 +174,7 @@ motor_mslew_fn( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;
 
-	fprintf( output, "MJOG finished.\n");
+	fprintf( output, "MSLEW finished.\n");
 
 	return SUCCESS;
 }
