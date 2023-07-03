@@ -151,7 +151,7 @@ motor_mslew_fn( int argc, char *argv[] )
 		if ( c == '\n' || c == '\r' ) {
 			mdialog_status = motor_get_double( output,
 					"Enter new speed: ", 0, 0.0,
-					&new_speed, 0.0, 100.0 );
+					&new_speed, -100.0, 100.0 );
 
 			if ( mdialog_status == FAILURE )
 				return mdialog_status;
