@@ -104,7 +104,8 @@ motor_mslew_fn( int argc, char *argv[] )
 		return FAILURE;
 
 	fprintf( output,
-	"MSLEW '%s' started.  Hit <ctrl-D> or <escape> to exit.\n",
+	"MSLEW '%s' started.  Hit <ctrl-D> or <escape> to exit.\n"
+	"                     Hit <enter> or <return> to change speed.\n",
 				motor_name);
 	c = 0;
 	exit_loop = FALSE;
