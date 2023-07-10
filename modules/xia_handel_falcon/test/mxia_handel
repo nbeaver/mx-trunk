@@ -1,0 +1,8 @@
+#! /bin/sh
+
+HANDEL_LIB_DIR=/usr/local/src/handel-1.2.17/src
+
+export LD_LIBRARY_PATH=../../../libMx:$HANDEL_LIB_DIR
+
+../../../motor/mxmotor -Fmxia_handel.dat -s sxia_handel.dat $*
+
